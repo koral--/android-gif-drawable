@@ -382,7 +382,7 @@ DGifGetImageDesc(GifFileType *GifFile)
             GifFile->Image.ColorMap->Colors[i].Blue = Buf[2];
         }
     }
-
+    //FIXME ignore if not dec
     if (GifFile->SavedImages) {
         if ((GifFile->SavedImages = (SavedImage *)realloc(GifFile->SavedImages,
                                       sizeof(SavedImage) *
@@ -413,7 +413,7 @@ DGifGetImageDesc(GifFileType *GifFile)
     sp->ExtensionBlockCount = 0;
     sp->ExtensionBlocks = (ExtensionBlock *) NULL;
 
-    GifFile->ImageCount++;
+    GifFile->ImageCount++;//FIXME ignore if not dec
 
     Private->PixelCount = (long)GifFile->Image.Width *
        (long)GifFile->Image.Height;

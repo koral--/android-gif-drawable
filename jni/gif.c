@@ -38,13 +38,19 @@ typedef struct {
 
 static ColorMapObject* defaultCmap = NULL;
 
+typedef struct
+{
+	unsigned int duration;
+	unsigned short transpIndex;
+	unsigned char disposalMethod;
+} FrameInfo;
+
 typedef struct {
 	GifFileType* gifFilePtr;
-	long nextStartTime;
+	unsigned long nextStartTime;
 	int currentIndex;
-	int lastDrawIndex;
-	unsigned int* offsets;
-	unsigned int* transIndex;
+	unsigned int lastDrawIndex;
+	FrameInfo* infos;
 	argb* backupPtr;
 	int startPos;
 	unsigned char* rasterBits;
@@ -65,18 +71,35 @@ static ColorMapObject* genDefColorMap() {
 
 static void cleanUp(GifInfo* info) {
 	free(info->backupPtr);
-	free(info->offsets);
+	free(info->infos);
 	free(info->rasterBits);
-	info->rasterBits = NULL;
-	info->offsets = NULL;
-	info->backupPtr = NULL;
-	fclose((FILE *) (info->gifFilePtr->UserData));
+	info->rasterBits=NULL;
+
+	GifFileType* GifFile= info->gifFilePtr;
+
+
+    if (GifFile->SavedImages != NULL)
+    {
+    	SavedImage *sp;
+		for (sp = GifFile->SavedImages;
+			 sp < GifFile->SavedImages + GifFile->ImageCount; sp++) {
+			if (sp->ImageDesc.ColorMap != NULL) {
+				GifFreeMapObject(sp->ImageDesc.ColorMap);
+				sp->ImageDesc.ColorMap = NULL;
+			}
+
+
+		GifFreeExtensions(&sp->ExtensionBlockCount, &sp->ExtensionBlocks);
+		}
+		free((char *)GifFile->SavedImages);
+		GifFile->SavedImages = NULL;
+    }
+	//fclose((FILE *) (info->gifFilePtr->UserData));
 	DGifCloseFile(info->gifFilePtr);
-	info->gifFilePtr = NULL;
 	free(info);
 }
 
-static void PrintGifError(int _GifError) {
+static void PrintGifError(int _GifError) { //TODO texts only in debug
 	char *Err = GifErrorString(_GifError);
 	if (Err != NULL)
 		LOGE("\nGIF-LIB error: %s.\n", Err);
@@ -86,7 +109,7 @@ static void PrintGifError(int _GifError) {
 /**
  * Returns the real time, in ms
  */
-static long getRealTime() {
+static unsigned long getRealTime() {
 	struct timespec ts;
 	const clockid_t id = CLOCK_MONOTONIC;
 	if (id != (clockid_t) -1 && clock_gettime(id, &ts) != -1)
@@ -94,40 +117,26 @@ static long getRealTime() {
 	return -1;
 }
 
-static int QuitGifError(GifFileType *GifFileIn) {
-	PrintGifError(GifFileIn->Error);
-	return DGifCloseFile(GifFileIn);
-}
-
-static unsigned int savedimage_duration(const SavedImage* image) {
-	int j;
-	for (j = 0; j < image->ExtensionBlockCount; j++) {
-		if (image->ExtensionBlocks[j].Function == GRAPHICS_EXT_FUNC_CODE) {
-			const char* b = (const char*) image->ExtensionBlocks[j].Bytes;
-			unsigned int delay = ((b[2] << 8) | b[1]);
-			return delay > 1 ? delay * 10 : 100;
-		}
-	}
-	return 100;
-}
 static int readFun(GifFileType* gif, GifByteType* bytes, int size) {
 	FILE* file = (FILE*) gif->UserData;
 	return fread(bytes, 1, size, file);
 }
-static unsigned int e(GifByteType* Bytes) {
+static void getInfo(GifByteType* Bytes, unsigned short* transparent, unsigned char* disposal, unsigned int* duration) {
 	char* b = (char*) Bytes;
-	unsigned int delay = ((b[2] << 8) | b[1]);
-	return delay > 1 ? delay * 10 : 100;
+	unsigned short delay = ((b[2] << 8) | b[1]);
+	*duration = delay > 1 ? delay * 10 : 100;
+	*disposal = ((b[0] >> 2) & 7);
+	bool has_transparency = ((Bytes[0] & 1) == 1);
+	if (has_transparency)
+		*transparent = (unsigned short) b[3];
 }
-int DDGifSlurp(GifFileType *GifFile, GifInfo* info) {
+
+int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 	GifRecordType RecordType;
 	GifByteType *ExtData;
 	int codeSize;
 	int ExtFunction;
 	size_t ImageSize;
-
-	GifFile->ExtensionBlocks = NULL;
-	GifFile->ExtensionBlockCount = 0;
 
 	do {
 		if (DGifGetRecordType(GifFile, &RecordType) == GIF_ERROR)
@@ -136,21 +145,14 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info) {
 		case IMAGE_DESC_RECORD_TYPE:
 			if (DGifGetImageDesc(GifFile) == GIF_ERROR)
 				return (GIF_ERROR);
-			int i = info == NULL ? GifFile->ImageCount - 1 : info->currentIndex;
+			int i = shouldDecode ? info->currentIndex:GifFile->ImageCount - 1;
 			SavedImage* sp = &GifFile->SavedImages[i];
-			if (GifFile->ExtensionBlocks) {
-				sp->ExtensionBlocks = GifFile->ExtensionBlocks;
-				sp->ExtensionBlockCount = GifFile->ExtensionBlockCount;
-
-				GifFile->ExtensionBlocks = NULL;
-				GifFile->ExtensionBlockCount = 0;
-			}
 			if (sp->ImageDesc.Width < 0 && sp->ImageDesc.Height < 0
 					&& sp->ImageDesc.Width > (INT_MAX / sp->ImageDesc.Height)) {
 				return GIF_ERROR;
 			}
-			if (info != NULL) {
-				GifFile->ImageCount--; //FIXME ugly!
+			if (shouldDecode) {
+				GifFile->ImageCount--; //FIXME alternative DGifGetImageDesc withoud decoding
 				ImageSize = sp->ImageDesc.Width * sp->ImageDesc.Height;
 
 				if (ImageSize > (SIZE_MAX / sizeof(GifPixelType))) {
@@ -180,7 +182,8 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info) {
 							ImageSize)==GIF_ERROR)
 						return (GIF_ERROR);
 				}
-				if (info->currentIndex >= GifFile->ImageCount - 1) {
+				if (info->currentIndex >= GifFile->ImageCount - 1)
+				{
 					if (fseek(GifFile->UserData, info->startPos, SEEK_SET) != 0)
 						return GIF_ERROR;
 				}
@@ -198,27 +201,31 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info) {
 		case EXTENSION_RECORD_TYPE:
 			if (DGifGetExtension(GifFile, &ExtFunction, &ExtData) == GIF_ERROR)
 				return (GIF_ERROR);
-			if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData != NULL)
-				LOGI("read %d", e(&ExtData[1]));
-			//FIXME read duration, transparent color idx and disposal method
-			/* Create an extension block with our data */
-			if (GifAddExtensionBlock(&GifFile->ExtensionBlockCount,
-					&GifFile->ExtensionBlocks, ExtFunction, ExtData[0],
-					&ExtData[1]) == GIF_ERROR)
-				return (GIF_ERROR);
-			while (ExtData != NULL ) {
+			//TODO read netscape ext
+			//TODO read comment
+			if (!shouldDecode)
+			{
+				info->infos=(FrameInfo*)realloc(info->infos,(GifFile->ImageCount+1)*sizeof(FrameInfo));
+				if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData != NULL&&ExtData[0] == 4)
+				{
+					FrameInfo* fi=&info->infos[GifFile->ImageCount];
+					fi->transpIndex=-1;
+					getInfo(&ExtData[1],&fi->transpIndex,&fi->disposalMethod, &fi->duration);
+					//LOGE("%d ti=%u di=%d du=%d",delay, fi->transpIndex,fi->disposalMethod, fi->duration);
+				}
+			}
+			while (ExtData != NULL )
+			{
 				if (DGifGetExtensionNext(GifFile, &ExtData,
 						&ExtFunction) == GIF_ERROR)
 					return (GIF_ERROR);
-				if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData != NULL)
-					LOGI("read n %d", e(&ExtData[1]));
+				if (shouldDecode&&ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData != NULL)
+				{
+					FrameInfo* fi=&info->infos[GifFile->ImageCount-1];
+					fi->transpIndex=-1;
+					getInfo(&ExtData[1],&fi->transpIndex,&fi->disposalMethod, &fi->duration);
+				}
 
-				/* Continue the extension block */
-				if (ExtData != NULL)
-					if (GifAddExtensionBlock(&GifFile->ExtensionBlockCount,
-							&GifFile->ExtensionBlocks, CONTINUE_EXT_FUNC_CODE,
-							ExtData[0], &ExtData[1]) == GIF_ERROR)
-						return (GIF_ERROR);
 			}
 			break;
 
@@ -230,7 +237,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info) {
 		}
 	} while (RecordType != TERMINATE_RECORD_TYPE);
 	bool ok = true;
-	if (info != NULL) {
+	if (shouldDecode) {
 		FILE* file = (FILE*) GifFile->UserData;
 		ok = (fseek(file, info->startPos, SEEK_SET) == 0);
 	}
@@ -249,12 +256,11 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 		return (jint) NULL ;
 	GifFileType *GifFileIn = DGifOpen(file, readFun, &Error);
 	int startPos = ftell(file);
-	if (startPos < 0)
-		return (jint) NULL ;
 	(*env)->ReleaseStringUTFChars(env, jfname, fname);
-	if (GifFileIn == NULL) {
+	if (startPos < 0 ||GifFileIn == NULL) {
 		PrintGifError(Error);
-		return (jint) 0;
+		DGifCloseFile(GifFileIn);
+		return (jint) NULL;
 	}
 	int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
 	if (width < 1 || height < 1) {
@@ -267,44 +273,38 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 	*ints = height;
 	(*env)->ReleaseIntArrayElements(env, dims, ints, 0);
 
-	if (DDGifSlurp(GifFileIn, NULL) == GIF_ERROR) {
-		LOGI("fail");
-		PrintGifError(GifFileIn->Error);
-	}
-	if (GifFileIn->ImageCount < 1) {
-		LOGI("no valid frames");
-		DGifCloseFile(GifFileIn);
-		return (jint) NULL ;
-	}
-	LOGI("frame count: %d", GifFileIn->ImageCount);
 	GifInfo* info = (GifInfo*) malloc(sizeof(GifInfo));
 	if (info == NULL) {
 		LOGE("malloc failed");
 		DGifCloseFile(GifFileIn);
 		return (jint) NULL ;
 	}
+	info->gifFilePtr = GifFileIn;
 	info->startPos = startPos;
 	info->currentIndex = -1;
 	info->nextStartTime = 0;
 	info->rasterBits = (char*) malloc(
 			GifFileIn->SHeight * GifFileIn->SWidth * sizeof(GifPixelType));
-	info->offsets = (unsigned int*) malloc(
-			GifFileIn->ImageCount * sizeof(unsigned int));
+	info->infos = (FrameInfo*)malloc(sizeof(FrameInfo));
 	info->backupPtr = (argb*) malloc(width * height * sizeof(argb));
 
-	if (info->offsets == NULL || info->rasterBits == NULL
-			|| info->backupPtr == NULL
-			|| fseek(file, info->startPos, SEEK_SET) != 0) {
+	if (info->rasterBits == NULL
+			|| info->backupPtr == NULL	) {
 		LOGE("Initialization failed");
 		cleanUp(info);
 		return (jint) NULL ;
 	}
-	int i;
-	for (i = 0; i < GifFileIn->ImageCount; i++) {
-		info->offsets[i] = savedimage_duration(&GifFileIn->SavedImages[i]);
-		LOGE("o= %d", info->offsets[i]);
+
+	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR) {
+		LOGI("fail");
+		PrintGifError(GifFileIn->Error);
 	}
-	info->gifFilePtr = GifFileIn;
+	if (GifFileIn->ImageCount < 1||fseek(file, startPos, SEEK_SET)!=0)
+	{
+		LOGI("no valid frames or fseek failed"); //TODO texts
+		cleanUp(info);
+		return (jint) NULL ;
+	}
 
 	return (jint) info;
 }
@@ -374,18 +374,7 @@ static void fillRect(argb* bm, int bmWidth, int bmHeight, GifWord left,
 }
 
 static void drawFrame(argb* bm, int bmWidth, int bmHeight,
-		const SavedImage* frame, const ColorMapObject* cmap) {
-	int transparent = -1, i;
-
-	for (i = 0; i < frame->ExtensionBlockCount; ++i) {
-		ExtensionBlock* eb = frame->ExtensionBlocks + i;
-		if (eb->Function == GRAPHICS_EXT_FUNC_CODE && eb->ByteCount == 4) {
-			bool has_transparency = ((eb->Bytes[0] & 1) == 1);
-			if (has_transparency) {//FIXME fetch only once, move to DD
-				transparent = (unsigned char) eb->Bytes[3];
-			}
-		}
-	}
+		const SavedImage* frame, const ColorMapObject* cmap, unsigned short transpIndex) {
 
 	if (frame->ImageDesc.ColorMap != NULL) {
 		// use local color table
@@ -396,21 +385,7 @@ static void drawFrame(argb* bm, int bmWidth, int bmHeight,
 		cmap = defaultCmap;
 	}
 
-	blitNormal(bm, bmWidth, bmHeight, frame, cmap, transparent);
-}
-
-static void getTransparencyAndDisposalMethod(const SavedImage* frame,
-		bool* trans, int* disposal) {
-	*trans = false;
-	*disposal = 0;
-	int i; //FIXME fetch only once, move to DD
-	for (i = 0; i < frame->ExtensionBlockCount; ++i) {
-		ExtensionBlock* eb = frame->ExtensionBlocks + i;
-		if (eb->Function == GRAPHICS_EXT_FUNC_CODE && eb->ByteCount == 4) {
-			*trans = ((eb->Bytes[0] & 1) == 1);
-			*disposal = ((eb->Bytes[0] >> 2) & 7);
-		}
-	}
+	blitNormal(bm, bmWidth, bmHeight, frame, cmap, (int)transpIndex);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -430,17 +405,18 @@ static void eraseColor(argb* bm, int w, int h, argb color) {
 	uint32_t* pColor = (uint32_t*) (&color);
 	memset((uint32_t*) bm, *pColor, w * h*sizeof(argb));
 }
-static void disposeFrameIfNeeded(argb* bm, int bmWidth, int bmHeight,
-		const SavedImage* cur, const SavedImage* next, argb* backup, argb color) {
+static inline void disposeFrameIfNeeded(argb* bm,GifInfo* info, unsigned int idx,
+		argb* backup, argb color) {
+	GifFileType* fGif=info->gifFilePtr;
+	SavedImage* cur=&fGif->SavedImages[idx-1];
+	SavedImage* next=&fGif->SavedImages[idx];
 	// We can skip disposal process if next frame is not transparent
 	// and completely covers current area
-	bool curTrans;
-	int curDisposal;
-	getTransparencyAndDisposalMethod(cur, &curTrans, &curDisposal);
-	bool nextTrans;
-	int nextDisposal;
+	bool curTrans=info->infos[idx-1].transpIndex!=-1;
+	int curDisposal=info->infos[idx-1].disposalMethod;
+	bool nextTrans=info->infos[idx].transpIndex!=-1;
+	int nextDisposal=info->infos[idx].disposalMethod;
 	argb* tmp;
-	getTransparencyAndDisposalMethod(next, &nextTrans, &nextDisposal);
 	if ((curDisposal == 2 || curDisposal == 3)
 			&& (nextTrans || !checkIfCover(next, cur))) {
 		switch (curDisposal) {
@@ -448,7 +424,7 @@ static void disposeFrameIfNeeded(argb* bm, int bmWidth, int bmHeight,
 		// -> 'background' means background under this image.
 		case 2:
 
-			fillRect(bm, bmWidth, bmHeight, cur->ImageDesc.Left,
+			fillRect(bm, fGif->SWidth, fGif->SHeight, cur->ImageDesc.Left,
 					cur->ImageDesc.Top, cur->ImageDesc.Width,
 					cur->ImageDesc.Height, color);
 			break;
@@ -464,11 +440,11 @@ static void disposeFrameIfNeeded(argb* bm, int bmWidth, int bmHeight,
 
 	// Save current image if next frame's disposal method == 3
 	if (nextDisposal == 3) {
-		memcpy(backup, bm, bmWidth * bmHeight * sizeof(argb));
+		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
 	}
 }
 
-static void getBitmap(argb* bm, GifInfo* info, long baseTime) {
+static void getBitmap(argb* bm, GifInfo* info, long baseTime, JNIEnv * env) {
 	argb* fBackup = info->backupPtr;
 	GifFileType* fGIF = info->gifFilePtr;
 
@@ -478,20 +454,23 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime) {
 		packARGB32(&bgColor, 0xFF, col.Red, col.Green, col.Blue);
 	} else
 		packARGB32(&bgColor, 0, 0, 0, 0);
-
 	argb paintingColor;
 	int i = info->currentIndex;
-	if (DDGifSlurp(fGIF, info) == GIF_ERROR) {
-		//TODO handle
+	LOGE("prg %d",i);
+	if (DDGifSlurp(fGIF, info, true) == GIF_ERROR)
+	{
+//		(*env)->ThrowNew(env,
+//						(*env)->FindClass(env, "java/lang/RuntimeException"),
+//						"Failed to create default color table");
+//		exit(1);
 		return;
 	}
 	SavedImage* cur = &fGIF->SavedImages[i];
-
-	if (i == 0) {
-		bool trans;
-		int disposal;
-		getTransparencyAndDisposalMethod(cur, &trans, &disposal);
-		if (!trans && fGIF->SColorMap != NULL) {
+	LOGE("gb %d %d", i, (int)cur->RasterBits);
+	unsigned short transpIndex=info->infos[0].transpIndex;
+	if (i == 0)
+	{
+		if (transpIndex==-1 && fGIF->SColorMap != NULL) {
 			paintingColor = bgColor;
 		} else {
 			packARGB32(&paintingColor, 0, 0, 0, 0);
@@ -502,24 +481,15 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime) {
 	} else {
 		packARGB32(&paintingColor, 0, 0, 0, 0);
 		// Dispose previous frame before move to next frame.
-		const SavedImage* prev = &fGIF->SavedImages[i - 1];
-		disposeFrameIfNeeded(bm, fGIF->SWidth, fGIF->SHeight, prev, cur,
-				fBackup, paintingColor);
+		disposeFrameIfNeeded(bm, info, i, fBackup, paintingColor);
 	}
 
-	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap);
-
-	/* Deallocate its Colormap TODO*/
-//    if (cur->ImageDesc.ColorMap != NULL) {
-//        GifFreeMapObject(cur->ImageDesc.ColorMap);
-//       cur->ImageDesc.ColorMap=NULL;
-//    }
+	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap, transpIndex);
 }
 
 JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 		JNIEnv * env, jobject obj, jobject bitmap, jobject gifInfo) {
 	void* pixels;
-
 	GifInfo* info = (GifInfo*) gifInfo;
 
 	bool needRedraw = false;
@@ -536,11 +506,12 @@ JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 			LOGE("AndroidBitmap_lockPixels() failed ! error: %d", ret);
 			return JNI_FALSE;
 		}
-		getBitmap((argb*) pixels, info, rt);
+		getBitmap((argb*) pixels, info, rt, env);
 		ret = AndroidBitmap_unlockPixels(env, bitmap);
 		if (ret < 0)
 			return JNI_FALSE;
-		info->nextStartTime = rt + info->offsets[info->currentIndex];
+
+		info->nextStartTime = rt + (info->infos[info->currentIndex]).duration;
 	}
 	return JNI_TRUE;
 }
