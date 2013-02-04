@@ -54,6 +54,10 @@ typedef struct {
 	argb* backupPtr;
 	int startPos;
 	unsigned char* rasterBits;
+	char* comment;
+	unsigned short loopCount;
+	int currentLoop;
+	bool hasAlpha;
 } GifInfo;
 
 static ColorMapObject* genDefColorMap() {
@@ -73,11 +77,10 @@ static void cleanUp(GifInfo* info) {
 	free(info->backupPtr);
 	free(info->infos);
 	free(info->rasterBits);
+	free(info->comment);
 	info->rasterBits=NULL;
 
 	GifFileType* GifFile= info->gifFilePtr;
-
-
     if (GifFile->SavedImages != NULL)
     {
     	SavedImage *sp;
@@ -87,9 +90,6 @@ static void cleanUp(GifInfo* info) {
 				GifFreeMapObject(sp->ImageDesc.ColorMap);
 				sp->ImageDesc.ColorMap = NULL;
 			}
-
-
-		GifFreeExtensions(&sp->ExtensionBlockCount, &sp->ExtensionBlocks);
 		}
 		free((char *)GifFile->SavedImages);
 		GifFile->SavedImages = NULL;
@@ -121,14 +121,62 @@ static int readFun(GifFileType* gif, GifByteType* bytes, int size) {
 	FILE* file = (FILE*) gif->UserData;
 	return fread(bytes, 1, size, file);
 }
-static void getInfo(GifByteType* Bytes, unsigned short* transparent, unsigned char* disposal, unsigned int* duration) {
-	char* b = (char*) Bytes;
-	unsigned short delay = ((b[2] << 8) | b[1]);
-	*duration = delay > 1 ? delay * 10 : 100;
-	*disposal = ((b[0] >> 2) & 7);
-	bool has_transparency = ((Bytes[0] & 1) == 1);
-	if (has_transparency)
-		*transparent = (unsigned short) b[3];
+
+static int getComment(GifByteType* Bytes, char** cmt)
+{
+	unsigned int len=(unsigned int)Bytes[0];
+	unsigned int offset=*cmt!=NULL?strlen(*cmt):0;
+	char* ret= (char*)realloc(*cmt,(len+offset+1)*sizeof(char));
+	if (ret!=NULL)
+	{
+		memcpy(ret+offset,&Bytes[1],len);
+		ret[len+offset]=0;
+		*cmt=ret;
+		return GIF_OK;
+	}
+	return GIF_ERROR;
+}
+static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
+{
+	if (ExtData==NULL)
+		return GIF_OK;
+	if (ExtFunction == GRAPHICS_EXT_FUNC_CODE &&ExtData[0] == 4)
+	{
+		FrameInfo* fi=&info->infos[info->gifFilePtr->ImageCount];
+		fi->transpIndex=-1;
+		char* b = (char*) ExtData+1;
+		unsigned short delay = ((b[2] << 8) | b[1]);
+		fi->duration = delay > 1 ? delay * 10 : 100;
+		fi->disposalMethod = ((b[0] >> 2) & 7);
+		bool has_transparency = ((ExtData[1] & 1) == 1);
+		if (has_transparency)
+		{
+			fi->transpIndex = (unsigned short) b[3];
+			if (!info->hasAlpha)
+				info->hasAlpha=has_transparency;
+		}
+	}
+	else if (ExtFunction==COMMENT_EXT_FUNC_CODE)
+	{
+		if (getComment(ExtData,&info->comment)==GIF_ERROR)
+		{
+			info->gifFilePtr->Error=D_GIF_ERR_NOT_ENOUGH_MEM;
+			return GIF_ERROR;//TODO set error, check else
+		}
+	}
+	else if (ExtFunction==APPLICATION_EXT_FUNC_CODE&&ExtData[0] == 11)
+	{
+		if (strncmp("NETSCAPE2.0",&ExtData[1],11)||strncmp("ANIMEXTS1.0",&ExtData[1],11))
+		{
+			if (DGifGetExtensionNext(info->gifFilePtr,&ExtData,&ExtFunction)==GIF_ERROR)
+				return GIF_ERROR;
+			if (ExtFunction==APPLICATION_EXT_FUNC_CODE&&ExtData[0] == 3&&ExtData[1] == 1)
+			{
+				info->loopCount=(unsigned short)(ExtData[2]+(ExtData[3]<<8));
+			}
+		}
+	}
+	return GIF_OK;
 }
 
 int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
@@ -147,17 +195,15 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 				return (GIF_ERROR);
 			int i = shouldDecode ? info->currentIndex:GifFile->ImageCount - 1;
 			SavedImage* sp = &GifFile->SavedImages[i];
-			if (sp->ImageDesc.Width < 0 && sp->ImageDesc.Height < 0
-					&& sp->ImageDesc.Width > (INT_MAX / sp->ImageDesc.Height)) {
+			ImageSize = sp->ImageDesc.Width * sp->ImageDesc.Height;
+
+			if (sp->ImageDesc.Width < 1 || sp->ImageDesc.Height < 1
+				||ImageSize > (SIZE_MAX / sizeof(GifPixelType))	) {
 				return GIF_ERROR;
 			}
 			if (shouldDecode) {
-				GifFile->ImageCount--; //FIXME alternative DGifGetImageDesc withoud decoding
-				ImageSize = sp->ImageDesc.Width * sp->ImageDesc.Height;
+				GifFile->ImageCount--; //FIXME alternative DGifGetImageDesc without decoding
 
-				if (ImageSize > (SIZE_MAX / sizeof(GifPixelType))) {
-					return GIF_ERROR;
-				}
 				sp->RasterBits = info->rasterBits;
 
 				if (sp->ImageDesc.Interlace) {
@@ -184,8 +230,10 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 				}
 				if (info->currentIndex >= GifFile->ImageCount - 1)
 				{
+					if (info->loopCount>0)
+						info->currentLoop++;
 					if (fseek(GifFile->UserData, info->startPos, SEEK_SET) != 0)
-						return GIF_ERROR;
+						return GIF_ERROR;//TODO set error, check else
 				}
 				return GIF_OK;
 			} else {
@@ -202,30 +250,22 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 			if (DGifGetExtension(GifFile, &ExtFunction, &ExtData) == GIF_ERROR)
 				return (GIF_ERROR);
 			//TODO read netscape ext
-			//TODO read comment
 			if (!shouldDecode)
 			{
 				info->infos=(FrameInfo*)realloc(info->infos,(GifFile->ImageCount+1)*sizeof(FrameInfo));
-				if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData != NULL&&ExtData[0] == 4)
-				{
-					FrameInfo* fi=&info->infos[GifFile->ImageCount];
-					fi->transpIndex=-1;
-					getInfo(&ExtData[1],&fi->transpIndex,&fi->disposalMethod, &fi->duration);
-					//LOGE("%d ti=%u di=%d du=%d",delay, fi->transpIndex,fi->disposalMethod, fi->duration);
-				}
+				if (readExtensions(ExtFunction,ExtData,info)==GIF_ERROR)
+					return GIF_ERROR;
 			}
 			while (ExtData != NULL )
 			{
 				if (DGifGetExtensionNext(GifFile, &ExtData,
 						&ExtFunction) == GIF_ERROR)
 					return (GIF_ERROR);
-				if (shouldDecode&&ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData != NULL)
+				if (!shouldDecode)
 				{
-					FrameInfo* fi=&info->infos[GifFile->ImageCount-1];
-					fi->transpIndex=-1;
-					getInfo(&ExtData[1],&fi->transpIndex,&fi->disposalMethod, &fi->duration);
+					if (readExtensions(ExtFunction,ExtData,info)==GIF_ERROR)
+						return GIF_ERROR;
 				}
-
 			}
 			break;
 
@@ -268,37 +308,42 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 		DGifCloseFile(GifFileIn);
 		return (jint) NULL ;
 	}
-	jint *ints = (*env)->GetIntArrayElements(env, dims, 0);
-	*ints++ = width;
-	*ints = height;
-	(*env)->ReleaseIntArrayElements(env, dims, ints, 0);
 
 	GifInfo* info = (GifInfo*) malloc(sizeof(GifInfo));
 	if (info == NULL) {
 		LOGE("malloc failed");
 		DGifCloseFile(GifFileIn);
-		return (jint) NULL ;
+		return (jint) NULL;
 	}
 	info->gifFilePtr = GifFileIn;
 	info->startPos = startPos;
 	info->currentIndex = -1;
 	info->nextStartTime = 0;
+	info->comment=NULL;
+	info->loopCount=0;
+	info->currentLoop=-1;
+	info->hasAlpha=false;
 	info->rasterBits = (char*) malloc(
 			GifFileIn->SHeight * GifFileIn->SWidth * sizeof(GifPixelType));
 	info->infos = (FrameInfo*)malloc(sizeof(FrameInfo));
 	info->backupPtr = (argb*) malloc(width * height * sizeof(argb));
 
 	if (info->rasterBits == NULL
-			|| info->backupPtr == NULL	) {
+			|| info->backupPtr == NULL ) {
 		LOGE("Initialization failed");
 		cleanUp(info);
 		return (jint) NULL ;
 	}
-
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR) {
 		LOGI("fail");
 		PrintGifError(GifFileIn->Error);
 	}
+	jint *ints = (*env)->GetIntArrayElements(env, dims, 0);
+	*ints++ = width;
+	*ints++ = height;
+	*ints=info->hasAlpha;
+	(*env)->ReleaseIntArrayElements(env, dims, ints, 0);
+
 	if (GifFileIn->ImageCount < 1||fseek(file, startPos, SEEK_SET)!=0)
 	{
 		LOGI("no valid frames or fseek failed"); //TODO texts
@@ -467,7 +512,7 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime, JNIEnv * env) {
 	}
 	SavedImage* cur = &fGIF->SavedImages[i];
 	LOGE("gb %d %d", i, (int)cur->RasterBits);
-	unsigned short transpIndex=info->infos[0].transpIndex;
+	unsigned short transpIndex=info->infos[i].transpIndex;
 	if (i == 0)
 	{
 		if (transpIndex==-1 && fGIF->SColorMap != NULL) {
@@ -494,7 +539,8 @@ JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 
 	bool needRedraw = false;
 	long rt = getRealTime();
-	if (rt >= info->nextStartTime) {
+	if (rt >= info->nextStartTime&&info->currentLoop<info->loopCount)
+	{
 		if (++info->currentIndex >= info->gifFilePtr->ImageCount)
 			info->currentIndex = 0;
 		needRedraw = true;
@@ -534,3 +580,19 @@ JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_init(JNIEnv * env,
 				(*env)->FindClass(env, "java/lang/RuntimeException"),
 				"Failed to create default color table");
 }
+JNIEXPORT jstring JNICALL Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env,
+		jobject obj, jobject gifInfo)
+{
+	if (gifInfo==NULL)
+		return NULL;
+	GifInfo* info=(GifInfo*) gifInfo;
+	return (*env)->NewStringUTF(env, info->comment);
+}
+JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv * env,
+		jobject obj, jobject gifInfo)
+{
+	if (gifInfo==NULL)
+		return 0;
+	return ((GifInfo*) gifInfo)->loopCount;
+}
+

@@ -30,18 +30,17 @@ public class Test extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-//        ImageView v = new ImageView(this);
-//        v.setImageDrawable(new GifDrawable());
-//        v.setScaleType(ScaleType.CENTER_INSIDE);
-        Gallery v=new Gallery(this);
-        v.setAdapter(new ImageAdapter(new File("/sdcard/gifs").listFiles()));
+        ImageView v = new ImageView(this);
+       v.setImageDrawable(new GifDrawable("/sdcard/gifs/base_4x1.gif"));
+       // Log.e("ggg", ""+new GifDrawable("/sdcard/gifs/m.gif").getLoopCount());
+//        Gallery v=new Gallery(this);
+//        v.setAdapter(new ImageAdapter(new File("/sdcard/gifs").listFiles()));
         setContentView(v);
     }
     public class ImageAdapter extends BaseAdapter {
     	final File[] items;
     	
         public ImageAdapter(File[] items) {
-			super();
 			this.items = items;
 		}
 
@@ -72,27 +71,34 @@ class GifDrawable extends Drawable implements Animatable
     static {
         init();
     }	
+    private native boolean renderFrame(Bitmap  bitmap, int gifFileInPtr);
+	private native int openFile(String fname, int[] dims);
+    private native void free(int gifFileInPtr);
+    private native String getComment(int gifFileInPtr);
+    private native short getLoopCount(int gifFileInPtr);
+    private static native void init();
+    
     private Bitmap mBitmap;
-    private static native boolean renderFrame(Bitmap  bitmap, int gifFileInPtr);
-    private static native int openFile(String fname, int[] dims);
-    private static native void free(int gifFileInPtr);
-    private static native void init();    
     private int gifInfoPtr=0;
     private Paint mPaint=new Paint();
     private boolean mIsRunning;
+    private boolean mHasAlpha;
     String fname;
+    
     public GifDrawable(String fname) {
     	this.fname=fname;
     	//SystemClock.sleep(5000);
 //        String fname="test.gif";
 //        fname="/sdcard/gifs/"+fname;
-        int[] dims=new int[2];
+        int[] metaData=new int[3];
         long st=SystemClock.elapsedRealtime();
-        gifInfoPtr=openFile(fname, dims);
+        gifInfoPtr=openFile(fname, metaData);
         if (gifInfoPtr>0)
         {	
-        	mBitmap = Bitmap.createBitmap(dims[0], dims[1], Bitmap.Config.ARGB_8888);
-        	//mBitmap.setHasAlpha(false);  TODO fetch from native
+        	mBitmap = Bitmap.createBitmap(metaData[0], metaData[1], Bitmap.Config.ARGB_8888);
+        	Log.w("fname", "vxc "+metaData[2]);
+        	mHasAlpha=metaData[2]==1;
+        	mBitmap.setHasAlpha(mHasAlpha);
         }
         Log.w("time", "open "+(SystemClock.elapsedRealtime()-st));  
     }
@@ -108,7 +114,7 @@ class GifDrawable extends Drawable implements Animatable
         if (gifInfoPtr>0)
         {
         	long st=SystemClock.elapsedRealtime();
-        	Log.w("fname", "rendering "+fname);
+        	//Log.w("fname", "rendering "+fname);
         	if (renderFrame(mBitmap, gifInfoPtr)) //TODO pass mIsRunning
         	{	
         		canvas.drawBitmap(mBitmap, 0, 0, mPaint);
@@ -143,8 +149,7 @@ class GifDrawable extends Drawable implements Animatable
 	}
 	@Override
 	public int getOpacity() {
-		// TODO Auto-generated method stub
-		return PixelFormat.TRANSPARENT;
+		return mHasAlpha?PixelFormat.TRANSPARENT:PixelFormat.OPAQUE;
 	}
 	@Override
 	public void start() {
@@ -158,6 +163,17 @@ class GifDrawable extends Drawable implements Animatable
 	public boolean isRunning() {
 		return mIsRunning;
 	}
+	/**
+	 * TODO
+	 * @return 
+	 */
+    public String getComment() 
+    {
+		return getComment(gifInfoPtr);
+	}
+    public int getLoopCount()
+    {
+    	return getLoopCount(gifInfoPtr);
+    }
 	//getNrOfFrames
-	//getComment
 }
