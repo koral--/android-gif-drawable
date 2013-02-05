@@ -3,9 +3,8 @@
       package="pl.droidsonroids.gif"
       android:versionCode="1"
       android:versionName="1.0">
-    <uses-sdk android:minSdkVersion="17" android:targetSdkVersion="17"/>      
-    <application android:label="Plasma"
-        android:debuggable="true" 
+    <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="17"/>      
+    <application android:label="Plasma"        
         android:theme="@android:style/Theme.Black.NoTitleBar">
         <activity android:name="pl.droidsonroids.gif.Test"
                   android:label="Plasma">

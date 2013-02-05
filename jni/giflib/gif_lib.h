@@ -197,7 +197,7 @@ int DGifCloseFile(GifFileType * GifFile);
 /* These are legacy.  You probably do not want to call them directly */
 int DGifGetScreenDesc(GifFileType *GifFile);
 int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
-int DGifGetImageDesc(GifFileType *GifFile);
+int DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount);
 int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, int GifLineLen);
 int DGifGetPixel(GifFileType *GifFile, GifPixelType GifPixel);
 int DGifGetComment(GifFileType *GifFile, char *GifComment);

@@ -94,7 +94,6 @@ static void cleanUp(GifInfo* info) {
 		free((char *)GifFile->SavedImages);
 		GifFile->SavedImages = NULL;
     }
-	//fclose((FILE *) (info->gifFilePtr->UserData));
 	DGifCloseFile(info->gifFilePtr);
 	free(info);
 }
@@ -191,7 +190,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 			return (GIF_ERROR);
 		switch (RecordType) {
 		case IMAGE_DESC_RECORD_TYPE:
-			if (DGifGetImageDesc(GifFile) == GIF_ERROR)
+			if (DGifGetImageDesc(GifFile,!shouldDecode) == GIF_ERROR)
 				return (GIF_ERROR);
 			int i = shouldDecode ? info->currentIndex:GifFile->ImageCount - 1;
 			SavedImage* sp = &GifFile->SavedImages[i];
@@ -202,7 +201,6 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 				return GIF_ERROR;
 			}
 			if (shouldDecode) {
-				GifFile->ImageCount--; //FIXME alternative DGifGetImageDesc without decoding
 
 				sp->RasterBits = info->rasterBits;
 
@@ -249,7 +247,6 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 		case EXTENSION_RECORD_TYPE:
 			if (DGifGetExtension(GifFile, &ExtFunction, &ExtData) == GIF_ERROR)
 				return (GIF_ERROR);
-			//TODO read netscape ext
 			if (!shouldDecode)
 			{
 				info->infos=(FrameInfo*)realloc(info->infos,(GifFile->ImageCount+1)*sizeof(FrameInfo));
@@ -341,7 +338,8 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 	jint *ints = (*env)->GetIntArrayElements(env, dims, 0);
 	*ints++ = width;
 	*ints++ = height;
-	*ints=info->hasAlpha;
+	*ints++ = info->hasAlpha;
+	*ints=GifFileIn->ImageCount;
 	(*env)->ReleaseIntArrayElements(env, dims, ints, 0);
 
 	if (GifFileIn->ImageCount < 1||fseek(file, startPos, SEEK_SET)!=0)
@@ -508,10 +506,11 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime, JNIEnv * env) {
 //						(*env)->FindClass(env, "java/lang/RuntimeException"),
 //						"Failed to create default color table");
 //		exit(1);
+		LOGE("err %s",GifErrorString(fGIF->Error));
 		return;
 	}
 	SavedImage* cur = &fGIF->SavedImages[i];
-	LOGE("gb %d %d", i, (int)cur->RasterBits);
+
 	unsigned short transpIndex=info->infos[i].transpIndex;
 	if (i == 0)
 	{
@@ -528,8 +527,8 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime, JNIEnv * env) {
 		// Dispose previous frame before move to next frame.
 		disposeFrameIfNeeded(bm, info, i, fBackup, paintingColor);
 	}
-
 	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap, transpIndex);
+	LOGE("gb %d %d", i, (int)cur->RasterBits);
 }
 
 JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(

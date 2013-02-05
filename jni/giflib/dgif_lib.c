@@ -327,7 +327,7 @@ DGifGetRecordType(GifFileType *GifFile, GifRecordType* Type)
  Note it is assumed the Image desc. header has been read.
 ******************************************************************************/
 int
-DGifGetImageDesc(GifFileType *GifFile)
+DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount)
 {
     unsigned int BitsPerPixel;
     GifByteType Buf[3];
@@ -382,22 +382,23 @@ DGifGetImageDesc(GifFileType *GifFile)
             GifFile->Image.ColorMap->Colors[i].Blue = Buf[2];
         }
     }
-    //FIXME ignore if not dec
-    if (GifFile->SavedImages) {
-        if ((GifFile->SavedImages = (SavedImage *)realloc(GifFile->SavedImages,
-                                      sizeof(SavedImage) *
-                                      (GifFile->ImageCount + 1))) == NULL) {
-            GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-            return GIF_ERROR;
-        }
-    } else {
-        if ((GifFile->SavedImages =
-             (SavedImage *) malloc(sizeof(SavedImage))) == NULL) {
-            GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-            return GIF_ERROR;
-        }
+    if (changeImageCount)
+    {
+		if (GifFile->SavedImages) {
+			if ((GifFile->SavedImages = (SavedImage *)realloc(GifFile->SavedImages,
+										  sizeof(SavedImage) *
+										  (GifFile->ImageCount + 1))) == NULL) {
+				GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+				return GIF_ERROR;
+			}
+		} else {
+			if ((GifFile->SavedImages =
+				 (SavedImage *) malloc(sizeof(SavedImage))) == NULL) {
+				GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+				return GIF_ERROR;
+			}
+		}
     }
-
     sp = &GifFile->SavedImages[GifFile->ImageCount];
     memcpy(&sp->ImageDesc, &GifFile->Image, sizeof(GifImageDesc));
     if (GifFile->Image.ColorMap != NULL) {
@@ -412,8 +413,8 @@ DGifGetImageDesc(GifFileType *GifFile)
     sp->RasterBits = (unsigned char *)NULL;
     sp->ExtensionBlockCount = 0;
     sp->ExtensionBlocks = (ExtensionBlock *) NULL;
-
-    GifFile->ImageCount++;//FIXME ignore if not dec
+    if (changeImageCount)
+    	GifFile->ImageCount++;
 
     Private->PixelCount = (long)GifFile->Image.Width *
        (long)GifFile->Image.Height;
@@ -1059,7 +1060,7 @@ DGifBufferedInput(GifFileType *GifFile, GifByteType *Buf, GifByteType *NextByte)
  This routine reads an entire GIF into core, hanging all its state info off
  the GifFileType pointer.  Call DGifOpenFileName() or DGifOpenFileHandle()
  first to initialize I/O.  Its inverse is EGifSpew().
-*******************************************************************************/
+
 int
 DGifSlurp(GifFileType *GifFile)
 {
@@ -1088,7 +1089,7 @@ DGifSlurp(GifFileType *GifFile)
                   GifFile->ExtensionBlocks = NULL;
                   GifFile->ExtensionBlockCount = 0;
               }
-              /* Allocate memory for the image */
+              // Allocate memory for the image
               if (sp->ImageDesc.Width < 0 && sp->ImageDesc.Height < 0 &&
                       sp->ImageDesc.Width > (INT_MAX / sp->ImageDesc.Height)) {
                   return GIF_ERROR;
@@ -1108,13 +1109,11 @@ DGifSlurp(GifFileType *GifFile)
 	      if (sp->ImageDesc.Interlace)
 	      {
 			  int i, j;
-			   /*
-				* The way an interlaced image should be read -
-				* offsets and jumps...
-				*/
+			   // The way an interlaced image should be read -				* offsets and jumps...
+
 			  int InterlacedOffset[] = { 0, 4, 2, 1 };
 			  int InterlacedJumps[] = { 8, 8, 4, 2 };
-			  /* Need to perform 4 passes on the image */
+			  // Need to perform 4 passes on the image
 			  for (i = 0; i < 4; i++)
 				  for (j = InterlacedOffset[i];
 				   j < sp->ImageDesc.Height;
@@ -1135,7 +1134,7 @@ DGifSlurp(GifFileType *GifFile)
           case EXTENSION_RECORD_TYPE:
               if (DGifGetExtension(GifFile,&ExtFunction,&ExtData) == GIF_ERROR)
                   return (GIF_ERROR);
-	      /* Create an extension block with our data */
+	      // Create an extension block with our data
 	      if (GifAddExtensionBlock(&GifFile->ExtensionBlockCount,
 				       &GifFile->ExtensionBlocks, 
 				       ExtFunction, ExtData[0], &ExtData[1])
@@ -1144,7 +1143,7 @@ DGifSlurp(GifFileType *GifFile)
               while (ExtData != NULL) {
                   if (DGifGetExtensionNext(GifFile, &ExtData, &ExtFunction) == GIF_ERROR)
                       return (GIF_ERROR);
-                  /* Continue the extension block */
+                  // Continue the extension block /
 		  if (ExtData != NULL)
 		      if (GifAddExtensionBlock(&GifFile->ExtensionBlockCount,
 					       &GifFile->ExtensionBlocks,
@@ -1157,7 +1156,7 @@ DGifSlurp(GifFileType *GifFile)
           case TERMINATE_RECORD_TYPE:
               break;
 
-          default:    /* Should be trapped by DGifGetRecordType */
+          default:    // Should be trapped by DGifGetRecordType
               break;
         }
     } while (RecordType != TERMINATE_RECORD_TYPE);
@@ -1165,4 +1164,4 @@ DGifSlurp(GifFileType *GifFile)
     return (GIF_OK);
 }
 
-/* end */
+ end */
