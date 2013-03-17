@@ -18,21 +18,21 @@
 #include <time.h>
 #include <stdio.h>
 #include <android/log.h>
-#include <android/bitmap.h>
 #include "giflib/gif_lib.h"
 
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
+#include <pthread.h>
 
-#define  LOG_TAG    "libplasma"
-#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+//#define  LOG_TAG    "libplasma"
+//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+
 
 typedef struct {
-	uint8_t red;
-	uint8_t green;
 	uint8_t blue;
+	uint8_t green;
+	uint8_t red;
 	uint8_t alpha;
 } argb;
 
@@ -58,6 +58,7 @@ typedef struct {
 	unsigned short loopCount;
 	int currentLoop;
 	bool hasAlpha;
+	unsigned long tmp;
 } GifInfo;
 
 static ColorMapObject* genDefColorMap() {
@@ -99,11 +100,11 @@ static void cleanUp(GifInfo* info) {
 }
 
 static void PrintGifError(int _GifError) { //TODO texts only in debug
-	char *Err = GifErrorString(_GifError);
+/*	char *Err = GifErrorString(_GifError);
 	if (Err != NULL)
 		LOGE("\nGIF-LIB error: %s.\n", Err);
 	else
-		LOGE("\nGIF-LIB undefined error %d.\n", _GifError);
+		LOGE("\nGIF-LIB undefined error %d.\n", _GifError);*/
 }
 /**
  * Returns the real time, in ms
@@ -301,14 +302,14 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 	}
 	int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
 	if (width < 1 || height < 1) {
-		LOGE("Invalid dimensions: w=%d h=%d", width, height);
+		//LOGE("Invalid dimensions: w=%d h=%d", width, height); //FIXME
 		DGifCloseFile(GifFileIn);
 		return (jint) NULL ;
 	}
 
 	GifInfo* info = (GifInfo*) malloc(sizeof(GifInfo));
 	if (info == NULL) {
-		LOGE("malloc failed");
+		//LOGE("malloc failed");//FIXME
 		DGifCloseFile(GifFileIn);
 		return (jint) NULL;
 	}
@@ -327,12 +328,11 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 
 	if (info->rasterBits == NULL
 			|| info->backupPtr == NULL ) {
-		LOGE("Initialization failed");
+		//LOGE("Initialization failed"); //FIXME
 		cleanUp(info);
 		return (jint) NULL ;
 	}
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR) {
-		LOGI("fail");
 		PrintGifError(GifFileIn->Error);
 	}
 	jint *ints = (*env)->GetIntArrayElements(env, dims, 0);
@@ -344,7 +344,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 
 	if (GifFileIn->ImageCount < 1||fseek(file, startPos, SEEK_SET)!=0)
 	{
-		LOGI("no valid frames or fseek failed"); //TODO texts
+		//LOGI("no valid frames or fseek failed"); //TODO texts
 		cleanUp(info);
 		return (jint) NULL ;
 	}
@@ -499,16 +499,8 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime, JNIEnv * env) {
 		packARGB32(&bgColor, 0, 0, 0, 0);
 	argb paintingColor;
 	int i = info->currentIndex;
-	LOGE("prg %d",i);
 	if (DDGifSlurp(fGIF, info, true) == GIF_ERROR)
-	{
-//		(*env)->ThrowNew(env,
-//						(*env)->FindClass(env, "java/lang/RuntimeException"),
-//						"Failed to create default color table");
-//		exit(1);
-		LOGE("err %s",GifErrorString(fGIF->Error));
 		return;
-	}
 	SavedImage* cur = &fGIF->SavedImages[i];
 
 	unsigned short transpIndex=info->infos[i].transpIndex;
@@ -528,16 +520,19 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime, JNIEnv * env) {
 		disposeFrameIfNeeded(bm, info, i, fBackup, paintingColor);
 	}
 	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap, transpIndex);
-	LOGE("gb %d %d", i, (int)cur->RasterBits);
 }
 
 JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
-		JNIEnv * env, jobject obj, jobject bitmap, jobject gifInfo) {
+		JNIEnv * env, jobject obj, jintArray array, jobject gifInfo) {
 	void* pixels;
 	GifInfo* info = (GifInfo*) gifInfo;
 
 	bool needRedraw = false;
 	long rt = getRealTime();
+//	long diff=rt-info->tmp;
+//	double fps=1000.0/diff;
+//LOGE("FPS %lf",fps);
+//	info->tmp=rt;
 	if (rt >= info->nextStartTime&&info->currentLoop<info->loopCount)
 	{
 		if (++info->currentIndex >= info->gifFilePtr->ImageCount)
@@ -545,19 +540,15 @@ JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 		needRedraw = true;
 	}
 
-	if (needRedraw) {
-		int ret = AndroidBitmap_lockPixels(env, bitmap, &pixels);
-		if (ret < 0) {
-			LOGE("AndroidBitmap_lockPixels() failed ! error: %d", ret);
-			return JNI_FALSE;
-		}
-		getBitmap((argb*) pixels, info, rt, env);
-		ret = AndroidBitmap_unlockPixels(env, bitmap);
-		if (ret < 0)
-			return JNI_FALSE;
+	if (needRedraw)
+	{
+		jint *pixels = (*env)->GetIntArrayElements(env, array, 0);
 
-		info->nextStartTime = rt + (info->infos[info->currentIndex]).duration;
+		getBitmap((argb*) pixels, info, rt, env);
+		(*env)->ReleaseIntArrayElements(env, array,pixels, 0);
+		info->nextStartTime = rt + (unsigned long)(info->infos[info->currentIndex]).duration;
 	}
+
 	return JNI_TRUE;
 }
 
@@ -569,16 +560,16 @@ JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
 	cleanUp(info);
 }
 
-JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_init(JNIEnv * env,
-		jobject obj) {
-	if (defaultCmap != NULL)
-		return;
-	defaultCmap = genDefColorMap();
-	if (defaultCmap == NULL)
-		(*env)->ThrowNew(env,
-				(*env)->FindClass(env, "java/lang/RuntimeException"),
-				"Failed to create default color table");
-}
+//JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_init(JNIEnv * env,
+//		jobject obj) {
+//	if (defaultCmap != NULL)
+//		return;
+//	defaultCmap = genDefColorMap();
+//	if (defaultCmap == NULL)
+//		(*env)->ThrowNew(env,
+//				(*env)->FindClass(env, "java/lang/RuntimeException"),
+//				"Failed to create default color table");
+//}
 JNIEXPORT jstring JNICALL Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env,
 		jobject obj, jobject gifInfo)
 {
@@ -593,5 +584,19 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv
 	if (gifInfo==NULL)
 		return 0;
 	return ((GifInfo*) gifInfo)->loopCount;
+}
+
+jint JNI_OnLoad(JavaVM *vm, void *reserved)
+{
+	defaultCmap = genDefColorMap();
+//	if (defaultCmap != NULL)
+//	{
+//		JNIEnv env;
+//		(*vm)->GetEnv(vm,(void**)&env, JNI_VERSION_1_2);
+//		env->ThrowNew(&env,
+//				env->FindClass(&env, "java/lang/RuntimeException"),
+//				"Failed to create default color table");
+//	}
+	return JNI_VERSION_1_2;
 }
 

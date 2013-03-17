@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="com.android.toolchain.gcc.711140088">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.android.toolchain.gcc.711140088" moduleId="org.eclipse.cdt.core.settings" name="Default">
@@ -29,6 +27,9 @@
 								</outputEntries>
 							</builder>
 							<tool id="com.android.gcc.compiler.902150830" name="Android GCC Compiler" superClass="com.android.gcc.compiler">
+								<option id="com.android.gcc.option.includePath.216372807" superClass="com.android.gcc.option.includePath" valueType="includePath">
+									<listOptionValue builtIn="false" value="/opt/android-ndk/platforms/android-14/arch-arm/usr/include"/>
+								</option>
 								<inputType id="com.android.gcc.inputType.1707627934" superClass="com.android.gcc.inputType"/>
 							</tool>
 						</toolChain>
