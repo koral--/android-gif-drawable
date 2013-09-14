@@ -10,14 +10,18 @@ gif_lib.h - service library for decoding and encoding GIF images
 #include <android/log.h>
 #define  GIF_LOG_TAG    "giflib"
 #define  GIF_LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,GIF_LOG_TAG,__VA_ARGS__)
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #define GIFLIB_MAJOR 5
 #define GIFLIB_MINOR 0
-#define GIFLIB_RELEASE 4
+#define GIFLIB_RELEASE 5
 
 #define GIF_ERROR   0
 #define GIF_OK      1
 
+#include <stddef.h>
 #include <stdbool.h>
 
 #define GIF_STAMP "GIFVER"          /* First chars in file - GIF stamp.  */
@@ -298,6 +302,9 @@ extern void GifDrawBoxedText8x8(SavedImage *Image,
                           const char *legend,
                           const int border, const int bg, const int fg);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif /* _GIF_LIB_H */
 
 /* end */

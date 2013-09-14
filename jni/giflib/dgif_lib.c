@@ -58,7 +58,6 @@ DGifOpenFileName(const char *FileName, int *Error)
         return NULL;
     }
     GifFile = DGifOpenFileHandle(FileHandle, Error);
-    // cppcheck-suppress resourceLeak
     return GifFile;
 }
 
@@ -209,6 +208,7 @@ DGifOpen(void *userData, InputFunc readFunc, int *Error)
     if (DGifGetScreenDesc(GifFile) == GIF_ERROR) {
         free((char *)Private);
         free((char *)GifFile);
+	*Error = D_GIF_ERR_NO_SCRN_DSCR;
         return NULL;
     }
 
@@ -382,7 +382,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount)
             GifFile->Image.ColorMap->Colors[i].Blue = Buf[2];
         }
     }
-    if (changeImageCount)
+   // if (changeImageCount)
     {
 		if (GifFile->SavedImages) {
 			if ((GifFile->SavedImages = (SavedImage *)realloc(GifFile->SavedImages,
@@ -457,7 +457,7 @@ DGifGetLine(GifFileType *GifFile, GifPixelType *Line, int LineLen)
 	     */
             do
                 if (DGifGetCodeNext(GifFile, &Dummy) == GIF_ERROR)
-                	return GIF_ERROR;
+                    return GIF_ERROR;
             while (Dummy != NULL) ;
         }
         return GIF_OK;

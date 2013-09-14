@@ -311,8 +311,6 @@ FreeLastSavedImage(GifFileType *GifFile)
 SavedImage *
 GifMakeSavedImage(GifFileType *GifFile, const SavedImage *CopyFrom)
 {
-    SavedImage *sp;
-
     if (GifFile->SavedImages == NULL)
         GifFile->SavedImages = (SavedImage *)malloc(sizeof(SavedImage));
     else
@@ -322,7 +320,7 @@ GifMakeSavedImage(GifFileType *GifFile, const SavedImage *CopyFrom)
     if (GifFile->SavedImages == NULL)
         return ((SavedImage *)NULL);
     else {
-        sp = &GifFile->SavedImages[GifFile->ImageCount++];
+        SavedImage *sp = &GifFile->SavedImages[GifFile->ImageCount++];
         memset((char *)sp, '\0', sizeof(SavedImage));
 
         if (CopyFrom != NULL) {

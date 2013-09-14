@@ -7,6 +7,6 @@ LOCAL_SRC_FILES := gif.c \
 	giflib/dgif_lib.c \
 	giflib/gifalloc.c \
 	giflib/gif_err.c 
-LOCAL_LDLIBS    := -llog -ljnigraphics
+LOCAL_LDLIBS    := -llog
 
 include $(BUILD_SHARED_LIBRARY)

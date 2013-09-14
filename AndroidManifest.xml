@@ -3,11 +3,10 @@
       package="pl.droidsonroids.gif"
       android:versionCode="1"
       android:versionName="1.0">
-    <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="17"/>      
-    <application android:label="Plasma"        
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="18"/>      
+    <application android:label="GifDrawable"        
         android:theme="@android:style/Theme.Black.NoTitleBar">
-        <activity android:name="pl.droidsonroids.gif.Test"
-                  android:label="Plasma">
+        <activity android:name="pl.droidsonroids.gif.Test" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
