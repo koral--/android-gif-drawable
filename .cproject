@@ -31,14 +31,14 @@
 					<folderInfo id="com.android.toolchain.gcc.711140088.285581294" name="/" resourcePath="">
 						<toolChain id="com.android.toolchain.gcc.83452963" name="com.android.toolchain.gcc" resourceTypeBasedDiscovery="false" superClass="com.android.toolchain.gcc">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="com.android.targetPlatform.2043618533" isAbstract="false" superClass="com.android.targetPlatform"/>
-							<builder arguments="NDK_DEBUG=1" command="ndk-build" enableCleanBuild="false" id="com.android.builder.888442797" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Android Builder" superClass="com.android.builder">
+							<builder arguments="" command="ndk-build" enableCleanBuild="false" id="com.android.builder.888442797" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Android Builder" superClass="com.android.builder">
 								<outputEntries>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="obj"/>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="libs"/>
 								</outputEntries>
 							</builder>
 							<tool id="com.android.gcc.compiler.902150830" name="Android GCC Compiler" superClass="com.android.gcc.compiler">
-								<option id="com.android.gcc.option.includePath.216372807" superClass="com.android.gcc.option.includePath" valueType="includePath"/>
+								<option id="com.android.gcc.option.includePath.216372807" superClass="com.android.gcc.option.includePath"/>
 								<inputType id="com.android.gcc.inputType.1707627934" superClass="com.android.gcc.inputType"/>
 							</tool>
 						</toolChain>

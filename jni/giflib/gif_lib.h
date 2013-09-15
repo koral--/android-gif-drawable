@@ -7,9 +7,6 @@ gif_lib.h - service library for decoding and encoding GIF images
 #ifndef _GIF_LIB_H_
 #define _GIF_LIB_H_ 1
 
-#include <android/log.h>
-#define  GIF_LOG_TAG    "giflib"
-#define  GIF_LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,GIF_LOG_TAG,__VA_ARGS__)
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

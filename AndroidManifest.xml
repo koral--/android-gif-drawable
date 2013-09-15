@@ -6,7 +6,7 @@
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="18"/>      
     <application android:label="GifDrawable"        
         android:theme="@android:style/Theme.Black.NoTitleBar">
-        <activity android:name="pl.droidsonroids.gif.Test" >
+        <activity android:name="pl.droidsonroids.gif.TestActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

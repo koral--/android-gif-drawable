@@ -26,7 +26,7 @@
 #include <string.h>
 #include <limits.h>
 
-//#define  LOG_TAG    "libplasma"
+//#define  LOG_TAG    "libgif"
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 typedef struct {
@@ -35,6 +35,11 @@ typedef struct {
 	uint8_t red;
 	uint8_t alpha;
 } argb;
+
+#define D_GIF_ERR_NO_FRAMES     	1000
+#define D_GIF_ERR_INVALID_SCR_DIMS 	1001
+#define D_GIF_ERR_INVALID_IMG_DIMS 	1002
+#define D_GIF_ERR_IMG_NOT_CONFINED 	1003
 
 static ColorMapObject* defaultCmap = NULL;
 
@@ -54,7 +59,7 @@ typedef struct {
 	argb* backupPtr;
 	int startPos;
 	unsigned char* rasterBits;
-	//char* comment; FIXME
+	char* comment;
 	unsigned short loopCount;
 	int currentLoop;
 	unsigned long tmp;
@@ -79,9 +84,9 @@ static void cleanUp(GifInfo* info) {
 	free(info->infos);
 	info->infos=NULL;
 	free(info->rasterBits);
-//	free(info->comment); FIXME
-//	info->comment=NULL;
 	info->rasterBits=NULL;
+	free(info->comment);
+	info->comment=NULL;
 
 	GifFileType* GifFile= info->gifFilePtr;
     if (GifFile->SavedImages != NULL)
@@ -149,14 +154,14 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 			fi->transpIndex = (unsigned short) b[3];
 		}
 	}
-//	else if (ExtFunction==COMMENT_EXT_FUNC_CODE)
-//	{ FIXME
-//		if (getComment(ExtData,&info->comment)==GIF_ERROR)
-//		{
-//			info->gifFilePtr->Error=D_GIF_ERR_NOT_ENOUGH_MEM;
-//			return GIF_ERROR;
-//		}
-//	}
+	else if (ExtFunction==COMMENT_EXT_FUNC_CODE)
+	{
+		if (getComment(ExtData,&info->comment)==GIF_ERROR)
+		{
+			info->gifFilePtr->Error=D_GIF_ERR_NOT_ENOUGH_MEM;
+			return GIF_ERROR;
+		}
+	}
 	else if (ExtFunction==APPLICATION_EXT_FUNC_CODE&&ExtData[0] == 11)
 	{
 		if (strncmp("NETSCAPE2.0",&ExtData[1],11)||strncmp("ANIMEXTS1.0",&ExtData[1],11))
@@ -191,6 +196,12 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 
 			if (sp->ImageDesc.Width < 1 || sp->ImageDesc.Height < 1
 				||ImageSize > (SIZE_MAX / sizeof(GifPixelType))	) {
+				GifFile->Error=D_GIF_ERR_INVALID_IMG_DIMS;
+				return GIF_ERROR;
+			}
+			if (sp->ImageDesc.Width>GifFile->SWidth||sp->ImageDesc.Height>GifFile->SHeight)
+			{
+				GifFile->Error=D_GIF_ERR_IMG_NOT_CONFINED;
 				return GIF_ERROR;
 			}
 			if (shouldDecode) {
@@ -277,10 +288,12 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 	if (ok)
 		return (GIF_OK);
 	else
+	{
+		info->gifFilePtr->Error=D_GIF_ERR_READ_FAILED;
 		return (GIF_ERROR);
+	}
 }
-#define D_GIF_ERR_NO_FRAMES     	1000
-#define D_GIF_ERR_INVALID_DIMS   	1001
+
 //TODO turn into macro
 static void setMetaData(int width, int height, int ImageCount,
 		int errorCode, JNIEnv * env, jintArray metaData)
@@ -294,6 +307,12 @@ static void setMetaData(int width, int height, int ImageCount,
 }
 JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 		JNIEnv * env, jobject obj, jstring jfname, jintArray metaData) {
+	if (jfname == NULL)
+	{
+		setMetaData(0, 0,0,
+				D_GIF_ERR_OPEN_FAILED,env,metaData);
+		return (jint) NULL ;
+	}
 	const char *fname = (*env)->GetStringUTFChars(env, jfname, 0);
 	int Error = 0;
 	FILE * file = fopen(fname, "rb");
@@ -321,7 +340,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 	int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
 	if (width < 1 || height < 1) {
 		setMetaData(width, height,0,
-				D_GIF_ERR_INVALID_DIMS,env,metaData);
+				D_GIF_ERR_INVALID_SCR_DIMS,env,metaData);
 		DGifCloseFile(GifFileIn);
 		return (jint) NULL ;
 	}
@@ -337,7 +356,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 	info->startPos = startPos;
 	info->currentIndex = -1;
 	info->nextStartTime = 0;
-	//info->comment=NULL; FIXME
+	info->comment=NULL;
 	info->loopCount=0;
 	info->currentLoop=-1;
 	info->rasterBits =  calloc(
@@ -541,17 +560,17 @@ static void getBitmap(argb* bm, GifInfo* info, long baseTime, JNIEnv * env) {
 	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap, transpIndex);
 }
 
-JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
+JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 		JNIEnv * env, jobject obj, jintArray array, jobject gifInfo) {
-	void* pixels;
-	GifInfo* info = (GifInfo*) gifInfo;
 
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info==NULL)
+		return 0;
+
+	void* pixels;
 	bool needRedraw = false;
 	long rt = getRealTime();
-//	long diff=rt-info->tmp;
-//	double fps=1000.0/diff;
-//LOGE("FPS %lf",fps);
-//	info->tmp=rt;
+
 	if (rt >= info->nextStartTime&&info->currentLoop<info->loopCount)
 	{
 		if (++info->currentIndex >= info->gifFilePtr->ImageCount)
@@ -567,8 +586,7 @@ JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 		(*env)->ReleaseIntArrayElements(env, array,pixels, 0);
 		info->nextStartTime = rt + (unsigned long)(info->infos[info->currentIndex]).duration;
 	}
-
-	return JNI_TRUE;
+	return info->gifFilePtr->Error;
 }
 
 JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
@@ -578,14 +596,13 @@ JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
 	cleanUp((GifInfo*) gifInfo);
 }
 
-
 JNIEXPORT jstring JNICALL Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env,
 		jobject obj, jobject gifInfo)
 {
-	//if (gifInfo==NULL)
+	if (gifInfo==NULL)
 		return NULL;
-//	GifInfo* info=(GifInfo*) gifInfo; //FIXME
-//	return (*env)->NewStringUTF(env, info->comment);
+	GifInfo* info=(GifInfo*) gifInfo;
+	return (*env)->NewStringUTF(env, info->comment);
 }
 JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv * env,
 		jobject obj, jobject gifInfo)
