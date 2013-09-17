@@ -13,6 +13,7 @@
 						<entry flags="BUILTIN|READONLY|RESOLVED" kind="includePath" name="/home/koral/adt-bundle-linux-x86_64/android-ndk-r9/platforms/android-8/arch-arm/usr/include"/>
 						<entry flags="BUILTIN|READONLY|RESOLVED" kind="includePath" name="/home/koral/adt-bundle-linux-x86_64/android-ndk-r9/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86_64/lib/gcc/arm-linux-androideabi/4.6/include-fixed"/>
 						<entry flags="BUILTIN|READONLY|RESOLVED" kind="includePath" name="/home/koral/adt-bundle-linux-x86_64/android-ndk-r9/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86_64/lib/gcc/arm-linux-androideabi/4.6/include"/>
+						<entry flags="BUILTIN|READONLY|RESOLVED" kind="includePath" name="/home/koral/adt-bundle-linux-x86_64/android-ndk-r9/platforms/android-3/arch-arm/usr/include"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -44,6 +45,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="include"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="jni"/>
 					</sourceEntries>
 				</configuration>

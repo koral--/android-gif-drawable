@@ -1,7 +1,8 @@
 package pl.droidsonroids.gif;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
-
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -22,7 +23,7 @@ class GifDrawable extends Drawable implements Animatable
     }	
 		
     private native synchronized int renderFrame(int[] pixels, int gifFileInPtr);
-	private native int openFile(String filePAth, int[] metaData);
+	private native int openFile(String filePath, int[] metaData, InputStream stream);
     private native void free(int gifFileInPtr);
     private native synchronized String getComment(int gifFileInPtr);
     private native synchronized int getLoopCount(int gifFileInPtr);
@@ -42,19 +43,39 @@ class GifDrawable extends Drawable implements Animatable
      * {@link StrictMode} policy if disk reads detection is enabled.<br>
      * No exception is thrown if file cannot be read (or is not a valid GIF).
      * Drawable will be just empty.<br>
-     * Result of the operation can be checked by {@link #getErrorCode()}.
+     * Result of the operation can be checked by {@link #getErrorCode()}.<br>
      * @param filePath path to the GIF file
      */
     public GifDrawable (String filePath) 
     {
         mMetaData=new int[4];
-        mGifInfoPtr=openFile(filePath, mMetaData);
+        mGifInfoPtr=openFile(filePath, mMetaData, null);
         mColors=new int[mMetaData[0]*mMetaData[1]];
         if (BuildConfig.DEBUG&&mGifInfoPtr==0)
-        	Log.d("GifDrawable", String.format(Locale.US, "Error %d while reading %s", mMetaData[3],filePath));
+        	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading %s", mMetaData[3],filePath));
     }
+    /**
+     * very experimental
+     * may not work yet
+     * @param stream
+     * @throws IOException
+     */
+    public GifDrawable (InputStream stream) throws IOException 
+    {
+    	if (!stream.markSupported())
+    		throw new IllegalArgumentException( "InputStream must support marking" );
+        mMetaData=new int[4];
+        mGifInfoPtr=openFile(null, mMetaData, stream);
+        mColors=new int[mMetaData[0]*mMetaData[1]];
+        if (BuildConfig.DEBUG&&mGifInfoPtr==0)
+        	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading from stream", mMetaData[3]));
+    }    
+    /**
+     * Reads and renders new frame if needed then draws last rendered frame.
+     * @param canvas canvas to draw into
+     */
     @Override
-	public void draw(final Canvas canvas) 
+	public void draw(Canvas canvas) 
     {
 		if (mIsRunning) 
 		{
@@ -122,6 +143,7 @@ class GifDrawable extends Drawable implements Animatable
 	 * Starts the animation. Does nothing if GIF is not animated.
 	 * Can be called from background thread.
 	 */
+	@Override
 	public void start() {
 		mIsRunning=true;		
 	}
@@ -129,12 +151,11 @@ class GifDrawable extends Drawable implements Animatable
 	 * Stops the animation. Does nothing if GIF is not animated.
 	 * Can be called from background thread.
 	 */
+	@Override
 	public void stop() {
 		mIsRunning=false;
 	}
-	/**
-	 * @return true if animation is running
-	 */
+	@Override
 	public boolean isRunning() {
 		return mIsRunning;
 	}
@@ -157,11 +178,10 @@ class GifDrawable extends Drawable implements Animatable
     }
 
     /**
-     * @return basic description of the GIF
+     * @return basic description of the GIF including size and number of frames
      */
     @Override
     public String toString() {
-    	// TODO add error information
     	return String.format(Locale.US, "Size: %dx%d, %d frames", 
     			mMetaData[1],mMetaData[2],mMetaData[0]);
     }
@@ -174,14 +194,12 @@ class GifDrawable extends Drawable implements Animatable
 	}
 	
 	/**
-	 * Retrieves error code which is also the indicator of current GIF status. 
-	 * Error codes are consistent with those defined in GIFLib.<br>
-	 * Additional codes: 1000 - no frames, 1001 - invalid screen dimensions
-	 * TODO port gif_err.c to java
-	 * @return current error code or 0 if there was no error 
+	 * Retrieves last error which is also the indicator of current GIF status.<br>
+	 *  
+	 * @return current error or {@link GifError#NO_ERROR} if there was no error 
 	 */
-	public int getErrorCode()
+	public GifError getError()
 	{
-		return mMetaData[3];
+		return GifError.fromCode( mMetaData[3]);
 	}
 }
