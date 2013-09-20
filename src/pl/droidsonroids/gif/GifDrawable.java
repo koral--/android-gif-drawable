@@ -3,6 +3,9 @@ package pl.droidsonroids.gif;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
+import android.content.res.Resources.NotFoundException;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -23,7 +26,8 @@ class GifDrawable extends Drawable implements Animatable
     }	
 		
     private native synchronized int renderFrame(int[] pixels, int gifFileInPtr);
-	private native int openFile(String filePath, int[] metaData, InputStream stream);
+	private native int open(String filePath, int[] metaData, 
+			InputStream stream);
     private native void free(int gifFileInPtr);
     private native synchronized String getComment(int gifFileInPtr);
     private native synchronized int getLoopCount(int gifFileInPtr);
@@ -34,8 +38,29 @@ class GifDrawable extends Drawable implements Animatable
 
     private final int[] mColors;
     private final int[] mMetaData;//[w,h,imageCount,errorCode]
-
+    private InputStream mStream;
     
+    /**
+     * Creates drawable from resource.
+     * @param res Resources to read from
+     * @param id resource id
+     * @throws NotFoundException  if the given ID does not exist.
+     * @throws IOException TODO
+     */
+    public GifDrawable (Resources res, int id) throws NotFoundException, IOException
+    {
+   		this( res.openRawResource( id ) );
+    }
+    /**
+     * Creates drawable from asset.
+     * @param assets AssetManager to read from
+     * @param assetName name of the asset
+     * @throws IOException TODO
+     */
+    public GifDrawable (AssetManager assets, String assetName) throws IOException
+    {
+    	this (assets.open( assetName, AssetManager.ACCESS_RANDOM ));
+    }
     /**
      * Constructs drawable from given file path.<br>
      * Only metadata is read, no graphic data is decoded here.
@@ -49,24 +74,26 @@ class GifDrawable extends Drawable implements Animatable
     public GifDrawable (String filePath) 
     {
         mMetaData=new int[4];
-        mGifInfoPtr=openFile(filePath, mMetaData, null);
+        mGifInfoPtr=open(filePath, mMetaData, null);
         mColors=new int[mMetaData[0]*mMetaData[1]];
         if (BuildConfig.DEBUG&&mGifInfoPtr==0)
         	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading %s", mMetaData[3],filePath));
     }
     /**
-     * very experimental
-     * may not work yet
-     * @param stream
-     * @throws IOException
+     * Creates drawable from InputStream.
+     * Stream must support marking, IOException will be thrown otherwise.
+     * @param stream stream to read from
+     * @throws IOException TODO
      */
     public GifDrawable (InputStream stream) throws IOException 
     {
     	if (!stream.markSupported())
-    		throw new IllegalArgumentException( "InputStream must support marking" );
+    		throw new IOException( "InputStream must support marking" );
+    	mStream=stream;
         mMetaData=new int[4];
-        mGifInfoPtr=openFile(null, mMetaData, stream);
+        mGifInfoPtr=open(null, mMetaData, stream);
         mColors=new int[mMetaData[0]*mMetaData[1]];
+        //TODO throw IO exception if open failed ?        
         if (BuildConfig.DEBUG&&mGifInfoPtr==0)
         	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading from stream", mMetaData[3]));
     }    
@@ -96,11 +123,18 @@ class GifDrawable extends Drawable implements Animatable
     public void recycle()
     {
     	mIsRunning=false;
-    	synchronized (this)
-    	{
-    		free(mGifInfoPtr);
-    		mGifInfoPtr=0;
-    	}
+    	int tmpPtr=mGifInfoPtr;
+   		mGifInfoPtr=0;    	
+   		free(tmpPtr);
+   		if (mStream!=null)
+	   		try 
+	   		{
+	   			mStream.close();
+	   		}
+	   		catch (IOException ex)
+	   		{
+	   			//ignored
+	   		}
     }    
     @Override
     protected void finalize() throws Throwable 

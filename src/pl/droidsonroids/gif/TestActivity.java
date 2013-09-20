@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Build;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.os.StrictMode.ThreadPolicy;
 import android.os.StrictMode.VmPolicy;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -46,9 +48,13 @@ public class TestActivity extends Activity implements OnClickListener
 		v.setScaleType( ScaleType.FIT_XY );
 		try
 		{
-			String pth="/sdcard/gifs/msp.gif";
+			String pth="/sdcard/gifs/piggy.gif";
 			//drw = new GifDrawable(pth);
-			drw = new GifDrawable( new BufferedInputStream( new FileInputStream(pth),16356041) );
+			final InputStream stream =
+					new BufferedInputStream( new FileInputStream(pth),16356041) ;
+				//	getResources().openRawResource( R.drawable.piggy );
+			drw = new GifDrawable(stream);
+			//drw.recycle();
 		}
 		catch ( Exception e )
 		{
@@ -67,7 +73,7 @@ public class TestActivity extends Activity implements OnClickListener
 	{
 		if ( drw != null )
 			drw.recycle();
-		drw = new GifDrawable( "/sdcard/gifs/test.gif" );
+		drw = new GifDrawable( "/sdcard/gifs/t100x02.gif" );
 		v.setImageDrawable( drw );
 	}
 

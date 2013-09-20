@@ -74,6 +74,9 @@ typedef struct
 	JNIEnv * env;
 	jobject stream;
 	jclass streamCls;
+	jmethodID readMID;
+	jmethodID resetMID;
+	//jbyteArray buffer;
 } StreamContainer;
 
 static ColorMapObject* genDefColorMap() {
@@ -136,22 +139,24 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size)
 {
 	StreamContainer* sc=(StreamContainer*)(gif->UserData);
 	JNIEnv * env=sc->env;
-	jmethodID mid = (*env)->GetMethodID(env, sc->streamCls, "read", "([B)I");
-	if (mid == 0)
+
+	jbyte* buffer = (*env)->NewByteArray(env, size);
+	int ret= (*env)->CallIntMethod(env, sc->stream, sc->readMID, buffer);
+	if ((*env)->ExceptionOccurred(env))
 	{
-	    return 0;
+		(*env)->ExceptionClear(env);
+		ret=0;
 	}
+	else
+	{
+		jbyte* lib=(*env)->GetByteArrayElements(env,buffer,0);
 
-	jbyteArray array = (*env)->NewByteArray(env, size);
-	int ret= (*env)->CallIntMethod(env, sc->stream, mid, array);
-	jbyte* lib=(*env)->GetByteArrayElements(env,array,0);
-
-	int i;
-	for (i=0;i<ret;i++)
-		bytes[i]=lib[i];
-	(*env)->ReleaseByteArrayElements(env,array,lib,JNI_ABORT);
-	(*env)->DeleteLocalRef(env,array);
-	//LOGE("%d",ret);
+		int i;
+		for (i=0;i<ret;i++)
+			bytes[i]=lib[i];
+		(*env)->ReleaseByteArrayElements(env,buffer,lib,JNI_ABORT);
+	}
+	(*env)->DeleteLocalRef(env,buffer);
 	return ret>=0?ret:0;
 }
 
@@ -161,14 +166,15 @@ static int fileRewindFun(GifInfo* info)
 }
 
 static int streamRewindFun(GifInfo* info)
-{//TODO call reset
+{
 	StreamContainer* sc=(StreamContainer*)(info->gifFilePtr->UserData);
 	JNIEnv * env=sc->env;
-	jmethodID mid = (*env)->GetMethodID(env, sc->streamCls, "reset", "()V");
-	if (mid != 0)
-		(*env)->CallVoidMethod(env, sc->stream, mid);
-	if (mid == 0)
-	    return 1;
+	(*env)->CallVoidMethod(env, sc->stream, sc->resetMID);
+	if ((*env)->ExceptionOccurred(env))
+	{
+		(*env)->ExceptionClear(env);
+		return -1;
+	}
 	return 0;
 }
 
@@ -340,8 +346,9 @@ static void setMetaData(int width, int height, int ImageCount, int errorCode,
 	*ints = errorCode;
 	(*env)->ReleaseIntArrayElements(env, metaData, ints, 0);
 }
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
-		JNIEnv * env, jobject obj, jstring jfname, jintArray metaData, jobject stream)
+JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_open(
+		JNIEnv * env, jobject obj, jstring jfname, jintArray metaData,
+		jobject stream)
 {
 	int Error = 0;
 	GifFileType *GifFileIn=NULL;
@@ -349,25 +356,39 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 	RewindFunc rewindFunc=NULL;
 	if (jfname == NULL)
 	{
-//		setMetaData(0, 0, 0,
-//		D_GIF_ERR_OPEN_FAILED, env, metaData);
-//		return (jint) NULL;
+		jclass streamCls = (*env)->NewGlobalRef(env,(*env)->GetObjectClass(env, stream));
+		jmethodID mid = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
+		jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([B)I");
+		jmethodID resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
+
+		if (mid == 0||readMID==0||resetMID==0)
+		{
+			(*env)->DeleteLocalRef(env,streamCls);
+			setMetaData(0, 0, 0,
+					D_GIF_ERR_OPEN_FAILED, env, metaData);
+		    return (jint) NULL;
+		}
+
 		StreamContainer* container=malloc(sizeof(StreamContainer));
-		//TODO handle null
+		if (container==NULL)
+		{
+			setMetaData(0, 0, 0,
+					D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
+			return (jint) NULL;
+		}
+		container->readMID = readMID;
+		container->resetMID = resetMID;
+
+
 		container->env=env;
-		container->stream=(*env)->NewGlobalRef(env,stream); //TODO free properly
+		//jbyteArray array = (*env)->NewByteArray(env, 25600);
+		//container->buffer=(*env)->NewGlobalRef(env,array);;
+		container->stream=(*env)->NewGlobalRef(env,stream);
 		rewindFunc=streamRewindFun;
-		container->streamCls = 		(*env)->NewGlobalRef(env,(*env)->GetObjectClass(env, stream));
+		container->streamCls = streamCls;
 
 		GifFileIn = DGifOpen(container,&streamReadFun,&Error);
-		jmethodID mid = (*env)->GetMethodID(env, container->streamCls, "mark", "(I)V");
-		if (mid == 0)
-		{
-			(*env)->DeleteLocalRef(env,container->streamCls);
-		    return (jint) NULL; //TODO free
-		}
-		(*env)->CallVoidMethod(env, stream, mid, 2147483647);//FIXME length
-		//(*env)->DeleteLocalRef(env,cls); TODO
+		(*env)->CallVoidMethod(env, stream, mid, 2147483647);//TODO better length?
 		startPos=0;
 	}
 	else
@@ -421,7 +442,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 	info->backupPtr = calloc(width * height, sizeof(argb));
 	info->rewindFunc=rewindFunc;
 
-	if (info->rasterBits == NULL || info->backupPtr == NULL) {
+	if (info->rasterBits == NULL || info->backupPtr == NULL||info->infos==NULL) {
 		setMetaData(width, height, GifFileIn->ImageCount,
 		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
 		cleanUp(info);
@@ -646,8 +667,22 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
 		jobject obj, jobject gifInfo) {
 	if (gifInfo == NULL)
-	return;
-	cleanUp((GifInfo*) gifInfo);
+		return;
+	GifInfo* info=(GifInfo*) gifInfo;
+	if (info->rewindFunc==streamRewindFun)
+	{
+		StreamContainer* sc= info->gifFilePtr->UserData;
+		(*env)->DeleteGlobalRef(env,sc->streamCls);
+		(*env)->DeleteGlobalRef(env,sc->stream);
+		free(sc);
+	}
+	else if (info->rewindFunc==fileRewindFun)
+	{
+		FILE* file= info->gifFilePtr->UserData;
+		fclose(file);
+	}
+	info->gifFilePtr->UserData=NULL;
+	cleanUp(info);
 }
 
 JNIEXPORT jstring JNICALL Java_pl_droidsonroids_gif_GifDrawable_getComment(
