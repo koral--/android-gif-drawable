@@ -8,5 +8,4 @@ This is very experimental alpha version.
 
 TODO:
 
-+ support input from  inputstream, assets and resources
-+ fix memory allocation issues
++ correct javadocs
