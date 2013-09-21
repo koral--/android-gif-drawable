@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -53,7 +54,7 @@ public class TestActivity extends Activity implements OnClickListener
 			final InputStream stream =
 					new BufferedInputStream( new FileInputStream(pth),16356041) ;
 				//	getResources().openRawResource( R.drawable.piggy );
-			drw = new GifDrawable(stream);
+			drw = new GifDrawable(pth);
 			//drw.recycle();
 		}
 		catch ( Exception e )

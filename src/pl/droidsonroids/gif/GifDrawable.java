@@ -1,8 +1,10 @@
 package pl.droidsonroids.gif;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
@@ -26,8 +28,9 @@ class GifDrawable extends Drawable implements Animatable
     }	
 		
     private native synchronized int renderFrame(int[] pixels, int gifFileInPtr);
-	private native int open(String filePath, int[] metaData, 
-			InputStream stream);
+	private native int openFd(int[] metaData, FileDescriptor fd, long offset);
+	private native int openStream(int[] metaData, InputStream stream);
+	private native int openFile(int[] metaData, String filePath);
     private native void free(int gifFileInPtr);
     private native synchronized String getComment(int gifFileInPtr);
     private native synchronized int getLoopCount(int gifFileInPtr);
@@ -37,7 +40,7 @@ class GifDrawable extends Drawable implements Animatable
     private volatile boolean mIsRunning=true;
 
     private final int[] mColors;
-    private final int[] mMetaData;//[w,h,imageCount,errorCode]
+    private final int[] mMetaData=new int[4];//[w,h,imageCount,errorCode]
     private InputStream mStream;
     
     /**
@@ -45,21 +48,21 @@ class GifDrawable extends Drawable implements Animatable
      * @param res Resources to read from
      * @param id resource id
      * @throws NotFoundException  if the given ID does not exist.
-     * @throws IOException TODO
+     * @throws IOException when opening failed
      */
     public GifDrawable (Resources res, int id) throws NotFoundException, IOException
     {
-   		this( res.openRawResource( id ) );
-    }
+   		this( res.openRawResourceFd( id ) );
+    }    
     /**
      * Creates drawable from asset.
      * @param assets AssetManager to read from
      * @param assetName name of the asset
-     * @throws IOException TODO
+     * @throws IOException when opening failed
      */
     public GifDrawable (AssetManager assets, String assetName) throws IOException
     {
-    	this (assets.open( assetName, AssetManager.ACCESS_RANDOM ));
+    	this (assets.openFd( assetName));
     }
     /**
      * Constructs drawable from given file path.<br>
@@ -73,30 +76,39 @@ class GifDrawable extends Drawable implements Animatable
      */
     public GifDrawable (String filePath) 
     {
-        mMetaData=new int[4];
-        mGifInfoPtr=open(filePath, mMetaData, null);
+        mGifInfoPtr=openFile(mMetaData, filePath);
         mColors=new int[mMetaData[0]*mMetaData[1]];
         if (BuildConfig.DEBUG&&mGifInfoPtr==0)
         	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading %s", mMetaData[3],filePath));
     }
     /**
      * Creates drawable from InputStream.
-     * Stream must support marking, IOException will be thrown otherwise.
+     * InputStream must support marking, IOException will be thrown otherwise.
      * @param stream stream to read from
-     * @throws IOException TODO
+     * @throws IOException when opening failed
      */
     public GifDrawable (InputStream stream) throws IOException 
     {
     	if (!stream.markSupported())
     		throw new IOException( "InputStream must support marking" );
     	mStream=stream;
-        mMetaData=new int[4];
-        mGifInfoPtr=open(null, mMetaData, stream);
+        mGifInfoPtr=openStream(mMetaData, stream);
         mColors=new int[mMetaData[0]*mMetaData[1]];
-        //TODO throw IO exception if open failed ?        
+        if (mGifInfoPtr==0)
+        	throw new IOException( GifError.fromCode( mMetaData[3] ).description );
+    }
+    /**
+     * Creates drawable from AssetFileDescriptor
+     * @param afd source
+     */
+    public GifDrawable (AssetFileDescriptor afd)
+    {
+    	FileDescriptor fd = afd.getFileDescriptor();
+    	mGifInfoPtr=openFd(mMetaData, fd,afd.getStartOffset());
+    	mColors=new int[mMetaData[0]*mMetaData[1]];
         if (BuildConfig.DEBUG&&mGifInfoPtr==0)
-        	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading from stream", mMetaData[3]));
-    }    
+        	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading", mMetaData[3]));    	
+    }
     /**
      * Reads and renders new frame if needed then draws last rendered frame.
      * @param canvas canvas to draw into
