@@ -5,6 +5,10 @@ android-gif-drawable
 This is a `Drawable` subclass designed to support animated GIFs. It uses bundled GIFLib via JNI to render frames. Should be more efficient than `WebView` or `Movie` classes.<br>
 Animation starts automatically and run only if `View` with attached `GifDrawable` is visible. `NETSCAPE 2.0` extension (loop counter) is respected as well.
 
+###Requirements
++ [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
++ Android 1.6+ (API level 4+) needed to run
+
 ##Usage
 
 ###From XML
@@ -25,7 +29,7 @@ If drawables declared by `android:src` and/or `android:background` are GIF files
 
 `GifDrawable` can be constructed directly from various sources:
 
-+ resource (file located in `res/drawable` and `res/raw` folders) eg. `new GifDrawable(getResources(), R.raw.mygif)`
++ resource (file located in `res/drawable` and `res/raw` folders) eg. `new GifDrawable(getResources(), R.drawable.mygif)`
 + asset (file located in `assets` folder) eg. `new GifDrawable(getAssets(), "myfile.gif")`
 + file (by path) eg.  `new GifDrawable(Environment.getExternalStorageDirectory().getPath()+ "/myfile.gif" ) )`
 + `InputStream` if it support marking
