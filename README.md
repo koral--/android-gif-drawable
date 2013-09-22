@@ -32,24 +32,26 @@ If drawables declared by `android:src` and/or `android:background` are GIF files
 + resource (file located in `res/drawable` and `res/raw` folders) eg. `new GifDrawable(getResources(), R.drawable.mygif)`
 + asset (file located in `assets` folder) eg. `new GifDrawable(getAssets(), "myfile.gif")`
 + file (by path) eg.  `new GifDrawable(Environment.getExternalStorageDirectory().getPath()+ "/myfile.gif" ) )`
-+ `InputStream` if it support marking
++ `InputStream` if it supports marking
 + `FileDescriptor`
 + `AssetFileDescriptor`
 
-###Advanced
-`GifDrawable` provides several methods to control animation and retrieve GIF specific metadata. It is `Animatable` so you can use:
+####Animation controlling
+`GifDrawable` is an `Animatable` so you can use:
 
 + `stop()` (from any thread)
 + `start()` (from any thread)
 + `isRunning()`
 
-GIF metadata can be obtained by:
+####Retrieving GIF metadata
 
-+ `getLoopCount()`
++ `getLoopCount()` `NETSCAPE 2.0` extension
 + `getNumberOfFrames()`
 + `getComment()`
 
-If something went wrong reason can be investigated by calling `getError()`
+###Advanced 
+Like in `android.graphics.Bitmap` `recycle()` method is provided to speed up freeing memory.
+If something went wrong reason can be investigated by calling `getError()`. 
 
 
 ###References
