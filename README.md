@@ -49,7 +49,7 @@ If drawables declared by `android:src` and/or `android:background` are GIF files
 + `getNumberOfFrames()`
 + `getComment()`
 
-###Advanced 
+####Advanced 
 Like in `android.graphics.Bitmap` `recycle()` method is provided to speed up freeing memory.
 If something went wrong reason can be investigated by calling `getError()`. 
 
