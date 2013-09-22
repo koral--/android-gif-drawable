@@ -18,7 +18,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <android/log.h>
+//#include <android/log.h>
 #include "giflib/gif_lib.h"
 #include <malloc.h>
 
@@ -26,8 +26,8 @@
 #include <string.h>
 #include <limits.h>
 
-#define  LOG_TAG    "libgif"
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+//#define  LOG_TAG    "libgif"
+//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 typedef struct {
 	uint8_t blue;

@@ -14,10 +14,10 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
 /**
- *  
+ * A {@link Drawable} which can be used to hold GIF images, especially animations.
+ * Basic GIF metadata can be also obtained.  
  * @author koral--
  */
 class GifDrawable extends Drawable implements Animatable
@@ -69,17 +69,13 @@ class GifDrawable extends Drawable implements Animatable
      * Only metadata is read, no graphic data is decoded here.
      * In practice can be called from main thread. However it will violate
      * {@link StrictMode} policy if disk reads detection is enabled.<br>
-     * No exception is thrown if file cannot be read (or is not a valid GIF).
-     * Drawable will be just empty.<br>
-     * Result of the operation can be checked by {@link #getErrorCode()}.<br>
      * @param filePath path to the GIF file
      */
-    public GifDrawable (String filePath) 
+    public GifDrawable (String filePath) throws IOException 
     {
         mGifInfoPtr=openFile(mMetaData, filePath);
         mColors=new int[mMetaData[0]*mMetaData[1]];
-        if (BuildConfig.DEBUG&&mGifInfoPtr==0)
-        	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading %s", mMetaData[3],filePath));
+        checkError();
     }
     /**
      * Creates drawable from InputStream.
@@ -94,21 +90,34 @@ class GifDrawable extends Drawable implements Animatable
     	mStream=stream;
         mGifInfoPtr=openStream(mMetaData, stream);
         mColors=new int[mMetaData[0]*mMetaData[1]];
-        if (mGifInfoPtr==0)
-        	throw new IOException( GifError.fromCode( mMetaData[3] ).description );
+        checkError();
     }
     /**
-     * Creates drawable from AssetFileDescriptor
+     * Creates drawable from AssetFileDescriptor.
+     * Convenience wrapper for {@link GifDrawable#GifDrawable(FileDescriptor)}
      * @param afd source
+     * @throws IOException when opening failed
      */
-    public GifDrawable (AssetFileDescriptor afd)
+    public GifDrawable (AssetFileDescriptor afd) throws IOException
     {
     	FileDescriptor fd = afd.getFileDescriptor();
     	mGifInfoPtr=openFd(mMetaData, fd,afd.getStartOffset());
     	mColors=new int[mMetaData[0]*mMetaData[1]];
-        if (BuildConfig.DEBUG&&mGifInfoPtr==0)
-        	Log.d("GifDrawable", String.format(Locale.US, "GifError %d while reading", mMetaData[3]));    	
+    	checkError();    	
     }
+    /**
+     * Creates drawable from FileDescriptor
+     * @param fd source
+     * @throws IOException when opening failed
+     */
+    public GifDrawable (FileDescriptor fd) throws IOException
+    {
+    	mGifInfoPtr=openFd(mMetaData, fd,0);
+    	mColors=new int[mMetaData[0]*mMetaData[1]];
+    	checkError();     	
+    }    
+    
+
     /**
      * Reads and renders new frame if needed then draws last rendered frame.
      * @param canvas canvas to draw into
@@ -240,7 +249,7 @@ class GifDrawable extends Drawable implements Animatable
 	}
 	
 	/**
-	 * Retrieves last error which is also the indicator of current GIF status.<br>
+	 * Retrieves last error which is also the indicator of current GIF status.
 	 *  
 	 * @return current error or {@link GifError#NO_ERROR} if there was no error 
 	 */
@@ -248,4 +257,30 @@ class GifDrawable extends Drawable implements Animatable
 	{
 		return GifError.fromCode( mMetaData[3]);
 	}
+	
+    private void checkError() throws IOException
+    {
+        if (mGifInfoPtr==0)
+        	throw new IOException( GifError.fromCode( mMetaData[3] ).getFormattedDescription());
+    }	
+    
+    /**
+     * An {@link GifDrawable#GifDrawable(Resources, int)} wrapper but returns null 
+     * instead of throwing exception if creation fails. 
+     * @param res resources to read from
+     * @param resourceId resource id
+     * @return correct drawble or null if creation failed
+     */
+    public static GifDrawable createFromResource(Resources res, int resourceId)
+    {
+    	try
+		{
+			return new GifDrawable( res, resourceId );
+		}
+		catch ( IOException e )
+		{
+			//ignored
+		}
+    	return null;
+    }
 }
