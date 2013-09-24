@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import java.io.IOException;
 import android.content.Context;
+import android.content.res.Resources;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -11,6 +12,8 @@ import android.widget.ImageView;
  */
 public class GifImageView extends ImageView
 {
+	static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
+
 	/**
 	 * A corresponding superclass constructor wrapper.
 	 * @see ImageView#ImageView(Context)
@@ -61,12 +64,13 @@ public class GifImageView extends ImageView
 	
 	private void trySetGifDrawable(AttributeSet attrs)
 	{
-		int resId=attrs.getAttributeResourceValue( "http://schemas.android.com/apk/res/android", "src", -1 );
-		if (resId>0&&"drawable".equals( getResources().getResourceTypeName( resId )  ))
+		final Resources res=getResources();
+		int resId=attrs.getAttributeResourceValue( ANDROID_NS, "src", -1 );
+		if (resId>0&&"drawable".equals( res.getResourceTypeName( resId )  ))
 			setResource(true, resId, false );
 	
-		resId=attrs.getAttributeResourceValue( "http://schemas.android.com/apk/res/android", "background", -1 );
-		if (resId>0&&"drawable".equals( getResources().getResourceTypeName( resId )  ))
+		resId=attrs.getAttributeResourceValue( ANDROID_NS, "background", -1 );
+		if (resId>0&&"drawable".equals( res.getResourceTypeName( resId )  ))
 			setResource(false, resId, false );		
 	}
 	
