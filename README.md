@@ -1,9 +1,9 @@
 android-gif-drawable
 ====================
-`View`s and `Drawable` designed to displaying animated GIFs in Android.
+`View`s and `Drawable` for animated GIFs in Android.
 
 ## Overview
-Bundled GIFLib via JNI is used to render frames. Should be more efficient than `WebView` or `Movie` classes.<br>
+Bundled GIFLib via JNI is used to render frames. This way should be more efficient than `WebView` or `Movie` classes.<br>
 Animation starts automatically and run only if `View` with attached `GifDrawable` is visible. `NETSCAPE 2.0` extension (loop counter) is respected as well.
 
 ###Requirements
@@ -37,11 +37,11 @@ If drawables declared by `android:src` and/or `android:background` are GIF files
 + `FileDescriptor`
 + `AssetFileDescriptor`
 
-####Animation controlling
+####Animation control
 `GifDrawable` is an `Animatable` so you can use:
 
-+ `stop()` (from any thread)
-+ `start()` (from any thread)
++ `stop()` from any thread
++ `start()` from any thread
 + `isRunning()`
 
 ####Retrieving GIF metadata
@@ -51,8 +51,8 @@ If drawables declared by `android:src` and/or `android:background` are GIF files
 + `getComment()`
 
 ####Advanced 
-Like in `android.graphics.Bitmap` `recycle()` method is provided to speed up freeing memory.
-If something went wrong reason can be investigated by calling `getError()`.
+`recycle()` method is provided to speed up freeing memory (like in `android.graphics.Bitmap`).
+If something went wrong, the reason can be investigated by calling `getError()`.
 
 
 ###References
