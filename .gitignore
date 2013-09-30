@@ -18,5 +18,7 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+.cproject
 /obj
 libs/*
+.settings/*
