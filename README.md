@@ -10,12 +10,13 @@ Animation starts automatically and run only if `View` with attached `GifDrawable
 **[gif-drawable-1.0.0.jar](http://giflib.sourceforge.net/)**
 
 ###Requirements
++ Android 1.6+ (API level 4+)
+
 ####Using JAR in Eclipse
 + following option **must be unchecked** Window>Preferences>Android>Build>**Force error when external jars contains native libraries**
 
 ####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
-+ Android 1.6+ (API level 4+) needed to run
 
 ##Usage
 
