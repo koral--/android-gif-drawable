@@ -4,9 +4,16 @@ android-gif-drawable
 
 ## Overview
 Bundled GIFLib via JNI is used to render frames. This way should be more efficient than `WebView` or `Movie` classes.<br>
-Animation starts automatically and run only if `View` with attached `GifDrawable` is visible. `NETSCAPE 2.0` extension (loop counter) is respected as well.
+Animation starts automatically and run only if `View` with attached `GifDrawable` is visible.
+
+## Download
+**[gif-drawable-1.0.0.jar](http://giflib.sourceforge.net/)**
 
 ###Requirements
+####Using JAR in Eclipse
++ following option **must be unchecked** Window>Preferences>Android>Build>**Force error when external jars contains native libraries**
+
+####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
 + Android 1.6+ (API level 4+) needed to run
 
