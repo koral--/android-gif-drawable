@@ -31,7 +31,20 @@ The simplest way is to use `GifImageView` (or `GifImageButton`) like a normal `I
     />
 ```
 
-If drawables declared by `android:src` and/or `android:background` are GIF files then they will be automatically recognized as `GifDrawable`s and animated.
+If drawables declared by `android:src` and/or `android:background` are GIF files then they 
+will be automatically recognized as `GifDrawable`s and animated. If given drawable is not a GIF then
+mentioned Views work like plain `ImageView` and `ImageButton`.
+
+`GifTextView` allows you to use GIFs as compound drawables and background.
+```xml
+<pl.droidsonroids.gif.GifTextView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:drawableLeft="@drawable/left_anim"
+    android:drawableStart="@drawable/left_anim"
+    android:background="@drawable/bg_anim"
+    />
+```
 
 ###From Java code
 `GifImageView` and `GifImageButton` have also hooks for setters implemented. So animated GIFs can be set by calling `setImageResource(int resId)` and `setBackgroundResource(int resId)`
