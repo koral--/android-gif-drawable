@@ -3,6 +3,7 @@ package pl.droidsonroids.gif;
 import java.io.IOException;
 import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.Resources.NotFoundException;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -90,6 +91,10 @@ public class GifImageView extends ImageView
 		{
 			//ignored
 		}
+		catch (NotFoundException e) 
+		{
+			//ignored
+		}		
 		if (defaultToSuper)
 		{
 			if (isSrc)

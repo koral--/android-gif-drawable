@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import java.io.IOException;
 import android.content.Context;
+import android.content.res.Resources.NotFoundException;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
 
@@ -86,6 +87,10 @@ public class GifImageButton extends ImageButton
 		{
 			//ignored
 		}
+		catch (NotFoundException e) 
+		{
+			//ignored
+		}		
 		if (defaultToSuper)
 		{
 			if (isSrc)
