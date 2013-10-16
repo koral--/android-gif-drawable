@@ -113,7 +113,6 @@ static void cleanUp(GifInfo* info) {
 		free(GifFile->SavedImages);
 		GifFile->SavedImages = NULL;
 	}
-	free(&GifFile->Error);
 	DGifCloseFile(GifFile);
 	free(info);
 }
@@ -338,15 +337,14 @@ static void setMetaData(int width, int height, int ImageCount, int errorCode,
 	(*env)->ReleaseIntArrayElements(env, metaData, ints, 0);
 }
 
-static jint open(GifFileType *GifFileIn, int* Error, int startPos,
+static jint open(GifFileType *GifFileIn, int Error, int startPos,
 		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData) {
 	if (startPos < 0) {
-		*Error = D_GIF_ERR_NOT_READABLE;
+		Error = D_GIF_ERR_NOT_READABLE;
 		DGifCloseFile(GifFileIn);
 	}
-	if (*Error != 0 || GifFileIn == NULL) {
-		setMetaData(0, 0, 0, *Error, env, metaData);
-		free(Error);
+	if (Error != 0 || GifFileIn == NULL) {
+		setMetaData(0, 0, 0, Error, env, metaData);
 		return (jint) NULL;
 	}
 	int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
@@ -354,7 +352,6 @@ static jint open(GifFileType *GifFileIn, int* Error, int startPos,
 		setMetaData(width, height, 0,
 		D_GIF_ERR_INVALID_SCR_DIMS, env, metaData);
 		DGifCloseFile(GifFileIn);
-		free(Error);
 		return (jint) NULL;
 	}
 
@@ -363,7 +360,6 @@ static jint open(GifFileType *GifFileIn, int* Error, int startPos,
 		setMetaData(width, height, 0,
 		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
 		DGifCloseFile(GifFileIn);
-		free(Error);
 		return (jint) NULL;
 	}
 	info->gifFilePtr = GifFileIn;
@@ -388,14 +384,14 @@ static jint open(GifFileType *GifFileIn, int* Error, int startPos,
 	}
 
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR)
-		*Error = GifFileIn->Error;
+		Error = GifFileIn->Error;
 
 	if (GifFileIn->ImageCount < 1)
-		*Error = D_GIF_ERR_NO_FRAMES;
+		Error = D_GIF_ERR_NO_FRAMES;
 	if (info->rewindFunc(info) != 0)
-		*Error = D_GIF_ERR_READ_FAILED;
-	setMetaData(width, height, GifFileIn->ImageCount, *Error, env, metaData);
-	if (*Error != 0) {
+		Error = D_GIF_ERR_READ_FAILED;
+	setMetaData(width, height, GifFileIn->ImageCount, Error, env, metaData);
+	if (Error != 0) {
 		cleanUp(info);
 		return (jint) NULL;
 	}
@@ -418,14 +414,8 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * e
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL;
 	}
-	int* Error = malloc(sizeof(int));
-	if (Error == NULL) {
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
-		return (jint) NULL;
-	}
-	*Error=0;
-	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, Error);
+	int Error = 0;
+	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, &Error);
 	return open(GifFileIn, Error, ftell(file), fileRewindFun, env, metaData);
 
 }
@@ -460,14 +450,9 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv *
 		container->env=env;
 		container->stream=(*env)->NewGlobalRef(env,stream);
 		container->streamCls = streamCls;
-		int* Error = malloc(sizeof(int));
-		if (Error == NULL) {
-			setMetaData(0, 0, 0,
-			D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
-			return (jint) NULL;
-		}
-		*Error=0;
-		GifFileType* GifFileIn = DGifOpen(container,&streamReadFun,Error);
+
+		int Error=0;
+		GifFileType* GifFileIn = DGifOpen(container,&streamReadFun,&Error);
 		(*env)->CallVoidMethod(env, stream, mid, 2147483647);//TODO better length?
 
 		return open(GifFileIn, Error, 0, streamRewindFun, env, metaData);
@@ -493,14 +478,9 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL;
 	}
-	int* Error = malloc(sizeof(int));
-	if (Error == NULL) {
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
-		return (jint) NULL;
-	}
-	*Error=0;
-	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, Error);
+
+	int Error=0;
+	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, &Error);
 	int startPos = ftell(file);
 
 	return open(GifFileIn, Error, startPos, fileRewindFun, env, metaData);
