@@ -40,36 +40,57 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 <pl.droidsonroids.gif.GifTextView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:drawableLeft="@drawable/left_anim"
+    android:drawableTop="@drawable/left_anim"
     android:drawableStart="@drawable/left_anim"
     android:background="@drawable/bg_anim"
     />
 ```
 
 ###From Java code
-`GifImageView` and `GifImageButton` have also hooks for setters implemented. So animated GIFs can be set by calling `setImageResource(int resId)` and `setBackgroundResource(int resId)`
+`GifImageView`, `GifImageButton` and `GifTextView` have also hooks for setters implemented. So animated GIFs can be set by calling `setImageResource(int resId)` and `setBackgroundResource(int resId)`
 
 `GifDrawable` can be constructed directly from various sources:
 
-+ resource (file located in `res/drawable` and `res/raw` folders) eg. `new GifDrawable(getResources(), R.drawable.mygif)`
-+ asset (file located in `assets` folder) eg. `new GifDrawable(getAssets(), "myfile.gif")`
-+ file (by path) eg.  `new GifDrawable(Environment.getExternalStorageDirectory().getPath()+ "/myfile.gif" ) )`
-+ `InputStream` if it supports marking
-+ `FileDescriptor`
-+ `AssetFileDescriptor`
+```java
+		//asset file
+		GifDrawable gifFromAssets=new GifDrawable( getAssets(), "anim.gif" );
+		
+		//resource (drawable or raw)
+		GifDrawable gifFromResource=new GifDrawable( getResources(), R.drawable.anim );
+		
+		//InputStream (it must support marking)
+		ByteArrayInputStream in =new ByteArrayInputStream( rawGifBytes );
+		GifDrawable gifFromStream=new GifDrawable( in );
+		
+		//FileDescriptor
+		FileDescriptor fd=new RandomAccessFile( "/path/anim.gif", "r" ).getFD();
+		GifDrawable gifFromFd=new GifDrawable( fd );
+		
+		//file path
+		GifDrawable gifFromPath=new GifDrawable( "/path/anim.gif" );
+		
+		//file
+		File gifFile=new File(getFilesDir(),"anim.gif");
+		GifDrawable gifFromFile=new GifDrawable(gifFile);
+		
+		//AssetFileDescriptor
+		AssetFileDescriptor afd=getAssets().openFd( "anim.gif" );
+		GifDrawable gifFromAfd=new GifDrawable( afd );
+````
 
 ####Animation control
 `GifDrawable` is an `Animatable` so you can use:
 
-+ `stop()` from any thread
-+ `start()` from any thread
-+ `isRunning()`
++ `stop()` - stops the animation, can be called from any thread
++ `start()` - starts the animation, can be called from any thread
++ `isRunning()` - returns whether animation is running or not
 
 ####Retrieving GIF metadata
 
-+ `getLoopCount()` `NETSCAPE 2.0` extension
-+ `getNumberOfFrames()`
-+ `getComment()`
++ `getLoopCount()` - returns a loop count as defined in `NETSCAPE 2.0` extension
++ `getNumberOfFrames()` - returns number of frames (at least 1)
++ `getComment()` - returns comment text (`null` if GIF has no comment)
++ `toString()` - returns human readable information about image size and number of frames (intended for debugging purpose)
 
 ####Advanced 
 `recycle()` method is provided to speed up freeing memory (like in `android.graphics.Bitmap`).
