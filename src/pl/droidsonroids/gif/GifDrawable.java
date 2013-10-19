@@ -15,7 +15,6 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
-import android.os.StrictMode;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
