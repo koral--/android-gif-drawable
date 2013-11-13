@@ -21,7 +21,7 @@ import android.graphics.drawable.Drawable;
  * Basic GIF metadata can be also obtained.  
  * @author koral--
  */
-class GifDrawable extends Drawable implements Animatable
+public class GifDrawable extends Drawable implements Animatable
 {
 	static
 	{
