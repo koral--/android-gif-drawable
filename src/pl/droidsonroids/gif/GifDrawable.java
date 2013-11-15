@@ -278,7 +278,7 @@ public class GifDrawable extends Drawable implements Animatable
 	@Override
 	public String toString ()
 	{
-		return String.format( Locale.US, "Size: %dx%d, %d frames", mMetaData[ 1 ], mMetaData[ 2 ], mMetaData[ 0 ] );
+		return String.format( Locale.US, "Size: %dx%d, %d frames %d error", mMetaData[ 0 ], mMetaData[ 1 ], mMetaData[ 2 ], mMetaData[ 3 ] );
 	}
 
 	/**
