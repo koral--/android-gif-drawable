@@ -22,3 +22,4 @@ local.properties
 /obj
 libs/*
 .settings/*
+target/*
