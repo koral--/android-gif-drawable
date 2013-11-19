@@ -20,15 +20,17 @@
 #include <limits.h>
 #include <stdlib.h>
 //#include <android/log.h>
-#include "giflib/gif_lib.h"
 #include <malloc.h>
 
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
 
+#include "giflib/gif_lib.h"
+
 //#define  LOG_TAG    "libgif"
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+//#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
 
 JavaVM *g_jvm;
 
@@ -77,7 +79,7 @@ typedef struct {
 	jclass streamCls;
 	jmethodID readMID;
 	jmethodID resetMID;
-//jbyteArray buffer;
+	jbyteArray buffer;
 } StreamContainer;
 
 static ColorMapObject* genDefColorMap() {
@@ -151,9 +153,27 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 	StreamContainer* sc = gif->UserData;
 	JNIEnv* env = getEnv( gif );
 
-	jbyteArray buffer = (*env)->NewByteArray(env, size);
+	(*env)->MonitorEnter(env,sc->stream);
 
-	int len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, buffer);
+	if( sc->buffer == NULL )
+	{
+		jbyteArray buffer = (*env)->NewByteArray(env, size);
+		sc->buffer = (*env)->NewGlobalRef(env, buffer);
+	}
+	else
+	{
+		jsize bufLen = (*env)->GetArrayLength(env, sc->buffer);
+		if( bufLen < size )
+		{
+			(*env)->DeleteGlobalRef(env,sc->buffer);
+			sc->buffer = NULL;
+
+			jbyteArray buffer = (*env)->NewByteArray(env, size);
+			sc->buffer = (*env)->NewGlobalRef(env, buffer);
+		}
+	}
+
+	int len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0, size);
 	if ((*env)->ExceptionOccurred(env))
 	{
 		(*env)->ExceptionClear(env);
@@ -161,15 +181,16 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 	}
 	else
 	{
-		jbyte* data = (*env)->GetByteArrayElements(env, buffer, NULL);
+		jbyte* data = (*env)->GetByteArrayElements(env, sc->buffer, NULL);
+
 		if( data != NULL )
 		{
 			memcpy( bytes, data, len );
-			(*env)->ReleaseByteArrayElements(env, buffer, data, JNI_ABORT);
+			(*env)->ReleaseByteArrayElements(env, sc->buffer, data, JNI_ABORT);
 		}
 	}
 
-	(*env)->DeleteLocalRef(env, buffer);
+	(*env)->MonitorExit(env,sc->stream);
 
 	return len >= 0 ? len : 0;
 }
@@ -419,6 +440,7 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 
 	return (jint) info;
 }
+
 JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env,
 		jobject obj, jintArray metaData, jstring jfname)
 {
@@ -446,7 +468,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv *
 {
 		jclass streamCls = (*env)->NewGlobalRef(env,(*env)->GetObjectClass(env, stream));
 		jmethodID mid = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
-		jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([B)I");
+		jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
 		jmethodID resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
 
 		if (mid == 0||readMID==0||resetMID==0)
@@ -470,6 +492,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv *
 		container->jvm=g_jvm;
 		container->stream=(*env)->NewGlobalRef(env,stream);
 		container->streamCls = streamCls;
+		container->buffer = NULL;
 
 		int Error=0;
 		GifFileType* GifFileIn = DGifOpen(container,&streamReadFun,&Error);
@@ -604,6 +627,7 @@ static void eraseColor(argb* bm, int w, int h, argb color) {
 	uint32_t* pColor = (uint32_t*) (&color);
 	memset((uint32_t*) bm, *pColor, w * h * sizeof(argb));
 }
+
 static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 		unsigned int idx, argb* backup, argb color) {
 	GifFileType* fGif = info->gifFilePtr;
@@ -716,6 +740,12 @@ JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
 		StreamContainer* sc= info->gifFilePtr->UserData;
 		(*env)->DeleteGlobalRef(env,sc->streamCls);
 		(*env)->DeleteGlobalRef(env,sc->stream);
+
+		if( sc->buffer != NULL )
+		{
+			(*env)->DeleteGlobalRef(env,sc->buffer);
+		}
+
 		free(sc);
 	}
 	else if (info->rewindFunc==fileRewindFun)
