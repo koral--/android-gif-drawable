@@ -69,13 +69,16 @@ public class GifImageView extends ImageView
 
 	void trySetGifDrawable ( AttributeSet attrs, Resources res )
 	{
-		int resId = attrs.getAttributeResourceValue( ANDROID_NS, "src", -1 );
-		if ( resId > 0 && "drawable".equals( res.getResourceTypeName( resId ) ) )
-			setResource( true, resId, res );
-
-		resId = attrs.getAttributeResourceValue( ANDROID_NS, "background", -1 );
-		if ( resId > 0 && "drawable".equals( res.getResourceTypeName( resId ) ) )
-			setResource( false, resId, res );
+		if( attrs != null && res != null )
+		{
+			int resId = attrs.getAttributeResourceValue( ANDROID_NS, "src", -1 );
+			if ( resId > 0 && "drawable".equals( res.getResourceTypeName( resId ) ) )
+				setResource( true, resId, res );
+	
+			resId = attrs.getAttributeResourceValue( ANDROID_NS, "background", -1 );
+			if ( resId > 0 && "drawable".equals( res.getResourceTypeName( resId ) ) )
+				setResource( false, resId, res );
+		}
 	}
 
 	@TargetApi ( Build.VERSION_CODES.JELLY_BEAN )
