@@ -42,17 +42,20 @@ public class GifTextView extends TextView
 	@TargetApi ( Build.VERSION_CODES.JELLY_BEAN_MR1 )
 	private void parseAttrs ( AttributeSet attrs )
 	{
-		Drawable left = getGifOrDefaultDrawable( attrs.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableLeft", 0 ) ), right = getGifOrDefaultDrawable( attrs
-				.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableRight", 0 ) ), top = getGifOrDefaultDrawable( attrs
-				.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableTop", 0 ) ), bottom = getGifOrDefaultDrawable( attrs
-				.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableBottom", 0 ) ), start = getGifOrDefaultDrawable( attrs
-				.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableStart", 0 ) ), end = getGifOrDefaultDrawable( attrs
-				.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableEnd", 0 ) );
-		setCompoundDrawablesWithIntrinsicBounds( left, top, right, bottom );
+		if ( attrs != null )
+		{
+			Drawable left = getGifOrDefaultDrawable( attrs.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableLeft", 0 ) ), right = getGifOrDefaultDrawable( attrs
+					.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableRight", 0 ) ), top = getGifOrDefaultDrawable( attrs
+					.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableTop", 0 ) ), bottom = getGifOrDefaultDrawable( attrs
+					.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableBottom", 0 ) ), start = getGifOrDefaultDrawable( attrs
+					.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableStart", 0 ) ), end = getGifOrDefaultDrawable( attrs
+					.getAttributeResourceValue( GifImageView.ANDROID_NS, "drawableEnd", 0 ) );
+			setCompoundDrawablesWithIntrinsicBounds( left, top, right, bottom );
 
-		if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 )
-			setCompoundDrawablesRelativeWithIntrinsicBounds( start, top, end, bottom );
-		setBackgroundInternal( getGifOrDefaultDrawable( attrs.getAttributeResourceValue( GifImageView.ANDROID_NS, "background", 0 ) ) );
+			if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 )
+				setCompoundDrawablesRelativeWithIntrinsicBounds( start, top, end, bottom );
+			setBackgroundInternal( getGifOrDefaultDrawable( attrs.getAttributeResourceValue( GifImageView.ANDROID_NS, "background", 0 ) ) );
+		}
 	}
 
 	@TargetApi ( Build.VERSION_CODES.JELLY_BEAN )
