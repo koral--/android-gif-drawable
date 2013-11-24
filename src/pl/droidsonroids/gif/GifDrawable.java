@@ -28,9 +28,10 @@ public class GifDrawable extends Drawable implements Animatable
 		System.loadLibrary( "gif" );
 	}
 
-	private native synchronized int renderFrame ( int[] pixels, int gifFileInPtr );
+	private native int renderFrame ( int[] pixels, int gifFileInPtr );
 
 	private native int openFd ( int[] metaData, FileDescriptor fd, long offset );
+	private native int openByteArray ( int[] metaData, byte[] bytes );
 
 	private native int openStream ( int[] metaData, InputStream stream );
 
@@ -38,9 +39,9 @@ public class GifDrawable extends Drawable implements Animatable
 
 	private native void free ( int gifFileInPtr );
 
-	private native synchronized String getComment ( int gifFileInPtr );
+	private native String getComment ( int gifFileInPtr );
 
-	private native synchronized int getLoopCount ( int gifFileInPtr );
+	private native int getLoopCount ( int gifFileInPtr );
 
 	private volatile int mGifInfoPtr;
 	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
@@ -54,8 +55,9 @@ public class GifDrawable extends Drawable implements Animatable
 	 * Creates drawable from resource.
 	 * @param res Resources to read from
 	 * @param id resource id
-	 * @throws NotFoundException  if the given ID does not exist.
+	 * @throws NotFoundException if the given ID does not exist.
 	 * @throws IOException when opening failed
+	 * @throws NullPointerException if res is null
 	 */
 	public GifDrawable ( Resources res, int id ) throws NotFoundException, IOException
 	{
@@ -67,6 +69,7 @@ public class GifDrawable extends Drawable implements Animatable
 	 * @param assets AssetManager to read from
 	 * @param assetName name of the asset
 	 * @throws IOException when opening failed
+	 * @throws NullPointerException if assets or assetName is null
 	 */
 	public GifDrawable ( AssetManager assets, String assetName ) throws IOException
 	{
@@ -80,9 +83,12 @@ public class GifDrawable extends Drawable implements Animatable
 	 * {@link StrictMode} policy if disk reads detection is enabled.<br>
 	 * @param filePath path to the GIF file
 	 * @throws IOException when opening failed
+	 * @throws NullPointerException if filePath is null
 	 */
 	public GifDrawable ( String filePath ) throws IOException
 	{
+		if (filePath==null)
+			throw new NullPointerException( "Source is null" );				
 		mGifInfoPtr = openFile( mMetaData, filePath );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 		checkError();
@@ -92,6 +98,7 @@ public class GifDrawable extends Drawable implements Animatable
 	 * Eqivalent to {@code} GifDrawable(file.getPath())}
 	 * @param file the GIF file 
 	 * @throws IOException when opening failed
+	 * @throws NullPointerException if file is null
 	 */
 	public GifDrawable ( File file ) throws IOException
 	{
@@ -103,11 +110,14 @@ public class GifDrawable extends Drawable implements Animatable
 	 * InputStream must support marking, IOException will be thrown otherwise.
 	 * @param stream stream to read from
 	 * @throws IOException when opening failed
+	 * @throws NullPointerException if stream is null
 	 */
 	public GifDrawable ( InputStream stream ) throws IOException
 	{
+		if (stream==null)
+			throw new NullPointerException( "Source is null" );		
 		if ( !stream.markSupported() )
-			throw new IOException( "InputStream must support marking" );
+			throw new IOException( "InputStream does not support marking" );
 		mStream = stream;
 		mGifInfoPtr = openStream( mMetaData, stream );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
@@ -118,10 +128,13 @@ public class GifDrawable extends Drawable implements Animatable
 	 * Creates drawable from AssetFileDescriptor.
 	 * Convenience wrapper for {@link GifDrawable#GifDrawable(FileDescriptor)}
 	 * @param afd source
+	 * @throws NullPointerException if afd is null
 	 * @throws IOException when opening failed
 	 */
 	public GifDrawable ( AssetFileDescriptor afd ) throws IOException
 	{
+		if (afd==null)
+			throw new NullPointerException( "Source is null" );		
 		FileDescriptor fd = afd.getFileDescriptor();
 		mGifInfoPtr = openFd( mMetaData, fd, afd.getStartOffset() );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
@@ -132,14 +145,32 @@ public class GifDrawable extends Drawable implements Animatable
 	 * Creates drawable from FileDescriptor
 	 * @param fd source
 	 * @throws IOException when opening failed
+	 * @throws NullPointerException if fd is null
 	 */
 	public GifDrawable ( FileDescriptor fd ) throws IOException
 	{
+		if (fd==null)
+			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openFd( mMetaData, fd, 0 );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 		checkError();
 	}
 
+	/**
+	 * Creates drawable from byte array.<br>
+	 * It can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
+	 * @param bytes raw GIF bytes
+	 * @throws IOException if opening 
+	 * @throws NullPointerException if bytes are null
+	 */
+	public GifDrawable ( byte[] bytes ) throws IOException
+	{
+		if (bytes==null)
+			throw new NullPointerException( "Source is null" );
+		mGifInfoPtr = openByteArray( mMetaData, bytes);
+		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
+		checkError();
+	}
 	/**
 	 * Reads and renders new frame if needed then draws last rendered frame.
 	 * @param canvas canvas to draw into
