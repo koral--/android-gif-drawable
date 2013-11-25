@@ -174,7 +174,7 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 	(*env)->MonitorEnter(env, sc->stream);
 
 	if (sc->buffer == NULL) {
-		jbyteArray buffer = (*env)->NewByteArray(env, size);
+		jbyteArray buffer = (*env)->NewByteArray(env, size<256?256:size);
 		sc->buffer = (*env)->NewGlobalRef(env, buffer);
 	} else {
 		jsize bufLen = (*env)->GetArrayLength(env, sc->buffer);
@@ -189,16 +189,14 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 
 	int len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0,
 			size);
-	if ((*env)->ExceptionOccurred(env)) {
+	if ((*env)->ExceptionOccurred(env))
+	{
 		(*env)->ExceptionClear(env);
 		len = 0;
-	} else {
-		jbyte* data = (*env)->GetByteArrayElements(env, sc->buffer, NULL);
-
-		if (data != NULL) {
-			memcpy(bytes, data, len);
-			(*env)->ReleaseByteArrayElements(env, sc->buffer, data, JNI_ABORT);
-		}
+	}
+	else if (len>0)
+	{
+		(*env)->GetByteArrayRegion(env, sc->buffer, 0, len, bytes);
 	}
 
 	(*env)->MonitorExit(env, sc->stream);

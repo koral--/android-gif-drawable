@@ -2,5 +2,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="pl.droidsonroids.gif"
       >
-    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="18"/>      
+    <uses-sdk android:minSdkVersion="4" android:targetSdkVersion="19"/>      
 </manifest> 
