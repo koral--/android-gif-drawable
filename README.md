@@ -7,7 +7,12 @@ Bundled GIFLib via JNI is used to render frames. This way should be more efficie
 Animation starts automatically and run only if `View` with attached `GifDrawable` is visible.
 
 ## Download
-**[android-gif-drawable-1.0.1-SNAPSHOT.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.1/android-gif-drawable-1.0.1-SNAPSHOT.jar)**
+
+**[android-gif-drawable-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.2/android-gif-drawable-1.0.2.jar)**
+
+**[android-gif-drawable-sources-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.2/android-gif-drawable-1.0.2-sources.jar)**
+
+**[android-gif-drawable-javadoc-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.2/android-gif-drawable-javadoc-1.0.2.jar)**
 
 ###Requirements
 + Android 1.6+ (API level 4+)
