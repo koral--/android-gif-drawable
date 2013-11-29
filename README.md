@@ -53,30 +53,39 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 
 ```java
 		//asset file
-		GifDrawable gifFromAssets=new GifDrawable( getAssets(), "anim.gif" );
+		GifDrawable gifFromAssets = new GifDrawable( getAssets(), "anim.gif" );
 		
 		//resource (drawable or raw)
-		GifDrawable gifFromResource=new GifDrawable( getResources(), R.drawable.anim );
+		GifDrawable gifFromResource = new GifDrawable( getResources(), R.drawable.anim );
 		
-		//InputStream (it must support marking)
-		ByteArrayInputStream in =new ByteArrayInputStream( rawGifBytes );
-		GifDrawable gifFromStream=new GifDrawable( in );
+
+		//byte array
+		byte[] rawGifBytes = ...
+		GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );
 		
 		//FileDescriptor
-		FileDescriptor fd=new RandomAccessFile( "/path/anim.gif", "r" ).getFD();
-		GifDrawable gifFromFd=new GifDrawable( fd );
+		FileDescriptor fd = new RandomAccessFile( "/path/anim.gif", "r" ).getFD();
+		GifDrawable gifFromFd = new GifDrawable( fd );
 		
 		//file path
-		GifDrawable gifFromPath=new GifDrawable( "/path/anim.gif" );
+		GifDrawable gifFromPath = new GifDrawable( "/path/anim.gif" );
 		
 		//file
-		File gifFile=new File(getFilesDir(),"anim.gif");
-		GifDrawable gifFromFile=new GifDrawable(gifFile);
+		File gifFile = new File(getFilesDir(),"anim.gif");
+		GifDrawable gifFromFile = new GifDrawable(gifFile);
 		
 		//AssetFileDescriptor
-		AssetFileDescriptor afd=getAssets().openFd( "anim.gif" );
-		GifDrawable gifFromAfd=new GifDrawable( afd );
+		AssetFileDescriptor afd = getAssets().openFd( "anim.gif" );
+		GifDrawable gifFromAfd = new GifDrawable( afd );
+				
+		//InputStream (it must support marking)
+		InputStream sourceIs = ...
+		BufferedInputStream bis = new BufferedInputStream( sourceIs, GIF_LENGTH );
+		GifDrawable gifFromStream = new GifDrawable( bis );
+		
 ````
+Note that all input sources has ability to rewind to the begining. It is required to correctly play animated GIFs 
+(where animation is repeatable) since subsequent frames are decoded on demand from source.
 
 ####Animation control
 `GifDrawable` is an `Animatable` so you can use:
