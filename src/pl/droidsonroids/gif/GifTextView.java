@@ -22,17 +22,29 @@ import android.widget.TextView;
 public class GifTextView extends TextView
 {
 
+	/**
+	 * @param context
+	 */
 	public GifTextView ( Context context )
 	{
 		super( context );
 	}
 
+	/**
+	 * @param context
+	 * @param attrs
+	 */
 	public GifTextView ( Context context, AttributeSet attrs )
 	{
 		super( context, attrs );
 		parseAttrs( attrs );
 	}
 
+	/**
+	 * @param context
+	 * @param attrs
+	 * @param defStyle
+	 */
 	public GifTextView ( Context context, AttributeSet attrs, int defStyle )
 	{
 		super( context, attrs, defStyle );

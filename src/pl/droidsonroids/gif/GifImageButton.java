@@ -32,7 +32,6 @@ public class GifImageButton extends ImageButton
 	 * @see ImageView#ImageView(Context, AttributeSet)
 	 * @param context
 	 * @param attrs
-	 * @param defStyle
 	 */
 	public GifImageButton ( Context context, AttributeSet attrs )
 	{

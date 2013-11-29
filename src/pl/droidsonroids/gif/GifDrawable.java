@@ -15,6 +15,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
+import android.os.StrictMode;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -31,6 +32,7 @@ public class GifDrawable extends Drawable implements Animatable
 	private native int renderFrame ( int[] pixels, int gifFileInPtr );
 
 	private native int openFd ( int[] metaData, FileDescriptor fd, long offset );
+
 	private native int openByteArray ( int[] metaData, byte[] bytes );
 
 	private native int openStream ( int[] metaData, InputStream stream );
@@ -87,8 +89,8 @@ public class GifDrawable extends Drawable implements Animatable
 	 */
 	public GifDrawable ( String filePath ) throws IOException
 	{
-		if (filePath==null)
-			throw new NullPointerException( "Source is null" );				
+		if ( filePath == null )
+			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openFile( mMetaData, filePath );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 		checkError();
@@ -114,8 +116,8 @@ public class GifDrawable extends Drawable implements Animatable
 	 */
 	public GifDrawable ( InputStream stream ) throws IOException
 	{
-		if (stream==null)
-			throw new NullPointerException( "Source is null" );		
+		if ( stream == null )
+			throw new NullPointerException( "Source is null" );
 		if ( !stream.markSupported() )
 			throw new IOException( "InputStream does not support marking" );
 		mStream = stream;
@@ -133,8 +135,8 @@ public class GifDrawable extends Drawable implements Animatable
 	 */
 	public GifDrawable ( AssetFileDescriptor afd ) throws IOException
 	{
-		if (afd==null)
-			throw new NullPointerException( "Source is null" );		
+		if ( afd == null )
+			throw new NullPointerException( "Source is null" );
 		FileDescriptor fd = afd.getFileDescriptor();
 		mGifInfoPtr = openFd( mMetaData, fd, afd.getStartOffset() );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
@@ -149,7 +151,7 @@ public class GifDrawable extends Drawable implements Animatable
 	 */
 	public GifDrawable ( FileDescriptor fd ) throws IOException
 	{
-		if (fd==null)
+		if ( fd == null )
 			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openFd( mMetaData, fd, 0 );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
@@ -165,12 +167,13 @@ public class GifDrawable extends Drawable implements Animatable
 	 */
 	public GifDrawable ( byte[] bytes ) throws IOException
 	{
-		if (bytes==null)
+		if ( bytes == null )
 			throw new NullPointerException( "Source is null" );
-		mGifInfoPtr = openByteArray( mMetaData, bytes);
+		mGifInfoPtr = openByteArray( mMetaData, bytes );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 		checkError();
 	}
+
 	/**
 	 * Reads and renders new frame if needed then draws last rendered frame.
 	 * @param canvas canvas to draw into
