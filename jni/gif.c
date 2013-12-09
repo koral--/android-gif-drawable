@@ -86,7 +86,14 @@ typedef struct {
 	JavaVM* jvm;
 	int pos;
 	jbyteArray buffer;
+	jsize arrLen;
 } ByteArrayContainer;
+
+typedef struct {
+	int pos;
+	jbyte* bytes;
+	jlong capacity;
+} DirectByteBufferContainer;
 
 static ColorMapObject* genDefColorMap() {
 	ColorMapObject* cmap = GifMakeMapObject(256, NULL);
@@ -154,14 +161,22 @@ static JNIEnv* getEnv(GifFileType* gif) {
 	return env;
 }
 
+static int directByteBufferReadFun(GifFileType* gif, GifByteType* bytes, int size) {
+	DirectByteBufferContainer* dbbc = gif->UserData;
+	if (dbbc->pos + size > dbbc->capacity)
+		size -= dbbc->pos + size - dbbc->capacity;
+	memcpy(bytes,dbbc->bytes+dbbc->pos,size);
+	dbbc->pos += size;
+	return size;
+}
+
 static int byteArrayReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 	ByteArrayContainer* bac = gif->UserData;
 	JNIEnv* env = NULL;
 	JavaVM* jvm = bac->jvm;
 	(*jvm)->AttachCurrentThread(jvm, &env, NULL);
-	jsize arrLen = (*env)->GetArrayLength(env, bac->buffer);
-	if (bac->pos + size > arrLen)
-		size -= bac->pos + size - arrLen;
+	if (bac->pos + size > bac->arrLen)
+		size -= bac->pos + size - bac->arrLen;
 	(*env)->GetByteArrayRegion(env, bac->buffer, bac->pos, size, bytes);
 	bac->pos += size;
 	return size;
@@ -227,6 +242,12 @@ static int byteArrayRewindFun(GifInfo* info) {
 	return 0;
 }
 
+static int directByteBufferRewindFun(GifInfo* info) {
+	GifFileType* gif = info->gifFilePtr;
+	DirectByteBufferContainer* dbbc = gif->UserData;
+	dbbc->pos = info->startPos;
+	return 0;
+}
 static int getComment(GifByteType* Bytes, char** cmt) {
 	unsigned int len = (unsigned int) Bytes[0];
 	unsigned int offset = *cmt != NULL ? strlen(*cmt) : 0;
@@ -274,7 +295,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info) 
 	return GIF_OK;
 }
 
-int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
+static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 	GifRecordType RecordType;
 	GifByteType *ExtData;
 	int codeSize;
@@ -487,12 +508,39 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openByteArray(
 		return (jint) NULL;
 	}
 	container->buffer = (*env)->NewGlobalRef(env, bytes);
+	container->arrLen= (*env)->GetArrayLength(env, container->buffer);
 	container->pos = 0;
 	container->jvm = g_jvm;
 	int Error = 0;
 	GifFileType* GifFileIn = DGifOpen(container, &byteArrayReadFun, &Error);
 
 	return open(GifFileIn, Error, container->pos, byteArrayRewindFun, env,
+			metaData);
+}
+
+JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(
+		JNIEnv * env, jobject obj, jintArray metaData, jobject buffer) {
+
+	jbyte* bytes=(*env)->GetDirectBufferAddress(env, buffer);
+	jlong capacity=(*env)->GetDirectBufferCapacity(env, buffer);
+	if (bytes == NULL||capacity==0) {
+		setMetaData(0, 0, 0,
+		D_GIF_ERR_OPEN_FAILED, env, metaData);
+		return (jint) NULL;
+	}
+	DirectByteBufferContainer* container = malloc(sizeof(DirectByteBufferContainer));
+	if (container == NULL) {
+		setMetaData(0, 0, 0,
+		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
+		return (jint) NULL;
+	}
+	container->bytes=bytes;
+	container->capacity=capacity;
+	container->pos = 0;
+	int Error = 0;
+	GifFileType* GifFileIn = DGifOpen(container, &directByteBufferReadFun, &Error);
+
+	return open(GifFileIn, Error, container->pos, directByteBufferRewindFun, env,
 			metaData);
 }
 
@@ -789,6 +837,12 @@ JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
 		{
 			(*env)->DeleteGlobalRef(env,bac->buffer);
 		}
+		free(bac);
+	}
+	else if (info->rewindFunc==byteArrayRewindFun)
+	{
+		DirectByteBufferContainer* dbbc= info->gifFilePtr->UserData;
+		free(dbbc);
 	}
 	info->gifFilePtr->UserData=NULL;
 	cleanUp(info);

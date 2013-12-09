@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Locale;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -34,6 +35,8 @@ public class GifDrawable extends Drawable implements Animatable
 	private native int openFd ( int[] metaData, FileDescriptor fd, long offset );
 
 	private native int openByteArray ( int[] metaData, byte[] bytes );
+	
+	private native int openDirectByteBuffer ( int[] metaData, ByteBuffer buffer );
 
 	private native int openStream ( int[] metaData, InputStream stream );
 
@@ -111,7 +114,7 @@ public class GifDrawable extends Drawable implements Animatable
 	 * Creates drawable from InputStream.
 	 * InputStream must support marking, IOException will be thrown otherwise.
 	 * @param stream stream to read from
-	 * @throws IOException when opening failed
+	 * @throws IOException when opening failed or stream does not support marking
 	 * @throws NullPointerException if stream is null
 	 */
 	public GifDrawable ( InputStream stream ) throws IOException
@@ -162,7 +165,7 @@ public class GifDrawable extends Drawable implements Animatable
 	 * Creates drawable from byte array.<br>
 	 * It can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
 	 * @param bytes raw GIF bytes
-	 * @throws IOException if opening 
+	 * @throws IOException if bytes does not contain valid GIF data
 	 * @throws NullPointerException if bytes are null
 	 */
 	public GifDrawable ( byte[] bytes ) throws IOException
@@ -173,7 +176,25 @@ public class GifDrawable extends Drawable implements Animatable
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 		checkError();
 	}
-
+	
+	/**
+	 * Creates drawable from {@link ByteBuffer}. Only direct buffers are supported.
+	 * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
+	 * @param buffer buffer containing gif data
+	 * @throws IOException if buffer is indirect or does not contain valid GIF data
+	 * @throws NullPointerException if buffer is null
+	 */
+	public GifDrawable ( ByteBuffer buffer ) throws IOException
+	{
+		if ( buffer == null )
+			throw new NullPointerException( "Source is null" );
+		if (!buffer.isDirect())
+			throw new IOException( "ByteBuffer is not direct" );
+		mGifInfoPtr = openDirectByteBuffer( mMetaData, buffer );
+		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
+		checkError();
+	}
+	
 	/**
 	 * Reads and renders new frame if needed then draws last rendered frame.
 	 * @param canvas canvas to draw into
@@ -333,10 +354,10 @@ public class GifDrawable extends Drawable implements Animatable
 		return GifError.fromCode( mMetaData[ 3 ] );
 	}
 
-	private void checkError () throws IOException
+	private void checkError () throws GifIOException
 	{
 		if ( mGifInfoPtr == 0 )
-			throw new IOException( GifError.fromCode( mMetaData[ 3 ] ).getFormattedDescription() );
+			throw new GifIOException( GifError.fromCode( mMetaData[ 3 ] ));
 	}
 
 	/**
