@@ -8,11 +8,11 @@ Animation starts automatically and run only if `View` with attached `GifDrawable
 
 ## Download
 
-**[android-gif-drawable-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.2/android-gif-drawable-1.0.2.jar)**
+**[android-gif-drawable-1.0.3.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.3/android-gif-drawable-1.0.3.jar)**
 
-**[android-gif-drawable-sources-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.2/android-gif-drawable-1.0.2-sources.jar)**
+**[android-gif-drawable-sources-1.0.3.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.3/android-gif-drawable-1.0.3-sources.jar)**
 
-**[android-gif-drawable-javadoc-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.2/android-gif-drawable-javadoc-1.0.2.jar)**
+**[android-gif-drawable-javadoc-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.3/android-gif-drawable-javadoc-1.0.3.jar)**
 
 ###Requirements
 + Android 1.6+ (API level 4+)
@@ -62,7 +62,6 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 		
 		//resource (drawable or raw)
 		GifDrawable gifFromResource = new GifDrawable( getResources(), R.drawable.anim );
-		
 
 		//byte array
 		byte[] rawGifBytes = ...
