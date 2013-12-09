@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-			      http://maven.apache.org/maven-v4_0_0.xsd">
+                              http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pl.droidsonroids.gif</groupId>
 	<artifactId>android-gif-drawable</artifactId>
-	<version>1.0.2</version>
-	<packaging>jar</packaging>
+	<version>1.0.3</version>
+	<packaging>apklib</packaging>
 
 	<description>Views and Drawable for displaying animated GIFs for Android</description>
 	<url>https://github.com/koral--/android-gif-drawable</url>
@@ -42,6 +42,20 @@
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>libs</directory>
+						</fileset>
+						<fileset>
+							<directory>obj</directory>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<version>2.2.1</version>
@@ -51,6 +65,10 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
+						<configuration>
+							<reportOutputDirectory>${project.build.directory}/classes/</reportOutputDirectory>
+						</configuration>
+
 					</execution>
 				</executions>
 			</plugin>
@@ -93,31 +111,33 @@
 				<extensions>true</extensions>
 
 			</plugin>
+			<!--
 			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.6</version>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
+						<phase>package</phase>
 						<configuration>
-							<outputDirectory>${basedir}/target/classes/lib</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${basedir}/obj/local</directory>
-									<filtering>true</filtering>
-									<includes>
-										<include>**/*.so</include>
-									</includes>
-								</resource>
-							</resources>
+							<tasks>
+								<jar destfile="jar-with-src.jar">
+									<zipfileset dir="libs" prefix="lib">
+									</zipfileset>
+									<zipfileset dir="src">
+									</zipfileset>
+									<zipfileset dir="bin/classes">
+										<include name="**/*.class" />
+									</zipfileset>
+								</jar>
+							</tasks>
 						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
+			 -->
 		</plugins>
 	</build>
 </project>
