@@ -12,7 +12,7 @@ Animation starts automatically and run only if `View` with attached `GifDrawable
 
 **[android-gif-drawable-sources-1.0.3.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.3/android-gif-drawable-1.0.3-sources.jar)**
 
-**[android-gif-drawable-javadoc-1.0.2.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.3/android-gif-drawable-javadoc-1.0.3.jar)**
+**[android-gif-drawable-javadoc-1.0.3.jar](https://github.com/koral--/android-gif-drawable/releases/download/v1.0.3/android-gif-drawable-javadoc-1.0.3.jar)**
 
 ###Requirements
 + Android 1.6+ (API level 4+)
