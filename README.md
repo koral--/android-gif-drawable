@@ -87,6 +87,10 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 		BufferedInputStream bis = new BufferedInputStream( sourceIs, GIF_LENGTH );
 		GifDrawable gifFromStream = new GifDrawable( bis );
 		
+		//direct ByteBuffer
+		ByteBuffer rawGifBytes = ...
+		GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );
+		
 ````
 Note that all input sources has ability to rewind to the begining. It is required to correctly play animated GIFs 
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
