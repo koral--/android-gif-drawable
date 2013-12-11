@@ -248,6 +248,7 @@ static int directByteBufferRewindFun(GifInfo* info) {
 	dbbc->pos = info->startPos;
 	return 0;
 }
+
 static int getComment(GifByteType* Bytes, char** cmt) {
 	unsigned int len = (unsigned int) Bytes[0];
 	unsigned int offset = *cmt != NULL ? strlen(*cmt) : 0;
@@ -326,7 +327,8 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 
 				sp->RasterBits = info->rasterBits;
 
-				if (sp->ImageDesc.Interlace) {
+				if (sp->ImageDesc.Interlace)
+				{
 					int i, j;
 					/*
 					 * The way an interlaced image should be read -
@@ -343,12 +345,15 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 									sp->ImageDesc.Width) == GIF_ERROR)
 								return GIF_ERROR;
 						}
-				} else {
+				}
+				else
+				{
 					if (DGifGetLine(GifFile, sp->RasterBits,
 							ImageSize)==GIF_ERROR)
 						return (GIF_ERROR);
 				}
-				if (info->currentIndex >= GifFile->ImageCount - 1) {
+				if (info->currentIndex >= GifFile->ImageCount - 1)
+				{
 					if (info->loopCount > 0)
 						info->currentLoop++;
 					if (info->rewindFunc(info) != 0) {
@@ -777,6 +782,21 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env) {
 	}
 	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap,
 			transpIndex);
+}
+
+JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_reset(
+		JNIEnv * env, jobject obj, jobject gifInfo)
+{
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info == NULL)
+		return false;
+	if (info->rewindFunc(info) != 0) {
+		return false;
+	}
+	info->nextStartTime=0;
+	info->currentLoop=-1;
+	info->currentIndex = -1;
+	return true;
 }
 
 JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(

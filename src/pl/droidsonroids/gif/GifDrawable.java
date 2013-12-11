@@ -16,6 +16,8 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.StrictMode;
 
 /**
@@ -35,7 +37,7 @@ public class GifDrawable extends Drawable implements Animatable
 	private native int openFd ( int[] metaData, FileDescriptor fd, long offset );
 
 	private native int openByteArray ( int[] metaData, byte[] bytes );
-	
+
 	private native int openDirectByteBuffer ( int[] metaData, ByteBuffer buffer );
 
 	private native int openStream ( int[] metaData, InputStream stream );
@@ -43,6 +45,8 @@ public class GifDrawable extends Drawable implements Animatable
 	private native int openFile ( int[] metaData, String filePath );
 
 	private native void free ( int gifFileInPtr );
+
+	private native boolean reset ( int gifFileInPtr );
 
 	private native String getComment ( int gifFileInPtr );
 
@@ -112,9 +116,10 @@ public class GifDrawable extends Drawable implements Animatable
 
 	/**
 	 * Creates drawable from InputStream.
-	 * InputStream must support marking, IOException will be thrown otherwise.
+	 * InputStream must support marking, GifIOException will be thrown otherwise.
 	 * @param stream stream to read from
-	 * @throws IOException when opening failed or stream does not support marking
+	 * @throws IOException when opening failed 
+	 * @throws IllegalArgumentException if stream does not support marking
 	 * @throws NullPointerException if stream is null
 	 */
 	public GifDrawable ( InputStream stream ) throws IOException
@@ -122,7 +127,7 @@ public class GifDrawable extends Drawable implements Animatable
 		if ( stream == null )
 			throw new NullPointerException( "Source is null" );
 		if ( !stream.markSupported() )
-			throw new IOException( "InputStream does not support marking" );
+			throw new IllegalArgumentException( "InputStream does not support marking" );
 		mStream = stream;
 		mGifInfoPtr = openStream( mMetaData, stream );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
@@ -176,25 +181,26 @@ public class GifDrawable extends Drawable implements Animatable
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 		checkError();
 	}
-	
+
 	/**
 	 * Creates drawable from {@link ByteBuffer}. Only direct buffers are supported.
 	 * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
 	 * @param buffer buffer containing gif data
-	 * @throws IOException if buffer is indirect or does not contain valid GIF data
+	 * @throws IOException if buffer does not contain valid GIF data
+	 * @throws IllegalArgumentException if buffer is indirect 
 	 * @throws NullPointerException if buffer is null
 	 */
 	public GifDrawable ( ByteBuffer buffer ) throws IOException
 	{
 		if ( buffer == null )
 			throw new NullPointerException( "Source is null" );
-		if (!buffer.isDirect())
-			throw new IOException( "ByteBuffer is not direct" );
+		if ( !buffer.isDirect() )
+			throw new IllegalArgumentException( "ByteBuffer is not direct" );
 		mGifInfoPtr = openDirectByteBuffer( mMetaData, buffer );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 		checkError();
 	}
-	
+
 	/**
 	 * Reads and renders new frame if needed then draws last rendered frame.
 	 * @param canvas canvas to draw into
@@ -293,6 +299,26 @@ public class GifDrawable extends Drawable implements Animatable
 	}
 
 	/**
+	 * Causes the animation to start over. 
+	 * If animation is stopped any effects will occur after restart.<br>
+	 * If rewinding input source fails then state is not affected.
+	 */
+	public void reset ()
+	{
+		if (Looper.myLooper() == Looper.getMainLooper())
+			reset( mGifInfoPtr );
+		else
+			new Handler( Looper.getMainLooper() ).post( new Runnable()
+			{
+				@Override
+				public void run ()
+				{
+					reset( mGifInfoPtr );
+				}
+			} );
+	}
+
+	/**
 	 * Stops the animation. Does nothing if GIF is not animated.
 	 * Can be called from background thread.
 	 */
@@ -357,7 +383,7 @@ public class GifDrawable extends Drawable implements Animatable
 	private void checkError () throws GifIOException
 	{
 		if ( mGifInfoPtr == 0 )
-			throw new GifIOException( GifError.fromCode( mMetaData[ 3 ] ));
+			throw new GifIOException( GifError.fromCode( mMetaData[ 3 ] ) );
 	}
 
 	/**
