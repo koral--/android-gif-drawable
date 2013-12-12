@@ -528,7 +528,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffe
 
 	jbyte* bytes=(*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity=(*env)->GetDirectBufferCapacity(env, buffer);
-	if (bytes == NULL||capacity==0) {
+	if (bytes == NULL||capacity<=0) {
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL;
@@ -789,14 +789,14 @@ JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_reset(
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
-		return false;
+		return JNI_FALSE;
 	if (info->rewindFunc(info) != 0) {
-		return false;
+		return JNI_FALSE;
 	}
 	info->nextStartTime=0;
 	info->currentLoop=-1;
 	info->currentIndex = -1;
-	return true;
+	return JNI_TRUE;
 }
 
 JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
@@ -859,7 +859,7 @@ JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
 		}
 		free(bac);
 	}
-	else if (info->rewindFunc==byteArrayRewindFun)
+	else if (info->rewindFunc==byteBufferRewindFun)
 	{
 		DirectByteBufferContainer* dbbc= info->gifFilePtr->UserData;
 		free(dbbc);

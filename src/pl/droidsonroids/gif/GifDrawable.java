@@ -290,7 +290,7 @@ public class GifDrawable extends Drawable implements Animatable
 
 	/**
 	 * Starts the animation. Does nothing if GIF is not animated.
-	 * Can be called from background thread.
+	 * Can be called from any thread.
 	 */
 	@Override
 	public void start ()
@@ -302,6 +302,7 @@ public class GifDrawable extends Drawable implements Animatable
 	 * Causes the animation to start over. 
 	 * If animation is stopped any effects will occur after restart.<br>
 	 * If rewinding input source fails then state is not affected.
+	 * Can be called from any thread.
 	 */
 	public void reset ()
 	{
@@ -320,7 +321,7 @@ public class GifDrawable extends Drawable implements Animatable
 
 	/**
 	 * Stops the animation. Does nothing if GIF is not animated.
-	 * Can be called from background thread.
+	 * Can be called from any thread.
 	 */
 	@Override
 	public void stop ()
