@@ -96,11 +96,12 @@ Note that all input sources has ability to rewind to the begining. It is require
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
 
 ####Animation control
-`GifDrawable` is an `Animatable` so you can use:
+`GifDrawable` is an `Animatable` so you can use its methods and more:
 
 + `stop()` - stops the animation, can be called from any thread
 + `start()` - starts the animation, can be called from any thread
-+ `isRunning()` - returns whether animation is running or not
++ `isRunning()` - returns whether animation is currently running or not
++ `reset()` - rewinds the animation, does not restart stopped one
 
 ####Retrieving GIF metadata
 
