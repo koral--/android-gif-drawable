@@ -32,25 +32,27 @@ public class GifDrawable extends Drawable implements Animatable
 		System.loadLibrary( "gif" );
 	}
 
-	private native int renderFrame ( int[] pixels, int gifFileInPtr );
+	private static native int renderFrame ( int[] pixels, int gifFileInPtr );
 
-	private native int openFd ( int[] metaData, FileDescriptor fd, long offset );
+	private static native int openFd ( int[] metaData, FileDescriptor fd, long offset );
 
-	private native int openByteArray ( int[] metaData, byte[] bytes );
+	private static native int openByteArray ( int[] metaData, byte[] bytes );
 
-	private native int openDirectByteBuffer ( int[] metaData, ByteBuffer buffer );
+	private static native int openDirectByteBuffer ( int[] metaData, ByteBuffer buffer );
 
-	private native int openStream ( int[] metaData, InputStream stream );
+	private static native int openStream ( int[] metaData, InputStream stream );
 
-	private native int openFile ( int[] metaData, String filePath );
+	private static native int openFile ( int[] metaData, String filePath );
 
-	private native void free ( int gifFileInPtr );
+	private static native void free ( int gifFileInPtr );
 
-	private native boolean reset ( int gifFileInPtr );
+	private static native boolean reset ( int gifFileInPtr );
 
-	private native String getComment ( int gifFileInPtr );
+	private static native void setSpeedFactor ( int gifFileInPtr, float factor );
 
-	private native int getLoopCount ( int gifFileInPtr );
+	private static native String getComment ( int gifFileInPtr );
+
+	private static native int getLoopCount ( int gifFileInPtr );
 
 	private volatile int mGifInfoPtr;
 	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
@@ -59,6 +61,32 @@ public class GifDrawable extends Drawable implements Animatable
 	private final int[] mColors;
 	private final int[] mMetaData = new int[ 4 ];//[w,h,imageCount,errorCode]
 	private InputStream mStream;
+
+	private final Runnable mResetTask = new Runnable()
+	{
+		@Override
+		public void run ()
+		{
+			reset( mGifInfoPtr );
+		}
+	};
+
+	private final Runnable mInvalidateTask = new Runnable()
+	{
+		@Override
+		public void run ()
+		{
+			invalidateSelf();
+		}
+	};
+
+	private static void runOnUiThread ( Runnable task )
+	{
+		if ( Looper.myLooper() == Looper.getMainLooper() )
+			task.run();
+		else
+			new Handler( Looper.getMainLooper() ).post( task );
+	}
 
 	/**
 	 * Creates drawable from resource.
@@ -290,38 +318,29 @@ public class GifDrawable extends Drawable implements Animatable
 
 	/**
 	 * Starts the animation. Does nothing if GIF is not animated.
-	 * Can be called from any thread.
+	 * This method is thread-safe.
 	 */
 	@Override
 	public void start ()
 	{
 		mIsRunning = true;
+		runOnUiThread( mInvalidateTask );
 	}
 
 	/**
 	 * Causes the animation to start over. 
 	 * If animation is stopped any effects will occur after restart.<br>
 	 * If rewinding input source fails then state is not affected.
-	 * Can be called from any thread.
+	 * This method is thread-safe.
 	 */
 	public void reset ()
 	{
-		if (Looper.myLooper() == Looper.getMainLooper())
-			reset( mGifInfoPtr );
-		else
-			new Handler( Looper.getMainLooper() ).post( new Runnable()
-			{
-				@Override
-				public void run ()
-				{
-					reset( mGifInfoPtr );
-				}
-			} );
+		runOnUiThread( mResetTask );
 	}
-
+	
 	/**
 	 * Stops the animation. Does nothing if GIF is not animated.
-	 * Can be called from any thread.
+	 * This method is thread-safe.
 	 */
 	@Override
 	public void stop ()
@@ -405,5 +424,19 @@ public class GifDrawable extends Drawable implements Animatable
 			//ignored
 		}
 		return null;
+	}
+
+	/**
+	 * Sets new animation speed factor.<br>
+	 * Note: If animation is in progress ({@link #draw(Canvas)} was already called)
+	 * then effects will be visible from the next frame. Duration of the currently rendered frame is not affected.   
+	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed 
+	 * @throws IllegalArgumentException if factor<=0
+	 */
+	public void setSpeed ( float factor )
+	{
+		if ( factor <= 0f )
+			throw new IllegalArgumentException( "Speed factor is not positive" );
+		setSpeedFactor( mGifInfoPtr, factor );
 	}
 }
