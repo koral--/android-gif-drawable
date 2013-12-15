@@ -98,6 +98,7 @@ Note that all input sources has ability to rewind to the begining. It is require
 + `start()` - starts the animation, can be called from any thread
 + `isRunning()` - returns whether animation is currently running or not
 + `reset()` - rewinds the animation, does not restart stopped one
++ `setSpeed(float factor)` - sets new animation speed factor, eg. passing 2.0f will double the animation speed
 
 ####Retrieving GIF metadata
 
