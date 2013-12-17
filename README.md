@@ -10,10 +10,34 @@ Animation starts automatically and run only if `View` with attached `GifDrawable
 
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
+### Setup
+
+#### Maven dependency
+
+SDK with API level 19 is needed. If you don't have it in your local repository, download [maven-android-sdk-deployer](https://github.com/mosabua/maven-android-sdk-deployer)
+and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer directory).
+
+1. Install artifact to your local repository: `mvn install`
+2. Add dependency in `pom.xml` of your project:
+
+```xml
+<dependency>
+	<groupId>pl.droidsonroids.gif</groupId>
+	<artifactId>android-gif-drawable</artifactId>
+	<version>1.0.4</version>
+</dependency>
+```
+
+#### APKLIB (for non-maven users)
+
+1. Download and unzip APKLIB from **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)** 
+2. Create ANT project or import existing Android code in Eclipse
+3. Add newly created library project as a reference in your project 
+
 ###Requirements
 + Android 1.6+ (API level 4+)
 
-####Using JAR in Eclipse
+####Using JAR in Eclipse (NOT recommended, use APKLIB instead)
 + following option **must be unchecked** Window>Preferences>Android>Build>**Force error when external jars contains native libraries**
 
 ####Building from source
@@ -88,7 +112,11 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 		GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );
 		
 ````
-Note that all input sources has ability to rewind to the begining. It is required to correctly play animated GIFs 
+InputStreams are closed automatically in finalizer if GifDrawable is no longer needed 
+so you don't need to explicitly close them. Calling `recycle()` will also close 
+underlaying input source. 
+
+Note that all input sources need to have ability to rewind to the begining. It is required to correctly play animated GIFs 
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
 
 ####Animation control
@@ -107,9 +135,10 @@ Note that all input sources has ability to rewind to the begining. It is require
 + `getComment()` - returns comment text (`null` if GIF has no comment)
 + `toString()` - returns human readable information about image size and number of frames (intended for debugging purpose)
 
-####Advanced 
-`recycle()` method is provided to speed up freeing memory (like in `android.graphics.Bitmap`).
-If something went wrong, the reason can be investigated by calling `getError()`.
+####Advanced
+ 
++ `recycle()` - provided to speed up freeing memory (like in `android.graphics.Bitmap`).
++ `getError()` - returns last error details
 
 
 ###References
