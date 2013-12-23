@@ -451,6 +451,9 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 	info->rasterBits = calloc(GifFileIn->SHeight * GifFileIn->SWidth,
 			sizeof(GifPixelType));
 	info->infos = malloc(sizeof(FrameInfo));
+	info->infos->duration=0;
+	info->infos->disposalMethod=0;
+	info->infos->transpIndex=-1;
 	info->backupPtr = calloc(width * height, sizeof(argb));
 	info->rewindFunc = rewindFunc;
 
@@ -520,7 +523,6 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openByteArray(
 
 JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(
 		JNIEnv * env, jclass class, jintArray metaData, jobject buffer) {
-
 	jbyte* bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
 	if (bytes == NULL || capacity <= 0) {
@@ -875,11 +877,39 @@ JNIEXPORT jstring JNICALL Java_pl_droidsonroids_gif_GifDrawable_getComment(
 	GifInfo* info = (GifInfo*) gifInfo;
 	return (*env)->NewStringUTF(env, info->comment);
 }
+
 JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(
 		JNIEnv * env, jclass class, jobject gifInfo) {
 	if (gifInfo == NULL)
 		return 0;
 	return ((GifInfo*) gifInfo)->loopCount;
+}
+
+JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getDuration(
+		JNIEnv * env, jclass class, jobject gifInfo) {
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info == NULL)
+		return 0;
+	int i;
+	int sum=0;
+	for (i=0;i<info->gifFilePtr->ImageCount;i++)
+		sum+=info->infos[i].duration;
+	return sum;
+}
+
+JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(
+		JNIEnv * env, jclass class, jobject gifInfo) {
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info == NULL)
+		return 0;
+	int idx=info->currentIndex;
+	if (idx<=0)
+		return 0;
+	int i;
+	unsigned long sum=0;
+	for (i=0;i<idx;i++)
+		sum+=info->infos[i].duration;
+	return (int)(sum+getRealTime()-info->nextStartTime);
 }
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {

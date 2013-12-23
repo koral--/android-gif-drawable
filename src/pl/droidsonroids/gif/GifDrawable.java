@@ -19,13 +19,14 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
+import android.widget.MediaController.MediaPlayerControl;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
  * Basic GIF metadata can be also obtained.  
  * @author koral--
  */
-public class GifDrawable extends Drawable implements Animatable
+public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl
 {
 	static
 	{
@@ -53,6 +54,10 @@ public class GifDrawable extends Drawable implements Animatable
 	private static native String getComment ( int gifFileInPtr );
 
 	private static native int getLoopCount ( int gifFileInPtr );
+	
+	private static native int getDuration ( int gifFileInPtr );
+	
+	private static native int getCurrentPosition ( int gifFileInPtr );
 
 	private volatile int mGifInfoPtr;
 	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
@@ -383,7 +388,7 @@ public class GifDrawable extends Drawable implements Animatable
 	}
 
 	/**
-	 * @return number of frames in GIF, 0 if loading failed.
+	 * @return number of frames in GIF, at least one
 	 */
 	public int getNumberOfFrames ()
 	{
@@ -429,7 +434,7 @@ public class GifDrawable extends Drawable implements Animatable
 	/**
 	 * Sets new animation speed factor.<br>
 	 * Note: If animation is in progress ({@link #draw(Canvas)} was already called)
-	 * then effects will be visible from the next frame. Duration of the currently rendered frame is not affected.   
+	 * then effects will be visible starting from the next frame. Duration of the currently rendered frame is not affected.   
 	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed 
 	 * @throws IllegalArgumentException if factor<=0
 	 */
@@ -438,5 +443,108 @@ public class GifDrawable extends Drawable implements Animatable
 		if ( factor <= 0f )
 			throw new IllegalArgumentException( "Speed factor is not positive" );
 		setSpeedFactor( mGifInfoPtr, factor );
+	}
+
+	/**
+	 * Equivalent of {@link #stop()}
+	 */
+	@Override
+	public void pause ()
+	{
+		stop();
+	}
+
+	/**
+	 * Retrieves duration of one loop of the animation. Result is always multiple of 10.
+	 * If there is no data (no Graphics Control Extension blocks) 0 is returned.
+	 * Note that one-frame GIFs can have non-zero duration defined in Graphics Control Extension block, 
+	 * use {@link #getNumberOfFrames()} to determine if there is one or more frames.
+	 * @return duration of the animation in ms
+	 */
+	@Override
+	public int getDuration ()
+	{
+		return getDuration( mGifInfoPtr );
+	}
+
+	/**
+	 * Retrieves current position in a loop of animation.
+	 * If there is only 1 frame, 0 is returned.
+	 * @return current position 
+	 */
+	@Override
+	public int getCurrentPosition ()
+	{
+		return getCurrentPosition( mGifInfoPtr );
+	}
+
+	/**
+	 * TODO 
+	 */
+	@Override
+	public void seekTo ( int pos )
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * Equivalent of {@link #isRunning()}
+	 * @return true if animation is running
+	 */
+	@Override
+	public boolean isPlaying ()
+	{
+		return mIsRunning;
+	}
+
+	/**
+	 * TODO description
+	 * @return always 100
+	 */
+	@Override
+	public int getBufferPercentage ()
+	{
+		return 100;
+	}
+
+	/**
+	 * TODO description
+	 * @return always true
+	 */
+	@Override
+	public boolean canPause ()
+	{
+		return true;
+	}
+
+	/**
+	 * TODO description
+	 * @return always false
+	 */
+	@Override
+	public boolean canSeekBackward ()
+	{
+		return false;
+	}
+
+	/**
+	 * TODO description
+	 * @return true if GIF has at least 2 frames
+	 */
+	@Override
+	public boolean canSeekForward ()
+	{
+		return getNumberOfFrames()>1;
+	}
+
+	/**
+	 * TODO description
+	 * @return always 0
+	 */
+	@Override
+	public int getAudioSessionId ()
+	{
+		return 0;
 	}
 }
