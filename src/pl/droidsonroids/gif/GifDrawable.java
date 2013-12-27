@@ -468,9 +468,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * Retrieves current position in a loop of animation.
+	 * Retrieves elapsed time from the beginning of a current loop of animation.
 	 * If there is only 1 frame, 0 is returned.
-	 * @return current position 
+	 * @return elapsed time from the beginning of a loop in ms
 	 */
 	@Override
 	public int getCurrentPosition ()
@@ -499,7 +499,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * TODO description
+	 * Used by MediaPlayer for secondary progress bars.
+	 * There is no buffer in GifDrawable, so buffer is assumed to be always full. 
 	 * @return always 100
 	 */
 	@Override
@@ -509,8 +510,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * TODO description
-	 * @return always true
+	 * Checks whether pause is supported.
+	 * @return always true, even if there is only one frame
 	 */
 	@Override
 	public boolean canPause ()
@@ -519,7 +520,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * TODO description
+	 * Checks whether seeking backward can be performed.
+	 * Due to frame disposal methods it is not supported now.
 	 * @return always false
 	 */
 	@Override
@@ -529,7 +531,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * TODO description
+	 * Checks whether seeking forward can be performed.
 	 * @return true if GIF has at least 2 frames
 	 */
 	@Override
@@ -539,7 +541,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * TODO description
+	 * Used by MediaPlayer.
+	 * GIFs contain no sound, so 0 is always returned.
 	 * @return always 0
 	 */
 	@Override
