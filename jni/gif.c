@@ -903,7 +903,7 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(
 	if (info == NULL)
 		return 0;
 	int idx=info->currentIndex;
-	if (idx<=0)
+	if (idx<0||info->gifFilePtr->ImageCount<=1)
 		return 0;
 	int i;
 	unsigned long sum=0;

@@ -20,6 +20,5 @@ local.properties
 .project
 .cproject
 /obj
-libs/*
 .settings/*
 target/*

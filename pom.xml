@@ -88,7 +88,7 @@
 			<plugin>
 				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
-				<version>3.8.0</version>
+				<version>3.8.2</version>
 				<configuration>
 					<sdk>
 						<platform>19</platform>
@@ -132,7 +132,7 @@
 									<tasks>
 										<exec executable="ndk-build">
 										</exec>
-										<jar destfile="target/${artifactId}-${version}-with-sources.jar">
+										<jar destfile="target/${project.artifactId}-${project.version}-with-sources.jar">
 											<zipfileset dir="libs" prefix="lib">
 											</zipfileset>
 											<zipfileset dir="src">
@@ -141,7 +141,7 @@
 												<include name="**/*.class" />
 											</zipfileset>
 										</jar>
-										<jar destfile="target/${artifactId}-${version}.jar">
+										<jar destfile="target/${project.artifactId}-${project.version}.jar">
 											<zipfileset dir="libs" prefix="lib">
 											</zipfileset>
 											<zipfileset dir="bin/classes">
