@@ -25,6 +25,7 @@ and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer 
 	<groupId>pl.droidsonroids.gif</groupId>
 	<artifactId>android-gif-drawable</artifactId>
 	<version>1.0.4</version>
+	<type>apklib</type>
 </dependency>
 ```
 
