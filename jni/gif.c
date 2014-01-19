@@ -25,7 +25,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
-
 #include "giflib/gif_lib.h"
 
 //#define  LOG_TAG    "libgif"
@@ -34,7 +33,8 @@
 
 JavaVM *g_jvm;
 
-typedef struct {
+typedef struct
+{
 	uint8_t blue;
 	uint8_t green;
 	uint8_t red;
@@ -48,16 +48,19 @@ typedef struct {
 
 static ColorMapObject* defaultCmap = NULL;
 
-typedef struct {
+typedef struct
+{
 	unsigned int duration;
-	unsigned short transpIndex;
+	short transpIndex;
 	unsigned char disposalMethod;
 } FrameInfo;
 
 typedef struct GifInfo GifInfo;
-typedef int (*RewindFunc)(GifInfo *);
+typedef int
+(*RewindFunc)(GifInfo *);
 
-struct GifInfo {
+struct GifInfo
+{
 	GifFileType* gifFilePtr;
 	unsigned long nextStartTime;
 	int currentIndex;
@@ -73,7 +76,8 @@ struct GifInfo {
 	jfloat speedFactor;
 };
 
-typedef struct {
+typedef struct
+{
 	JavaVM* jvm;
 	jobject stream;
 	jclass streamCls;
@@ -82,24 +86,30 @@ typedef struct {
 	jbyteArray buffer;
 } StreamContainer;
 
-typedef struct {
+typedef struct
+{
 	JavaVM* jvm;
 	int pos;
 	jbyteArray buffer;
 	jsize arrLen;
 } ByteArrayContainer;
 
-typedef struct {
+typedef struct
+{
 	int pos;
 	jbyte* bytes;
 	jlong capacity;
 } DirectByteBufferContainer;
 
-static ColorMapObject* genDefColorMap() {
+static ColorMapObject*
+genDefColorMap()
+{
 	ColorMapObject* cmap = GifMakeMapObject(256, NULL);
-	if (cmap != NULL) {
+	if (cmap != NULL)
+	{
 		int iColor;
-		for (iColor = 0; iColor < 256; iColor++) {
+		for (iColor = 0; iColor < 256; iColor++)
+		{
 			cmap->Colors[iColor].Red = (GifByteType) iColor;
 			cmap->Colors[iColor].Green = (GifByteType) iColor;
 			cmap->Colors[iColor].Blue = (GifByteType) iColor;
@@ -108,7 +118,8 @@ static ColorMapObject* genDefColorMap() {
 	return cmap;
 }
 
-static void cleanUp(GifInfo* info) {
+static void cleanUp(GifInfo* info)
+{
 	free(info->backupPtr);
 	info->backupPtr = NULL;
 	free(info->infos);
@@ -119,11 +130,16 @@ static void cleanUp(GifInfo* info) {
 	info->comment = NULL;
 
 	GifFileType* GifFile = info->gifFilePtr;
-	if (GifFile->SavedImages != NULL) {
+	if (GifFile->SColorMap == defaultCmap)
+		GifFile->SColorMap = NULL;
+	if (GifFile->SavedImages != NULL)
+	{
 		SavedImage *sp;
 		for (sp = GifFile->SavedImages;
-				sp < GifFile->SavedImages + GifFile->ImageCount; sp++) {
-			if (sp->ImageDesc.ColorMap != NULL) {
+				sp < GifFile->SavedImages + GifFile->ImageCount; sp++)
+		{
+			if (sp->ImageDesc.ColorMap != NULL)
+			{
 				GifFreeMapObject(sp->ImageDesc.ColorMap);
 				sp->ImageDesc.ColorMap = NULL;
 			}
@@ -138,7 +154,8 @@ static void cleanUp(GifInfo* info) {
 /**
  * Returns the real time, in ms
  */
-static unsigned long getRealTime() {
+static unsigned long getRealTime()
+{
 	struct timespec ts;
 	const clockid_t id = CLOCK_MONOTONIC;
 	if (id != (clockid_t) -1 && clock_gettime(id, &ts) != -1)
@@ -146,15 +163,19 @@ static unsigned long getRealTime() {
 	return -1;
 }
 
-static int fileReadFunc(GifFileType* gif, GifByteType* bytes, int size) {
+static int fileReadFunc(GifFileType* gif, GifByteType* bytes, int size)
+{
 	FILE* file = (FILE*) gif->UserData;
 	return fread(bytes, 1, size, file);
 }
 
-static JNIEnv* getEnv(GifFileType* gif) {
+static JNIEnv*
+getEnv(GifFileType* gif)
+{
 	JNIEnv* env = NULL;
 	StreamContainer* sc = (StreamContainer*) (gif->UserData);
-	if (sc != NULL) {
+	if (sc != NULL)
+	{
 		JavaVM* jvm = sc->jvm;
 		(*jvm)->AttachCurrentThread(jvm, &env, NULL);
 	}
@@ -162,7 +183,8 @@ static JNIEnv* getEnv(GifFileType* gif) {
 }
 
 static int directByteBufferReadFun(GifFileType* gif, GifByteType* bytes,
-		int size) {
+		int size)
+{
 	DirectByteBufferContainer* dbbc = gif->UserData;
 	if (dbbc->pos + size > dbbc->capacity)
 		size -= dbbc->pos + size - dbbc->capacity;
@@ -171,7 +193,8 @@ static int directByteBufferReadFun(GifFileType* gif, GifByteType* bytes,
 	return size;
 }
 
-static int byteArrayReadFun(GifFileType* gif, GifByteType* bytes, int size) {
+static int byteArrayReadFun(GifFileType* gif, GifByteType* bytes, int size)
+{
 	ByteArrayContainer* bac = gif->UserData;
 	JNIEnv* env = NULL;
 	JavaVM* jvm = bac->jvm;
@@ -183,18 +206,23 @@ static int byteArrayReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 	return size;
 }
 
-static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size) {
+static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size)
+{
 	StreamContainer* sc = gif->UserData;
 	JNIEnv* env = getEnv(gif);
 
 	(*env)->MonitorEnter(env, sc->stream);
 
-	if (sc->buffer == NULL) {
+	if (sc->buffer == NULL)
+	{
 		jbyteArray buffer = (*env)->NewByteArray(env, size < 256 ? 256 : size);
 		sc->buffer = (*env)->NewGlobalRef(env, buffer);
-	} else {
+	}
+	else
+	{
 		jsize bufLen = (*env)->GetArrayLength(env, sc->buffer);
-		if (bufLen < size) {
+		if (bufLen < size)
+		{
 			(*env)->DeleteGlobalRef(env, sc->buffer);
 			sc->buffer = NULL;
 
@@ -205,10 +233,13 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 
 	int len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0,
 			size);
-	if ((*env)->ExceptionOccurred(env)) {
+	if ((*env)->ExceptionOccurred(env))
+	{
 		(*env)->ExceptionClear(env);
 		len = 0;
-	} else if (len > 0) {
+	}
+	else if (len > 0)
+	{
 		(*env)->GetByteArrayRegion(env, sc->buffer, 0, len, bytes);
 	}
 
@@ -217,41 +248,48 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size) {
 	return len >= 0 ? len : 0;
 }
 
-static int fileRewindFun(GifInfo* info) {
+static int fileRewindFun(GifInfo* info)
+{
 	return fseek(info->gifFilePtr->UserData, info->startPos, SEEK_SET);
 }
 
-static int streamRewindFun(GifInfo* info) {
+static int streamRewindFun(GifInfo* info)
+{
 	GifFileType* gif = info->gifFilePtr;
 	StreamContainer* sc = gif->UserData;
 	JNIEnv* env = getEnv(gif);
 	(*env)->CallVoidMethod(env, sc->stream, sc->resetMID);
-	if ((*env)->ExceptionOccurred(env)) {
+	if ((*env)->ExceptionOccurred(env))
+	{
 		(*env)->ExceptionClear(env);
 		return -1;
 	}
 	return 0;
 }
 
-static int byteArrayRewindFun(GifInfo* info) {
+static int byteArrayRewindFun(GifInfo* info)
+{
 	GifFileType* gif = info->gifFilePtr;
 	ByteArrayContainer* bac = gif->UserData;
 	bac->pos = info->startPos;
 	return 0;
 }
 
-static int directByteBufferRewindFun(GifInfo* info) {
+static int directByteBufferRewindFun(GifInfo* info)
+{
 	GifFileType* gif = info->gifFilePtr;
 	DirectByteBufferContainer* dbbc = gif->UserData;
 	dbbc->pos = info->startPos;
 	return 0;
 }
 
-static int getComment(GifByteType* Bytes, char** cmt) {
+static int getComment(GifByteType* Bytes, char** cmt)
+{
 	unsigned int len = (unsigned int) Bytes[0];
 	unsigned int offset = *cmt != NULL ? strlen(*cmt) : 0;
 	char* ret = realloc(*cmt, (len + offset + 1) * sizeof(char));
-	if (ret != NULL) {
+	if (ret != NULL)
+	{
 		memcpy(ret + offset, &Bytes[1], len);
 		ret[len + offset] = 0;
 		*cmt = ret;
@@ -259,33 +297,41 @@ static int getComment(GifByteType* Bytes, char** cmt) {
 	}
 	return GIF_ERROR;
 }
-static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info) {
+
+static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
+{
 	if (ExtData == NULL)
 		return GIF_OK;
-	if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData[0] == 4) {
+	if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData[0] == 4)
+	{
 		FrameInfo* fi = &info->infos[info->gifFilePtr->ImageCount];
 		fi->transpIndex = -1;
 		char* b = (char*) ExtData + 1;
-		unsigned short delay = ((b[2] << 8) | b[1]);
+		short delay = ((b[2] << 8) | b[1]);
 		fi->duration = delay > 1 ? delay * 10 : 100;
 		fi->disposalMethod = ((b[0] >> 2) & 7);
-		bool has_transparency = ((ExtData[1] & 1) == 1);
-		if (has_transparency) {
-			fi->transpIndex = (unsigned short) b[3];
-		}
-	} else if (ExtFunction == COMMENT_EXT_FUNC_CODE) {
-		if (getComment(ExtData, &info->comment) == GIF_ERROR) {
+		if (ExtData[1] & 1)
+			fi->transpIndex = (short) b[3];
+	}
+	else if (ExtFunction == COMMENT_EXT_FUNC_CODE)
+	{
+		if (getComment(ExtData, &info->comment) == GIF_ERROR)
+		{
 			info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
 			return GIF_ERROR;
 		}
-	} else if (ExtFunction == APPLICATION_EXT_FUNC_CODE && ExtData[0] == 11) {
+	}
+	else if (ExtFunction == APPLICATION_EXT_FUNC_CODE && ExtData[0] == 11)
+	{
 		if (strncmp("NETSCAPE2.0", &ExtData[1], 11)
-				|| strncmp("ANIMEXTS1.0", &ExtData[1], 11)) {
+				|| strncmp("ANIMEXTS1.0", &ExtData[1], 11))
+		{
 			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
 					&ExtFunction)==GIF_ERROR)
 				return GIF_ERROR;
 			if (ExtFunction == APPLICATION_EXT_FUNC_CODE && ExtData[0] == 3
-					&& ExtData[1] == 1) {
+					&& ExtData[1] == 1)
+			{
 				info->loopCount = (unsigned short) (ExtData[2]
 						+ (ExtData[3] << 8));
 			}
@@ -294,16 +340,19 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info) 
 	return GIF_OK;
 }
 
-static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
+static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
+{
 	GifRecordType RecordType;
 	GifByteType *ExtData;
 	int codeSize;
 	int ExtFunction;
 	size_t ImageSize;
-	do {
+	do
+	{
 		if (DGifGetRecordType(GifFile, &RecordType) == GIF_ERROR)
 			return (GIF_ERROR);
-		switch (RecordType) {
+		switch (RecordType)
+		{
 		case IMAGE_DESC_RECORD_TYPE:
 			if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
 				return (GIF_ERROR);
@@ -312,54 +361,68 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 			ImageSize = sp->ImageDesc.Width * sp->ImageDesc.Height;
 
 			if (sp->ImageDesc.Width < 1 || sp->ImageDesc.Height < 1
-					|| ImageSize > (SIZE_MAX / sizeof(GifPixelType))) {
+					|| ImageSize > (SIZE_MAX / sizeof(GifPixelType)))
+			{
 				GifFile->Error = D_GIF_ERR_INVALID_IMG_DIMS;
 				return GIF_ERROR;
 			}
 			if (sp->ImageDesc.Width > GifFile->SWidth
-					|| sp->ImageDesc.Height > GifFile->SHeight) {
+					|| sp->ImageDesc.Height > GifFile->SHeight)
+			{
 				GifFile->Error = D_GIF_ERR_IMG_NOT_CONFINED;
 				return GIF_ERROR;
 			}
-			if (shouldDecode) {
+			if (shouldDecode)
+			{
 
 				sp->RasterBits = info->rasterBits;
 
-				if (sp->ImageDesc.Interlace) {
+				if (sp->ImageDesc.Interlace)
+				{
 					int i, j;
 					/*
 					 * The way an interlaced image should be read -
 					 * offsets and jumps...
 					 */
-					int InterlacedOffset[] = { 0, 4, 2, 1 };
-					int InterlacedJumps[] = { 8, 8, 4, 2 };
+					int InterlacedOffset[] =
+					{ 0, 4, 2, 1 };
+					int InterlacedJumps[] =
+					{ 8, 8, 4, 2 };
 					/* Need to perform 4 passes on the image */
 					for (i = 0; i < 4; i++)
 						for (j = InterlacedOffset[i]; j < sp->ImageDesc.Height;
-								j += InterlacedJumps[i]) {
+								j += InterlacedJumps[i])
+						{
 							if (DGifGetLine(GifFile,
 									sp->RasterBits + j * sp->ImageDesc.Width,
 									sp->ImageDesc.Width) == GIF_ERROR)
 								return GIF_ERROR;
 						}
-				} else {
+				}
+				else
+				{
 					if (DGifGetLine(GifFile, sp->RasterBits,
-							ImageSize)==GIF_ERROR)
+							ImageSize) == GIF_ERROR)
 						return (GIF_ERROR);
 				}
-				if (info->currentIndex >= GifFile->ImageCount - 1) {
+				if (info->currentIndex >= GifFile->ImageCount - 1)
+				{
 					if (info->loopCount > 0)
 						info->currentLoop++;
-					if (info->rewindFunc(info) != 0) {
+					if (info->rewindFunc(info) != 0)
+					{
 						info->gifFilePtr->Error = D_GIF_ERR_READ_FAILED;
 						return GIF_ERROR;
 					}
 				}
 				return GIF_OK;
-			} else {
+			}
+			else
+			{
 				if (DGifGetCode(GifFile, &codeSize, &ExtData) == GIF_ERROR)
 					return (GIF_ERROR);
-				while (ExtData != NULL ) {
+				while (ExtData != NULL )
+				{
 					if (DGifGetCodeNext(GifFile, &ExtData) == GIF_ERROR)
 						return (GIF_ERROR);
 				}
@@ -369,17 +432,21 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 		case EXTENSION_RECORD_TYPE:
 			if (DGifGetExtension(GifFile, &ExtFunction, &ExtData) == GIF_ERROR)
 				return (GIF_ERROR);
-			if (!shouldDecode) {
+			if (!shouldDecode)
+			{
 				info->infos = realloc(info->infos,
 						(GifFile->ImageCount + 1) * sizeof(FrameInfo));
+
 				if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
 					return GIF_ERROR;
 			}
-			while (ExtData != NULL ) {
+			while (ExtData != NULL )
+			{
 				if (DGifGetExtensionNext(GifFile, &ExtData,
 						&ExtFunction) == GIF_ERROR)
 					return (GIF_ERROR);
-				if (!shouldDecode) {
+				if (!shouldDecode)
+				{
 					if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
 						return GIF_ERROR;
 				}
@@ -394,50 +461,72 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode) {
 		}
 	} while (RecordType != TERMINATE_RECORD_TYPE);
 	bool ok = true;
-	if (shouldDecode) {
+	if (shouldDecode)
+	{
 		ok = (info->rewindFunc(info) == 0);
 	}
 	if (ok)
 		return (GIF_OK);
-	else {
+	else
+	{
 		info->gifFilePtr->Error = D_GIF_ERR_READ_FAILED;
 		return (GIF_ERROR);
 	}
 }
 
 static void setMetaData(int width, int height, int ImageCount, int errorCode,
-		JNIEnv * env, jintArray metaData) {
+		JNIEnv * env, jintArray metaData)
+{
 	jint *ints = (*env)->GetIntArrayElements(env, metaData, 0);
 	*ints++ = width;
 	*ints++ = height;
 	*ints++ = ImageCount;
 	*ints = errorCode;
 	(*env)->ReleaseIntArrayElements(env, metaData, ints, 0);
+	if (errorCode == 0)
+		return;
+
+	jclass exClass = (*env)->FindClass(env,
+			"pl/droidsonroids/gif/GifIOException");
+
+	if (exClass == NULL)
+		return;
+	jmethodID mid = (*env)->GetMethodID(env, exClass, "<init>", "(I)V");
+	if (mid == NULL)
+		return;
+	jobject exception = (*env)->NewObject(env, exClass, mid, errorCode);
+	if (exception != NULL)
+		(*env)->Throw(env, exception);
 }
 
 static jint open(GifFileType *GifFileIn, int Error, int startPos,
-		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData) {
-	if (startPos < 0) {
+		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData)
+{
+	if (startPos < 0)
+	{
 		Error = D_GIF_ERR_NOT_READABLE;
 		DGifCloseFile(GifFileIn);
 	}
-	if (Error != 0 || GifFileIn == NULL) {
+	if (Error != 0 || GifFileIn == NULL)
+	{
 		setMetaData(0, 0, 0, Error, env, metaData);
 		return (jint) NULL ;
 	}
 	int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
-	if (width < 1 || height < 1) {
+	unsigned int wxh = width * height;
+	if (wxh < 1 || wxh > INT_MAX)
+	{
+		DGifCloseFile(GifFileIn);
 		setMetaData(width, height, 0,
 		D_GIF_ERR_INVALID_SCR_DIMS, env, metaData);
-		DGifCloseFile(GifFileIn);
 		return (jint) NULL ;
 	}
-
 	GifInfo* info = malloc(sizeof(GifInfo));
-	if (info == NULL) {
+	if (info == NULL)
+	{
+		DGifCloseFile(GifFileIn);
 		setMetaData(width, height, 0,
 		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
-		DGifCloseFile(GifFileIn);
 		return (jint) NULL ;
 	}
 	info->gifFilePtr = GifFileIn;
@@ -447,51 +536,63 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 	info->comment = NULL;
 	info->loopCount = 0;
 	info->currentLoop = -1;
-	info->speedFactor=1.0;
+	info->speedFactor = 1.0;
 	info->rasterBits = calloc(GifFileIn->SHeight * GifFileIn->SWidth,
 			sizeof(GifPixelType));
 	info->infos = malloc(sizeof(FrameInfo));
-	info->infos->duration=0;
-	info->infos->disposalMethod=0;
-	info->infos->transpIndex=-1;
+	info->infos->duration = 0;
+	info->infos->disposalMethod = 0;
+	info->infos->transpIndex = -1;
 	info->backupPtr = calloc(width * height, sizeof(argb));
 	info->rewindFunc = rewindFunc;
 
 	if (info->rasterBits == NULL || info->backupPtr == NULL
-			|| info->infos == NULL) {
-		setMetaData(width, height, GifFileIn->ImageCount,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
+			|| info->infos == NULL)
+	{
 		cleanUp(info);
+		setMetaData(width, height, 0,
+		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
 		return (jint) NULL ;
 	}
 
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR)
 		Error = GifFileIn->Error;
-
-	if (GifFileIn->ImageCount < 1)
+	if (GifFileIn->SColorMap == NULL
+			|| GifFileIn->SColorMap->ColorCount
+					!= (1 << GifFileIn->SColorMap->BitsPerPixel))
+	{
+		GifFreeMapObject(GifFileIn->SColorMap);
+		GifFileIn->SColorMap = defaultCmap;
+	}
+	int imgCount = GifFileIn->ImageCount;
+	//TODO add leniency support
+	if (imgCount < 1)
 		Error = D_GIF_ERR_NO_FRAMES;
 	if (info->rewindFunc(info) != 0)
 		Error = D_GIF_ERR_READ_FAILED;
-	setMetaData(width, height, GifFileIn->ImageCount, Error, env, metaData);
-	if (Error != 0) {
+	if (Error != 0)
 		cleanUp(info);
-		return (jint) NULL ;
-	}
+	setMetaData(width, height, imgCount, Error, env, metaData);
 
-	return (jint) info;
+	return (jint) (Error == 0 ? info : NULL );
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
-		JNIEnv * env, jclass class, jintArray metaData, jstring jfname) {
-	if (jfname == NULL) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env, jclass class,
+		jintArray metaData, jstring jfname)
+{
+	if (jfname == NULL)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL ;
 	}
+
 	const char *fname = (*env)->GetStringUTFChars(env, jfname, 0);
 	FILE * file = fopen(fname, "rb");
 	(*env)->ReleaseStringUTFChars(env, jfname, fname);
-	if (file == NULL) {
+	if (file == NULL)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL ;
@@ -502,10 +603,13 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFile(
 
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openByteArray(
-		JNIEnv * env, jclass class, jintArray metaData, jbyteArray bytes) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
+		jintArray metaData, jbyteArray bytes)
+{
 	ByteArrayContainer* container = malloc(sizeof(ByteArrayContainer));
-	if (container == NULL) {
+	if (container == NULL)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
 		return (jint) NULL ;
@@ -521,18 +625,22 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openByteArray(
 			metaData);
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(
-		JNIEnv * env, jclass class, jintArray metaData, jobject buffer) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(JNIEnv * env,
+		jclass class, jintArray metaData, jobject buffer)
+{
 	jbyte* bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
-	if (bytes == NULL || capacity <= 0) {
+	if (bytes == NULL || capacity <= 0)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL ;
 	}
 	DirectByteBufferContainer* container = malloc(
 			sizeof(DirectByteBufferContainer));
-	if (container == NULL) {
+	if (container == NULL)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
 		return (jint) NULL ;
@@ -548,15 +656,18 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffe
 			env, metaData);
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openStream(
-		JNIEnv * env, jclass class, jintArray metaData, jobject stream) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
+		jintArray metaData, jobject stream)
+{
 	jclass streamCls = (*env)->NewGlobalRef(env,
 			(*env)->GetObjectClass(env, stream));
 	jmethodID mid = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
 	jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
 	jmethodID resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
 
-	if (mid == 0 || readMID == 0 || resetMID == 0) {
+	if (mid == 0 || readMID == 0 || resetMID == 0)
+	{
 		(*env)->DeleteGlobalRef(env, streamCls);
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
@@ -564,7 +675,8 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openStream(
 	}
 
 	StreamContainer* container = malloc(sizeof(StreamContainer));
-	if (container == NULL) {
+	if (container == NULL)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
 		return (jint) NULL ;
@@ -585,13 +697,15 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openStream(
 	return open(GifFileIn, Error, 0, streamRewindFun, env, metaData);
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFd(
-		JNIEnv * env, jclass class, jintArray metaData, jobject jfd,
-		jlong offset) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env, jclass class,
+		jintArray metaData, jobject jfd, jlong offset)
+{
 	jclass fdClass = (*env)->GetObjectClass(env, jfd);
 	jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass,
 			"descriptor", "I");
-	if (fdClassDescriptorFieldID == NULL) {
+	if (fdClassDescriptorFieldID == NULL)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL ;
@@ -599,7 +713,8 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFd(
 	jint fd = (*env)->GetIntField(env, jfd, fdClassDescriptorFieldID);
 	int myfd = dup(fd);
 	FILE* file = fdopen(myfd, "rb");
-	if (file == NULL || fseek(file, offset, SEEK_SET) != 0) {
+	if (file == NULL || fseek(file, offset, SEEK_SET) != 0)
+	{
 		setMetaData(0, 0, 0,
 		D_GIF_ERR_OPEN_FAILED, env, metaData);
 		return (jint) NULL ;
@@ -612,44 +727,55 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_openFd(
 	return open(GifFileIn, Error, startPos, fileRewindFun, env, metaData);
 }
 static void packARGB32(argb* pixel, GifByteType alpha, GifByteType red,
-		GifByteType green, GifByteType blue) {
+		GifByteType green, GifByteType blue)
+{
 	pixel->alpha = alpha;
 	pixel->red = red;
 	pixel->green = green;
 	pixel->blue = blue;
 }
 static void copyLine(argb* dst, const unsigned char* src,
-		const ColorMapObject* cmap, int transparent, int width) {
-	for (; width > 0; width--, src++, dst++) {
-		if (*src != transparent) {
-			GifColorType* col = &cmap->Colors[*src];
+		const ColorMapObject* cmap, int transparent, int width)
+{
+	for (; width > 0; width--, src++, dst++)
+	{
+		if (*src != transparent)
+		{
+			char colIdx = *src >= cmap->ColorCount ? 0 : *src;
+			GifColorType* col = &cmap->Colors[colIdx];
 			packARGB32(dst, 0xFF, col->Red, col->Green, col->Blue);
 		}
 	}
 }
 
-static argb* getAddr(argb* bm, int width, int left, int top) {
+static argb*
+getAddr(argb* bm, int width, int left, int top)
+{
 	return bm + top * width + left;
 }
 
 static void blitNormal(argb* bm, int width, int height, const SavedImage* frame,
-		const ColorMapObject* cmap, int transparent) {
+		const ColorMapObject* cmap, int transparent)
+{
 	const unsigned char* src = (unsigned char*) frame->RasterBits;
 	argb* dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
 	GifWord copyWidth = frame->ImageDesc.Width;
-	if (frame->ImageDesc.Left + copyWidth > width) {
+	if (frame->ImageDesc.Left + copyWidth > width)
+	{
 		copyWidth = width - frame->ImageDesc.Left;
 	}
 
 	GifWord copyHeight = frame->ImageDesc.Height;
-	if (frame->ImageDesc.Top + copyHeight > height) {
+	if (frame->ImageDesc.Top + copyHeight > height)
+	{
 		copyHeight = height - frame->ImageDesc.Top;
 	}
 
 	int srcPad, dstPad;
 	dstPad = width - copyWidth;
 	srcPad = frame->ImageDesc.Width - copyWidth;
-	for (; copyHeight > 0; copyHeight--) {
+	for (; copyHeight > 0; copyHeight--)
+	{
 		copyLine(dst, src, cmap, transparent, copyWidth);
 		src += frame->ImageDesc.Width;
 		dst += width;
@@ -657,60 +783,68 @@ static void blitNormal(argb* bm, int width, int height, const SavedImage* frame,
 }
 
 static void fillRect(argb* bm, int bmWidth, int bmHeight, GifWord left,
-		GifWord top, GifWord width, GifWord height, argb col) {
+		GifWord top, GifWord width, GifWord height, argb col)
+{
 	uint32_t* dst = (uint32_t*) getAddr(bm, bmWidth, left, top);
 	GifWord copyWidth = width;
-	if (left + copyWidth > bmWidth) {
+	if (left + copyWidth > bmWidth)
+	{
 		copyWidth = bmWidth - left;
 	}
 
 	GifWord copyHeight = height;
-	if (top + copyHeight > bmHeight) {
+	if (top + copyHeight > bmHeight)
+	{
 		copyHeight = bmHeight - top;
 	}
 	uint32_t* pColor = (uint32_t*) (&col);
-	for (; copyHeight > 0; copyHeight--) {
+	for (; copyHeight > 0; copyHeight--)
+	{
 		memset(dst, *pColor, copyWidth * sizeof(argb));
 		dst += bmWidth;
 	}
 }
 
 static void drawFrame(argb* bm, int bmWidth, int bmHeight,
-		const SavedImage* frame, const ColorMapObject* cmap,
-		unsigned short transpIndex) {
+		const SavedImage* frame, const ColorMapObject* cmap, short transpIndex)
+{
 
-	if (frame->ImageDesc.ColorMap != NULL) {
+	if (frame->ImageDesc.ColorMap != NULL)
+	{
 		// use local color table
 		cmap = frame->ImageDesc.ColorMap;
-	}
-
-	if (cmap == NULL || cmap->ColorCount != (1 << cmap->BitsPerPixel)) {
-		cmap = defaultCmap;
+		if (cmap == NULL || cmap->ColorCount != (1 << cmap->BitsPerPixel))
+			cmap = defaultCmap;
 	}
 
 	blitNormal(bm, bmWidth, bmHeight, frame, cmap, (int) transpIndex);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
-static bool checkIfCover(const SavedImage* target, const SavedImage* covered) {
+static bool checkIfCover(const SavedImage* target, const SavedImage* covered)
+{
 	if (target->ImageDesc.Left <= covered->ImageDesc.Left
 			&& covered->ImageDesc.Left + covered->ImageDesc.Width
 					<= target->ImageDesc.Left + target->ImageDesc.Width
 			&& target->ImageDesc.Top <= covered->ImageDesc.Top
 			&& covered->ImageDesc.Top + covered->ImageDesc.Height
-					<= target->ImageDesc.Top + target->ImageDesc.Height) {
+					<= target->ImageDesc.Top + target->ImageDesc.Height)
+	{
 		return true;
 	}
 	return false;
 }
 
-static void eraseColor(argb* bm, int w, int h, argb color) {
-	uint32_t* pColor = (uint32_t*) (&color);
-	memset((uint32_t*) bm, *pColor, w * h * sizeof(argb));
+static void eraseColor(argb* bm, int w, int h, argb color)
+{
+	int i;
+	for (i = 0; i < w * h; i++)
+		*(bm + i) = color;
 }
 
 static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
-		unsigned int idx, argb* backup, argb color) {
+		unsigned int idx, argb* backup, argb color)
+{
 	GifFileType* fGif = info->gifFilePtr;
 	SavedImage* cur = &fGif->SavedImages[idx - 1];
 	SavedImage* next = &fGif->SavedImages[idx];
@@ -722,8 +856,10 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	int nextDisposal = info->infos[idx].disposalMethod;
 	argb* tmp;
 	if ((curDisposal == 2 || curDisposal == 3)
-			&& (nextTrans || !checkIfCover(next, cur))) {
-		switch (curDisposal) {
+			&& (nextTrans || !checkIfCover(next, cur)))
+	{
+		switch (curDisposal)
+		{
 		// restore to background color
 		// -> 'background' means background under this image.
 		case 2:
@@ -743,38 +879,41 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	}
 
 	// Save current image if next frame's disposal method == 3
-	if (nextDisposal == 3) {
+	if (nextDisposal == 3)
+	{
 		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
 	}
 }
 
-static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env) {
+static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
+{
 	argb* fBackup = info->backupPtr;
 	GifFileType* fGIF = info->gifFilePtr;
 
-	argb bgColor;
-	if (fGIF->SColorMap != NULL) {
-		const GifColorType col = fGIF->SColorMap->Colors[fGIF->SBackGroundColor];
-		packARGB32(&bgColor, 0xFF, col.Red, col.Green, col.Blue);
-	} else
-		packARGB32(&bgColor, 0, 0, 0, 0);
 	argb paintingColor;
 	int i = info->currentIndex;
 	if (DDGifSlurp(fGIF, info, true) == GIF_ERROR)
-		return;
+		return; //TODO add leniency support
 	SavedImage* cur = &fGIF->SavedImages[i];
 
-	unsigned short transpIndex = info->infos[i].transpIndex;
-	if (i == 0) {
-		if (transpIndex == -1 && fGIF->SColorMap != NULL) {
-			paintingColor = bgColor;
-		} else {
-			packARGB32(&paintingColor, 0, 0, 0, 0);
+	short transpIndex = info->infos[i].transpIndex;
+	if (i == 0)
+	{
+		if (transpIndex == -1)
+		{
+			int colIdx =
+					fGIF->SBackGroundColor < fGIF->SColorMap->ColorCount ?
+							fGIF->SBackGroundColor : 0;
+			const GifColorType col = fGIF->SColorMap->Colors[colIdx];
+			packARGB32(&paintingColor, 0xFF, col.Red, col.Green, col.Blue);
 		}
-
+		else
+			packARGB32(&paintingColor, 0, 0, 0, 0);
 		eraseColor(bm, fGIF->SWidth, fGIF->SHeight, paintingColor);
 		eraseColor(fBackup, fGIF->SWidth, fGIF->SHeight, paintingColor);
-	} else {
+	}
+	else
+	{
 		packARGB32(&paintingColor, 0, 0, 0, 0);
 		// Dispose previous frame before move to next frame.
 		disposeFrameIfNeeded(bm, info, i, fBackup, paintingColor);
@@ -783,29 +922,57 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env) {
 			transpIndex);
 }
 
-JNIEXPORT jboolean JNICALL Java_pl_droidsonroids_gif_GifDrawable_reset(
-		JNIEnv * env, jclass class, jobject gifInfo) {
-	GifInfo* info = (GifInfo*) gifInfo;
-	if (info == NULL)
+static jboolean reset(GifInfo* info)
+{
+	if (info->rewindFunc(info) != 0)
 		return JNI_FALSE;
-	if (info->rewindFunc(info) != 0) {
-		return JNI_FALSE;
-	}
 	info->nextStartTime = 0;
 	info->currentLoop = -1;
 	info->currentIndex = -1;
 	return JNI_TRUE;
 }
-JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(
-		JNIEnv * env, jclass class, jobject gifInfo, jfloat factor) {
+
+JNIEXPORT jboolean JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
+		jobject gifInfo)
+{
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info == NULL)
+		return JNI_FALSE;
+	return reset(info);
+}
+
+JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(JNIEnv * env, jclass class,
+		jobject gifInfo, jfloat factor)
+{
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
 		return;
 	info->speedFactor = factor;
-
 }
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
-		JNIEnv * env, jclass class, jintArray array, jobject gifInfo) {
+
+JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_seekTo(JNIEnv * env, jclass class,
+		jobject gifInfo, jint desiredPos, jintArray array)
+{
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info == NULL)
+		return;
+	int imgCount=info->gifFilePtr->ImageCount;
+	if (imgCount<=1)
+		return;
+	if (desiredPos<=0)
+	{
+		reset(info);
+		return;
+	}
+}
+
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
+		jintArray array, jobject gifInfo)
+{
 
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
@@ -813,56 +980,76 @@ JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_renderFrame(
 
 	void* pixels;
 	bool needRedraw = false;
-	long rt = getRealTime();
+	unsigned long rt = getRealTime();
 
-	if (rt >= info->nextStartTime && info->currentLoop < info->loopCount) {
+	if (rt >= info->nextStartTime && info->currentLoop < info->loopCount)
+	{
 		if (++info->currentIndex >= info->gifFilePtr->ImageCount)
 			info->currentIndex = 0;
 		needRedraw = true;
 	}
 
-	if (needRedraw) {
+	if (needRedraw)
+	{
 		jint *pixels = (*env)->GetIntArrayElements(env, array, 0);
-
 		getBitmap((argb*) pixels, info, env);
 		(*env)->ReleaseIntArrayElements(env, array, pixels, 0);
 
-		if (info->speedFactor==1.0)
-			info->nextStartTime = rt
-				+ (unsigned long) (info->infos[info->currentIndex]).duration;
+		if (info->speedFactor == 1.0)
+			info->nextStartTime =
+					rt
+							+ (unsigned long) (info->infos[info->currentIndex]).duration;
 		else
-			info->nextStartTime = rt
-				+ (unsigned long)( (info->infos[info->currentIndex]).duration
-						/ info->speedFactor);
+			info->nextStartTime =
+					rt
+							+ (unsigned long) ((info->infos[info->currentIndex]).duration
+									/ info->speedFactor);
 	}
 	return info->gifFilePtr->Error;
 }
 
-JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
-		jclass class, jobject gifInfo) {
+JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
+		jobject gifInfo)
+{
 	if (gifInfo == NULL)
 		return;
 	GifInfo* info = (GifInfo*) gifInfo;
-	if (info->rewindFunc == streamRewindFun) {
+	if (info->rewindFunc == streamRewindFun)
+	{
 		StreamContainer* sc = info->gifFilePtr->UserData;
+		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close", "()V");
+		if (closeMID!=NULL)
+			(*env)->CallVoidMethod(env, sc->stream, closeMID);
+		if ((*env)->ExceptionOccurred(env))
+			(*env)->ExceptionClear(env);
+
 		(*env)->DeleteGlobalRef(env, sc->streamCls);
 		(*env)->DeleteGlobalRef(env, sc->stream);
 
-		if (sc->buffer != NULL) {
+		if (sc->buffer != NULL)
+		{
 			(*env)->DeleteGlobalRef(env, sc->buffer);
 		}
 
 		free(sc);
-	} else if (info->rewindFunc == fileRewindFun) {
+	}
+	else if (info->rewindFunc == fileRewindFun)
+	{
 		FILE* file = info->gifFilePtr->UserData;
 		fclose(file);
-	} else if (info->rewindFunc == byteArrayRewindFun) {
+	}
+	else if (info->rewindFunc == byteArrayRewindFun)
+	{
 		ByteArrayContainer* bac = info->gifFilePtr->UserData;
-		if (bac->buffer != NULL) {
+		if (bac->buffer != NULL)
+		{
 			(*env)->DeleteGlobalRef(env, bac->buffer);
 		}
 		free(bac);
-	} else if (info->rewindFunc == directByteBufferRewindFun) {
+	}
+	else if (info->rewindFunc == directByteBufferRewindFun)
+	{
 		DirectByteBufferContainer* dbbc = info->gifFilePtr->UserData;
 		free(dbbc);
 	}
@@ -870,51 +1057,61 @@ JNIEXPORT void JNICALL Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env,
 	cleanUp(info);
 }
 
-JNIEXPORT jstring JNICALL Java_pl_droidsonroids_gif_GifDrawable_getComment(
-		JNIEnv * env, jclass class, jobject gifInfo) {
+JNIEXPORT jstring JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env, jclass class,
+		jobject gifInfo)
+{
 	if (gifInfo == NULL)
 		return NULL ;
 	GifInfo* info = (GifInfo*) gifInfo;
 	return (*env)->NewStringUTF(env, info->comment);
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(
-		JNIEnv * env, jclass class, jobject gifInfo) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv * env, jclass class,
+		jobject gifInfo)
+{
 	if (gifInfo == NULL)
 		return 0;
 	return ((GifInfo*) gifInfo)->loopCount;
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getDuration(
-		JNIEnv * env, jclass class, jobject gifInfo) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_getDuration(JNIEnv * env, jclass class,
+		jobject gifInfo)
+{
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
 		return 0;
 	int i;
-	int sum=0;
-	for (i=0;i<info->gifFilePtr->ImageCount;i++)
-		sum+=info->infos[i].duration;
+	int sum = 0;
+	for (i = 0; i < info->gifFilePtr->ImageCount; i++)
+		sum += info->infos[i].duration;
 	return sum;
 }
 
-JNIEXPORT jint JNICALL Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(
-		JNIEnv * env, jclass class, jobject gifInfo) {
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
+		jclass class, jobject gifInfo)
+{
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
 		return 0;
-	int idx=info->currentIndex;
-	if (idx<0||info->gifFilePtr->ImageCount<=1)
+	int idx = info->currentIndex;
+	if (idx < 0 || info->gifFilePtr->ImageCount <= 1)
 		return 0;
 	int i;
-	unsigned long sum=0;
-	for (i=0;i<idx;i++)
-		sum+=info->infos[i].duration;
-	return (int)(sum+getRealTime()-info->nextStartTime);
+	unsigned long sum = 0;
+	for (i = 0; i < idx; i++)
+		sum += info->infos[i].duration;
+	return (int) (sum + getRealTime() - info->nextStartTime);
 }
 
-jint JNI_OnLoad(JavaVM *vm, void *reserved) {
+jint JNI_OnLoad(JavaVM *vm, void *reserved)
+{
 	JNIEnv* env;
-	if ((*vm)->GetEnv(vm, (void**) (&env), JNI_VERSION_1_6) != JNI_OK) {
+	if ((*vm)->GetEnv(vm, (void**) (&env), JNI_VERSION_1_6) != JNI_OK)
+	{
 		return -1;
 	}
 	g_jvm = vm;
@@ -924,7 +1121,8 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 	return JNI_VERSION_1_6;
 }
 
-void JNI_OnUnload(JavaVM *vm, void *reserved) {
+void JNI_OnUnload(JavaVM *vm, void *reserved)
+{
 	GifFreeMapObject(defaultCmap);
 }
 

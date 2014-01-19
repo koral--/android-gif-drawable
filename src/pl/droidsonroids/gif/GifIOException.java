@@ -14,11 +14,15 @@ public class GifIOException extends IOException
 	 * Reason which caused an exception
 	 */
 	public final GifError reason;
-	
-	GifIOException(GifError reason)
+
+	GifIOException ( GifError reason )
 	{
-		super(reason.getFormattedDescription());
-		this.reason=reason;
+		super( reason.getFormattedDescription() );
+		this.reason = reason;
 	}
-	
+
+	GifIOException ( int errorCode )
+	{
+		this( GifError.fromCode( errorCode ) );
+	}
 }

@@ -54,10 +54,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private static native String getComment ( int gifFileInPtr );
 
 	private static native int getLoopCount ( int gifFileInPtr );
-	
+
 	private static native int getDuration ( int gifFileInPtr );
-	
+
 	private static native int getCurrentPosition ( int gifFileInPtr );
+
+	private static native int seekTo ( int gifFileInPtr, int pos, int[] pixels );
 
 	private volatile int mGifInfoPtr;
 	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
@@ -65,7 +67,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	private final int[] mColors;
 	private final int[] mMetaData = new int[ 4 ];//[w,h,imageCount,errorCode]
-	private InputStream mStream;
 
 	private final Runnable mResetTask = new Runnable()
 	{
@@ -133,7 +134,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openFile( mMetaData, filePath );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		checkError();
 	}
 
 	/**
@@ -161,10 +161,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new NullPointerException( "Source is null" );
 		if ( !stream.markSupported() )
 			throw new IllegalArgumentException( "InputStream does not support marking" );
-		mStream = stream;
 		mGifInfoPtr = openStream( mMetaData, stream );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		checkError();
 	}
 
 	/**
@@ -181,7 +179,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		FileDescriptor fd = afd.getFileDescriptor();
 		mGifInfoPtr = openFd( mMetaData, fd, afd.getStartOffset() );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		checkError();
 	}
 
 	/**
@@ -196,7 +193,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openFd( mMetaData, fd, 0 );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		checkError();
 	}
 
 	/**
@@ -212,7 +208,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openByteArray( mMetaData, bytes );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		checkError();
 	}
 
 	/**
@@ -231,7 +226,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new IllegalArgumentException( "ByteBuffer is not direct" );
 		mGifInfoPtr = openDirectByteBuffer( mMetaData, buffer );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		checkError();
 	}
 
 	/**
@@ -263,15 +257,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		int tmpPtr = mGifInfoPtr;
 		mGifInfoPtr = 0;
 		free( tmpPtr );
-		if ( mStream != null )
-			try
-			{
-				mStream.close();
-			}
-			catch ( IOException ex )
-			{
-				//ignored
-			}
 	}
 
 	@Override
@@ -342,7 +327,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	{
 		runOnUiThread( mResetTask );
 	}
-	
+
 	/**
 	 * Stops the animation. Does nothing if GIF is not animated.
 	 * This method is thread-safe.
@@ -403,12 +388,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	public GifError getError ()
 	{
 		return GifError.fromCode( mMetaData[ 3 ] );
-	}
-
-	private void checkError () throws GifIOException
-	{
-		if ( mGifInfoPtr == 0 )
-			throw new GifIOException( GifError.fromCode( mMetaData[ 3 ] ) );
 	}
 
 	/**
@@ -484,8 +463,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	@Override
 	public void seekTo ( int pos )
 	{
-		// TODO Auto-generated method stub
-		
+		//seekTo( mGifInfoPtr, pos, mColors );
 	}
 
 	/**
@@ -521,7 +499,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Checks whether seeking backward can be performed.
-	 * Due to frame disposal methods it is not supported now.
+	 * Due to different frame disposal methods it is not supported now.
 	 * @return always false
 	 */
 	@Override
@@ -537,7 +515,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	@Override
 	public boolean canSeekForward ()
 	{
-		return getNumberOfFrames()>1;
+		return getNumberOfFrames() > 1;
 	}
 
 	/**
