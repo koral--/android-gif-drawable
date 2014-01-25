@@ -24,7 +24,7 @@ and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer 
 <dependency>
 	<groupId>pl.droidsonroids.gif</groupId>
 	<artifactId>android-gif-drawable</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 	<type>apklib</type>
 </dependency>
 ```
@@ -37,9 +37,6 @@ and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer 
 
 ###Requirements
 + Android 1.6+ (API level 4+)
-
-####Using JAR in Eclipse (NOT recommended, use APKLIB instead)
-+ following option **must be unchecked** Window>Preferences>Android>Build>**Force error when external jars contains native libraries**
 
 ####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
@@ -121,13 +118,42 @@ Note that all input sources need to have ability to rewind to the begining. It i
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
 
 ####Animation control
-`GifDrawable` is an `Animatable` so you can use its methods and more:
+`GifDrawable` implements an `Animatable` and `MediaPlayerControl` so you can use its methods and more:
 
 + `stop()` - stops the animation, can be called from any thread
 + `start()` - starts the animation, can be called from any thread
 + `isRunning()` - returns whether animation is currently running or not
 + `reset()` - rewinds the animation, does not restart stopped one
 + `setSpeed(float factor)` - sets new animation speed factor, eg. passing 2.0f will double the animation speed
++ `seekTo(int position)` - seeks animation (within current loop) to given `position` (in milliseconds) __Only seeking forward is supported__
++ `getDuration()` - returns duration of one loop of the animation
++ `getCurrentPosition()` - returns elapsed time from the beginning of a current loop of animation
+
+#####Using [MediaPlayerControl](http://developer.android.com/reference/android/widget/MediaController.MediaPlayerControl.html)
+Standard controls for a MediaPlayer (like in [VideoView](http://developer.android.com/reference/android/widget/VideoView.html)) can be used to control GIF animation and show its current progress.
+
+Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer.android.com/reference/android/widget/MediaController.html) like this:
+```java
+	@Override
+	protected void onCreate ( Bundle savedInstanceState )
+	{
+		super.onCreate( savedInstanceState );
+		GifImageButton gib = new GifImageButton( this );
+		setContentView( gib );
+		gib.setImageResource( R.drawable.sample );
+		final MediaController mc = new MediaController( this );
+		mc.setMediaPlayer( ( GifDrawable ) gib.getDrawable() );
+		mc.setAnchorView( gib );
+		gib.setOnClickListener( new OnClickListener()
+		{
+			@Override
+			public void onClick ( View v )
+			{
+				mc.show();
+			}
+		} );
+	}
+```
 
 ####Retrieving GIF metadata
 

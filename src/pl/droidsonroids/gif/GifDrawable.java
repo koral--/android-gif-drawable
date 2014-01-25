@@ -475,23 +475,26 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Seeks animation to given absolute position (within given loop) and refreshes the canvas.<br>
 	 * <b>NOTE: only seeking forward is supported.<b><br>
-	 * If pos is less than current position or GIF has only one frame then nothing happens.
-	 * If pos is greater than duration of the loop of animation 
-	 * (or whole animation if there is no loop) then animation will be sought to the end.    
-	 * @param pos position to seek to in milliseconds
-	 * @throws IllegalArgumentException if pos<0
+	 * If position is less than current position or GIF has only one frame then nothing happens.
+	 * If position is greater than duration of the loop of animation 
+	 * (or whole animation if there is no loop) then animation will be sought to the end.<br>
+	 * NOTE: all frames from current to desired must be rendered sequentially to perform seeking.
+	 * It may take a lot of time if number of such frames is large.
+	 * This method can be called from any thread but actual work will be performed on UI thread.    
+	 * @param position position to seek to in milliseconds
+	 * @throws IllegalArgumentException if position<0
 	 */
 	@Override
-	public void seekTo ( final int pos )
+	public void seekTo ( final int position )
 	{
-		if (pos<0)
+		if (position<0)
 			throw new IllegalArgumentException( "Position is not positive" );
 		runOnUiThread( new Runnable()
 		{
 			@Override
 			public void run ()
 			{
-				seekTo( mGifInfoPtr, pos, mColors );
+				seekTo( mGifInfoPtr, position, mColors );
 				invalidateSelf();
 			}
 		} );
