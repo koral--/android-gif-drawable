@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pl.droidsonroids.gif</groupId>
 	<artifactId>android-gif-drawable</artifactId>
-	<version>1.0.5-SNAPSHOT</version>
+	<version>1.0.5</version>
 	<packaging>apklib</packaging>
 
 	<description>Views and Drawable for displaying animated GIFs for Android</description>
@@ -41,6 +41,7 @@
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
+		    <!-- 
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
 				<version>2.5</version>
@@ -55,6 +56,7 @@
 					</filesets>
 				</configuration>
 			</plugin>
+			 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -112,53 +114,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<profiles>
-		<profile>
-			<id>generate-jars</id>
-			<activation>
-				<property>
-					<name>generate-jars</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<configuration>
-									<tasks>
-										<exec executable="ndk-build">
-										</exec>
-										<jar destfile="target/${project.artifactId}-${project.version}-with-sources.jar">
-											<zipfileset dir="libs" prefix="lib">
-											</zipfileset>
-											<zipfileset dir="src">
-											</zipfileset>
-											<zipfileset dir="bin/classes">
-												<include name="**/*.class" />
-											</zipfileset>
-										</jar>
-										<jar destfile="target/${project.artifactId}-${project.version}.jar">
-											<zipfileset dir="libs" prefix="lib">
-											</zipfileset>
-											<zipfileset dir="bin/classes">
-												<include name="**/*.class" />
-											</zipfileset>
-										</jar>
-									</tasks>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 </project>

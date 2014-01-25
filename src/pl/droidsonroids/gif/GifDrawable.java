@@ -61,6 +61,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	private static native int seekTo ( int gifFileInPtr, int pos, int[] pixels );
 
+	private static native int saveRemainder ( int gifFileInPtr );
+
+	private static native int restoreRemainder ( int gifFileInPtr );
+
 	private volatile int mGifInfoPtr;
 	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
 	private volatile boolean mIsRunning = true;
@@ -77,12 +81,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		}
 	};
 
-	private final Runnable mInvalidateTask = new Runnable()
+	private final Runnable mStartTask = new Runnable()
 	{
 		@Override
 		public void run ()
 		{
+			restoreRemainder( mGifInfoPtr );
 			invalidateSelf();
+		}
+	};
+
+	private final Runnable mSaveRemainderTask = new Runnable()
+	{
+		@Override
+		public void run ()
+		{
+			saveRemainder( mGifInfoPtr );
 		}
 	};
 
@@ -137,7 +151,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * Eqivalent to {@code} GifDrawable(file.getPath())}
+	 * Equivalent to {@code} GifDrawable(file.getPath())}
 	 * @param file the GIF file 
 	 * @throws IOException when opening failed
 	 * @throws NullPointerException if file is null
@@ -213,7 +227,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Creates drawable from {@link ByteBuffer}. Only direct buffers are supported.
 	 * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
-	 * @param buffer buffer containing gif data
+	 * @param buffer buffer containing GIF data
 	 * @throws IOException if buffer does not contain valid GIF data
 	 * @throws IllegalArgumentException if buffer is indirect 
 	 * @throws NullPointerException if buffer is null
@@ -245,7 +259,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * Frees any mamory allocated native way.
+	 * Frees any memory allocated native way.
 	 * Operation is irreversible. After this call, nothing will be drawn.
 	 * This method is idempotent, subsequent calls have no effect.
 	 * Like {@link android.graphics.Bitmap#recycle()} this is an advanced call and 
@@ -314,7 +328,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	public void start ()
 	{
 		mIsRunning = true;
-		runOnUiThread( mInvalidateTask );
+		runOnUiThread( mStartTask );
 	}
 
 	/**
@@ -336,6 +350,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	public void stop ()
 	{
 		mIsRunning = false;
+		runOnUiThread( mSaveRemainderTask );
 	}
 
 	@Override
@@ -356,7 +371,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Returns loop count previously read from GIF's application extension block.
 	 * Defaults to 0 (infinite loop) if there is no such extension.
-	 * @return loop count, 0 means infinte loop, 1 means one repetition (animation is played twice) etc.
+	 * @return loop count, 0 means infinite loop, 1 means one repetition (animation is played twice) etc.
 	 */
 	public int getLoopCount ()
 	{
@@ -395,7 +410,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * instead of throwing exception if creation fails. 
 	 * @param res resources to read from
 	 * @param resourceId resource id
-	 * @return correct drawble or null if creation failed
+	 * @return correct drawable or null if creation failed
 	 */
 	public static GifDrawable createFromResource ( Resources res, int resourceId )
 	{
@@ -434,11 +449,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * Retrieves duration of one loop of the animation. Result is always multiple of 10.
+	 * Retrieves duration of one loop of the animation.
 	 * If there is no data (no Graphics Control Extension blocks) 0 is returned.
 	 * Note that one-frame GIFs can have non-zero duration defined in Graphics Control Extension block, 
 	 * use {@link #getNumberOfFrames()} to determine if there is one or more frames.
-	 * @return duration of the animation in ms
+	 * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
 	 */
 	@Override
 	public int getDuration ()
@@ -458,12 +473,28 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * TODO 
+	 * Seeks animation to given absolute position (within given loop) and refreshes the canvas.<br>
+	 * <b>NOTE: only seeking forward is supported.<b><br>
+	 * If pos is less than current position or GIF has only one frame then nothing happens.
+	 * If pos is greater than duration of the loop of animation 
+	 * (or whole animation if there is no loop) then animation will be sought to the end.    
+	 * @param pos position to seek to in milliseconds
+	 * @throws IllegalArgumentException if pos<0
 	 */
 	@Override
-	public void seekTo ( int pos )
+	public void seekTo ( final int pos )
 	{
-		//seekTo( mGifInfoPtr, pos, mColors );
+		if (pos<0)
+			throw new IllegalArgumentException( "Position is not positive" );
+		runOnUiThread( new Runnable()
+		{
+			@Override
+			public void run ()
+			{
+				seekTo( mGifInfoPtr, pos, mColors );
+				invalidateSelf();
+			}
+		} );
 	}
 
 	/**
