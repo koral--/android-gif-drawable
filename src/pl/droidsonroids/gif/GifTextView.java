@@ -93,7 +93,7 @@ public class GifTextView extends TextView
 		if ( resId == 0 )
 			return null;
 		final Resources resources = getResources();
-		if ( "drawable".equals( resources.getResourceTypeName( resId ) ) )
+		if ( !isInEditMode() && "drawable".equals( resources.getResourceTypeName( resId ) ) )
 			try
 			{
 				return new GifDrawable( resources, resId );

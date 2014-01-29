@@ -67,7 +67,7 @@ public class GifImageButton extends ImageButton
 
 	void trySetGifDrawable ( AttributeSet attrs, Resources res )
 	{
-		if ( attrs != null && res != null )
+		if ( attrs != null && res != null && !isInEditMode() )
 		{
 			int resId = attrs.getAttributeResourceValue( GifImageView.ANDROID_NS, "src", -1 );
 			if ( resId > 0 && "drawable".equals( res.getResourceTypeName( resId ) ) )
