@@ -339,6 +339,23 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 	return GIF_OK;
 }
 
+static void packARGB32(argb* pixel, GifByteType alpha, GifByteType red,
+		GifByteType green, GifByteType blue)
+{
+	pixel->alpha = alpha;
+	pixel->red = red;
+	pixel->green = green;
+	pixel->blue = blue;
+}
+
+static void getColorFromTable(int idx, argb* dst, const ColorMapObject* cmap)
+{
+	char colIdx = idx >= cmap->ColorCount ? 0 : idx;
+	GifColorType* col = &cmap->Colors[colIdx];
+	packARGB32(dst, 0xFF, col->Red, col->Green, col->Blue);
+}
+
+
 static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 {
 	GifRecordType RecordType;
@@ -543,11 +560,10 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 	info->infos->duration = 0;
 	info->infos->disposalMethod = 0;
 	info->infos->transpIndex = -1;
-	info->backupPtr = calloc(width * height, sizeof(argb));
+	info->backupPtr = NULL;
 	info->rewindFunc = rewindFunc;
 
-	if (info->rasterBits == NULL || info->backupPtr == NULL
-			|| info->infos == NULL)
+	if (info->rasterBits == NULL || info->infos == NULL)
 	{
 		cleanUp(info);
 		setMetaData(width, height, 0,
@@ -726,25 +742,14 @@ Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env, jclass class,
 
 	return open(GifFileIn, Error, startPos, fileRewindFun, env, metaData);
 }
-static void packARGB32(argb* pixel, GifByteType alpha, GifByteType red,
-		GifByteType green, GifByteType blue)
-{
-	pixel->alpha = alpha;
-	pixel->red = red;
-	pixel->green = green;
-	pixel->blue = blue;
-}
+
 static void copyLine(argb* dst, const unsigned char* src,
 		const ColorMapObject* cmap, int transparent, int width)
 {
 	for (; width > 0; width--, src++, dst++)
 	{
 		if (*src != transparent)
-		{
-			char colIdx = *src >= cmap->ColorCount ? 0 : *src;
-			GifColorType* col = &cmap->Colors[colIdx];
-			packARGB32(dst, 0xFF, col->Red, col->Green, col->Blue);
-		}
+			getColorFromTable(*src, dst, cmap);
 	}
 }
 
@@ -842,9 +847,27 @@ static void eraseColor(argb* bm, int w, int h, argb color)
 		*(bm + i) = color;
 }
 
-static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
-		unsigned int idx, argb* backup, argb color)
+static inline bool setupBackupBmp(GifInfo* info)
 {
+	GifFileType* fGIF=info->gifFilePtr;
+	info->backupPtr=calloc(fGIF->SWidth * fGIF->SHeight, sizeof(argb));
+	if (!info->backupPtr)
+	{
+		info->gifFilePtr->Error =D_GIF_ERR_NOT_ENOUGH_MEM;
+		return false;
+	}
+	argb paintingColor;
+	getColorFromTable(fGIF->SBackGroundColor,&paintingColor,fGIF->SColorMap);
+	eraseColor(info->backupPtr, fGIF->SWidth, fGIF->SHeight, paintingColor);
+	return true;
+}
+
+static inline bool disposeFrameIfNeeded(argb* bm, GifInfo* info,
+		unsigned int idx)
+{
+	argb* backup=info->backupPtr;;
+	argb color;
+	packARGB32(&color, 0, 0, 0, 0);
 	GifFileType* fGif = info->gifFilePtr;
 	SavedImage* cur = &fGif->SavedImages[idx - 1];
 	SavedImage* next = &fGif->SavedImages[idx];
@@ -871,6 +894,12 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 
 			// restore to previous
 		case 3:
+			if (backup==NULL)
+			{
+				if (!setupBackupBmp(info))
+					return false;
+				backup=info->backupPtr;
+			}
 			tmp = bm;
 			bm = backup;
 			backup = tmp;
@@ -881,13 +910,19 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	// Save current image if next frame's disposal method == 3
 	if (nextDisposal == 3)
 	{
+		if (backup==NULL)
+		{
+			if (!setupBackupBmp(info))
+				return false;
+			backup=info->backupPtr;
+		}
 		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
 	}
+	return true;
 }
 
 static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 {
-	argb* fBackup = info->backupPtr;
 	GifFileType* fGIF = info->gifFilePtr;
 
 	argb paintingColor;
@@ -900,23 +935,16 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 	if (i == 0)
 	{
 		if (transpIndex == -1)
-		{
-			int colIdx =
-					fGIF->SBackGroundColor < fGIF->SColorMap->ColorCount ?
-							fGIF->SBackGroundColor : 0;
-			const GifColorType col = fGIF->SColorMap->Colors[colIdx];
-			packARGB32(&paintingColor, 0xFF, col.Red, col.Green, col.Blue);
-		}
+			getColorFromTable(fGIF->SBackGroundColor,&paintingColor,fGIF->SColorMap);
 		else
 			packARGB32(&paintingColor, 0, 0, 0, 0);
 		eraseColor(bm, fGIF->SWidth, fGIF->SHeight, paintingColor);
-		eraseColor(fBackup, fGIF->SWidth, fGIF->SHeight, paintingColor);
 	}
 	else
 	{
-		packARGB32(&paintingColor, 0, 0, 0, 0);
 		// Dispose previous frame before move to next frame.
-		disposeFrameIfNeeded(bm, info, i, fBackup, paintingColor);
+		if (!disposeFrameIfNeeded(bm, info, i))
+			return;
 	}
 	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap,
 			transpIndex);
@@ -1175,4 +1203,3 @@ void JNI_OnUnload(JavaVM *vm, void *reserved)
 {
 	GifFreeMapObject(defaultCmap);
 }
-
