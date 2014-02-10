@@ -1,6 +1,5 @@
 package pl.droidsonroids.gif;
 
-import java.io.IOException;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
@@ -9,6 +8,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.TextView;
+
+import java.io.IOException;
 
 /**
  * A {@link TextView} which handles GIFs as compound drawables. NOTE:

@@ -1,6 +1,5 @@
 package pl.droidsonroids.gif;
 
-import java.io.IOException;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
@@ -8,6 +7,8 @@ import android.content.res.Resources.NotFoundException;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.ImageView;
+
+import java.io.IOException;
 
 /**
  * An {@link ImageView} which tries treating background and src as {@link GifDrawable}

@@ -1,11 +1,5 @@
 package pl.droidsonroids.gif;
 
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Locale;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -20,6 +14,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.widget.MediaController.MediaPlayerControl;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Locale;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -64,6 +65,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private static native int saveRemainder ( int gifFileInPtr );
 
 	private static native int restoreRemainder ( int gifFileInPtr );
+	
+	private static native long getAllocationByteCount( int gifFileInPtr );
 
 	private volatile int mGifInfoPtr;
 	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
@@ -566,10 +569,21 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Returns the minimum number of bytes that can be used to store pixels of the single frame.
 	 * Returned value is the same for all the frames since it is based on the size of GIF screen. 
-	 * @return width (of the GIF screen) * height (of the GIF screen) * 4 
+	 * @return width * height (of the GIF screen ix pixels) * 4 
 	 */
-	public int getByteCount ()
+	public int getFrameByteCount ()
 	{
-		return mColors.length*4;
+		return mMetaData[ 0 ] * mMetaData[ 1 ]*4;
 	}
+	
+	/**
+	 * Returns size of the allocated memory used to store pixels of this object.
+	 * It counts length of all frame buffers. This size cannot change during runtime.
+	 * @return size of the allocated memory used to store pixels of this object
+	 */
+	public long getAllocationByteCount()
+	{
+		return getAllocationByteCount( mGifInfoPtr )+mColors.length*4L;
+	}
+	
 }

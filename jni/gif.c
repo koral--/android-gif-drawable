@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2010 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #include <jni.h>
 #include <time.h>
 #include <stdio.h>
@@ -297,6 +281,44 @@ static int getComment(GifByteType* Bytes, char** cmt)
 	return GIF_ERROR;
 }
 
+static void packARGB32(argb* pixel, GifByteType alpha, GifByteType red,
+		GifByteType green, GifByteType blue)
+{
+	pixel->alpha = alpha;
+	pixel->red = red;
+	pixel->green = green;
+	pixel->blue = blue;
+}
+
+static void getColorFromTable(int idx, argb* dst, const ColorMapObject* cmap)
+{
+	char colIdx = idx >= cmap->ColorCount ? 0 : idx;
+	GifColorType* col = &cmap->Colors[colIdx];
+	packARGB32(dst, 0xFF, col->Red, col->Green, col->Blue);
+}
+
+static void eraseColor(argb* bm, int w, int h, argb color)
+{
+	int i;
+	for (i = 0; i < w * h; i++)
+		*(bm + i) = color;
+}
+
+static inline bool setupBackupBmp(GifInfo* info)
+{
+	GifFileType* fGIF = info->gifFilePtr;
+	info->backupPtr = calloc(fGIF->SWidth * fGIF->SHeight, sizeof(argb));
+	if (!info->backupPtr)
+	{
+		info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+		return false;
+	}
+	argb paintingColor;
+	getColorFromTable(fGIF->SBackGroundColor, &paintingColor, fGIF->SColorMap);
+	eraseColor(info->backupPtr, fGIF->SWidth, fGIF->SHeight, paintingColor);
+	return true;
+}
+
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 {
 	if (ExtData == NULL)
@@ -309,6 +331,11 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 		short delay = ((b[2] << 8) | b[1]);
 		fi->duration = delay > 1 ? delay * 10 : 100;
 		fi->disposalMethod = ((b[0] >> 2) & 7);
+		if (fi->disposalMethod == 3 && info->backupPtr == NULL)
+		{
+			if (!setupBackupBmp(info))
+				return GIF_ERROR;
+		}
 		if (ExtData[1] & 1)
 			fi->transpIndex = (short) b[3];
 	}
@@ -338,23 +365,6 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 	}
 	return GIF_OK;
 }
-
-static void packARGB32(argb* pixel, GifByteType alpha, GifByteType red,
-		GifByteType green, GifByteType blue)
-{
-	pixel->alpha = alpha;
-	pixel->red = red;
-	pixel->green = green;
-	pixel->blue = blue;
-}
-
-static void getColorFromTable(int idx, argb* dst, const ColorMapObject* cmap)
-{
-	char colIdx = idx >= cmap->ColorCount ? 0 : idx;
-	GifColorType* col = &cmap->Colors[colIdx];
-	packARGB32(dst, 0xFF, col->Red, col->Green, col->Blue);
-}
-
 
 static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 {
@@ -840,32 +850,11 @@ static bool checkIfCover(const SavedImage* target, const SavedImage* covered)
 	return false;
 }
 
-static void eraseColor(argb* bm, int w, int h, argb color)
-{
-	int i;
-	for (i = 0; i < w * h; i++)
-		*(bm + i) = color;
-}
-
-static inline bool setupBackupBmp(GifInfo* info)
-{
-	GifFileType* fGIF=info->gifFilePtr;
-	info->backupPtr=calloc(fGIF->SWidth * fGIF->SHeight, sizeof(argb));
-	if (!info->backupPtr)
-	{
-		info->gifFilePtr->Error =D_GIF_ERR_NOT_ENOUGH_MEM;
-		return false;
-	}
-	argb paintingColor;
-	getColorFromTable(fGIF->SBackGroundColor,&paintingColor,fGIF->SColorMap);
-	eraseColor(info->backupPtr, fGIF->SWidth, fGIF->SHeight, paintingColor);
-	return true;
-}
-
 static inline bool disposeFrameIfNeeded(argb* bm, GifInfo* info,
 		unsigned int idx)
 {
-	argb* backup=info->backupPtr;;
+	argb* backup = info->backupPtr;
+	;
 	argb color;
 	packARGB32(&color, 0, 0, 0, 0);
 	GifFileType* fGif = info->gifFilePtr;
@@ -894,12 +883,6 @@ static inline bool disposeFrameIfNeeded(argb* bm, GifInfo* info,
 
 			// restore to previous
 		case 3:
-			if (backup==NULL)
-			{
-				if (!setupBackupBmp(info))
-					return false;
-				backup=info->backupPtr;
-			}
 			tmp = bm;
 			bm = backup;
 			backup = tmp;
@@ -909,15 +892,7 @@ static inline bool disposeFrameIfNeeded(argb* bm, GifInfo* info,
 
 	// Save current image if next frame's disposal method == 3
 	if (nextDisposal == 3)
-	{
-		if (backup==NULL)
-		{
-			if (!setupBackupBmp(info))
-				return false;
-			backup=info->backupPtr;
-		}
 		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
-	}
 	return true;
 }
 
@@ -935,7 +910,8 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 	if (i == 0)
 	{
 		if (transpIndex == -1)
-			getColorFromTable(fGIF->SBackGroundColor,&paintingColor,fGIF->SColorMap);
+			getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
+					fGIF->SColorMap);
 		else
 			packARGB32(&paintingColor, 0, 0, 0, 0);
 		eraseColor(bm, fGIF->SWidth, fGIF->SHeight, paintingColor);
@@ -1006,7 +982,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekTo(JNIEnv * env, jclass class,
 	unsigned long lastFrameRemainder = desiredPos - sum;
 	if (i == imgCount - 1 && lastFrameRemainder > info->infos[i].duration)
 		lastFrameRemainder = info->infos[i].duration;
-	info->lastFrameReaminder=lastFrameRemainder;
+	info->lastFrameReaminder = lastFrameRemainder;
 	if (i > info->currentIndex)
 	{
 		int j;
@@ -1160,8 +1136,11 @@ Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
 	unsigned int sum = 0;
 	for (i = 0; i < idx; i++)
 		sum += info->infos[i].duration;
-	unsigned long remainder=info->lastFrameReaminder==ULONG_MAX?getRealTime() - info->nextStartTime:info->lastFrameReaminder;
-	return (int) (sum+remainder);
+	unsigned long remainder =
+			info->lastFrameReaminder == ULONG_MAX ?
+					getRealTime() - info->nextStartTime :
+					info->lastFrameReaminder;
+	return (int) (sum + remainder);
 }
 
 JNIEXPORT void JNICALL
@@ -1183,6 +1162,20 @@ Java_pl_droidsonroids_gif_GifDrawable_restoreRemainder(JNIEnv * env,
 		return;
 	info->nextStartTime = getRealTime() + info->lastFrameReaminder;
 	info->lastFrameReaminder = ULONG_MAX;
+}
+
+JNIEXPORT jlong JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_getAllocationByteCount(JNIEnv * env,
+		jclass class, jobject gifInfo)
+{
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info == NULL)
+		return 0;
+	unsigned int pxCount = info->gifFilePtr->SWidth + info->gifFilePtr->SHeight;
+	jlong sum = pxCount * sizeof(char);
+	if (info->backupPtr != NULL)
+		sum += pxCount * sizeof(argb);
+	return sum;
 }
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
