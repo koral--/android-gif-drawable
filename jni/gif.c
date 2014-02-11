@@ -1000,16 +1000,15 @@ Java_pl_droidsonroids_gif_GifDrawable_seekTo(JNIEnv * env, jclass class,
 		info->nextStartTime = getRealTime() + lastFrameRemainder;
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
-		jintArray array, jobject gifInfo)
+		jintArray array, jobject gifInfo, jintArray metaData)
 {
 
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
-		return 0;
+		return;
 
-	void* pixels;
 	bool needRedraw = false;
 	unsigned long rt = getRealTime();
 
@@ -1019,24 +1018,24 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 			info->currentIndex = 0;
 		needRedraw = true;
 	}
+	jint *rawMetaData = (*env)->GetIntArrayElements(env, metaData, 0);
 
 	if (needRedraw)
 	{
 		jint *pixels = (*env)->GetIntArrayElements(env, array, 0);
 		getBitmap((argb*) pixels, info, env);
+		rawMetaData[3]=info->gifFilePtr->Error;
 		(*env)->ReleaseIntArrayElements(env, array, pixels, 0);
 
-		if (info->speedFactor == 1.0)
-			info->nextStartTime =
-					rt
-							+ (unsigned long) (info->infos[info->currentIndex]).duration;
-		else
-			info->nextStartTime =
-					rt
-							+ (unsigned long) ((info->infos[info->currentIndex]).duration
-									/ info->speedFactor);
+		int scaledDuration=info->infos[info->currentIndex].duration;
+		if (info->speedFactor != 1.0)
+			scaledDuration/=info->speedFactor;
+		info->nextStartTime =rt+scaledDuration;
+		rawMetaData[4]=scaledDuration;
 	}
-	return info->gifFilePtr->Error;
+	else
+		rawMetaData[4]=(int)(rt - info->nextStartTime);
+	(*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
 }
 
 JNIEXPORT void JNICALL

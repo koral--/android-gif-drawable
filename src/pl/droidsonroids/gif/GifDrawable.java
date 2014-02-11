@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.widget.MediaController.MediaPlayerControl;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -34,7 +33,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		System.loadLibrary( "gif" );
 	}
 
-	private static native int renderFrame ( int[] pixels, int gifFileInPtr );
+	private static native void renderFrame ( int[] pixels, int gifFileInPtr, int[] metaData );
 
 	private static native int openFd ( int[] metaData, FileDescriptor fd, long offset );
 
@@ -65,15 +64,17 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private static native int saveRemainder ( int gifFileInPtr );
 
 	private static native int restoreRemainder ( int gifFileInPtr );
-	
-	private static native long getAllocationByteCount( int gifFileInPtr );
 
+	private static native long getAllocationByteCount ( int gifFileInPtr );
+
+	private static final Handler UI_HANDLER = new Handler( Looper.getMainLooper() );
+	
 	private volatile int mGifInfoPtr;
 	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
 	private volatile boolean mIsRunning = true;
 
 	private final int[] mColors;
-	private final int[] mMetaData = new int[ 4 ];//[w,h,imageCount,errorCode]
+	private final int[] mMetaData = new int[ 5 ];//[w,h,imageCount,errorCode,post invalidation time]
 	private final long mInputSourceLength;
 
 	private final Runnable mResetTask = new Runnable()
@@ -103,13 +104,21 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			saveRemainder( mGifInfoPtr );
 		}
 	};
+	private final Runnable mInvalidateTask = new Runnable()
+	{
+		@Override
+		public void run ()
+		{
+			invalidateSelf();
+		}
+	};
 
 	private static void runOnUiThread ( Runnable task )
 	{
-		if ( Looper.myLooper() == Looper.getMainLooper() )
+		if ( Looper.myLooper() == UI_HANDLER.getLooper() )
 			task.run();
 		else
-			new Handler( Looper.getMainLooper() ).post( task );
+			UI_HANDLER.post( task );
 	}
 
 	/**
@@ -150,7 +159,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	{
 		if ( filePath == null )
 			throw new NullPointerException( "Source is null" );
-		mInputSourceLength=new File(filePath).length();
+		mInputSourceLength = new File( filePath ).length();
 		mGifInfoPtr = openFile( mMetaData, filePath );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 	}
@@ -165,7 +174,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	{
 		if ( file == null )
 			throw new NullPointerException( "Source is null" );
-		mInputSourceLength=file.length();		
+		mInputSourceLength = file.length();
 		mGifInfoPtr = openFile( mMetaData, file.getPath() );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
 	}
@@ -186,7 +195,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new IllegalArgumentException( "InputStream does not support marking" );
 		mGifInfoPtr = openStream( mMetaData, stream );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		mInputSourceLength=-1L;
+		mInputSourceLength = -1L;
 	}
 
 	/**
@@ -203,7 +212,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		FileDescriptor fd = afd.getFileDescriptor();
 		mGifInfoPtr = openFd( mMetaData, fd, afd.getStartOffset() );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		mInputSourceLength=afd.getLength();
+		mInputSourceLength = afd.getLength();
 	}
 
 	/**
@@ -218,7 +227,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openFd( mMetaData, fd, 0 );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		mInputSourceLength=-1L;
+		mInputSourceLength = -1L;
 	}
 
 	/**
@@ -234,7 +243,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new NullPointerException( "Source is null" );
 		mGifInfoPtr = openByteArray( mMetaData, bytes );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		mInputSourceLength=bytes.length;
+		mInputSourceLength = bytes.length;
 	}
 
 	/**
@@ -253,7 +262,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new IllegalArgumentException( "ByteBuffer is not direct" );
 		mGifInfoPtr = openDirectByteBuffer( mMetaData, buffer );
 		mColors = new int[ mMetaData[ 0 ] * mMetaData[ 1 ] ];
-		mInputSourceLength=buffer.capacity();
+		mInputSourceLength = buffer.capacity();
 	}
 
 	/**
@@ -264,12 +273,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	public void draw ( Canvas canvas )
 	{
 		if ( mIsRunning )
-		{
-			mMetaData[ 3 ] = renderFrame( mColors, mGifInfoPtr );
-			if ( mMetaData[ 2 ] > 1 )
-				invalidateSelf();
-		}
+			renderFrame( mColors, mGifInfoPtr, mMetaData );
+		else
+			mMetaData[4] = -1;
 		canvas.drawBitmap( mColors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
+		if ( mMetaData[4] >= 0 && mMetaData[ 2 ] > 1 )
+			UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[4] );
 	}
 
 	/**
@@ -501,7 +510,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	@Override
 	public void seekTo ( final int position )
 	{
-		if (position<0)
+		if ( position < 0 )
 			throw new IllegalArgumentException( "Position is not positive" );
 		runOnUiThread( new Runnable()
 		{
@@ -576,7 +585,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	{
 		return 0;
 	}
-	
+
 	/**
 	 * Returns the minimum number of bytes that can be used to store pixels of the single frame.
 	 * Returned value is the same for all the frames since it is based on the size of GIF screen. 
@@ -584,19 +593,19 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public int getFrameByteCount ()
 	{
-		return mMetaData[ 0 ] * mMetaData[ 1 ]*4;
+		return mMetaData[ 0 ] * mMetaData[ 1 ] * 4;
 	}
-	
+
 	/**
 	 * Returns size of the allocated memory used to store pixels of this object.
 	 * It counts length of all frame buffers. Returned value does not change during runtime.
 	 * @return size of the allocated memory used to store pixels of this object
 	 */
-	public long getAllocationByteCount()
+	public long getAllocationByteCount ()
 	{
-		return getAllocationByteCount( mGifInfoPtr )+mColors.length*4L;
+		return getAllocationByteCount( mGifInfoPtr ) + mColors.length * 4L;
 	}
-	
+
 	/**
 	 * Returns length of the input source obtained at the opening time or -1 if 
 	 * length is unknown. Returned value does not change during runtime. 
@@ -604,7 +613,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * In case of {@link File}, file path, byte array and {@link ByteBuffer} length is always known.
 	 * @return number of bytes backed by input source or -1 if it is unknown
 	 */
-	public long getInputSourceByteCount()
+	public long getInputSourceByteCount ()
 	{
 		return mInputSourceLength;
 	}
