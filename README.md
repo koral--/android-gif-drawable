@@ -160,6 +160,9 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `getLoopCount()` - returns a loop count as defined in `NETSCAPE 2.0` extension
 + `getNumberOfFrames()` - returns number of frames (at least 1)
 + `getComment()` - returns comment text (`null` if GIF has no comment)
++ `getFrameByteCount()` - returns minimum number of bytes that can be used to store pixels of the single frame
++ `getAllocationByteCount()` - returns size (in bytes) of the allocated memory used to store pixels of given GifDrawable
++ `getInputSourceByteCount()` - returns length (in bytes) of the backing input data
 + `toString()` - returns human readable information about image size and number of frames (intended for debugging purpose)
 
 ####Advanced
