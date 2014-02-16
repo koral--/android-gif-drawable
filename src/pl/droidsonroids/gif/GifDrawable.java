@@ -278,7 +278,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			mMetaData[4] = -1;
 		canvas.drawBitmap( mColors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
 		if ( mMetaData[4] >= 0 && mMetaData[ 2 ] > 1 )
-			UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[4] );
+			UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[4] );//TODO don't post if message for given frame was already posted
 	}
 
 	/**

@@ -5,16 +5,20 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pl.droidsonroids.gif</groupId>
 	<artifactId>android-gif-drawable</artifactId>
-	<version>1.0.5</version>
+	<version>1.0.6-SNAPSHOT</version>
 	<packaging>apklib</packaging>
-
+	<name>Android GIF Drawable and Views library</name>
 	<description>Views and Drawable for displaying animated GIFs for Android</description>
 	<url>https://github.com/koral--/android-gif-drawable</url>
 	<inceptionYear>2013</inceptionYear>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 	<licenses>
 		<license>
 			<name>The MIT License</name>
@@ -32,7 +36,7 @@
 		<dependency>
 			<groupId>android</groupId>
 			<artifactId>android</artifactId>
-			<version>4.4_r1</version>
+			<version>4.4.2_r2</version>
 			<scope>provided</scope>
 		</dependency>
 
