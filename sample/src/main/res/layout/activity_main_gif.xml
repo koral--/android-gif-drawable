@@ -1,0 +1,22 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0099cc"
+    tools:context="pl.droidsonroids.gif.sample.MainGifActivity">
+<pl.droidsonroids.gif.GifImageButton
+    android:onClick="onGibCradleClick"
+    android:id="@+id/gib_cradle"
+    android:src="@drawable/cradle"
+    android:layout_centerHorizontal="true"
+    android:layout_alignParentTop="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" />
+   <TextView
+       android:id="@+id/tv_desc"
+       android:gravity="center"
+       android:layout_below="@+id/gib_cradle"
+       android:text="@string/cradle_src_desc"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content" />
+</RelativeLayout>

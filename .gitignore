@@ -22,3 +22,18 @@ local.properties
 /obj
 .settings/*
 target/*
+
+#IntelliJ IDEA
+.idea
+*.iml
+*.ipr
+*.iws
+out
+
+#Gradle
+.gradle
+build
+gradle/
+gradlew*
+
+signing.properties

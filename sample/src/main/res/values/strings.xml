@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Android GIF Drawable Sample</string>
+    <string name="title_activity_main_gif">MainGifActivity</string>
+    <string name="cradle_src_url">http://en.wikipedia.org/wiki/File:Newtons_cradle_animation_book_2.gif</string>
+    <string name="cradle_src_desc">Source: Wikipedia (click the button to see)</string>
+    <string name="anfe_web">Web browser is not available</string>
+</resources>
