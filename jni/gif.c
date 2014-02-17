@@ -1024,7 +1024,11 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 		getBitmap((argb*) pixels, info, env);
 	}
 	(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
-	info->nextStartTime = getRealTime()+info->infos[info->currentIndex].duration;
+	if (info->speedFactor == 1.0)
+		info->nextStartTime = getRealTime()+info->infos[info->currentIndex].duration;
+	else
+		info->nextStartTime = getRealTime()+info->infos[info->currentIndex].duration*info->speedFactor;
+
 }
 
 JNIEXPORT void JNICALL
