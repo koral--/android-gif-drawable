@@ -85,7 +85,7 @@ static JavaVM *g_jvm;
 static ColorMapObject* defaultCmap = NULL;
 
 static ColorMapObject*
-genDefColorMap()
+genDefColorMap(void)
 {
 	ColorMapObject* cmap = GifMakeMapObject(256, NULL);
 	if (cmap != NULL)
@@ -137,7 +137,7 @@ static void cleanUp(GifInfo* info)
 /**
  * Returns the real time, in ms
  */
-static unsigned long getRealTime()
+static unsigned long getRealTime(void)
 {
 	struct timespec ts;
 	const clockid_t id = CLOCK_MONOTONIC;
@@ -957,8 +957,8 @@ Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_seekTo(JNIEnv * env, jclass class,
-		jobject gifInfo, jint desiredPos, jintArray array)
+Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
+		jobject gifInfo, jint desiredPos, jintArray jPixels)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
@@ -985,24 +985,55 @@ Java_pl_droidsonroids_gif_GifDrawable_seekTo(JNIEnv * env, jclass class,
 	info->lastFrameReaminder = lastFrameRemainder;
 	if (i > info->currentIndex)
 	{
-		int j;
-		jint *pixels = (*env)->GetIntArrayElements(env, array, 0);
-		for (j = info->currentIndex + 1; j < i; j++)
+		jint *pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
+		while(info->currentIndex<=i)
 		{
-			getBitmap((argb*) pixels, info, env);
 			info->currentIndex++;
+			getBitmap((argb*) pixels, info, env);
 		}
-		(*env)->ReleaseIntArrayElements(env, array, pixels, 0);
+		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
 	}
 	if (info->speedFactor == 1.0)
 		info->nextStartTime = getRealTime() + lastFrameRemainder;
 	else
-		info->nextStartTime = getRealTime() + lastFrameRemainder;
+		info->nextStartTime = getRealTime() + lastFrameRemainder*info->speedFactor;
+}
+
+JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
+		jobject gifInfo, jint desiredIdx, jintArray jPixels)
+{
+	GifInfo* info = (GifInfo*) gifInfo;
+	if (info == NULL)
+		return;
+	if (desiredIdx <= info->currentIndex)
+		return;
+
+	int imgCount = info->gifFilePtr->ImageCount;
+	if (imgCount <= 1)
+		return;
+
+    if (desiredIdx>=imgCount)
+        desiredIdx=imgCount-1;
+
+	info->lastFrameReaminder = 0;
+	jint *pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
+	while(info->currentIndex < desiredIdx)
+	{
+		info->currentIndex++;
+		getBitmap((argb*) pixels, info, env);
+	}
+	(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
+	if (info->speedFactor == 1.0)
+		info->nextStartTime = getRealTime()+info->infos[info->currentIndex].duration;
+	else
+		info->nextStartTime = getRealTime()+info->infos[info->currentIndex].duration*info->speedFactor;
+
 }
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
-		jintArray array, jobject gifInfo, jintArray metaData)
+		jintArray jPixels, jobject gifInfo, jintArray metaData)
 {
 
 	GifInfo* info = (GifInfo*) gifInfo;
@@ -1022,10 +1053,11 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 
 	if (needRedraw)
 	{
-		jint *pixels = (*env)->GetIntArrayElements(env, array, 0);
+		jint *pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
 		getBitmap((argb*) pixels, info, env);
 		rawMetaData[3]=info->gifFilePtr->Error;
-		(*env)->ReleaseIntArrayElements(env, array, pixels, 0);
+
+		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
 
 		int scaledDuration=info->infos[info->currentIndex].duration;
 		if (info->speedFactor != 1.0)

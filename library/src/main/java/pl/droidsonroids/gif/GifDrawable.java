@@ -5,6 +5,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -59,7 +60,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	private static native int getCurrentPosition ( int gifFileInPtr );
 
-	private static native int seekTo ( int gifFileInPtr, int pos, int[] pixels );
+	private static native int seekToTime ( int gifFileInPtr, int pos, int[] pixels );
+
+	private static native int seekToFrame ( int gifFileInPtr, int frameNr, int[] pixels );
 
 	private static native int saveRemainder ( int gifFileInPtr );
 
@@ -68,14 +71,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private static native long getAllocationByteCount ( int gifFileInPtr );
 
 	private static final Handler UI_HANDLER = new Handler( Looper.getMainLooper() );
-	
+
 	private volatile int mGifInfoPtr;
-	private final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
 	private volatile boolean mIsRunning = true;
 
-	private final int[] mColors;
 	private final int[] mMetaData = new int[ 5 ];//[w,h,imageCount,errorCode,post invalidation time]
 	private final long mInputSourceLength;
+
+	/**
+	 * Paint used to draw on a Canvas
+	 */
+	protected final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
+	/**
+	 * Frame buffer, holds current frame. 
+	 * Each element is a packed int representing a {@link Color} at the given pixel.
+	 */
+	protected final int[] mColors;
 
 	private final Runnable mResetTask = new Runnable()
 	{
@@ -275,10 +286,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		if ( mIsRunning )
 			renderFrame( mColors, mGifInfoPtr, mMetaData );
 		else
-			mMetaData[4] = -1;
+			mMetaData[ 4 ] = -1;
 		canvas.drawBitmap( mColors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
-		if ( mMetaData[4] >= 0 && mMetaData[ 2 ] > 1 )
-			UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[4] );//TODO don't post if message for given frame was already posted
+		if ( mMetaData[ 4 ] >= 0 && mMetaData[ 2 ] > 1 )
+			UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[ 4 ] );//TODO don't post if message for given frame was already posted
 	}
 
 	/**
@@ -517,7 +528,27 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			@Override
 			public void run ()
 			{
-				seekTo( mGifInfoPtr, position, mColors );
+				seekToTime( mGifInfoPtr, position, mColors );
+				invalidateSelf();
+			}
+		} );
+	}
+
+	/**
+	 * Like {@link #seekToTime(int, int, int[])} but uses index of the frame instead of time.
+	 * @param frameIndex index of the frame to seek to (zero based)
+	 * @throws IllegalArgumentException if frameIndex<0
+	 */
+	public void seekToFrame ( final int frameIndex )
+	{
+		if ( frameIndex < 0 )
+			throw new IllegalArgumentException( "frameIndex is not positive" );
+		runOnUiThread( new Runnable()
+		{
+			@Override
+			public void run ()
+			{
+				seekToFrame( mGifInfoPtr, frameIndex, mColors );
 				invalidateSelf();
 			}
 		} );
@@ -616,5 +647,40 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	public long getInputSourceByteCount ()
 	{
 		return mInputSourceLength;
+	}
+
+	/**
+	 * Returns in pixels[] a copy of the data in the current frame. Each value is a packed int representing a {@link Color}.
+	 * @param pixels the array to receive the frame's colors
+	 * @throws ArrayIndexOutOfBoundsException if the pixels array is too small to receive required number of pixels
+	 */
+	public void getPixels ( int[] pixels )
+	{
+		if ( pixels.length < mColors.length )
+			throw new ArrayIndexOutOfBoundsException( "Pixels array is too small. Required length: " + mColors.length );
+		System.arraycopy( mColors, 0, pixels, 0, mColors.length );
+	}
+
+	/**
+	 * Returns the {@link Color} at the specified location. Throws an exception
+	 * if x or y are out of bounds (negative or >= to the width or height
+	 * respectively). The returned color is a non-premultiplied ARGB value.
+	 *
+	 * @param x    The x coordinate (0...width-1) of the pixel to return
+	 * @param y    The y coordinate (0...height-1) of the pixel to return
+	 * @return     The argb {@link Color} at the specified coordinate
+	 * @throws IllegalArgumentException if x, y exceed the bitmap's bounds
+	 */
+	public int getPixel ( int x, int y )
+	{
+		if ( x < 0 )
+			throw new IllegalArgumentException( "x must be >= 0" );
+		if ( y < 0 )
+			throw new IllegalArgumentException( "y must be >= 0" );
+		if ( x >= mMetaData[ 0 ] )
+			throw new IllegalArgumentException( "x must be < GIF width" );
+		if ( y >= mMetaData[ 1 ] )
+			throw new IllegalArgumentException( "y must be < GIF height" );
+		return mColors[ mMetaData[ 1 ] * y + x ];
 	}
 }

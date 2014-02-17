@@ -10,6 +10,8 @@ android {
 
         ndk {
             moduleName "gif"
+	    //ldLibs "log"
+	    cFlags "-DHAVE_CONFIG_H"
         }
     }
 
