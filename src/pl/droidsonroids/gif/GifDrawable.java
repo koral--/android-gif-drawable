@@ -1,5 +1,11 @@
 package pl.droidsonroids.gif;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Locale;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -9,18 +15,13 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.widget.MediaController.MediaPlayerControl;
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Locale;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -78,6 +79,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private final int[] mMetaData = new int[ 5 ];//[w,h,imageCount,errorCode,post invalidation time]
 	private final long mInputSourceLength;
 
+	private float mSx=1f;
+	private float mSy=1f;
+	private boolean mApplyTransformation;
+	private final Rect mDstRect = new Rect();
+
 	/**
 	 * Paint used to draw on a Canvas
 	 */
@@ -115,6 +121,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			saveRemainder( mGifInfoPtr );
 		}
 	};
+	
 	private final Runnable mInvalidateTask = new Runnable()
 	{
 		@Override
@@ -123,6 +130,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			invalidateSelf();
 		}
 	};
+
 
 	private static void runOnUiThread ( Runnable task )
 	{
@@ -279,7 +287,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Reads and renders new frame if needed then draws last rendered frame.
 	 * @param canvas canvas to draw into
-	 */
+	 
 	@Override
 	public void draw ( Canvas canvas )
 	{
@@ -290,7 +298,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		canvas.drawBitmap( mColors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
 		if ( mMetaData[ 4 ] >= 0 && mMetaData[ 2 ] > 1 )
 			UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[ 4 ] );//TODO don't post if message for given frame was already posted
-	}
+	}*/
 
 	/**
 	 * Frees any memory allocated native way.
@@ -682,5 +690,39 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		if ( y >= mMetaData[ 1 ] )
 			throw new IllegalArgumentException( "y must be < GIF height" );
 		return mColors[ mMetaData[ 1 ] * y + x ];
+	}
+
+	@Override
+	protected void onBoundsChange ( Rect bounds )
+	{
+		super.onBoundsChange( bounds );
+		mApplyTransformation = true;
+	}
+
+	@Override
+	public void draw ( Canvas canvas )
+	{
+		if ( mApplyTransformation )
+		{
+			mDstRect.set( getBounds() );
+			mSx = ( float ) mDstRect.width() / getIntrinsicWidth();
+			mSy = ( float ) mDstRect.height() / getIntrinsicHeight();		
+			mApplyTransformation = false;
+		}		
+//		if ( mPaint.getShader() == null ) TODO add shader support
+		{
+			if ( mIsRunning )
+				renderFrame( mColors, mGifInfoPtr, mMetaData );
+			else
+				mMetaData[ 4 ] = -1;
+
+			canvas.scale( mSx, mSy );
+			canvas.drawBitmap( mColors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
+
+			if ( mMetaData[ 4 ] >= 0 && mMetaData[ 2 ] > 1 )
+				UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[ 4 ] );//TODO don't post if message for given frame was already posted
+		}
+//		else
+//			canvas.drawRect( mDstRect, mPaint );
 	}
 }
