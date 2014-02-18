@@ -79,8 +79,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private final int[] mMetaData = new int[ 5 ];//[w,h,imageCount,errorCode,post invalidation time]
 	private final long mInputSourceLength;
 
-	private float mSx=1f;
-	private float mSy=1f;
+	private float mSx = 1f;
+	private float mSy = 1f;
 	private boolean mApplyTransformation;
 	private final Rect mDstRect = new Rect();
 
@@ -121,7 +121,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			saveRemainder( mGifInfoPtr );
 		}
 	};
-	
+
 	private final Runnable mInvalidateTask = new Runnable()
 	{
 		@Override
@@ -130,7 +130,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			invalidateSelf();
 		}
 	};
-
 
 	private static void runOnUiThread ( Runnable task )
 	{
@@ -705,11 +704,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		if ( mApplyTransformation )
 		{
 			mDstRect.set( getBounds() );
-			mSx = ( float ) mDstRect.width() / getIntrinsicWidth();
-			mSy = ( float ) mDstRect.height() / getIntrinsicHeight();		
+			mSx = ( float ) mDstRect.width() / mMetaData[ 0 ];
+			mSy = ( float ) mDstRect.height() / mMetaData[ 1 ];
 			mApplyTransformation = false;
-		}		
-//		if ( mPaint.getShader() == null ) TODO add shader support
+		}
+		if ( mPaint.getShader() == null )
 		{
 			if ( mIsRunning )
 				renderFrame( mColors, mGifInfoPtr, mMetaData );
@@ -722,7 +721,47 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			if ( mMetaData[ 4 ] >= 0 && mMetaData[ 2 ] > 1 )
 				UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[ 4 ] );//TODO don't post if message for given frame was already posted
 		}
-//		else
-//			canvas.drawRect( mDstRect, mPaint );
+		else
+			canvas.drawRect( mDstRect, mPaint );
+	}
+
+	/**
+	 * @return the paint used to render this drawable
+	 */
+	public final Paint getPaint ()
+	{
+		return mPaint;
+	}
+
+	@Override
+	public int getAlpha ()
+	{
+		return mPaint.getAlpha();
+	}
+
+	@Override
+	public void setFilterBitmap ( boolean filter )
+	{
+		mPaint.setFilterBitmap( filter );
+		invalidateSelf();
+	}
+
+	@Override
+	public void setDither ( boolean dither )
+	{
+		mPaint.setDither( dither );
+		invalidateSelf();
+	}
+
+	@Override
+	public int getMinimumHeight ()
+	{
+		return mMetaData[ 1 ];
+	}
+
+	@Override
+	public int getMinimumWidth ()
+	{
+		return mMetaData[ 0 ];
 	}
 }
