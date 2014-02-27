@@ -2,7 +2,7 @@ apply plugin: 'android-library'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.1"
+    buildToolsVersion "19.0.2"
 
     defaultConfig {
         minSdkVersion 4
@@ -20,3 +20,5 @@ android {
         proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
 }
+
+apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'
