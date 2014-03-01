@@ -17,8 +17,10 @@ android {
         }
     }
 }
-
+repositories {
+    mavenCentral()
+}
 dependencies {
-    compile project(':library')
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.0.6@aar'
     compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 }
