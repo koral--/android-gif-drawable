@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pl.droidsonroids.gif</groupId>
 	<artifactId>android-gif-drawable</artifactId>
-	<version>1.0.6-SNAPSHOT</version>
+	<version>1.0.7-SNAPSHOT</version>
 	<packaging>apklib</packaging>
 	<name>Android GIF Drawable and Views library</name>
 	<description>Views and Drawable for displaying animated GIFs for Android</description>
