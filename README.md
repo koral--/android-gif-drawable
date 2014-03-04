@@ -12,6 +12,30 @@ Animation starts automatically and run only if `View` with attached `GifDrawable
 
 ### Setup
 
+#### Gradle (Android Studio)
+Insert the following dependency to `build.gradle` file of your project.
+```groovy
+dependencies {
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.0.+'
+}
+```
+Note that Maven central repository should be defined eg. in top-level `build.gradle` like this:
+```groovy 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.8.+'
+    }
+}
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
 #### Maven dependency
 
 SDK with API level 19 is needed. If you don't have it in your local repository, download [maven-android-sdk-deployer](https://github.com/mosabua/maven-android-sdk-deployer)
