@@ -1,0 +1,60 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'com.github.dcendents:android-maven-plugin:1.0'
+    }
+}
+
+apply plugin: 'android-library'
+apply plugin: 'android-maven'
+
+group = 'pl.droidsonroids.gif'
+version = '1.0.7-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '19.0.2'
+
+    sourceSets.main {
+        java.srcDirs = ['src']
+        resources.srcDirs = ['src']
+        aidl.srcDirs = ['src']
+        renderscript.srcDirs = ['src']
+        res.srcDirs = ['res']
+        assets.srcDirs = ['assets']
+        jniLibs.srcDirs = ['libs']
+
+        manifest.srcFile 'AndroidManifest.xml'
+    }
+    defaultConfig {
+        minSdkVersion 4
+        targetSdkVersion 19
+
+        ndk {
+            moduleName "gif"
+            //ldLibs "log"
+            cFlags "-DHAVE_CONFIG_H"
+        }
+    }
+    
+}
+import org.apache.tools.ant.taskdefs.condition.Os
+ 
+task ndkBuild(type: Exec) {
+      commandLine 'ndk-build', '-j'
+}
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn ndkBuild
+}
