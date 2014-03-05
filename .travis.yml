@@ -27,11 +27,14 @@ before_install:
   - tar xzf android-sdk_r22.6-linux.tgz
   - export ANDROID_HOME=$PWD/android-sdk-linux
   - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
+  # newest Android NDK
+  - if [ `uname -m` = x86_64]; then wget http://dl.google.com/android/ndk/android-ndk-r9c-linux-x86_64.tar.bz2 -O ndk.tgz; else wget http://dl.google.com/android/ndk/android-ndk-r9c-linux-x86.tar.bz2 -O ndk.tgz; fi
+  - tar -xf ndk.tgz
+  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r9c
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_NDK_HOME}
   # manually set sdk.dir variable, according to local paths
   - echo "sdk.dir=$ANDROID_HOME" > local.properties
-  - echo yes | android update sdk -t tools,platform-tools,android-19 --force --no-ui
-  # build tools cannot be installed through "android update sdk" as of now
-  - echo yes | android update sdk --all --filter build-tools-19.0.2 --no-ui --force
+  - echo yes | android update sdk -t tools,platform-tools,android-19,build-tools-19.0.3 --force --no-ui
   # verify files exist in right paths
   - find $ANDROID_HOME/build-tools
 
