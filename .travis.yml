@@ -1,0 +1,39 @@
+branches:
+  only:
+    - travis
+language:
+  - java
+jdk:
+  - openjdk7
+
+before_install:
+  # environment info
+  - gradle -v
+  - uname -a
+  # required libs for android build tools
+  - if [ `uname -m` = x86_64 ]; then sudo apt-get update; fi
+  - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch; fi
+  # for gradle output style
+  - export TERM=dumb
+  # newer version of gradle
+  - export GRADLE_VERSION=1.11
+  - wget http://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip
+  - unzip -qq gradle-$GRADLE_VERSION-bin.zip
+  - export GRADLE_HOME=$PWD/gradle-$GRADLE_VERSION
+  - export PATH=$GRADLE_HOME/bin:$PATH
+  # just to test gradle version, against our provided one
+  - gradle -v
+  - wget http://dl.google.com/android/android-sdk_r22.6-linux.tgz
+  - tar xzf android-sdk_r22.6-linux.tgz
+  - export ANDROID_HOME=$PWD/android-sdk-linux
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
+  # manually set sdk.dir variable, according to local paths
+  - echo "sdk.dir=$ANDROID_HOME" > local.properties
+  - echo yes | android update sdk -t tools,platform-tools,android-19 --force --no-ui
+  # build tools cannot be installed through "android update sdk" as of now
+  - echo yes | android update sdk --all --filter build-tools-19.0.2 --no-ui --force
+  # verify files exist in right paths
+  - find $ANDROID_HOME/build-tools
+
+script:
+  - gradle build
