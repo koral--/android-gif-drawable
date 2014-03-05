@@ -48,16 +48,10 @@ and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer 
 <dependency>
 	<groupId>pl.droidsonroids.gif</groupId>
 	<artifactId>android-gif-drawable</artifactId>
-	<version>1.0.5</version>
-	<type>apklib</type>
+	<version>insert latest version here</version>
+	<type>aar</type>
 </dependency>
 ```
-
-#### APKLIB (for non-maven users)
-
-1. Download and unzip APKLIB from **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)** 
-2. Create ANT project or import existing Android code in Eclipse
-3. Add newly created library project as a reference in your project 
 
 ###Requirements
 + Android 1.6+ (API level 4+)

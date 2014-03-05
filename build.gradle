@@ -50,7 +50,6 @@ android {
     }
     
 }
-import org.apache.tools.ant.taskdefs.condition.Os
  
 task ndkBuild(type: Exec) {
       commandLine 'ndk-build', '-j'
