@@ -1,6 +1,6 @@
 branches:
-  only:
-    - travis
+  except:
+    - dev
 language:
   - java
 jdk:
