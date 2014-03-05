@@ -16,11 +16,11 @@ before_install:
   # for gradle output style
   - export TERM=dumb
   # newer version of gradle
-  - export GRADLE_VERSION=1.11
-  - wget http://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip
-  - unzip -qq gradle-$GRADLE_VERSION-bin.zip
-  - export GRADLE_HOME=$PWD/gradle-$GRADLE_VERSION
-  - export PATH=$GRADLE_HOME/bin:$PATH
+  #- export GRADLE_VERSION=1.11
+  #- wget http://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip
+  #- unzip -qq gradle-$GRADLE_VERSION-bin.zip
+  #- export GRADLE_HOME=$PWD/gradle-$GRADLE_VERSION
+  #- export PATH=$GRADLE_HOME/bin:$PATH
   # just to test gradle version, against our provided one
   - gradle -v
   - wget http://dl.google.com/android/android-sdk_r22.6-linux.tgz
