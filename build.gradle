@@ -25,7 +25,7 @@ tasks.withType(JavaCompile) {
 
 android {
     compileSdkVersion 19
-    buildToolsVersion '19.0.2'
+    buildToolsVersion '19.0.3'
 
     sourceSets.main {
         java.srcDirs = ['src']
