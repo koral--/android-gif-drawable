@@ -1,4 +1,4 @@
-android-gif-drawable
+android-gif-drawable [![Build Status](https://travis-ci.org/koral--/android-gif-drawable.png?branch=master)](https://travis-ci.org/koral--/android-gif-drawable)
 ====================
 `View`s and `Drawable` for animated GIFs in Android.
 
