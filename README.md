@@ -25,9 +25,6 @@ buildscript {
     repositories {
         mavenCentral()
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:0.8.+'
-    }
 }
 allprojects {
     repositories {
@@ -39,10 +36,7 @@ allprojects {
 #### Maven dependency
 
 SDK with API level 19 is needed. If you don't have it in your local repository, download [maven-android-sdk-deployer](https://github.com/mosabua/maven-android-sdk-deployer)
-and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer directory).
-
-1. Install artifact to your local repository: `mvn install`
-2. Add dependency in `pom.xml` of your project:
+and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer directory). Thena dd dependency in `pom.xml` of your project:
 
 ```xml
 <dependency>
