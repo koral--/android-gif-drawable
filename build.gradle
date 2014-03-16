@@ -12,13 +12,6 @@ buildscript {
 apply plugin: 'android-library'
 apply plugin: 'android-maven'
 
-group = 'pl.droidsonroids.gif'
-version = '1.0.7-SNAPSHOT'
-
-repositories {
-    mavenCentral()
-}
-
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
@@ -57,3 +50,20 @@ task ndkBuild(type: Exec) {
 tasks.withType(JavaCompile) {
     compileTask -> compileTask.dependsOn ndkBuild
 }
+def isReleaseBuild() {
+    return version.contains("SNAPSHOT") == false
+}
+
+allprojects {
+    version = VERSION_NAME
+    group = GROUP
+    repositories {
+        mavenCentral()
+    }
+}
+
+apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'
+
+//project.ext {
+//	POM_DEVELOPER_NAME="Karol Wrótniak"
+//}

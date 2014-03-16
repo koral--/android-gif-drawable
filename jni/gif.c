@@ -304,7 +304,7 @@ static void eraseColor(argb* bm, int w, int h, argb color)
 		*(bm + i) = color;
 }
 
-static inline bool setupBackupBmp(GifInfo* info)
+static inline bool setupBackupBmp(GifInfo* info, short transpIndex)
 {
 	GifFileType* fGIF = info->gifFilePtr;
 	info->backupPtr = calloc(fGIF->SWidth * fGIF->SHeight, sizeof(argb));
@@ -314,7 +314,10 @@ static inline bool setupBackupBmp(GifInfo* info)
 		return false;
 	}
 	argb paintingColor;
-	getColorFromTable(fGIF->SBackGroundColor, &paintingColor, fGIF->SColorMap);
+	if (transpIndex==-1)
+		getColorFromTable(fGIF->SBackGroundColor, &paintingColor, fGIF->SColorMap);
+	else
+		packARGB32(&paintingColor,0,0,0,0);
 	eraseColor(info->backupPtr, fGIF->SWidth, fGIF->SHeight, paintingColor);
 	return true;
 }
@@ -331,13 +334,13 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 		short delay = ((b[2] << 8) | b[1]);
 		fi->duration = delay > 1 ? delay * 10 : 100;
 		fi->disposalMethod = ((b[0] >> 2) & 7);
-		if (fi->disposalMethod == 3 && info->backupPtr == NULL)
-		{
-			if (!setupBackupBmp(info))
-				return GIF_ERROR;
-		}
 		if (ExtData[1] & 1)
 			fi->transpIndex = (short) b[3];
+		if (fi->disposalMethod == 3 && info->backupPtr == NULL)
+		{
+			if (!setupBackupBmp(info,fi->transpIndex))
+				return GIF_ERROR;
+		}
 	}
 	else if (ExtFunction == COMMENT_EXT_FUNC_CODE)
 	{
@@ -868,11 +871,10 @@ static bool checkIfCover(const SavedImage* target, const SavedImage* covered)
 	return false;
 }
 
-static inline bool disposeFrameIfNeeded(argb* bm, GifInfo* info,
+static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 		unsigned int idx)
 {
 	argb* backup = info->backupPtr;
-	;
 	argb color;
 	packARGB32(&color, 0, 0, 0, 0);
 	GifFileType* fGif = info->gifFilePtr;
@@ -884,6 +886,7 @@ static inline bool disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	int curDisposal = info->infos[idx - 1].disposalMethod;
 	bool nextTrans = info->infos[idx].transpIndex != -1;
 	int nextDisposal = info->infos[idx].disposalMethod;
+
 	argb* tmp;
 	if ((curDisposal == 2 || curDisposal == 3)
 			&& (nextTrans || !checkIfCover(next, cur)))
@@ -911,7 +914,6 @@ static inline bool disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	// Save current image if next frame's disposal method == 3
 	if (nextDisposal == 3)
 		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
-	return true;
 }
 
 static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
@@ -937,8 +939,7 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 	else
 	{
 		// Dispose previous frame before move to next frame.
-		if (!disposeFrameIfNeeded(bm, info, i))
-			return;
+		disposeFrameIfNeeded(bm, info, i);
 	}
 	drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap,
 			transpIndex);
