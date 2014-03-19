@@ -284,22 +284,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * Reads and renders new frame if needed then draws last rendered frame.
-	 * @param canvas canvas to draw into
-	 
-	@Override
-	public void draw ( Canvas canvas )
-	{
-		if ( mIsRunning )
-			renderFrame( mColors, mGifInfoPtr, mMetaData );
-		else
-			mMetaData[ 4 ] = -1;
-		canvas.drawBitmap( mColors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
-		if ( mMetaData[ 4 ] >= 0 && mMetaData[ 2 ] > 1 )
-			UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[ 4 ] );//TODO don't post if message for given frame was already posted
-	}*/
-
-	/**
 	 * Frees any memory allocated native way.
 	 * Operation is irreversible. After this call, nothing will be drawn.
 	 * This method is idempotent, subsequent calls have no effect.
@@ -697,7 +681,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		super.onBoundsChange( bounds );
 		mApplyTransformation = true;
 	}
-
+	/**
+	 * Reads and renders new frame if needed then draws last rendered frame.
+	 * @param canvas canvas to draw into
+	 */
 	@Override
 	public void draw ( Canvas canvas )
 	{

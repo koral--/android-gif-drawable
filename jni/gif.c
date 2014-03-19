@@ -352,8 +352,8 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 	}
 	else if (ExtFunction == APPLICATION_EXT_FUNC_CODE && ExtData[0] == 11)
 	{
-		if (strncmp("NETSCAPE2.0", &ExtData[1], 11)
-				|| strncmp("ANIMEXTS1.0", &ExtData[1], 11))
+		if (strncmp("NETSCAPE2.0", &ExtData[1], 11)==0
+				|| strncmp("ANIMEXTS1.0", &ExtData[1], 11)==0)
 		{
 			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
 					&ExtFunction)==GIF_ERROR)
@@ -383,6 +383,7 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 		switch (RecordType)
 		{
 		case IMAGE_DESC_RECORD_TYPE:
+
 			if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
 				return (GIF_ERROR);
 			int i = shouldDecode ? info->currentIndex : GifFile->ImageCount - 1;
@@ -461,6 +462,7 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 		case EXTENSION_RECORD_TYPE:
 			if (DGifGetExtension(GifFile, &ExtFunction, &ExtData) == GIF_ERROR)
 				return (GIF_ERROR);
+
 			if (!shouldDecode)
 			{
 				info->infos = realloc(info->infos,
