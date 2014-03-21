@@ -36,4 +36,4 @@ before_install:
   - find $ANDROID_HOME/build-tools
 
 script:
-  - gradle build
+  - gradle build --info
