@@ -63,7 +63,3 @@ allprojects {
 }
 
 apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'
-
-//project.ext {
-//	POM_DEVELOPER_NAME="Karol Wrótniak"
-//}
