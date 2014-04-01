@@ -314,10 +314,11 @@ static inline bool setupBackupBmp(GifInfo* info, short transpIndex)
 		return false;
 	}
 	argb paintingColor;
-	if (transpIndex==-1)
-		getColorFromTable(fGIF->SBackGroundColor, &paintingColor, fGIF->SColorMap);
+	if (transpIndex == -1)
+		getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
+				fGIF->SColorMap);
 	else
-		packARGB32(&paintingColor,0,0,0,0);
+		packARGB32(&paintingColor, 0, 0, 0, 0);
 	eraseColor(info->backupPtr, fGIF->SWidth, fGIF->SHeight, paintingColor);
 	return true;
 }
@@ -338,7 +339,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 			fi->transpIndex = (short) b[3];
 		if (fi->disposalMethod == 3 && info->backupPtr == NULL)
 		{
-			if (!setupBackupBmp(info,fi->transpIndex))
+			if (!setupBackupBmp(info, fi->transpIndex))
 				return GIF_ERROR;
 		}
 	}
@@ -352,8 +353,8 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 	}
 	else if (ExtFunction == APPLICATION_EXT_FUNC_CODE && ExtData[0] == 11)
 	{
-		if (strncmp("NETSCAPE2.0", &ExtData[1], 11)==0
-				|| strncmp("ANIMEXTS1.0", &ExtData[1], 11)==0)
+		if (strncmp("NETSCAPE2.0", &ExtData[1], 11) == 0
+				|| strncmp("ANIMEXTS1.0", &ExtData[1], 11) == 0)
 		{
 			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
 					&ExtFunction)==GIF_ERROR)
@@ -655,7 +656,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
 	jint openResult = open(GifFileIn, Error, container->pos, byteArrayRewindFun,
 			env, metaData);
 
-	if (openResult == (jint)NULL)
+	if (openResult == (jint) NULL)
 	{
 		(*env)->DeleteGlobalRef(env, container->buffer);
 		free(container);
@@ -690,10 +691,10 @@ Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(JNIEnv * env,
 	GifFileType* GifFileIn = DGifOpen(container, &directByteBufferReadFun,
 			&Error);
 
-	jint openResult=open(GifFileIn, Error, container->pos, directByteBufferRewindFun,
-			env, metaData);
+	jint openResult = open(GifFileIn, Error, container->pos,
+			directByteBufferRewindFun, env, metaData);
 
-	if (openResult == (jint)NULL)
+	if (openResult == (jint) NULL)
 		free(container);
 	return openResult;
 }
@@ -736,8 +737,8 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 
 	(*env)->CallVoidMethod(env, stream, mid, LONG_MAX); //TODO better length?
 
-	jint openResult= open(GifFileIn, Error, 0, streamRewindFun, env, metaData);
-	if (openResult == (jint)NULL)
+	jint openResult = open(GifFileIn, Error, 0, streamRewindFun, env, metaData);
+	if (openResult == (jint) NULL)
 	{
 		(*env)->DeleteGlobalRef(env, streamCls);
 		(*env)->DeleteGlobalRef(env, container->stream);
@@ -1205,7 +1206,7 @@ Java_pl_droidsonroids_gif_GifDrawable_saveRemainder(JNIEnv * env, jclass class,
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
 		return;
-	info->lastFrameReaminder = getRealTime() - info->nextStartTime;
+	info->lastFrameReaminder = info->nextStartTime - getRealTime();
 }
 
 JNIEXPORT void JNICALL
