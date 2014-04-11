@@ -28,7 +28,7 @@ android {
         res.srcDirs = ['res']
         assets.srcDirs = ['assets']
         jniLibs.srcDirs = ['libs']
-
+        jni.srcDirs = []
         manifest.srcFile 'AndroidManifest.xml'
     }
     defaultConfig {
