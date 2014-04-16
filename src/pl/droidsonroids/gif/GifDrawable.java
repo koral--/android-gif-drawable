@@ -1,11 +1,5 @@
 package pl.droidsonroids.gif;
 
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Locale;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -23,9 +17,16 @@ import android.os.Looper;
 import android.os.StrictMode;
 import android.widget.MediaController.MediaPlayerControl;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Locale;
+
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
- * Basic GIF metadata can be also obtained.  
+ * Basic GIF metadata can be also obtained.
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl
@@ -89,10 +90,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	protected final Paint mPaint = new Paint( Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG );
 	/**
-	 * Frame buffer, holds current frame. 
+	 * Frame buffer, holds current frame.
 	 * Each element is a packed int representing a {@link Color} at the given pixel.
 	 */
-	protected final int[] mColors;
+	private int[] mColors;
 
 	private final Runnable mResetTask = new Runnable()
 	{
@@ -184,7 +185,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Equivalent to {@code} GifDrawable(file.getPath())}
-	 * @param file the GIF file 
+	 * @param file the GIF file
 	 * @throws IOException when opening failed
 	 * @throws NullPointerException if file is null
 	 */
@@ -201,7 +202,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * Creates drawable from InputStream.
 	 * InputStream must support marking, GifIOException will be thrown otherwise.
 	 * @param stream stream to read from
-	 * @throws IOException when opening failed 
+	 * @throws IOException when opening failed
 	 * @throws IllegalArgumentException if stream does not support marking
 	 * @throws NullPointerException if stream is null
 	 */
@@ -269,7 +270,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
 	 * @param buffer buffer containing GIF data
 	 * @throws IOException if buffer does not contain valid GIF data
-	 * @throws IllegalArgumentException if buffer is indirect 
+	 * @throws IllegalArgumentException if buffer is indirect
 	 * @throws NullPointerException if buffer is null
 	 */
 	public GifDrawable ( ByteBuffer buffer ) throws IOException
@@ -287,14 +288,15 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * Frees any memory allocated native way.
 	 * Operation is irreversible. After this call, nothing will be drawn.
 	 * This method is idempotent, subsequent calls have no effect.
-	 * Like {@link android.graphics.Bitmap#recycle()} this is an advanced call and 
+	 * Like {@link android.graphics.Bitmap#recycle()} this is an advanced call and
 	 * is invoked implicitly by finalizer.
 	 */
-	public void recycle ()
+	public void git recycle ()
 	{
 		mIsRunning = false;
 		int tmpPtr = mGifInfoPtr;
 		mGifInfoPtr = 0;
+        mColors=null;
 		free( tmpPtr );
 	}
 
@@ -357,7 +359,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * Causes the animation to start over. 
+	 * Causes the animation to start over.
 	 * If animation is stopped any effects will occur after restart.<br>
 	 * If rewinding input source fails then state is not affected.
 	 * This method is thread-safe.
@@ -422,8 +424,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Retrieves last error which is also the indicator of current GIF status.
-	 *  
-	 * @return current error or {@link GifError#NO_ERROR} if there was no error 
+	 *
+	 * @return current error or {@link GifError#NO_ERROR} if there was no error
 	 */
 	public GifError getError ()
 	{
@@ -431,8 +433,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * An {@link GifDrawable#GifDrawable(Resources, int)} wrapper but returns null 
-	 * instead of throwing exception if creation fails. 
+	 * An {@link GifDrawable#GifDrawable(Resources, int)} wrapper but returns null
+	 * instead of throwing exception if creation fails.
 	 * @param res resources to read from
 	 * @param resourceId resource id
 	 * @return correct drawable or null if creation failed
@@ -443,7 +445,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		{
 			return new GifDrawable( res, resourceId );
 		}
-		catch ( IOException e )
+		catch ( IOException ignored )
 		{
 			//ignored
 		}
@@ -453,8 +455,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Sets new animation speed factor.<br>
 	 * Note: If animation is in progress ({@link #draw(Canvas)} was already called)
-	 * then effects will be visible starting from the next frame. Duration of the currently rendered frame is not affected.   
-	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed 
+	 * then effects will be visible starting from the next frame. Duration of the currently rendered frame is not affected.
+	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
 	 * @throws IllegalArgumentException if factor<=0
 	 */
 	public void setSpeed ( float factor )
@@ -476,7 +478,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Retrieves duration of one loop of the animation.
 	 * If there is no data (no Graphics Control Extension blocks) 0 is returned.
-	 * Note that one-frame GIFs can have non-zero duration defined in Graphics Control Extension block, 
+	 * Note that one-frame GIFs can have non-zero duration defined in Graphics Control Extension block,
 	 * use {@link #getNumberOfFrames()} to determine if there is one or more frames.
 	 * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
 	 */
@@ -501,11 +503,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * Seeks animation to given absolute position (within given loop) and refreshes the canvas.<br>
 	 * <b>NOTE: only seeking forward is supported.<b><br>
 	 * If position is less than current position or GIF has only one frame then nothing happens.
-	 * If position is greater than duration of the loop of animation 
+	 * If position is greater than duration of the loop of animation
 	 * (or whole animation if there is no loop) then animation will be sought to the end.<br>
 	 * NOTE: all frames from current to desired must be rendered sequentially to perform seeking.
 	 * It may take a lot of time if number of such frames is large.
-	 * This method can be called from any thread but actual work will be performed on UI thread.    
+	 * This method can be called from any thread but actual work will be performed on UI thread.
 	 * @param position position to seek to in milliseconds
 	 * @throws IllegalArgumentException if position<0
 	 */
@@ -539,7 +541,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			@Override
 			public void run ()
 			{
-				seekToFrame( mGifInfoPtr, frameIndex, mColors );
+			    seekToFrame( mGifInfoPtr, frameIndex, mColors );
 				invalidateSelf();
 			}
 		} );
@@ -557,7 +559,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Used by MediaPlayer for secondary progress bars.
-	 * There is no buffer in GifDrawable, so buffer is assumed to be always full. 
+	 * There is no buffer in GifDrawable, so buffer is assumed to be always full.
 	 * @return always 100
 	 */
 	@Override
@@ -610,8 +612,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Returns the minimum number of bytes that can be used to store pixels of the single frame.
-	 * Returned value is the same for all the frames since it is based on the size of GIF screen. 
-	 * @return width * height (of the GIF screen ix pixels) * 4 
+	 * Returned value is the same for all the frames since it is based on the size of GIF screen.
+	 * @return width * height (of the GIF screen ix pixels) * 4
 	 */
 	public int getFrameByteCount ()
 	{
@@ -625,12 +627,16 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public long getAllocationByteCount ()
 	{
-		return getAllocationByteCount( mGifInfoPtr ) + mColors.length * 4L;
+        long nativeSize=getAllocationByteCount( mGifInfoPtr );
+        final int[] colors = mColors;
+        if (colors==null)
+            return nativeSize;
+		return nativeSize + colors.length * 4L;
 	}
 
 	/**
-	 * Returns length of the input source obtained at the opening time or -1 if 
-	 * length is unknown. Returned value does not change during runtime. 
+	 * Returns length of the input source obtained at the opening time or -1 if
+	 * length is unknown. Returned value does not change during runtime.
 	 * For GifDrawables constructed from {@link InputStream} and {@link FileDescriptor} -1 is always returned.
 	 * In case of {@link File}, file path, byte array and {@link ByteBuffer} length is always known.
 	 * @return number of bytes backed by input source or -1 if it is unknown
@@ -642,14 +648,18 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Returns in pixels[] a copy of the data in the current frame. Each value is a packed int representing a {@link Color}.
+     * If GifDrawable is recycled pixles[] is left unchanged.
 	 * @param pixels the array to receive the frame's colors
 	 * @throws ArrayIndexOutOfBoundsException if the pixels array is too small to receive required number of pixels
 	 */
 	public void getPixels ( int[] pixels )
 	{
-		if ( pixels.length < mColors.length )
-			throw new ArrayIndexOutOfBoundsException( "Pixels array is too small. Required length: " + mColors.length );
-		System.arraycopy( mColors, 0, pixels, 0, mColors.length );
+        final int[] colors = mColors;
+        if (colors==null)
+            return;
+		if ( pixels.length < colors.length )
+			throw new ArrayIndexOutOfBoundsException( "Pixels array is too small. Required length: " + colors.length );
+		System.arraycopy( colors, 0, pixels, 0, colors.length );
 	}
 
 	/**
@@ -660,7 +670,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @param x    The x coordinate (0...width-1) of the pixel to return
 	 * @param y    The y coordinate (0...height-1) of the pixel to return
 	 * @return     The argb {@link Color} at the specified coordinate
-	 * @throws IllegalArgumentException if x, y exceed the bitmap's bounds
+	 * @throws IllegalArgumentException if x, y exceed the drawable's bounds or drawable is recycled
 	 */
 	public int getPixel ( int x, int y )
 	{
@@ -672,7 +682,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			throw new IllegalArgumentException( "x must be < GIF width" );
 		if ( y >= mMetaData[ 1 ] )
 			throw new IllegalArgumentException( "y must be < GIF height" );
-		return mColors[ mMetaData[ 1 ] * y + x ];
+        final int[] colors=mColors;
+        if (colors==null)
+            throw new IllegalArgumentException( "GifDrawable is recycled" );
+		return colors[ mMetaData[ 1 ] * y + x ];
 	}
 
 	@Override
@@ -703,7 +716,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 				mMetaData[ 4 ] = -1;
 
 			canvas.scale( mSx, mSy );
-			canvas.drawBitmap( mColors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
+            final int[] colors=mColors;
+            if (colors!=null)
+			    canvas.drawBitmap( colors, 0, mMetaData[ 0 ], 0f, 0f, mMetaData[ 0 ], mMetaData[ 1 ], true, mPaint );
 
 			if ( mMetaData[ 4 ] >= 0 && mMetaData[ 2 ] > 1 )
 				UI_HANDLER.postDelayed( mInvalidateTask, mMetaData[ 4 ] );//TODO don't post if message for given frame was already posted
