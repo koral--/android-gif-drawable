@@ -99,11 +99,11 @@ public class GifTextView extends TextView
 			{
 				return new GifDrawable( resources, resId );
 			}
-			catch ( IOException e )
+			catch ( IOException ignored )
 			{
 				// ignored
 			}
-			catch ( NotFoundException e )
+			catch ( NotFoundException ignored )
 			{
 				//ignored
 			}

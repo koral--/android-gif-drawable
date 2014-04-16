@@ -986,7 +986,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 		jobject gifInfo, jint desiredPos, jintArray jPixels)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
-	if (info == NULL)
+	if (info == NULL ||jPixels==NULL)
 		return;
 	int imgCount = info->gifFilePtr->ImageCount;
 	if (imgCount <= 1)
@@ -1030,7 +1030,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 		jobject gifInfo, jint desiredIdx, jintArray jPixels)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
-	if (info == NULL)
+	if (info == NULL|| jPixels==NULL)
 		return;
 	if (desiredIdx <= info->currentIndex)
 		return;
@@ -1065,7 +1065,7 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 {
 
 	GifInfo* info = (GifInfo*) gifInfo;
-	if (info == NULL)
+	if (info == NULL || jPixels==NULL)
 		return;
 
 	bool needRedraw = false;

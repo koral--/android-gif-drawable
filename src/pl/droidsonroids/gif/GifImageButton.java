@@ -96,11 +96,11 @@ public class GifImageButton extends ImageButton
 				setBackgroundDrawable( d );
 			return;
 		}
-		catch ( IOException e )
+		catch ( IOException ignored )
 		{
 			//ignored
 		}
-		catch ( NotFoundException e )
+		catch ( NotFoundException ignored )
 		{
 			//ignored
 		}

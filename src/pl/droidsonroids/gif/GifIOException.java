@@ -21,6 +21,7 @@ public class GifIOException extends IOException
 		this.reason = reason;
 	}
 
+    @SuppressWarnings("UnusedDeclaration") // native code only
 	GifIOException ( int errorCode )
 	{
 		this( GifError.fromCode( errorCode ) );
