@@ -291,7 +291,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * Like {@link android.graphics.Bitmap#recycle()} this is an advanced call and
 	 * is invoked implicitly by finalizer.
 	 */
-	public void git recycle ()
+	public void recycle ()
 	{
 		mIsRunning = false;
 		int tmpPtr = mGifInfoPtr;
