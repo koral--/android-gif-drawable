@@ -200,8 +200,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Creates drawable from InputStream.
-	 * InputStream must support marking, GifIOException will be thrown otherwise.
-	 * @param stream stream to read from
+     * InputStream must support marking, IllegalArgumentException will be thrown otherwise.
+     * @param stream stream to read from
 	 * @throws IOException when opening failed
 	 * @throws IllegalArgumentException if stream does not support marking
 	 * @throws NullPointerException if stream is null

@@ -109,4 +109,5 @@ public class GifImageButton extends ImageButton
 		else
 			super.setBackgroundResource( resId );
 	}
+    //TODO add setImageURI
 }
