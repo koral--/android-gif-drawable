@@ -13,7 +13,7 @@ apply plugin: 'android-library'
 apply plugin: 'android-maven'
 
 tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
+    options.encoding = 'UTF-8'
 }
 
 android {
@@ -36,22 +36,22 @@ android {
         targetSdkVersion 19
 
         ndk {
-            moduleName "gif"
-            //ldLibs "log"
-            cFlags "-DHAVE_CONFIG_H"
+            moduleName 'gif'
+            //ldLibs 'log'
+            cFlags '-DHAVE_CONFIG_H'
         }
     }
-    
 }
- 
+
 task ndkBuild(type: Exec) {
-      commandLine 'ndk-build', '-j'
+    commandLine 'ndk-build', '-j'
 }
 tasks.withType(JavaCompile) {
     compileTask -> compileTask.dependsOn ndkBuild
 }
+
 def isReleaseBuild() {
-    return version.contains("SNAPSHOT") == false
+    return version.contains('SNAPSHOT') == false
 }
 
 allprojects {
