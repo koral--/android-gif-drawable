@@ -14,6 +14,8 @@
 //#define  LOG_TAG    "libgif"
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
+#define STRICT_FORMAT
+
 /**
  * Decoding error - no frames
  */
@@ -596,9 +598,12 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 		GifFreeMapObject(GifFileIn->SColorMap);
 		GifFileIn->SColorMap = defaultCmap;
 	}
+#if defined(STRICT_FORMAT)
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR)
 		Error = GifFileIn->Error;
-
+#else
+	DDGifSlurp(GifFileIn, info, false);
+#endif
 	int imgCount = GifFileIn->ImageCount;
 	//TODO add leniency support
 	if (imgCount < 1)
