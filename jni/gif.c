@@ -14,7 +14,13 @@
 //#define  LOG_TAG    "libgif"
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-#define STRICT_FORMAT
+/**
+ * some gif files are not strictly follow 89a.
+ * DGifSlurp will return read head error or get record type error.
+ * but the image still can display. so here should igron the error.
+ */
+//#define STRICT_FORMAT_89A
+
 
 /**
  * Decoding error - no frames
@@ -598,7 +604,7 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 		GifFreeMapObject(GifFileIn->SColorMap);
 		GifFileIn->SColorMap = defaultCmap;
 	}
-#if defined(STRICT_FORMAT)
+#if defined(STRICT_FORMAT_89A)
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR)
 		Error = GifFileIn->Error;
 #else
