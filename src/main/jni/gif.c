@@ -30,6 +30,7 @@ typedef struct
 	uint8_t alpha;
 } argb;
 
+
 typedef struct
 {
 	unsigned int duration;
@@ -295,9 +296,9 @@ static void packARGB32(argb* pixel, GifByteType alpha, GifByteType red,
 
 static void getColorFromTable(int idx, argb* dst, const ColorMapObject* cmap)
 {
-	char colIdx = idx >= cmap->ColorCount ? 0 : idx;
+	int colIdx = (idx >= cmap->ColorCount) ? 0 : idx;
 	GifColorType* col = &cmap->Colors[colIdx];
-	packARGB32(dst, 0xFF, col->Red, col->Green, col->Blue);
+	packARGB32(dst, 0xFF, col->Red, col->Green,col->Blue);
 }
 
 static void eraseColor(argb* bm, int w, int h, argb color)
@@ -855,7 +856,7 @@ static void drawFrame(argb* bm, int bmWidth, int bmHeight,
 	{
 		// use local color table
 		cmap = frame->ImageDesc.ColorMap;
-		if (cmap == NULL || cmap->ColorCount != (1 << cmap->BitsPerPixel))
+		if (cmap->ColorCount != (1 << cmap->BitsPerPixel))
 			cmap = defaultCmap;
 	}
 

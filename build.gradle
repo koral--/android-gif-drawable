@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.10.+'
         classpath 'com.github.dcendents:android-maven-plugin:1.0'
     }
 }
@@ -20,34 +20,17 @@ android {
     compileSdkVersion 19
     buildToolsVersion '19.0.3'
 
-    sourceSets.main {
-        java.srcDirs = ['src']
-        resources.srcDirs = ['src']
-        aidl.srcDirs = ['src']
-        renderscript.srcDirs = ['src']
-        res.srcDirs = ['res']
-        assets.srcDirs = ['assets']
-        jniLibs.srcDirs = ['libs']
-        jni.srcDirs = []
-        manifest.srcFile 'AndroidManifest.xml'
-    }
     defaultConfig {
         minSdkVersion 4
         targetSdkVersion 19
 
         ndk {
             moduleName 'gif'
-            //ldLibs 'log'
             cFlags '-DHAVE_CONFIG_H'
+            ldLibs 'log'
         }
     }
-}
-
-task ndkBuild(type: Exec) {
-    commandLine 'ndk-build', '-j'
-}
-tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn ndkBuild
+    buildTypes.debug.jniDebugBuild true
 }
 
 def isReleaseBuild() {
@@ -61,5 +44,5 @@ allprojects {
         mavenCentral()
     }
 }
-
+task wrapper(type: Wrapper) {    gradleVersion = '1.12'}
 apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'
