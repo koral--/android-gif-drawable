@@ -17,7 +17,7 @@
 /**
  * some gif files are not strictly follow 89a.
  * DGifSlurp will return read head error or get record type error.
- * but the image still can display. so here should igron the error.
+ * but the image still can display. so here should ignore the error.
  */
 //#define STRICT_FORMAT_89A
 
