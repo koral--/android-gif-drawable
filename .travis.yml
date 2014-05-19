@@ -4,7 +4,7 @@ branches:
 language:
   - java
 jdk:
-  - openjdk7
+  - openjdk8
 
 before_install:
   # required libs for android build tools
@@ -13,15 +13,15 @@ before_install:
   # for gradle output style
   - export TERM=dumb
   # newer version of gradle
-  - export GRADLE_VERSION=1.11
+  - export GRADLE_VERSION=1.12
   - wget http://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip
   - unzip -qq gradle-$GRADLE_VERSION-bin.zip
   - export GRADLE_HOME=$PWD/gradle-$GRADLE_VERSION
   - export PATH=$GRADLE_HOME/bin:$PATH
   # just to test gradle version, against our provided one
   - gradle -v
-  - wget http://dl.google.com/android/android-sdk_r22.6.2-linux.tgz
-  - tar xzf android-sdk_r22.6.2-linux.tgz
+  - wget http://dl.google.com/android/android-sdk_r22.6.3-linux.tgz
+  - tar xzf android-sdk_r22.6.3-linux.tgz
   - export ANDROID_HOME=$PWD/android-sdk-linux
   - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
   # newest Android NDK
@@ -31,7 +31,7 @@ before_install:
   - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_NDK_HOME}
   # manually set sdk.dir variable, according to local paths
   - echo "sdk.dir=$ANDROID_HOME" > local.properties
-  - echo yes | android update sdk -t tools,platform-tools,android-19,build-tools-19.0.3 --force --no-ui
+  - echo yes | android update sdk -t tools,platform-tools,android-19,build-tools-19.1 --force --no-ui
   # verify files exist in right paths
   - find $ANDROID_HOME/build-tools
 
