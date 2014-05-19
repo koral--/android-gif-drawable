@@ -4,7 +4,7 @@ branches:
 language:
   - java
 jdk:
-  - openjdk8
+  - openjdk7
 
 before_install:
   # required libs for android build tools
