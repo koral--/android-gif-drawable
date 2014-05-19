@@ -31,7 +31,7 @@ before_install:
   - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_NDK_HOME}
   # manually set sdk.dir variable, according to local paths
   - echo "sdk.dir=$ANDROID_HOME" > local.properties
-  - echo yes | android update sdk -t tools,platform-tools,android-19,build-tools-19.1 --force --no-ui
+  - echo yes | android update sdk -t tools,platform-tools,android-19,build-tools-19.1.0 --force --no-ui
   # verify files exist in right paths
   - find $ANDROID_HOME/build-tools
 
