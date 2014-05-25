@@ -12,10 +12,6 @@ buildscript {
 apply plugin: 'android-library'
 apply plugin: 'android-maven'
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
 android {
     compileSdkVersion 19
     buildToolsVersion '19.1'
@@ -27,10 +23,10 @@ android {
         ndk {
             moduleName 'gif'
             cFlags '-DHAVE_CONFIG_H'
-            ldLibs 'log'
+            //ldLibs 'log'
         }
     }
-    buildTypes.debug.jniDebugBuild true
+    //buildTypes.debug.jniDebugBuild true
 }
 
 def isReleaseBuild() {
@@ -44,5 +40,5 @@ allprojects {
         mavenCentral()
     }
 }
-task wrapper(type: Wrapper) {    gradleVersion = '1.12'}
+task wrapper(type: Wrapper) { gradleVersion = '1.12' }
 apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'

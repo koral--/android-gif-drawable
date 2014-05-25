@@ -42,7 +42,7 @@ typedef struct
 typedef struct
 {
 	unsigned int duration;
-	short transpIndex;
+	int transpIndex;
 	unsigned char disposalMethod;
 } FrameInfo;
 
@@ -316,7 +316,7 @@ static void eraseColor(argb* bm, int w, int h, argb color)
 		*(bm + i) = color;
 }
 
-static inline bool setupBackupBmp(GifInfo* info, short transpIndex)
+static inline bool setupBackupBmp(GifInfo* info, int transpIndex)
 {
 	GifFileType* fGIF = info->gifFilePtr;
 	info->backupPtr = calloc(fGIF->SWidth * fGIF->SHeight, sizeof(argb));
@@ -348,7 +348,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 		fi->duration = delay > 1 ? delay * 10 : 100;
 		fi->disposalMethod = ((b[0] >> 2) & 7);
 		if (ExtData[1] & 1)
-			fi->transpIndex = (short) b[3];
+			fi->transpIndex = 0xff&b[3];
 		if (fi->disposalMethod == 3 && info->backupPtr == NULL)
 		{
 			if (!setupBackupBmp(info, fi->transpIndex))
@@ -811,6 +811,7 @@ getAddr(argb* bm, int width, int left, int top)
 static void blitNormal(argb* bm, int width, int height, const SavedImage* frame,
 		const ColorMapObject* cmap, int transparent)
 {
+//LOGE("b %d", transparent);
 	const unsigned char* src = (unsigned char*) frame->RasterBits;
 	argb* dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
 	GifWord copyWidth = frame->ImageDesc.Width;
@@ -860,7 +861,7 @@ static void fillRect(argb* bm, int bmWidth, int bmHeight, GifWord left,
 }
 
 static void drawFrame(argb* bm, int bmWidth, int bmHeight,
-		const SavedImage* frame, const ColorMapObject* cmap, short transpIndex)
+		const SavedImage* frame, const ColorMapObject* cmap, int transpIndex)
 {
 
 	if (frame->ImageDesc.ColorMap != NULL)
@@ -871,7 +872,7 @@ static void drawFrame(argb* bm, int bmWidth, int bmHeight,
 			cmap = defaultCmap;
 	}
 
-	blitNormal(bm, bmWidth, bmHeight, frame, cmap, (int) transpIndex);
+	blitNormal(bm, bmWidth, bmHeight, frame, cmap, transpIndex);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -904,7 +905,6 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	int curDisposal = info->infos[idx - 1].disposalMethod;
 	bool nextTrans = info->infos[idx].transpIndex != -1;
 	int nextDisposal = info->infos[idx].disposalMethod;
-
 	argb* tmp;
 	if ((curDisposal == 2 || curDisposal == 3)
 			&& (nextTrans || !checkIfCover(next, cur)))
@@ -944,7 +944,7 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 		return; //TODO add leniency support
 	SavedImage* cur = &fGIF->SavedImages[i];
 
-	short transpIndex = info->infos[i].transpIndex;
+	int transpIndex = info->infos[i].transpIndex;
 	if (i == 0)
 	{
 		if (transpIndex == -1)
