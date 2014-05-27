@@ -1099,14 +1099,26 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 
 		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
 
-		int scaledDuration = info->infos[info->currentIndex].duration;
+		unsigned int scaledDuration = info->infos[info->currentIndex].duration;
 		if (info->speedFactor != 1.0)
+		{
 			scaledDuration /= info->speedFactor;
+			if (scaledDuration<=0)
+			    scaledDuration=1;
+			else if (scaledDuration>INT_MAX)
+			    scaledDuration=INT_MAX;
+		}
 		info->nextStartTime = rt + scaledDuration;
 		rawMetaData[4] = scaledDuration;
 	}
 	else
-		rawMetaData[4] = (int) (rt - info->nextStartTime);
+	{
+	    long delay=info->nextStartTime-rt;
+	    if (delay<0)
+	        rawMetaData[4] = -1;
+	    else //no need to check upper bound since info->nextStartTime<=rt+INT_MAX always
+		    rawMetaData[4] = (int) delay;
+	}
 	(*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
 }
 
