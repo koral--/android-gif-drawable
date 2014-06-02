@@ -14,9 +14,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.File;
@@ -25,6 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -73,8 +76,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private static native long getAllocationByteCount(int gifFileInPtr);
 
-    private static final Handler UI_HANDLER = new Handler(Looper.getMainLooper());
-
     private volatile int mGifInfoPtr;
     private volatile boolean mIsRunning = true;
 
@@ -85,6 +86,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private float mSy = 1f;
     private boolean mApplyTransformation;
     private final Rect mDstRect = new Rect();
+    private Semaphore mDecoderRenderWait;
+    private Thread mDecoderThread;
 
     /**
      * Paint used to draw on a Canvas
@@ -95,6 +98,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Each element is a packed int representing a {@link Color} at the given pixel.
      */
     private int[] mColors;
+
+    private final ExecutorService mActionsExecutor = Executors.newSingleThreadExecutor();
 
     private final Runnable mResetTask = new Runnable() {
         @Override
@@ -107,13 +112,23 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         @Override
         public void run() {
             restoreRemainder(mGifInfoPtr);
-            invalidateSelf();
+            if(mDecoderThread==null){
+                mDecoderRenderWait=new Semaphore(1);
+                mDecoderThread=new Thread(mDecoderTask);
+                mDecoderThread.start();
+            }
+            postInvalidate();
         }
     };
 
-    private final Runnable mSaveRemainderTask = new Runnable() {
+    private final Runnable mStopTask = new Runnable() {
         @Override
         public void run() {
+            if(mDecoderThread!=null){
+                mDecoderThread.interrupt();
+                mDecoderThread=null;
+                mDecoderRenderWait=null;
+            }
             saveRemainder(mGifInfoPtr);
         }
     };
@@ -125,11 +140,43 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
     };
 
-    private static void runOnUiThread(Runnable task) {
-        if (Looper.myLooper() == UI_HANDLER.getLooper())
-            task.run();
-        else
-            UI_HANDLER.post(task);
+    private final Runnable mDecoderTask=new Runnable() {
+        @Override public void run() {
+            final int[] tempDecoded=new int[mMetaData[0] * mMetaData[1]];
+            final Semaphore renderWaiter=mDecoderRenderWait;
+            try{
+                // For some reason that I do not know, interrupting sometime doesn't work.
+                // So, look for mDecoderThread==Thread.currentThread() to check if the thread is supposed to be running.
+                // Polling every second won't have significant effect since this is GIF file and it's supposed to redraw itself often.
+                while(mIsRunning && mDecoderThread==Thread.currentThread() && !Thread.interrupted() && mDecoderRenderWait==renderWaiter){
+                    if(mMetaData[4]>0)
+                        Thread.sleep(mMetaData[4]);
+                    while(!renderWaiter.tryAcquire(1, TimeUnit.SECONDS))
+                        if(!mIsRunning || mDecoderThread!=Thread.currentThread() || Thread.interrupted() || mDecoderRenderWait==renderWaiter)
+                            return;
+                    final int[] colorsIn=mColors;
+                    if(colorsIn==null) // In case recycle() was called here
+                        break;
+                    renderFrame(tempDecoded, mGifInfoPtr, mMetaData);
+                    //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                    synchronized(colorsIn){
+                        System.arraycopy(tempDecoded, 0, colorsIn, 0, tempDecoded.length);
+                    }
+                    postInvalidate();
+                }
+            }catch(InterruptedException ignored)
+            {
+                //do nothing if interrupted
+            }
+        }
+    };
+
+    private void postTask(Runnable task){
+        mActionsExecutor.submit(task);
+    }
+
+    private void postInvalidate(){
+        scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
     }
 
     /**
@@ -355,7 +402,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void start() {
         mIsRunning = true;
-        runOnUiThread(mStartTask);
+        postTask(mStartTask);
     }
 
     /**
@@ -365,7 +412,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * This method is thread-safe.
      */
     public void reset() {
-        runOnUiThread(mResetTask);
+        postTask(mResetTask);
     }
 
     /**
@@ -374,8 +421,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void stop() {
-        mIsRunning = false;
-        runOnUiThread(mSaveRemainderTask);
+        mIsRunning=false;
+        postTask(mStopTask);
     }
 
     @Override
@@ -507,11 +554,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void seekTo(final int position) {
         if (position < 0)
             throw new IllegalArgumentException("Position is not positive");
-        runOnUiThread(new Runnable() {
+        postTask(new Runnable() {
             @Override
             public void run() {
                 seekToTime(mGifInfoPtr, position, mColors);
-                invalidateSelf();
+                postInvalidate();
             }
         });
     }
@@ -525,11 +572,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void seekToFrame(final int frameIndex) {
         if (frameIndex < 0)
             throw new IllegalArgumentException("frameIndex is not positive");
-        runOnUiThread(new Runnable() {
+        postTask(new Runnable() {
             @Override
             public void run() {
                 seekToFrame(mGifInfoPtr, frameIndex, mColors);
-                invalidateSelf();
+                postInvalidate();
             }
         });
     }
@@ -687,6 +734,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void draw(Canvas canvas) {
+        if(mIsRunning&&mDecoderThread==null){//TODO clean up
+            seekToFrame(mGifInfoPtr, 0, mColors);
+            mDecoderRenderWait=new Semaphore(1);
+            mDecoderThread=new Thread(mDecoderTask);
+            mDecoderThread.start();
+        }
+
         if (mApplyTransformation) {
             mDstRect.set(getBounds());
             mSx = (float) mDstRect.width() / mMetaData[0];
@@ -694,21 +748,24 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mApplyTransformation = false;
         }
         if (mPaint.getShader() == null) {
-            if (mIsRunning)
-                renderFrame(mColors, mGifInfoPtr, mMetaData);
-            else
-                mMetaData[4] = -1;
+            if(mIsRunning){
+                Semaphore renderWaiter=mDecoderRenderWait;
+                if(renderWaiter!=null)
+                    renderWaiter.release();
+            }
 
             canvas.scale(mSx, mSy);
             final int[] colors = mColors;
-
-            if (colors != null)
-                canvas.drawBitmap(colors, 0, mMetaData[0], 0f, 0f, mMetaData[0], mMetaData[1], true, mPaint);
-
-            if (mMetaData[4] >= 0 && mMetaData[2] > 1)
-                UI_HANDLER.postDelayed(mInvalidateTask, mMetaData[4]);//TODO don't post if message for given frame was already posted
-        } else
+            if (colors != null){
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized(colors){
+                    canvas.drawRect(0f, 0f, mMetaData[0], mMetaData[1], mPaint);
+                    canvas.drawBitmap(colors, 0, mMetaData[0], 0f, 0f, mMetaData[0], mMetaData[1], true, mPaint);
+                }
+            }
+        } else {
             canvas.drawRect(mDstRect, mPaint);
+        }
     }
 
     /**
