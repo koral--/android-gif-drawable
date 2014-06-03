@@ -86,7 +86,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private float mSy = 1f;
     private boolean mApplyTransformation;
     private final Rect mDstRect = new Rect();
-    private Semaphore mDecoderRenderWait=new Semaphore(1);
+    private Semaphore mDecoderRenderWait = new Semaphore(1);
     private Future<?> mDecoderFuture;
 
     /**
@@ -112,9 +112,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         @Override
         public void run() {
             restoreRemainder(mGifInfoPtr);
-            if(mDecoderFuture.isDone()){
-                mDecoderRenderWait=new Semaphore(1);
-                mDecoderFuture= mExecutor.submit(mDecoderTask);
+            if (mDecoderFuture.isDone()) {
+                mDecoderRenderWait = new Semaphore(1);
+                mDecoderFuture = mExecutor.submit(mDecoderTask);
             }
             postInvalidate();
         }
@@ -123,9 +123,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Runnable mStopTask = new Runnable() {
         @Override
         public void run() {
-            if(!mDecoderFuture.isDone()){
+            if (!mDecoderFuture.isDone()) {
                 mDecoderFuture.cancel(true);
-                mDecoderRenderWait=null;
+                mDecoderRenderWait = null;
             }
             saveRemainder(mGifInfoPtr);
         }
@@ -138,35 +138,35 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
     };
 
-    private final Runnable mDecoderTask=new Runnable() {
-        @Override public void run() {
-            final int[] tempDecoded=new int[mMetaData[0] * mMetaData[1]];
-            try{
-                while(mIsRunning && !Thread.currentThread().isInterrupted()){
-                    if(mMetaData[4]>0)
+    private final Runnable mDecoderTask = new Runnable() {
+        @Override
+        public void run() {
+            final int[] tempDecoded = new int[mMetaData[0] * mMetaData[1]];
+            try {
+                while (mIsRunning && !Thread.currentThread().isInterrupted()) {
+                    if (mMetaData[4] > 0)
                         Thread.sleep(mMetaData[4]);
-                    final int[] colorsIn=mColors;
-                    if(colorsIn==null) // In case recycle() was called here
+                    final int[] colorsIn = mColors;
+                    if (colorsIn == null) // In case recycle() was called here
                         break;
                     renderFrame(tempDecoded, mGifInfoPtr, mMetaData);
                     //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                    synchronized(colorsIn){
+                    synchronized (colorsIn) {
                         System.arraycopy(tempDecoded, 0, colorsIn, 0, tempDecoded.length);
                     }
                     postInvalidate();
                 }
-            }catch(InterruptedException ignored)
-            {
+            } catch (InterruptedException ignored) {
                 //do nothing if interrupted
             }
         }
     };
 
-    private void postTask(Runnable task){
+    private void postTask(Runnable task) {
         mExecutor.submit(task);
     }
 
-    private void postInvalidate(){
+    private void postInvalidate() {
         scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
     }
 
@@ -332,11 +332,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         this(resolver.openAssetFileDescriptor(uri, "r"));
     }
 
-    private void init()
-    {
+    private void init() {
         mColors = new int[mMetaData[0] * mMetaData[1]];
-        renderFrame(mColors,mGifInfoPtr,mMetaData);
-        mDecoderFuture= mExecutor.submit(mDecoderTask);
+        renderFrame(mColors, mGifInfoPtr, mMetaData);
+        mDecoderFuture = mExecutor.submit(mDecoderTask);
     }
 
     /**
@@ -420,7 +419,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void stop() {
-        mIsRunning=false;
+        mIsRunning = false;
         postTask(mStopTask);
     }
 
@@ -740,17 +739,17 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mApplyTransformation = false;
         }
         if (mPaint.getShader() == null) {
-            if(mIsRunning){
-                Semaphore renderWaiter=mDecoderRenderWait;
-                if(renderWaiter!=null)
+            if (mIsRunning) {
+                Semaphore renderWaiter = mDecoderRenderWait;
+                if (renderWaiter != null)
                     renderWaiter.release();
             }
 
             canvas.scale(mSx, mSy);
             final int[] colors = mColors;
-            if (colors != null){
+            if (colors != null) {
                 //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                synchronized(colors){
+                synchronized (colors) {
                     canvas.drawRect(0f, 0f, mMetaData[0], mMetaData[1], mPaint);
                     canvas.drawBitmap(colors, 0, mMetaData[0], 0f, 0f, mMetaData[0], mMetaData[1], true, mPaint);
                 }
