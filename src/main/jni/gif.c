@@ -963,24 +963,23 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 			transpIndex);
 }
 
-static jboolean reset(GifInfo* info)
+static void reset(GifInfo* info)
 {
 	if (info->rewindFunc(info) != 0)
-		return JNI_FALSE;
+		return;
 	info->nextStartTime = 0;
 	info->currentLoop = -1;
 	info->currentIndex = -1;
-	return JNI_TRUE;
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
 		jobject gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
-		return JNI_FALSE;
-	return reset(info);
+		return;
+	reset(info);
 }
 
 JNIEXPORT void JNICALL
