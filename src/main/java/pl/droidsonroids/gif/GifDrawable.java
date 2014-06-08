@@ -54,7 +54,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private static native void free(int gifFileInPtr);
 
-    private static native boolean reset(int gifFileInPtr);
+    private static native void reset(int gifFileInPtr);
 
     private static native void setSpeedFactor(int gifFileInPtr, float factor);
 
