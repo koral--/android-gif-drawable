@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.content.res.Resources.NotFoundException;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -14,7 +13,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.StrictMode;
 import android.os.SystemClock;
 import android.widget.MediaController.MediaPlayerControl;
 
@@ -39,6 +37,100 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     static {
         System.loadLibrary("gif");
     }
+//TODO fill constructor javadocs
+//TODO correct allocatted byte count descriptions?
+    /**
+     * Like {@link #GifDrawable(android.content.res.Resources, int)} but additionally offers drawable
+     * reusing.
+     * @param res Resources to read from
+     * @param id  resource id
+     * @param inDrawable drawable to be reused, can be null or recycled. If not null, not recycled
+     *                   and its dimensions are not smaller than those from constructed instance then
+     *                   its frame buffer will be reused instead of allocation new one.
+     *                   If buffer is reused then <code>inDrawable</code> is recycled.
+     * @throws android.content.res.Resources.NotFoundException              if the given ID does not exist.
+     * @throws java.io.IOException                    when opening failed
+     * @throws NullPointerException if res is null
+     */
+    public GifDrawable(Resources res, int id, GifDrawable inDrawable) throws Resources.NotFoundException, IOException {
+        this(res.openRawResourceFd(id),inDrawable);
+    }
+
+    public GifDrawable(AssetManager assets, String assetName, GifDrawable inDrawable) throws IOException {
+        this(assets.openFd(assetName), inDrawable);
+    }
+
+    public GifDrawable(String filePath, GifDrawable inDrawable) throws IOException {
+        if (filePath == null)
+            throw new NullPointerException("Source is null");
+        mInputSourceLength = new File(filePath).length();
+        mGifInfoPtr = openFile(mMetaData, filePath);
+        init(inDrawable);
+    }
+
+    public GifDrawable(File file, GifDrawable inDrawable) throws IOException {
+        if (file == null)
+            throw new NullPointerException("Source is null");
+        mInputSourceLength = file.length();
+        mGifInfoPtr = openFile(mMetaData, file.getPath());
+        init(inDrawable);
+    }
+
+    public GifDrawable(InputStream stream, GifDrawable inDrawable) throws IOException {
+        if (stream == null)
+            throw new NullPointerException("Source is null");
+        if (!stream.markSupported())
+            throw new IllegalArgumentException("InputStream does not support marking");
+        mGifInfoPtr = openStream(mMetaData, stream);
+        init(inDrawable);
+        mInputSourceLength = -1L;
+    }
+
+    public GifDrawable(AssetFileDescriptor afd, GifDrawable inDrawable) throws IOException {
+        if (afd == null)
+            throw new NullPointerException("Source is null");
+        FileDescriptor fd = afd.getFileDescriptor();
+        try {
+            mGifInfoPtr = openFd(mMetaData, fd, afd.getStartOffset());
+        } catch (IOException ex) {
+            afd.close();
+            throw ex;
+        }
+        init(inDrawable);
+        mInputSourceLength = afd.getLength();
+    }
+
+    public GifDrawable(FileDescriptor fd, GifDrawable inDrawable) throws IOException {
+        if (fd == null)
+            throw new NullPointerException("Source is null");
+        mGifInfoPtr = openFd(mMetaData, fd, 0);
+        init(inDrawable);
+        mInputSourceLength = -1L;
+    }
+
+    public GifDrawable(byte[] bytes, GifDrawable inDrawable) throws IOException {
+        if (bytes == null)
+            throw new NullPointerException("Source is null");
+        mGifInfoPtr = openByteArray(mMetaData, bytes);
+        init(inDrawable);
+        mInputSourceLength = bytes.length;
+    }
+
+    public GifDrawable(ByteBuffer buffer, GifDrawable inDrawable) throws IOException {
+        if (buffer == null)
+            throw new NullPointerException("Source is null");
+        if (!buffer.isDirect())
+            throw new IllegalArgumentException("ByteBuffer is not direct");
+        mGifInfoPtr = openDirectByteBuffer(mMetaData, buffer);
+        init(inDrawable);
+        mInputSourceLength = buffer.capacity();
+    }
+
+    public GifDrawable(ContentResolver resolver, Uri uri, GifDrawable inDrawable) throws IOException {
+        this(resolver.openAssetFileDescriptor(uri, "r"),inDrawable);
+    }
+
+
 
     private static native void renderFrame(int[] pixels, int gifFileInPtr, int[] metaData);
 
@@ -175,12 +267,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @param res Resources to read from
      * @param id  resource id
-     * @throws NotFoundException    if the given ID does not exist.
-     * @throws IOException          when opening failed
+     * @throws android.content.res.Resources.NotFoundException              if the given ID does not exist.
+     * @throws java.io.IOException                    when opening failed
      * @throws NullPointerException if res is null
      */
-    public GifDrawable(Resources res, int id) throws NotFoundException, IOException {
-        this(res.openRawResourceFd(id));
+    public GifDrawable(Resources res, int id) throws Resources.NotFoundException, IOException {
+        this(res, id, null);
     }
 
     /**
@@ -188,44 +280,36 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @param assets    AssetManager to read from
      * @param assetName name of the asset
-     * @throws IOException          when opening failed
+     * @throws java.io.IOException                    when opening failed
      * @throws NullPointerException if assets or assetName is null
      */
     public GifDrawable(AssetManager assets, String assetName) throws IOException {
-        this(assets.openFd(assetName));
+        this(assets, assetName, null);
     }
 
     /**
      * Constructs drawable from given file path.<br>
      * Only metadata is read, no graphic data is decoded here.
      * In practice can be called from main thread. However it will violate
-     * {@link StrictMode} policy if disk reads detection is enabled.<br>
+     * {@link android.os.StrictMode} policy if disk reads detection is enabled.<br>
      *
      * @param filePath path to the GIF file
-     * @throws IOException          when opening failed
+     * @throws java.io.IOException                    when opening failed
      * @throws NullPointerException if filePath is null
      */
     public GifDrawable(String filePath) throws IOException {
-        if (filePath == null)
-            throw new NullPointerException("Source is null");
-        mInputSourceLength = new File(filePath).length();
-        mGifInfoPtr = openFile(mMetaData, filePath);
-        init();
+        this(filePath, null);
     }
 
     /**
      * Equivalent to {@code} GifDrawable(file.getPath())}
      *
      * @param file the GIF file
-     * @throws IOException          when opening failed
+     * @throws java.io.IOException                    when opening failed
      * @throws NullPointerException if file is null
      */
     public GifDrawable(File file) throws IOException {
-        if (file == null)
-            throw new NullPointerException("Source is null");
-        mInputSourceLength = file.length();
-        mGifInfoPtr = openFile(mMetaData, file.getPath());
-        init();
+        this(file, null);
     }
 
     /**
@@ -233,55 +317,35 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * InputStream must support marking, IllegalArgumentException will be thrown otherwise.
      *
      * @param stream stream to read from
-     * @throws IOException              when opening failed
+     * @throws java.io.IOException                        when opening failed
      * @throws IllegalArgumentException if stream does not support marking
      * @throws NullPointerException     if stream is null
      */
     public GifDrawable(InputStream stream) throws IOException {
-        if (stream == null)
-            throw new NullPointerException("Source is null");
-        if (!stream.markSupported())
-            throw new IllegalArgumentException("InputStream does not support marking");
-        mGifInfoPtr = openStream(mMetaData, stream);
-        init();
-        mInputSourceLength = -1L;
+        this(stream, null);
     }
 
     /**
      * Creates drawable from AssetFileDescriptor.
-     * Convenience wrapper for {@link GifDrawable#GifDrawable(FileDescriptor)}
+     * Convenience wrapper for {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(FileDescriptor)}
      *
      * @param afd source
      * @throws NullPointerException if afd is null
-     * @throws IOException          when opening failed
+     * @throws java.io.IOException                    when opening failed
      */
     public GifDrawable(AssetFileDescriptor afd) throws IOException {
-        if (afd == null)
-            throw new NullPointerException("Source is null");
-        FileDescriptor fd = afd.getFileDescriptor();
-        try {
-            mGifInfoPtr = openFd(mMetaData, fd, afd.getStartOffset());
-        } catch (IOException ex) {
-            afd.close();
-            throw ex;
-        }
-        init();
-        mInputSourceLength = afd.getLength();
+        this(afd, null);
     }
 
     /**
      * Creates drawable from FileDescriptor
      *
      * @param fd source
-     * @throws IOException          when opening failed
+     * @throws java.io.IOException                    when opening failed
      * @throws NullPointerException if fd is null
      */
     public GifDrawable(FileDescriptor fd) throws IOException {
-        if (fd == null)
-            throw new NullPointerException("Source is null");
-        mGifInfoPtr = openFd(mMetaData, fd, 0);
-        init();
-        mInputSourceLength = -1L;
+        this(fd, null);
     }
 
     /**
@@ -289,34 +353,24 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * It can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
      *
      * @param bytes raw GIF bytes
-     * @throws IOException          if bytes does not contain valid GIF data
+     * @throws java.io.IOException                    if bytes does not contain valid GIF data
      * @throws NullPointerException if bytes are null
      */
     public GifDrawable(byte[] bytes) throws IOException {
-        if (bytes == null)
-            throw new NullPointerException("Source is null");
-        mGifInfoPtr = openByteArray(mMetaData, bytes);
-        init();
-        mInputSourceLength = bytes.length;
+        this(bytes, null);
     }
 
     /**
-     * Creates drawable from {@link ByteBuffer}. Only direct buffers are supported.
+     * Creates drawable from {@link java.nio.ByteBuffer}. Only direct buffers are supported.
      * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
      *
      * @param buffer buffer containing GIF data
-     * @throws IOException              if buffer does not contain valid GIF data
+     * @throws java.io.IOException                        if buffer does not contain valid GIF data
      * @throws IllegalArgumentException if buffer is indirect
      * @throws NullPointerException     if buffer is null
      */
     public GifDrawable(ByteBuffer buffer) throws IOException {
-        if (buffer == null)
-            throw new NullPointerException("Source is null");
-        if (!buffer.isDirect())
-            throw new IllegalArgumentException("ByteBuffer is not direct");
-        mGifInfoPtr = openDirectByteBuffer(mMetaData, buffer);
-        init();
-        mInputSourceLength = buffer.capacity();
+        this(buffer, null);
     }
 
     /**
@@ -324,16 +378,25 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * {@link android.content.ContentResolver#openAssetFileDescriptor(android.net.Uri, String)}
      * is used to open an Uri.
      *
-     * @param uri      GIF Uri, cannot be null.
      * @param resolver resolver, cannot be null.
-     * @throws IOException if resolution fails or destination is not a GIF.
+     * @param uri      GIF Uri, cannot be null.
+     * @throws java.io.IOException if resolution fails or destination is not a GIF.
      */
     public GifDrawable(ContentResolver resolver, Uri uri) throws IOException {
-        this(resolver.openAssetFileDescriptor(uri, "r"));
+        this(resolver, uri, null);
     }
 
-    private void init() {
-        mColors = new int[mMetaData[0] * mMetaData[1]];
+    private void init(GifDrawable inDrawable) {
+        if (inDrawable!=null)
+        {
+            final int[] inColors=inDrawable.mColors;
+            if (inColors!=null&&inColors.length>=mMetaData[0] * mMetaData[1]) {
+                inDrawable.recycle();
+                mColors = inColors;
+            }
+        }
+        if (mColors==null)
+            mColors = new int[mMetaData[0] * mMetaData[1]];
         renderFrame(mColors, mGifInfoPtr, mMetaData);
         mDecoderFuture = mExecutor.submit(mDecoderTask);
     }
@@ -663,7 +726,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         final int[] colors = mColors;
         if (colors == null)
             return nativeSize;
-        return nativeSize + colors.length * 4L;
+        return nativeSize + mMetaData[0]*mMetaData[1] * 4L;
     }
 
     /**
@@ -689,9 +752,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         final int[] colors = mColors;
         if (colors == null)
             return;
-        if (pixels.length < colors.length)
-            throw new ArrayIndexOutOfBoundsException("Pixels array is too small. Required length: " + colors.length);
-        System.arraycopy(colors, 0, pixels, 0, colors.length);
+        if (pixels.length < mMetaData[0] * mMetaData[1])
+            throw new ArrayIndexOutOfBoundsException("Pixels array is too small. Required length: " + mMetaData[0] * mMetaData[1]);
+        System.arraycopy(colors, 0, pixels, 0, mMetaData[0] * mMetaData[1]);
     }
 
     /**
