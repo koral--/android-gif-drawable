@@ -15,6 +15,14 @@
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 /**
+ * some gif files are not strictly follow 89a.
+ * DGifSlurp will return read head error or get record type error.
+ * but the image still can display. so here should ignore the error.
+ */
+//#define STRICT_FORMAT_89A
+
+
+/**
  * Decoding error - no frames
  */
 #define D_GIF_ERR_NO_FRAMES     	1000
@@ -34,7 +42,7 @@ typedef struct
 typedef struct
 {
 	unsigned int duration;
-	short transpIndex;
+	int transpIndex;
 	unsigned char disposalMethod;
 } FrameInfo;
 
@@ -308,7 +316,7 @@ static void eraseColor(argb* bm, int w, int h, argb color)
 		*(bm + i) = color;
 }
 
-static inline bool setupBackupBmp(GifInfo* info, short transpIndex)
+static inline bool setupBackupBmp(GifInfo* info, int transpIndex)
 {
 	GifFileType* fGIF = info->gifFilePtr;
 	info->backupPtr = calloc(fGIF->SWidth * fGIF->SHeight, sizeof(argb));
@@ -340,7 +348,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 		fi->duration = delay > 1 ? delay * 10 : 100;
 		fi->disposalMethod = ((b[0] >> 2) & 7);
 		if (ExtData[1] & 1)
-			fi->transpIndex = (short) b[3];
+			fi->transpIndex = 0xff&b[3];
 		if (fi->disposalMethod == 3 && info->backupPtr == NULL)
 		{
 			if (!setupBackupBmp(info, fi->transpIndex))
@@ -597,9 +605,12 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 		GifFreeMapObject(GifFileIn->SColorMap);
 		GifFileIn->SColorMap = defaultCmap;
 	}
+#if defined(STRICT_FORMAT_89A)
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR)
 		Error = GifFileIn->Error;
-
+#else
+	DDGifSlurp(GifFileIn, info, false);
+#endif
 	int imgCount = GifFileIn->ImageCount;
 	//TODO add leniency support
 	if (imgCount < 1)
@@ -800,6 +811,7 @@ getAddr(argb* bm, int width, int left, int top)
 static void blitNormal(argb* bm, int width, int height, const SavedImage* frame,
 		const ColorMapObject* cmap, int transparent)
 {
+//LOGE("b %d", transparent);
 	const unsigned char* src = (unsigned char*) frame->RasterBits;
 	argb* dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
 	GifWord copyWidth = frame->ImageDesc.Width;
@@ -849,7 +861,7 @@ static void fillRect(argb* bm, int bmWidth, int bmHeight, GifWord left,
 }
 
 static void drawFrame(argb* bm, int bmWidth, int bmHeight,
-		const SavedImage* frame, const ColorMapObject* cmap, short transpIndex)
+		const SavedImage* frame, const ColorMapObject* cmap, int transpIndex)
 {
 
 	if (frame->ImageDesc.ColorMap != NULL)
@@ -860,7 +872,7 @@ static void drawFrame(argb* bm, int bmWidth, int bmHeight,
 			cmap = defaultCmap;
 	}
 
-	blitNormal(bm, bmWidth, bmHeight, frame, cmap, (int) transpIndex);
+	blitNormal(bm, bmWidth, bmHeight, frame, cmap, transpIndex);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -893,7 +905,6 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	int curDisposal = info->infos[idx - 1].disposalMethod;
 	bool nextTrans = info->infos[idx].transpIndex != -1;
 	int nextDisposal = info->infos[idx].disposalMethod;
-
 	argb* tmp;
 	if ((curDisposal == 2 || curDisposal == 3)
 			&& (nextTrans || !checkIfCover(next, cur)))
@@ -933,7 +944,7 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 		return; //TODO add leniency support
 	SavedImage* cur = &fGIF->SavedImages[i];
 
-	short transpIndex = info->infos[i].transpIndex;
+	int transpIndex = info->infos[i].transpIndex;
 	if (i == 0)
 	{
 		if (transpIndex == -1)
@@ -952,24 +963,23 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 			transpIndex);
 }
 
-static jboolean reset(GifInfo* info)
+static void reset(GifInfo* info)
 {
 	if (info->rewindFunc(info) != 0)
-		return JNI_FALSE;
+		return;
 	info->nextStartTime = 0;
 	info->currentLoop = -1;
 	info->currentIndex = -1;
-	return JNI_TRUE;
 }
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
 		jobject gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
-		return JNI_FALSE;
-	return reset(info);
+		return;
+	reset(info);
 }
 
 JNIEXPORT void JNICALL
@@ -1088,14 +1098,26 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 
 		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
 
-		int scaledDuration = info->infos[info->currentIndex].duration;
+		unsigned int scaledDuration = info->infos[info->currentIndex].duration;
 		if (info->speedFactor != 1.0)
+		{
 			scaledDuration /= info->speedFactor;
+			if (scaledDuration<=0)
+			    scaledDuration=1;
+			else if (scaledDuration>INT_MAX)
+			    scaledDuration=INT_MAX;
+		}
 		info->nextStartTime = rt + scaledDuration;
 		rawMetaData[4] = scaledDuration;
 	}
 	else
-		rawMetaData[4] = (int) (rt - info->nextStartTime);
+	{
+	    long delay=info->nextStartTime-rt;
+	    if (delay<0)
+	        rawMetaData[4] = -1;
+	    else //no need to check upper bound since info->nextStartTime<=rt+INT_MAX always
+		    rawMetaData[4] = (int) delay;
+	}
 	(*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
 }
 

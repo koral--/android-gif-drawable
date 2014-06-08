@@ -33,7 +33,5 @@ out
 #Gradle
 .gradle
 build
-gradle/
-gradlew*
 
 signing.properties
