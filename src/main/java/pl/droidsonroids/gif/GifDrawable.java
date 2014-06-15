@@ -199,7 +199,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private boolean mApplyTransformation;
     private final Rect mDstRect = new Rect();
     private int[] tempDecoded; //TODO add recycling and reusing
-    private volatile boolean mIsRedrawNeeded;
+    private final AtomicBoolean mIsRedrawNeeded=new AtomicBoolean();
 
     /**
      * Paint used to draw on a Canvas
@@ -256,8 +256,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         @Override
         public void run()
         {
+            mIsRedrawNeeded.set(true);
             invalidateSelf();
-            mIsRedrawNeeded = true;
         }
     };
 
@@ -325,7 +325,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Constructs drawable from given file path.<br>
-     * Only metadata is read, no graphic data is decoded here.
      * In practice can be called from main thread. However it will violate
      * {@link android.os.StrictMode} policy if disk reads detection is enabled.<br>
      *
@@ -456,7 +455,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public void recycle()
     {
-        mIsRedrawNeeded = false;
+        mIsRedrawNeeded.set(false);
         mIsRunning.set(false);
         unscheduleSelf(mRedrawFlagSetter);
         mExecutor.shutdown();
@@ -546,7 +545,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     {
         if (!mIsRunning.compareAndSet(true,false))
             return;
-        mIsRedrawNeeded = false;
+        mIsRedrawNeeded.set(false);
         postTask(mStopTask);
     }
 
@@ -898,9 +897,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mSy = (float) mDstRect.height() / mMetaData[1];
             mApplyTransformation = false;
         }
-        if (mIsRedrawNeeded&&mIsRunning.get())
+        if (mIsRedrawNeeded.compareAndSet(true,false)&&mIsRunning.get())
         {
-            mIsRedrawNeeded = false;
             postTask(mDecoderTask);
         }
         if (mPaint.getShader() == null)
