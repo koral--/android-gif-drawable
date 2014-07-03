@@ -522,10 +522,10 @@ static void setMetaData(int width, int height, int ImageCount, int errorCode,
 		JNIEnv * env, jintArray metaData)
 {
 	jint *ints = (*env)->GetIntArrayElements(env, metaData, 0);
-	*ints++ = width;
-	*ints++ = height;
-	*ints++ = ImageCount;
-	*ints = errorCode;
+	ints[0] = width;
+	ints[1] = height;
+	ints[2] = ImageCount;
+	ints[3] = errorCode;
 	(*env)->ReleaseIntArrayElements(env, metaData, ints, 0);
 	if (errorCode == 0)
 		return;
@@ -1075,7 +1075,6 @@ JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		jintArray jPixels, jobject gifInfo, jintArray metaData)
 {
-
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL || jPixels==NULL)
 		return;
