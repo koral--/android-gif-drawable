@@ -7,7 +7,8 @@ jdk:
   - openjdk7
 android:
   components:
-    - build-tools-19.1.0
+    - build-tools-20.0.0
+    - android-20
 
 before_install:
   # for gradle output style
