@@ -13,6 +13,7 @@ android:
 before_install:
   # for gradle output style
   - export TERM=dumb
+  - android list sdk --no-ui --all --extended
   # newest Android NDK
   - if [ `uname -m` = x86_64 ]; then wget http://dl.google.com/android/ndk/android-ndk-r9d-linux-x86_64.tar.bz2 -O ndk.tgz; else wget http://dl.google.com/android/ndk/android-ndk-r9d-linux-x86.tar.bz2 -O ndk.tgz; fi
   - tar -xf ndk.tgz
