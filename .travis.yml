@@ -5,12 +5,20 @@ language:
   - android
 jdk:
   - openjdk7
-android:
-  components:
-    - build-tools-20.0.0
-    - android-20
+#android:
+#  components:
+#    - build-tools-20.0.0
+#    - android-20
 
 before_install:
+ # workaround for travis-ci/travis-ci#2279
+  - sudo mv /usr/local/android-sdk/tools/android-* /usr/local/bin
+  # Accept all licenses (workaround for travis-ci/travis-ci#2466)
+  # Upgrade 'platform-tools' before 'tools' (workaround for travis-ci/travis-ci#2470)
+  # Run dinstinct 'android update sdk' commands
+  - android-update-sdk --components='platform-tools,tools' --accept-licenses='.+'
+  - android-update-sdk --components='build-tools-20.0.0' --accept-licenses='.+'
+  - android-update-sdk --components='android-20' --accept-licenses='.+'
   # for gradle output style
   - export TERM=dumb
   - android list sdk --no-ui --all --extended
