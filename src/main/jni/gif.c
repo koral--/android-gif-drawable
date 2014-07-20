@@ -811,7 +811,6 @@ getAddr(argb* bm, int width, int left, int top)
 static void blitNormal(argb* bm, int width, int height, const SavedImage* frame,
 		const ColorMapObject* cmap, int transparent)
 {
-//LOGE("b %d", transparent);
 	const unsigned char* src = (unsigned char*) frame->RasterBits;
 	argb* dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
 	GifWord copyWidth = frame->ImageDesc.Width;
@@ -826,9 +825,6 @@ static void blitNormal(argb* bm, int width, int height, const SavedImage* frame,
 		copyHeight = height - frame->ImageDesc.Top;
 	}
 
-	int srcPad, dstPad;
-	dstPad = width - copyWidth;
-	srcPad = frame->ImageDesc.Width - copyWidth;
 	for (; copyHeight > 0; copyHeight--)
 	{
 		copyLine(dst, src, cmap, transparent, copyWidth);
@@ -943,7 +939,6 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 	if (DDGifSlurp(fGIF, info, true) == GIF_ERROR)
 		return; //TODO add leniency support
 	SavedImage* cur = &fGIF->SavedImages[i];
-
 	int transpIndex = info->infos[i].transpIndex;
 	if (i == 0)
 	{
@@ -1078,7 +1073,6 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL || jPixels==NULL)
 		return;
-
 	bool needRedraw = false;
 	unsigned long rt = getRealTime();
 
@@ -1097,7 +1091,6 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		rawMetaData[3] = info->gifFilePtr->Error;
 
 		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
-
 		unsigned int scaledDuration = info->infos[info->currentIndex].duration;
 		if (info->speedFactor != 1.0)
 		{
