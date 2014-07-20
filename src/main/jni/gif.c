@@ -974,7 +974,7 @@ static void reset(GifInfo* info)
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
-		jobject gifInfo)
+		jint gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
@@ -984,7 +984,7 @@ Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(JNIEnv * env, jclass class,
-		jobject gifInfo, jfloat factor)
+		jint gifInfo, jfloat factor)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
@@ -994,7 +994,7 @@ Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(JNIEnv * env, jclass class,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
-		jobject gifInfo, jint desiredPos, jintArray jPixels)
+		jint gifInfo, jint desiredPos, jintArray jPixels)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL ||jPixels==NULL)
@@ -1038,7 +1038,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
-		jobject gifInfo, jint desiredIdx, jintArray jPixels)
+		jint gifInfo, jint desiredIdx, jintArray jPixels)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL|| jPixels==NULL)
@@ -1072,7 +1072,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
-		jintArray jPixels, jobject gifInfo, jintArray metaData)
+		jintArray jPixels, jint gifInfo, jintArray metaData)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL || jPixels==NULL)
@@ -1122,9 +1122,9 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
-		jobject gifInfo)
+		jint gifInfo)
 {
-	if (gifInfo == NULL)
+	if (gifInfo == (jint) NULL)
 		return;
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info->rewindFunc == streamRewindFun)
@@ -1172,9 +1172,9 @@ Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
 
 JNIEXPORT jstring JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env, jclass class,
-		jobject gifInfo)
+		jint gifInfo)
 {
-	if (gifInfo == NULL)
+	if (gifInfo == (jint) NULL)
 		return NULL;
 	GifInfo* info = (GifInfo*) gifInfo;
 	return (*env)->NewStringUTF(env, info->comment);
@@ -1182,16 +1182,16 @@ Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env, jclass class,
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv * env, jclass class,
-		jobject gifInfo)
+		jint gifInfo)
 {
-	if (gifInfo == NULL)
+	if (gifInfo ==(jint) NULL)
 		return 0;
 	return ((GifInfo*) gifInfo)->loopCount;
 }
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_getDuration(JNIEnv * env, jclass class,
-		jobject gifInfo)
+		jint gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
@@ -1205,7 +1205,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getDuration(JNIEnv * env, jclass class,
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
-		jclass class, jobject gifInfo)
+		jclass class, jint gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
@@ -1226,7 +1226,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_saveRemainder(JNIEnv * env, jclass class,
-		jobject gifInfo)
+		jint gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
@@ -1236,7 +1236,7 @@ Java_pl_droidsonroids_gif_GifDrawable_saveRemainder(JNIEnv * env, jclass class,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_restoreRemainder(JNIEnv * env,
-		jclass class, jobject gifInfo)
+		jclass class, jint gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL || info->lastFrameReaminder == ULONG_MAX)
@@ -1247,7 +1247,7 @@ Java_pl_droidsonroids_gif_GifDrawable_restoreRemainder(JNIEnv * env,
 
 JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_getAllocationByteCount(JNIEnv * env,
-		jclass class, jobject gifInfo)
+		jclass class, jint gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)

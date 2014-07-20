@@ -24,6 +24,7 @@ android {
             moduleName 'gif'
             cFlags '-DHAVE_CONFIG_H'
             //ldLibs 'log'
+            abiFilter 'all32'
         }
     }
     //buildTypes.debug.jniDebugBuild true
