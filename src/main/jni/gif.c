@@ -478,9 +478,11 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 
 			if (!shouldDecode)
 			{
-				info->infos = realloc(info->infos,
+				FrameInfo* tmpInfos = realloc(info->infos,
 						(GifFile->ImageCount + 1) * sizeof(FrameInfo));
-
+                if (tmpInfos==NULL)
+                    return GIF_ERROR;
+                info->infos=tmpInfos;
 				if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
 					return GIF_ERROR;
 			}
@@ -585,9 +587,6 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 	info->rasterBits = calloc(GifFileIn->SHeight * GifFileIn->SWidth,
 			sizeof(GifPixelType));
 	info->infos = malloc(sizeof(FrameInfo));
-	info->infos->duration = 0;
-	info->infos->disposalMethod = 0;
-	info->infos->transpIndex = -1;
 	info->backupPtr = NULL;
 	info->rewindFunc = rewindFunc;
 
@@ -598,6 +597,9 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
 		return (jint) NULL;
 	}
+	info->infos->duration = 0;
+	info->infos->disposalMethod = 0;
+	info->infos->transpIndex = -1;
 	if (GifFileIn->SColorMap == NULL
 			|| GifFileIn->SColorMap->ColorCount
 					!= (1 << GifFileIn->SColorMap->BitsPerPixel))
@@ -675,6 +677,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
 	{
 		(*env)->DeleteGlobalRef(env, container->buffer);
 		free(container);
+		container=NULL;
 	}
 	return openResult;
 }
@@ -710,7 +713,10 @@ Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(JNIEnv * env,
 			directByteBufferRewindFun, env, metaData);
 
 	if (openResult == (jint) NULL)
+	{
 		free(container);
+		container=NULL;
+    }
 	return openResult;
 }
 
@@ -758,6 +764,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 		(*env)->DeleteGlobalRef(env, streamCls);
 		(*env)->DeleteGlobalRef(env, container->stream);
 		free(container);
+		container=NULL;
 	}
 	return openResult;
 }
