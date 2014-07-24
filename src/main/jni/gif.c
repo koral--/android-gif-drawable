@@ -523,7 +523,9 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 static void setMetaData(int width, int height, int ImageCount, int errorCode,
 		JNIEnv * env, jintArray metaData)
 {
-	jint *ints = (*env)->GetIntArrayElements(env, metaData, 0);
+	jint* const ints = (*env)->GetIntArrayElements(env, metaData, 0);
+	if (ints==NULL)
+	    return;
 	ints[0] = width;
 	ints[1] = height;
 	ints[2] = ImageCount;
@@ -637,7 +639,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env, jclass class,
 		return (jint) NULL;
 	}
 
-	const char *fname = (*env)->GetStringUTFChars(env, jfname, 0);
+	const char * const fname = (*env)->GetStringUTFChars(env, jfname, 0);
 	FILE * file = fopen(fname, "rb");
 	(*env)->ReleaseStringUTFChars(env, jfname, fname);
 	if (file == NULL)
@@ -1021,10 +1023,11 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 	unsigned long lastFrameRemainder = desiredPos - sum;
 	if (i == imgCount - 1 && lastFrameRemainder > info->infos[i].duration)
 		lastFrameRemainder = info->infos[i].duration;
-	info->lastFrameReaminder = lastFrameRemainder;
 	if (i > info->currentIndex)
 	{
-		jint *pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
+		jint* const pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
+		if (pixels==NULL)
+		    return;
 		while (info->currentIndex <= i)
 		{
 			info->currentIndex++;
@@ -1032,6 +1035,8 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 		}
 		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
 	}
+	info->lastFrameReaminder = lastFrameRemainder;
+
 	if (info->speedFactor == 1.0)
 		info->nextStartTime = getRealTime() + lastFrameRemainder;
 	else
@@ -1053,11 +1058,14 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 	if (imgCount <= 1)
 		return;
 
+	jint * const pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
+	if (pixels==NULL)
+	    return;
+
+	info->lastFrameReaminder = 0;
 	if (desiredIdx >= imgCount)
 		desiredIdx = imgCount - 1;
 
-	info->lastFrameReaminder = 0;
-	jint *pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
 	while (info->currentIndex < desiredIdx)
 	{
 		info->currentIndex++;
@@ -1089,11 +1097,18 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 			info->currentIndex = 0;
 		needRedraw = true;
 	}
-	jint *rawMetaData = (*env)->GetIntArrayElements(env, metaData, 0);
+	jint* const rawMetaData = (*env)->GetIntArrayElements(env, metaData, 0);
+	if (rawMetaData==NULL)
+	    return;
 
-	if (needRedraw)
+ 	if (needRedraw)
 	{
-		jint *pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
+		jint* const pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
+		if (pixels==NULL)
+		{
+		    (*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
+		    return;
+		}
 		getBitmap((argb*) pixels, info, env);
 		rawMetaData[3] = info->gifFilePtr->Error;
 
