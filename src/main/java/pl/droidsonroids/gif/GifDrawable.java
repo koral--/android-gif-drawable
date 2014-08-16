@@ -23,11 +23,7 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -55,7 +51,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private static native void free(int gifFileInPtr);
 
-    private static native boolean reset(int gifFileInPtr);
+    private static native void reset(int gifFileInPtr);
 
     private static native void setSpeedFactor(int gifFileInPtr, float factor);
 
@@ -449,8 +445,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Sets new animation speed factor.<br>
-     * Note: If animation is in progress ({@link #draw(Canvas)} was already called)
-     * then effects will be visible starting from the next frame. Duration of the currently rendered frame is not affected.
+     * Note: If animation is in progress ({@link #draw(Canvas)}) was already called)
+     * then effects will be visible starting from the next frame. Duration of the currently rendered
+     * frame is not affected.
      *
      * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
      * @throws IllegalArgumentException if factor&lt;=0
