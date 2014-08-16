@@ -910,28 +910,20 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	int curDisposal = info->infos[idx - 1].disposalMethod;
 	bool nextTrans = info->infos[idx].transpIndex != -1;
 	int nextDisposal = info->infos[idx].disposalMethod;
-	argb* tmp;
-	if ((curDisposal == 2 || curDisposal == 3)
-			&& (nextTrans || !checkIfCover(next, cur)))
+	if (nextTrans || !checkIfCover(next, cur))
 	{
-		switch (curDisposal)
-		{
-		// restore to background color
-		// -> 'background' means background under this image.
-		case 2:
-
+		if (curDisposal == 2)
+		{// restore to background (under this image) color
 			fillRect(bm, fGif->SWidth, fGif->SHeight, cur->ImageDesc.Left,
 					cur->ImageDesc.Top, cur->ImageDesc.Width,
 					cur->ImageDesc.Height, color);
-			break;
-
-			// restore to previous
-		case 3:
-			tmp = bm;
+        }
+		else if (curDisposal == 3&&nextDisposal == 3)
+		{// restore to previous
+			argb* tmp = bm;
 			bm = backup;
 			backup = tmp;
-			break;
-		}
+	    }
 	}
 
 	// Save current image if next frame's disposal method == 3
