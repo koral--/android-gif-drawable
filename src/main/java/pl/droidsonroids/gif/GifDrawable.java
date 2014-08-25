@@ -14,9 +14,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.File;
@@ -25,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -37,7 +37,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         System.loadLibrary("gif");
     }
 
-    private static native void renderFrame(int[] pixels, int gifFileInPtr, int[] metaData);
+    private static native boolean renderFrame(int[] pixels, int gifFileInPtr, int[] metaData);
 
     private static native int openFd(int[] metaData, FileDescriptor fd, long offset) throws GifIOException;
 
@@ -73,8 +73,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private static native long getAllocationByteCount(int gifFileInPtr);
 
-    private static final Handler UI_HANDLER = new Handler(Looper.getMainLooper());
-
     private volatile int mGifInfoPtr;
     private volatile boolean mIsRunning = true;
 
@@ -95,6 +93,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Each element is a packed int representing a {@link Color} at the given pixel.
      */
     private int[] mColors;
+    private final ConcurrentLinkedQueue<AnimationListener> mListeners=new ConcurrentLinkedQueue<AnimationListener>();
 
     private final Runnable mResetTask = new Runnable() {
         @Override
@@ -125,11 +124,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
     };
 
-    private static void runOnUiThread(Runnable task) {
-        if (Looper.myLooper() == UI_HANDLER.getLooper())
-            task.run();
-        else
-            UI_HANDLER.post(task);
+    private void runOnUiThread(Runnable task) {
+        scheduleSelf(task, SystemClock.uptimeMillis());
     }
 
     /**
@@ -396,7 +392,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Returns loop count previously read from GIF's application extension block.
      * Defaults to 0 (infinite loop) if there is no such extension.
      *
-     * @return loop count, 0 means infinite loop, 1 means one repetition (animation is played twice) etc.
+     * @return loop count, 0 means that animation is infinite
      */
     public int getLoopCount() {
         return getLoopCount(mGifInfoPtr);
@@ -694,8 +690,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mApplyTransformation = false;
         }
         if (mPaint.getShader() == null) {
-            if (mIsRunning)
-                renderFrame(mColors, mGifInfoPtr, mMetaData);
+            if (mIsRunning) {
+                boolean isAnimationCompleted = renderFrame(mColors, mGifInfoPtr, mMetaData);
+                if (isAnimationCompleted)
+                    for (AnimationListener listener: mListeners)
+                        listener.onAnimationCompleted();
+            }
             else
                 mMetaData[4] = -1;
 
@@ -706,7 +706,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                 canvas.drawBitmap(colors, 0, mMetaData[0], 0f, 0f, mMetaData[0], mMetaData[1], true, mPaint);
 
             if (mMetaData[4] >= 0 && mMetaData[2] > 1)
-                UI_HANDLER.postDelayed(mInvalidateTask, mMetaData[4]);//TODO don't post if message for given frame was already posted
+                scheduleSelf(mInvalidateTask, mMetaData[4]);//TODO don't post if message for given frame was already posted
         } else
             canvas.drawRect(mDstRect, mPaint);
     }
@@ -743,5 +743,24 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public int getMinimumWidth() {
         return mMetaData[0];
+    }
+
+    /**
+     * Adds a new animation listener
+     * @param listener animation listener to be added, not null
+     * @throws java.lang.NullPointerException if listener is null
+     */
+    public void addAnimationListener(AnimationListener listener)
+    {
+        mListeners.add(listener);
+    }
+    /**
+     * Removes an animation listener
+     * @param listener animation listener to be removed
+     * @return true if listener collection has been modified
+     */
+    public boolean removeAnimationListener(AnimationListener listener)
+    {
+        return mListeners.remove(listener);
     }
 }

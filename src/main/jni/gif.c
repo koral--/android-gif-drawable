@@ -376,6 +376,8 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 			{
 				info->loopCount = (unsigned short) (ExtData[2]
 						+ (ExtData[3] << 8));
+				if (info->loopCount > 0)
+			        info->currentLoop = 0;
 			}
 		}
 	}
@@ -918,7 +920,7 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 					cur->ImageDesc.Top, cur->ImageDesc.Width,
 					cur->ImageDesc.Height, color);
         }
-		else if (curDisposal == 3&&nextDisposal == 3)
+		else if (curDisposal == 3 && nextDisposal == 3)
 		{// restore to previous
 			argb* tmp = bm;
 			bm = backup;
@@ -1073,7 +1075,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		jintArray jPixels, jint gifInfo, jintArray metaData)
 {
@@ -1082,16 +1084,21 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		return;
 	bool needRedraw = false;
 	unsigned long rt = getRealTime();
-
+	jboolean isAnimationCompleted;
 	if (rt >= info->nextStartTime && info->currentLoop < info->loopCount)
 	{
 		if (++info->currentIndex >= info->gifFilePtr->ImageCount)
 			info->currentIndex = 0;
 		needRedraw = true;
+		isAnimationCompleted = info->currentIndex >= info->gifFilePtr->ImageCount -1 ?
+		    JNI_TRUE : JNI_FALSE;
 	}
+	else
+	    isAnimationCompleted=JNI_FALSE;
+
 	jint* const rawMetaData = (*env)->GetIntArrayElements(env, metaData, 0);
 	if (rawMetaData==NULL)
-	    return;
+	    return JNI_FALSE;
 
  	if (needRedraw)
 	{
@@ -1099,7 +1106,7 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		if (pixels==NULL)
 		{
 		    (*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
-		    return;
+		    return isAnimationCompleted;
 		}
 		getBitmap((argb*) pixels, info, env);
 		rawMetaData[3] = info->gifFilePtr->Error;
@@ -1126,6 +1133,7 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		    rawMetaData[4] = (int) delay;
 	}
 	(*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
+	return isAnimationCompleted;
 }
 
 JNIEXPORT void JNICALL
