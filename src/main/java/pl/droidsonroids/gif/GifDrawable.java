@@ -37,6 +37,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         System.loadLibrary("gif");
     }
 
+    /**
+     * Decodes a frame if needed.
+     * @param pixels frame destination
+     * @param gifFileInPtr GifInfo pointer
+     * @param metaData metadata array
+     * @return true if loop of the animation is completed
+     */
     private static native boolean renderFrame(int[] pixels, int gifFileInPtr, int[] metaData);
 
     private static native int openFd(int[] metaData, FileDescriptor fd, long offset) throws GifIOException;
@@ -691,8 +698,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
         if (mPaint.getShader() == null) {
             if (mIsRunning) {
-                boolean isAnimationCompleted = renderFrame(mColors, mGifInfoPtr, mMetaData);
-                if (isAnimationCompleted)
+                if (renderFrame(mColors, mGifInfoPtr, mMetaData))
                     for (AnimationListener listener: mListeners)
                         listener.onAnimationCompleted();
             }

@@ -5,7 +5,7 @@ package pl.droidsonroids.gif;
  */
 public interface AnimationListener {
     /**
-     * Called when animation is played once. If loop count is infinite it will be called after each loop.
+     * Called when a single loop of the animation is completed.
      */
     public void onAnimationCompleted();
 }
