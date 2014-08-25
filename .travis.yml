@@ -1,6 +1,6 @@
-branches:
-  except:
-    - dev
+#branches:
+#  except:
+#    - dev
 language:
   - android
 jdk:
