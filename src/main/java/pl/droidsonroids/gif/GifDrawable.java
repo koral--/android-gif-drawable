@@ -46,17 +46,17 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     private static native boolean renderFrame(int[] pixels, int gifFileInPtr, int[] metaData);
 
-    private static native int openFd(int[] metaData, FileDescriptor fd, long offset) throws GifIOException;
+    static native int openFd(int[] metaData, FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
 
-    private static native int openByteArray(int[] metaData, byte[] bytes) throws GifIOException;
+    static native int openByteArray(int[] metaData, byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
 
-    private static native int openDirectByteBuffer(int[] metaData, ByteBuffer buffer) throws GifIOException;
+    static native int openDirectByteBuffer(int[] metaData, ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
 
-    private static native int openStream(int[] metaData, InputStream stream) throws GifIOException;
+    static native int openStream(int[] metaData, InputStream stream, boolean justDecodeMetaData) throws GifIOException;
 
-    private static native int openFile(int[] metaData, String filePath) throws GifIOException;
+    static native int openFile(int[] metaData, String filePath, boolean justDecodeMetaData) throws GifIOException;
 
-    private static native void free(int gifFileInPtr);
+    static native void free(int gifFileInPtr);
 
     private static native void reset(int gifFileInPtr);
 
@@ -64,9 +64,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private static native String getComment(int gifFileInPtr);
 
-    private static native int getLoopCount(int gifFileInPtr);
+    static native int getLoopCount(int gifFileInPtr);
 
-    private static native int getDuration(int gifFileInPtr);
+    static native int getDuration(int gifFileInPtr);
 
     private static native int getCurrentPosition(int gifFileInPtr);
 
@@ -174,7 +174,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (filePath == null)
             throw new NullPointerException("Source is null");
         mInputSourceLength = new File(filePath).length();
-        mGifInfoPtr = openFile(mMetaData, filePath);
+        mGifInfoPtr = openFile(mMetaData, filePath, false);
         mColors = new int[mMetaData[0] * mMetaData[1]];
     }
 
@@ -189,7 +189,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (file == null)
             throw new NullPointerException("Source is null");
         mInputSourceLength = file.length();
-        mGifInfoPtr = openFile(mMetaData, file.getPath());
+        mGifInfoPtr = openFile(mMetaData, file.getPath(), false);
         mColors = new int[mMetaData[0] * mMetaData[1]];
     }
 
@@ -207,7 +207,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             throw new NullPointerException("Source is null");
         if (!stream.markSupported())
             throw new IllegalArgumentException("InputStream does not support marking");
-        mGifInfoPtr = openStream(mMetaData, stream);
+        mGifInfoPtr = openStream(mMetaData, stream, false);
         mColors = new int[mMetaData[0] * mMetaData[1]];
         mInputSourceLength = -1L;
     }
@@ -225,7 +225,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             throw new NullPointerException("Source is null");
         FileDescriptor fd = afd.getFileDescriptor();
         try {
-            mGifInfoPtr = openFd(mMetaData, fd, afd.getStartOffset());
+            mGifInfoPtr = openFd(mMetaData, fd, afd.getStartOffset(), false);
         } catch (IOException ex) {
             afd.close();
             throw ex;
@@ -244,7 +244,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public GifDrawable(FileDescriptor fd) throws IOException {
         if (fd == null)
             throw new NullPointerException("Source is null");
-        mGifInfoPtr = openFd(mMetaData, fd, 0);
+        mGifInfoPtr = openFd(mMetaData, fd, 0, false);
         mColors = new int[mMetaData[0] * mMetaData[1]];
         mInputSourceLength = -1L;
     }
@@ -260,7 +260,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public GifDrawable(byte[] bytes) throws IOException {
         if (bytes == null)
             throw new NullPointerException("Source is null");
-        mGifInfoPtr = openByteArray(mMetaData, bytes);
+        mGifInfoPtr = openByteArray(mMetaData, bytes, false);
         mColors = new int[mMetaData[0] * mMetaData[1]];
         mInputSourceLength = bytes.length;
     }
@@ -279,7 +279,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             throw new NullPointerException("Source is null");
         if (!buffer.isDirect())
             throw new IllegalArgumentException("ByteBuffer is not direct");
-        mGifInfoPtr = openDirectByteBuffer(mMetaData, buffer);
+        mGifInfoPtr = openDirectByteBuffer(mMetaData, buffer, false);
         mColors = new int[mMetaData[0] * mMetaData[1]];
         mInputSourceLength = buffer.capacity();
     }
@@ -410,7 +410,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public String toString() {
-        return String.format(Locale.US, "Size: %dx%d, %d frames, error: %d", mMetaData[0], mMetaData[1], mMetaData[2], mMetaData[3]);
+        return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mMetaData[0], mMetaData[1], mMetaData[2], mMetaData[3]);
     }
 
     /**

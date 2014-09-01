@@ -550,7 +550,7 @@ static void setMetaData(int width, int height, int ImageCount, int errorCode,
 }
 
 static jint open(GifFileType *GifFileIn, int Error, int startPos,
-		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData)
+		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData, const jboolean justDecodeMetaData)
 {
 	if (startPos < 0)
 	{
@@ -588,13 +588,16 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 	info->loopCount = 0;
 	info->currentLoop = -1;
 	info->speedFactor = 1.0;
-	info->rasterBits = calloc(GifFileIn->SHeight * GifFileIn->SWidth,
+	if (justDecodeMetaData == JNI_TRUE)
+	    info->rasterBits=NULL;
+	else
+	    info->rasterBits = calloc(GifFileIn->SHeight * GifFileIn->SWidth,
 			sizeof(GifPixelType));
 	info->infos = malloc(sizeof(FrameInfo));
 	info->backupPtr = NULL;
 	info->rewindFunc = rewindFunc;
 
-	if (info->rasterBits == NULL || info->infos == NULL)
+	if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL)
 	{
 		cleanUp(info);
 		setMetaData(width, height, 0,
@@ -611,14 +614,16 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 		GifFreeMapObject(GifFileIn->SColorMap);
 		GifFileIn->SColorMap = defaultCmap;
 	}
+
 #if defined(STRICT_FORMAT_89A)
 	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR)
 		Error = GifFileIn->Error;
 #else
 	DDGifSlurp(GifFileIn, info, false);
 #endif
+
 	int imgCount = GifFileIn->ImageCount;
-	//TODO add leniency support
+
 	if (imgCount < 1)
 		Error = D_GIF_ERR_NO_FRAMES;
 	if (info->rewindFunc(info) != 0)
@@ -632,7 +637,7 @@ static jint open(GifFileType *GifFileIn, int Error, int startPos,
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env, jclass class,
-		jintArray metaData, jstring jfname)
+		jintArray metaData, jstring jfname, jboolean justDecodeMetaData)
 {
 	if (jfname == NULL)
 	{
@@ -652,13 +657,12 @@ Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env, jclass class,
 	}
 	int Error = 0;
 	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, &Error);
-	return open(GifFileIn, Error, ftell(file), fileRewindFun, env, metaData);
-
+	return open(GifFileIn, Error, ftell(file), fileRewindFun, env, metaData, justDecodeMetaData);
 }
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
-		jintArray metaData, jbyteArray bytes)
+		jintArray metaData, jbyteArray bytes, jboolean justDecodeMetaData)
 {
 	ByteArrayContainer* container = malloc(sizeof(ByteArrayContainer));
 	if (container == NULL)
@@ -675,7 +679,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
 	GifFileType* GifFileIn = DGifOpen(container, &byteArrayReadFun, &Error);
 
 	jint openResult = open(GifFileIn, Error, container->pos, byteArrayRewindFun,
-			env, metaData);
+			env, metaData, justDecodeMetaData);
 
 	if (openResult == (jint) NULL)
 	{
@@ -688,7 +692,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(JNIEnv * env,
-		jclass class, jintArray metaData, jobject buffer)
+		jclass class, jintArray metaData, jobject buffer, jboolean justDecodeMetaData)
 {
 	jbyte* bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
@@ -714,7 +718,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(JNIEnv * env,
 			&Error);
 
 	jint openResult = open(GifFileIn, Error, container->pos,
-			directByteBufferRewindFun, env, metaData);
+			directByteBufferRewindFun, env, metaData, justDecodeMetaData);
 
 	if (openResult == (jint) NULL)
 	{
@@ -726,7 +730,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(JNIEnv * env,
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
-		jintArray metaData, jobject stream)
+		jintArray metaData, jobject stream, jboolean justDecodeMetaData)
 {
 	jclass streamCls = (*env)->NewGlobalRef(env,
 			(*env)->GetObjectClass(env, stream));
@@ -762,7 +766,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 
 	(*env)->CallVoidMethod(env, stream, mid, LONG_MAX); //TODO better length?
 
-	jint openResult = open(GifFileIn, Error, 0, streamRewindFun, env, metaData);
+	jint openResult = open(GifFileIn, Error, 0, streamRewindFun, env, metaData, justDecodeMetaData);
 	if (openResult == (jint) NULL)
 	{
 		(*env)->DeleteGlobalRef(env, streamCls);
@@ -775,7 +779,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 
 JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env, jclass class,
-		jintArray metaData, jobject jfd, jlong offset)
+		jintArray metaData, jobject jfd, jlong offset, jboolean justDecodeMetaData)
 {
 	jclass fdClass = (*env)->GetObjectClass(env, jfd);
 	jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass,
@@ -800,7 +804,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env, jclass class,
 	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, &Error);
 	int startPos = ftell(file);
 
-	return open(GifFileIn, Error, startPos, fileRewindFun, env, metaData);
+	return open(GifFileIn, Error, startPos, fileRewindFun, env, metaData, justDecodeMetaData);
 }
 
 static void copyLine(argb* dst, const unsigned char* src,
@@ -939,8 +943,10 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 
 	argb paintingColor;
 	int i = info->currentIndex;
+
 	if (DDGifSlurp(fGIF, info, true) == GIF_ERROR)
-		return; //TODO add leniency support
+		return;
+
 	SavedImage* cur = &fGIF->SavedImages[i];
 	int transpIndex = info->infos[i].transpIndex;
 	if (i == 0)
