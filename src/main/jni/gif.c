@@ -937,6 +937,16 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
 }
 
+static void reset(GifInfo* info)
+{
+	if (info->rewindFunc(info) != 0)
+		return;
+	info->nextStartTime = 0;
+	info->currentLoop = -1;
+	info->currentIndex = -1;
+	info->lastFrameReaminder = ULONG_MAX;
+}
+
 static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 {
 	GifFileType* fGIF = info->gifFilePtr;
@@ -945,7 +955,10 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 	int i = info->currentIndex;
 
 	if (DDGifSlurp(fGIF, info, true) == GIF_ERROR)
+	{
+	    reset(info); //TODO handle rewind fails
 		return;
+    }
 
 	SavedImage* cur = &fGIF->SavedImages[i];
 	int transpIndex = info->infos[i].transpIndex;
@@ -967,24 +980,14 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 			transpIndex);
 }
 
-static jboolean reset(GifInfo* info)
-{
-	if (info->rewindFunc(info) != 0)
-		return JNI_FALSE;
-	info->nextStartTime = 0;
-	info->currentLoop = -1;
-	info->currentIndex = -1;
-	return JNI_TRUE;
-}
-
-JNIEXPORT jboolean JNICALL
+JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
 		jint gifInfo)
 {
 	GifInfo* info = (GifInfo*) gifInfo;
 	if (info == NULL)
-		return JNI_FALSE;
-	return reset(info);
+		return;
+	reset(info);
 }
 
 JNIEXPORT void JNICALL
