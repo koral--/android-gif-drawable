@@ -29,6 +29,7 @@
 #define D_GIF_ERR_INVALID_SCR_DIMS 	1001
 #define D_GIF_ERR_INVALID_IMG_DIMS 	1002
 #define D_GIF_ERR_IMG_NOT_CONFINED 	1003
+#define D_GIF_ERR_REWIND_FAILED 	1004
 
 typedef struct
 {
@@ -456,7 +457,7 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 						info->currentLoop++;
 					if (info->rewindFunc(info) != 0)
 					{
-						info->gifFilePtr->Error = D_GIF_ERR_READ_FAILED;
+						info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 						return GIF_ERROR;
 					}
 				}
@@ -937,26 +938,29 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
 }
 
-static void reset(GifInfo* info)
+static bool reset(GifInfo* info)
 {
 	if (info->rewindFunc(info) != 0)
-		return;
+		return false;
 	info->nextStartTime = 0;
 	info->currentLoop = -1;
 	info->currentIndex = -1;
 	info->lastFrameReaminder = ULONG_MAX;
+	return true;
 }
 
 static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 {
 	GifFileType* fGIF = info->gifFilePtr;
+    if (fGIF->Error == D_GIF_ERR_REWIND_FAILED)
+        return;
 
-	argb paintingColor;
 	int i = info->currentIndex;
 
 	if (DDGifSlurp(fGIF, info, true) == GIF_ERROR)
 	{
-	    reset(info); //TODO handle rewind fails
+	    if (!reset(info))
+	        fGIF->Error = D_GIF_ERR_REWIND_FAILED;
 		return;
     }
 
@@ -964,6 +968,7 @@ static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
 	int transpIndex = info->infos[i].transpIndex;
 	if (i == 0)
 	{
+	    argb paintingColor;
 		if (transpIndex == -1)
 			getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
 					fGIF->SColorMap);

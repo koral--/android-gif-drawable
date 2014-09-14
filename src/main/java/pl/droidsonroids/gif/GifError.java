@@ -82,6 +82,10 @@ public enum GifError
 	 * Image size exceeds screen size
 	 */
 	IMG_NOT_CONFINED ( 1003, "Image size exceeds screen size" ),
+    /**
+     * Input source rewind has failed, animation is stopped
+     */
+    REWIND_FAILED ( 1004, "Input source rewind has failed, animation is stopped" ),
 	/**
 	 * Unknown error, should never appear
 	 */
