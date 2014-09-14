@@ -345,7 +345,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 		FrameInfo* fi = &info->infos[info->gifFilePtr->ImageCount];
 		fi->transpIndex = -1;
 		char* b = (char*) ExtData + 1;
-		short delay = ((b[2] << 8) | b[1]);
+		short delay = (((b[2] & 0xFF) << 8) | (b[1] & 0xFF));
 		fi->duration = delay > 1 ? delay * 10 : 100;
 		fi->disposalMethod = ((b[0] >> 2) & 7);
 		if (ExtData[1] & 1)
