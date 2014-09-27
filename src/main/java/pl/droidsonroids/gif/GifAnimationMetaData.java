@@ -67,7 +67,7 @@ public class GifAnimationMetaData implements Serializable
     }
 
     /**
-     * Equivalent to {@code} Gifmetadata(file.getPath())}
+     * Equivalent to {@code} GifMetadata(file.getPath())}
      *
      * @param file the GIF file
      * @throws IOException          when opening failed

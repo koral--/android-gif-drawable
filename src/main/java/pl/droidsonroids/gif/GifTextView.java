@@ -99,15 +99,11 @@ public class GifTextView extends TextView
 			{
 				return new GifDrawable( resources, resId );
 			}
-			catch ( IOException ignored )
+			catch ( IOException | NotFoundException ignored )
 			{
 				// ignored
 			}
-			catch ( NotFoundException ignored )
-			{
-				//ignored
-			}
-		return resources.getDrawable( resId );
+        return resources.getDrawable( resId );
 	}
 
 	@TargetApi ( Build.VERSION_CODES.JELLY_BEAN_MR1 )

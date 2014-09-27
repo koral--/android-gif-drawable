@@ -15,14 +15,6 @@ gen/
 # Local configuration file (sdk path, etc)
 local.properties
 
-# Eclipse project files
-.classpath
-.project
-.cproject
-/obj
-.settings/*
-target/*
-
 #IntelliJ IDEA
 .idea
 *.iml

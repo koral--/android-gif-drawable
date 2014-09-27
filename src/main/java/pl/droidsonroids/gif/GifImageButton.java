@@ -29,7 +29,7 @@ public class GifImageButton extends ImageButton {
     }
 
     /**
-     * Like eqivalent from superclass but also try to interpret src and background
+     * Like equivalent from superclass but also try to interpret src and background
      * attributes as {@link GifDrawable}.
      *
      * @param context
@@ -42,7 +42,7 @@ public class GifImageButton extends ImageButton {
     }
 
     /**
-     * Like eqivalent from superclass but also try to interpret src and background
+     * Like equivalent from superclass but also try to interpret src and background
      * attributes as GIFs.
      *
      * @param context
@@ -79,7 +79,7 @@ public class GifImageButton extends ImageButton {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @SuppressWarnings("deprecation")
-        //new method not avalilable on older API levels
+        //new method not available on older API levels
     void setResource(boolean isSrc, int resId, Resources res) {
         try {
             GifDrawable d = new GifDrawable(res, resId);
@@ -90,9 +90,7 @@ public class GifImageButton extends ImageButton {
             else
                 setBackgroundDrawable(d);
             return;
-        } catch (IOException ignored) {
-            //ignored
-        } catch (NotFoundException ignored) {
+        } catch (IOException | NotFoundException ignored) {
             //ignored
         }
         if (isSrc)

@@ -70,13 +70,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private static native int getCurrentPosition(int gifFileInPtr);
 
-    private static native int seekToTime(int gifFileInPtr, int pos, int[] pixels);
+    private static native void seekToTime(int gifFileInPtr, int pos, int[] pixels);
 
-    private static native int seekToFrame(int gifFileInPtr, int frameNr, int[] pixels);
+    private static native void seekToFrame(int gifFileInPtr, int frameNr, int[] pixels);
 
-    private static native int saveRemainder(int gifFileInPtr);
+    private static native void saveRemainder(int gifFileInPtr);
 
-    private static native int restoreRemainder(int gifFileInPtr);
+    private static native void restoreRemainder(int gifFileInPtr);
 
     private static native long getAllocationByteCount(int gifFileInPtr);
 
@@ -100,7 +100,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Each element is a packed int representing a {@link Color} at the given pixel.
      */
     private int[] mColors;
-    private final ConcurrentLinkedQueue<AnimationListener> mListeners=new ConcurrentLinkedQueue<AnimationListener>();
+    private final ConcurrentLinkedQueue<AnimationListener> mListeners=new ConcurrentLinkedQueue<>();
 
     private final Runnable mResetTask = new Runnable() {
         @Override
@@ -638,7 +638,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Returns in pixels[] a copy of the data in the current frame. Each value is a packed int representing a {@link Color}.
-     * If GifDrawable is recycled pixles[] is left unchanged.
+     * If GifDrawable is recycled pixels[] is left unchanged.
      *
      * @param pixels the array to receive the frame's colors
      * @throws ArrayIndexOutOfBoundsException if the pixels array is too small to receive required number of pixels

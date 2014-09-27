@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.+'
+        classpath 'com.android.tools.build:gradle:0.13.2'
     }
 }
 
@@ -13,7 +13,10 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 20
     buildToolsVersion '20'
-
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
     defaultConfig {
         minSdkVersion 4
         targetSdkVersion 20
@@ -40,5 +43,4 @@ allprojects {
     }
 }
 
-//apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'
 apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'

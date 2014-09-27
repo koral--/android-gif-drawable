@@ -3,7 +3,7 @@ package pl.droidsonroids.gif;
 import java.util.Locale;
 
 /**
- * Encapsulation of decoding errors ocurring in native code.
+ * Encapsulation of decoding errors occurring in native code.
  * Three digit codes are equal to GIFLib error codes.
  * @author koral--
  */
@@ -91,7 +91,7 @@ public enum GifError
 	 */
 	UNKNOWN ( -1, "Unknown error" );
 	/**
-	 * Human readable descpription of the error
+	 * Human readable description of the error
 	 */
 	public final String description;
 	private int errorCode;
