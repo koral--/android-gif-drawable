@@ -4,13 +4,11 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.+'
-        classpath 'com.github.dcendents:android-maven-plugin:1.0'
+        classpath 'com.android.tools.build:gradle:0.13.+'
     }
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'android-maven'
 
 android {
     compileSdkVersion 20
@@ -41,5 +39,6 @@ allprojects {
         mavenCentral()
     }
 }
-task wrapper(type: Wrapper) { gradleVersion = '1.12' }
-apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'
+
+//apply from: 'https://raw.github.com/koral--/gradle-mvn-push/master/gradle-mvn-push.gradle'
+apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
