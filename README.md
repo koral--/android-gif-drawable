@@ -1,5 +1,7 @@
-android-gif-drawable [![Build Status](https://travis-ci.org/koral--/android-gif-drawable.png?branch=master)](https://travis-ci.org/koral--/android-gif-drawable)
+android-gif-drawable
 ====================
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable) [![Build Status](https://travis-ci.org/koral--/android-gif-drawable.png?branch=master)](https://travis-ci.org/koral--/android-gif-drawable)
+
 `View`s and `Drawable` for animated GIFs in Android.
 
 ## Overview
