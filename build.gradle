@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.2'
+        classpath 'com.android.tools.build:gradle:0.13.3'
     }
 }
 
@@ -25,7 +25,7 @@ android {
             moduleName 'gif'
             cFlags '-DHAVE_CONFIG_H'
             //ldLibs 'log'
-            abiFilter 'all32'
+            abiFilter 'all'
         }
     }
     //buildTypes.debug.jniDebugBuild true

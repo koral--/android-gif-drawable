@@ -5,6 +5,8 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -18,8 +20,7 @@ import java.util.Locale;
  * Lightweight version of {@link pl.droidsonroids.gif.GifDrawable} used to retrieve metadata of GIF only,
  * without having to allocate the memory for its pixels.
  */
-public class GifAnimationMetaData implements Serializable
-{
+public class GifAnimationMetaData implements Serializable, Parcelable {
     private static final long serialVersionUID = 6518019337497570800L;
 
     //[w,h,imageCount,loopCount,duration]
@@ -173,7 +174,7 @@ public class GifAnimationMetaData implements Serializable
         this(resolver.openAssetFileDescriptor(uri, "r"));
     }
 
-    private void init(final int gifInfoPtr) {
+    private void init(final long gifInfoPtr) {
         mMetaData[3] = GifDrawable.getLoopCount(gifInfoPtr);
         mMetaData[4] = GifDrawable.getDuration(gifInfoPtr);
         GifDrawable.free(gifInfoPtr);
@@ -240,4 +241,30 @@ public class GifAnimationMetaData implements Serializable
                 mMetaData[0], mMetaData[1], mMetaData[2], loopCount, mMetaData[4]);
         return isAnimated() ? "Animated " + suffix : suffix;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        for (int i = 0; i < mMetaData.length; i++)
+            dest.writeInt(mMetaData[i]);
+    }
+
+    private GifAnimationMetaData(Parcel in) {
+        for (int i = 0; i < mMetaData.length; i++)
+            mMetaData[i] = in.readInt();
+    }
+
+    public static final Parcelable.Creator<GifAnimationMetaData> CREATOR = new Parcelable.Creator<GifAnimationMetaData>() {
+        public GifAnimationMetaData createFromParcel(Parcel source) {
+            return new GifAnimationMetaData(source);
+        }
+
+        public GifAnimationMetaData[] newArray(int size) {
+            return new GifAnimationMetaData[size];
+        }
+    };
 }

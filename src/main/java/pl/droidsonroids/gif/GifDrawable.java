@@ -39,48 +39,49 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Decodes a frame if needed.
-     * @param pixels frame destination
+     *
+     * @param pixels       frame destination
      * @param gifFileInPtr GifInfo pointer
-     * @param metaData metadata array
+     * @param metaData     metadata array
      * @return true if loop of the animation is completed
      */
-    private static native boolean renderFrame(int[] pixels, int gifFileInPtr, int[] metaData);
+    private static native boolean renderFrame(int[] pixels, long gifFileInPtr, int[] metaData);
 
-    static native int openFd(int[] metaData, FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
+    static native long openFd(int[] metaData, FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
 
-    static native int openByteArray(int[] metaData, byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
+    static native long openByteArray(int[] metaData, byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
 
-    static native int openDirectByteBuffer(int[] metaData, ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
+    static native long openDirectByteBuffer(int[] metaData, ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
 
-    static native int openStream(int[] metaData, InputStream stream, boolean justDecodeMetaData) throws GifIOException;
+    static native long openStream(int[] metaData, InputStream stream, boolean justDecodeMetaData) throws GifIOException;
 
-    static native int openFile(int[] metaData, String filePath, boolean justDecodeMetaData) throws GifIOException;
+    static native long openFile(int[] metaData, String filePath, boolean justDecodeMetaData) throws GifIOException;
 
-    static native void free(int gifFileInPtr);
+    static native void free(long gifFileInPtr);
 
-    private static native void reset(int gifFileInPtr);
+    private static native void reset(long gifFileInPtr);
 
-    private static native void setSpeedFactor(int gifFileInPtr, float factor);
+    private static native void setSpeedFactor(long gifFileInPtr, float factor);
 
-    private static native String getComment(int gifFileInPtr);
+    private static native String getComment(long gifFileInPtr);
 
-    static native int getLoopCount(int gifFileInPtr);
+    static native int getLoopCount(long gifFileInPtr);
 
-    static native int getDuration(int gifFileInPtr);
+    static native int getDuration(long gifFileInPtr);
 
-    private static native int getCurrentPosition(int gifFileInPtr);
+    private static native int getCurrentPosition(long gifFileInPtr);
 
-    private static native void seekToTime(int gifFileInPtr, int pos, int[] pixels);
+    private static native void seekToTime(long gifFileInPtr, int pos, int[] pixels);
 
-    private static native void seekToFrame(int gifFileInPtr, int frameNr, int[] pixels);
+    private static native void seekToFrame(long gifFileInPtr, int frameNr, int[] pixels);
 
-    private static native void saveRemainder(int gifFileInPtr);
+    private static native void saveRemainder(long gifFileInPtr);
 
-    private static native void restoreRemainder(int gifFileInPtr);
+    private static native void restoreRemainder(long gifFileInPtr);
 
-    private static native long getAllocationByteCount(int gifFileInPtr);
+    private static native long getAllocationByteCount(long gifFileInPtr);
 
-    private volatile int mGifInfoPtr;
+    private volatile long mGifInfoPtr;
     private volatile boolean mIsRunning = true;
 
     private final int[] mMetaData = new int[5];//[w,h,imageCount,errorCode,post invalidation time]
@@ -100,7 +101,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Each element is a packed int representing a {@link Color} at the given pixel.
      */
     private int[] mColors;
-    private final ConcurrentLinkedQueue<AnimationListener> mListeners=new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<AnimationListener> mListeners = new ConcurrentLinkedQueue<>();
 
     private final Runnable mResetTask = new Runnable() {
         @Override
@@ -306,8 +307,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public void recycle() {
         mIsRunning = false;
-        int tmpPtr = mGifInfoPtr;
-        mGifInfoPtr = 0;
+        long tmpPtr = mGifInfoPtr;
+        mGifInfoPtr = 0L;
         mColors = null;
         free(tmpPtr);
     }
@@ -520,7 +521,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     * Like {@link #seekToTime(int, int, int[])} but uses index of the frame instead of time.
+     * Like {@link #seekToTime(long, int, int[])} but uses index of the frame instead of time.
      *
      * @param frameIndex index of the frame to seek to (zero based)
      * @throws IllegalArgumentException if frameIndex&lt;0
@@ -699,10 +700,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (mPaint.getShader() == null) {
             if (mIsRunning) {
                 if (renderFrame(mColors, mGifInfoPtr, mMetaData))
-                    for (AnimationListener listener: mListeners)
+                    for (AnimationListener listener : mListeners)
                         listener.onAnimationCompleted();
-            }
-            else
+            } else
                 mMetaData[4] = -1;
 
             canvas.scale(mSx, mSy);
@@ -753,20 +753,21 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Adds a new animation listener
+     *
      * @param listener animation listener to be added, not null
      * @throws java.lang.NullPointerException if listener is null
      */
-    public void addAnimationListener(AnimationListener listener)
-    {
+    public void addAnimationListener(AnimationListener listener) {
         mListeners.add(listener);
     }
+
     /**
      * Removes an animation listener
+     *
      * @param listener animation listener to be removed
      * @return true if listener collection has been modified
      */
-    public boolean removeAnimationListener(AnimationListener listener)
-    {
+    public boolean removeAnimationListener(AnimationListener listener) {
         return mListeners.remove(listener);
     }
 }
