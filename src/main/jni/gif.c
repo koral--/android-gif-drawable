@@ -115,6 +115,9 @@ genDefColorMap(void)
 	return cmap;
 }
 
+/**
+* Frees dynamically allocated memory
+*/
 static void cleanUp(GifInfo* info)
 {
 	free(info->backupPtr);
