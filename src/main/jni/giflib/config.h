@@ -1,4 +1,3 @@
-
 // giflib config.h
 
 #ifndef GIF_CONFIG_H_DEFINED

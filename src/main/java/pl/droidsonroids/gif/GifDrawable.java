@@ -622,7 +622,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         final int[] colors = mColors;
         if (colors == null)
             return nativeSize;
-        return nativeSize + colors.length * 4L;
+        return nativeSize + colors.length * 4;
     }
 
     /**

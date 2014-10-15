@@ -86,7 +86,7 @@ public class GifImageView extends ImageView {
             GifDrawable d = new GifDrawable(res, resId);
             if (isSrc)
                 setImageDrawable(d);
-            else if (Build.VERSION.SDK_INT >= 16)
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                 setBackground(d);
             else
                 setBackgroundDrawable(d);
