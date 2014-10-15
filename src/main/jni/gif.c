@@ -55,13 +55,12 @@ typedef int
 struct GifInfo
 {
 	GifFileType* gifFilePtr;
-	unsigned long lastFrameReaminder;
-	unsigned long nextStartTime;
+    __time_t lastFrameReaminder;
+	__time_t nextStartTime;
 	int currentIndex;
-	unsigned int lastDrawIndex;
-	FrameInfo* infos;
+    FrameInfo* infos;
 	argb* backupPtr;
-	int startPos;
+	long startPos;
 	unsigned char* rasterBits;
 	char* comment;
 	unsigned short loopCount;
@@ -83,14 +82,14 @@ typedef struct
 typedef struct
 {
 	JavaVM* jvm;
-	int pos;
+	long pos;
 	jbyteArray buffer;
 	jsize arrLen;
 } ByteArrayContainer;
 
 typedef struct
 {
-	int pos;
+	long pos;
 	jbyte* bytes;
 	jlong capacity;
 } DirectByteBufferContainer;
@@ -154,11 +153,10 @@ static void cleanUp(GifInfo* info)
 /**
  * Returns the real time, in ms
  */
-static unsigned long getRealTime(void)
+static __time_t getRealTime(void)
 {
 	struct timespec ts;
-	const clockid_t id = CLOCK_MONOTONIC;
-	if (id != (clockid_t) - 1 && clock_gettime(id, &ts) != -1)
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != -1)
 		return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 	return -1;
 }
@@ -286,7 +284,7 @@ static int directByteBufferRewindFun(GifInfo* info)
 static int getComment(GifByteType* Bytes, char** cmt)
 {
 	unsigned int len = (unsigned int) Bytes[0];
-	unsigned int offset = *cmt != NULL ? strlen(*cmt) : 0;
+	size_t offset = *cmt != NULL ? strlen(*cmt) : 0;
 	char* ret = realloc(*cmt, (len + offset + 1) * sizeof(char));
 	if (ret != NULL)
 	{
@@ -376,7 +374,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
 					&ExtFunction)==GIF_ERROR)
 				return GIF_ERROR;
-			if (ExtFunction == APPLICATION_EXT_FUNC_CODE && ExtData[0] == 3
+			if (ExtData[0] == 3
 					&& ExtData[1] == 1)
 			{
 				info->loopCount = (unsigned short) (ExtData[2]
@@ -395,7 +393,7 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
 	GifByteType *ExtData;
 	int codeSize;
 	int ExtFunction;
-	size_t ImageSize;
+	int ImageSize;
 	do
 	{
 		if (DGifGetRecordType(GifFile, &RecordType) == GIF_ERROR)
@@ -554,7 +552,7 @@ static void setMetaData(int width, int height, int ImageCount, int errorCode,
 		(*env)->Throw(env, exception);
 }
 
-static GifInfo* open(GifFileType *GifFileIn, int Error, int startPos,
+static GifInfo* open(GifFileType *GifFileIn, int Error, long startPos,
 		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData, const jboolean justDecodeMetaData)
 {
 	if (startPos < 0)
@@ -568,7 +566,7 @@ static GifInfo* open(GifFileType *GifFileIn, int Error, int startPos,
 		return NULL;
 	}
 	int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
-	unsigned int wxh = width * height;
+	int wxh = width * height;
 	if (wxh < 1 || wxh > INT_MAX)
 	{
 		DGifCloseFile(GifFileIn);
@@ -806,7 +804,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env, jclass class,
 
 	int Error = 0;
 	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, &Error);
-	int startPos = ftell(file);
+	long startPos = ftell(file);
 
 	return (jlong)(intptr_t) open(GifFileIn, Error, startPos, fileRewindFun, env, metaData, justDecodeMetaData);
 }
@@ -830,7 +828,7 @@ getAddr(argb* bm, int width, int left, int top)
 static void blitNormal(argb* bm, int width, int height, const SavedImage* frame,
 		const ColorMapObject* cmap, int transparent)
 {
-	const unsigned char* src = (unsigned char*) frame->RasterBits;
+	const unsigned char* src = frame->RasterBits;
 	argb* dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
 	GifWord copyWidth = frame->ImageDesc.Width;
 	if (frame->ImageDesc.Left + copyWidth > width)
@@ -906,7 +904,7 @@ static bool checkIfCover(const SavedImage* target, const SavedImage* covered)
 }
 
 static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
-		unsigned int idx)
+		int idx)
 {
 	argb* backup = info->backupPtr;
 	argb color;
@@ -916,7 +914,6 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	SavedImage* next = &fGif->SavedImages[idx];
 	// We can skip disposal process if next frame is not transparent
 	// and completely covers current area
-	bool curTrans = info->infos[idx - 1].transpIndex != -1;
 	int curDisposal = info->infos[idx - 1].disposalMethod;
 	bool nextTrans = info->infos[idx].transpIndex != -1;
 	int nextDisposal = info->infos[idx].disposalMethod;
@@ -952,7 +949,7 @@ static bool reset(GifInfo* info)
 	return true;
 }
 
-static void getBitmap(argb* bm, GifInfo* info, JNIEnv * env)
+static void getBitmap(argb *bm, GifInfo *info)
 {
 	GifFileType* fGIF = info->gifFilePtr;
     if (fGIF->Error == D_GIF_ERR_REWIND_FAILED)
@@ -1042,7 +1039,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 		while (info->currentIndex <= i)
 		{
 			info->currentIndex++;
-			getBitmap((argb*) pixels, info, env);
+            getBitmap((argb *) pixels, info);
 		}
 		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
 	}
@@ -1052,7 +1049,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 		info->nextStartTime = getRealTime() + lastFrameRemainder;
 	else
 		info->nextStartTime = getRealTime()
-				+ lastFrameRemainder * info->speedFactor;
+				+ (unsigned long)(lastFrameRemainder * info->speedFactor);
 }
 
 JNIEXPORT void JNICALL
@@ -1080,7 +1077,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 	while (info->currentIndex < desiredIdx)
 	{
 		info->currentIndex++;
-		getBitmap((argb*) pixels, info, env);
+        getBitmap((argb *) pixels, info);
 	}
 	(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
 	if (info->speedFactor == 1.0)
@@ -1088,7 +1085,7 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 				+ info->infos[info->currentIndex].duration;
 	else
 		info->nextStartTime = getRealTime()
-				+ info->infos[info->currentIndex].duration * info->speedFactor;
+                + (unsigned long) (info->infos[info->currentIndex].duration * info->speedFactor);
 
 }
 
@@ -1098,9 +1095,9 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
 	if (info == NULL || jPixels==NULL)
-		return;
+		return JNI_FALSE;
 	bool needRedraw = false;
-	unsigned long rt = getRealTime();
+	__time_t rt = getRealTime();
 	jboolean isAnimationCompleted;
 	if (rt >= info->nextStartTime && info->currentLoop < info->loopCount)
 	{
@@ -1125,7 +1122,7 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		    (*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
 		    return isAnimationCompleted;
 		}
-		getBitmap((argb*) pixels, info, env);
+        getBitmap((argb *) pixels, info);
 		rawMetaData[3] = info->gifFilePtr->Error;
 
 		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
@@ -1231,7 +1228,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getDuration(JNIEnv * env, jclass class,
 	if (info == NULL)
 		return 0;
 	int i;
-	unsigned long sum = 0;
+    jint sum = 0;
 	for (i = 0; i < info->gifFilePtr->ImageCount; i++)
 		sum += info->infos[i].duration;
 	return sum;
@@ -1251,7 +1248,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
 	unsigned int sum = 0;
 	for (i = 0; i < idx; i++)
 		sum += info->infos[i].duration;
-	unsigned long remainder =
+	__time_t remainder =
 			info->lastFrameReaminder == ULONG_MAX ?
 					getRealTime() - info->nextStartTime :
 					info->lastFrameReaminder;
@@ -1286,11 +1283,11 @@ Java_pl_droidsonroids_gif_GifDrawable_getAllocationByteCount(JNIEnv * env,
 	GifInfo* info = (GifInfo*)(intptr_t) gifInfo;
 	if (info == NULL)
 		return 0;
-	unsigned int pxCount = info->gifFilePtr->SWidth + info->gifFilePtr->SHeight;
-	jlong sum = pxCount * sizeof(char);
+	GifWord pxCount = info->gifFilePtr->SWidth + info->gifFilePtr->SHeight;
+	size_t sum = pxCount * sizeof(char);
 	if (info->backupPtr != NULL)
 		sum += pxCount * sizeof(argb);
-	return sum;
+	return (jlong) sum;
 }
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)

@@ -8,7 +8,6 @@ gif_lib_private.h - internal giflib routines and structures
 #define _GIF_LIB_PRIVATE_H
 
 #include "gif_lib.h"
-//#include "gif_hash.h" needed only for encoding
 
 #define EXTENSION_INTRODUCER      0x21
 #define DESCRIPTOR_INTRODUCER     0x2c
@@ -27,7 +26,6 @@ gif_lib_private.h - internal giflib routines and structures
 #define FILE_STATE_READ     0x08
 
 #define IS_READABLE(Private)    (Private->FileState & FILE_STATE_READ)
-#define IS_WRITEABLE(Private)   (Private->FileState & FILE_STATE_WRITE)
 
 typedef struct GifFilePrivateType {
     GifWord FileState, FileHandle,  /* Where all this data goes to! */
@@ -50,7 +48,6 @@ typedef struct GifFilePrivateType {
     GifByteType Stack[LZ_MAX_CODE]; /* Decoded pixels are stacked here. */
     GifByteType Suffix[LZ_MAX_CODE + 1];    /* So we can trace the codes. */
     GifPrefixType Prefix[LZ_MAX_CODE + 1];
-    //GifHashTableType *HashTable; needed only for encoding
     bool gif89;
 } GifFilePrivateType;
 
