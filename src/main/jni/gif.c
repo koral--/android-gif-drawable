@@ -164,7 +164,7 @@ static __time_t getRealTime(void)
 static int fileReadFunc(GifFileType* gif, GifByteType* bytes, int size)
 {
 	FILE* file = (FILE*) gif->UserData;
-	return fread(bytes, 1, size, file);
+	return (int) fread(bytes, 1, (size_t) size, file);
 }
 
 static JNIEnv*
@@ -186,7 +186,7 @@ static int directByteBufferReadFun(GifFileType* gif, GifByteType* bytes,
 	DirectByteBufferContainer* dbbc = gif->UserData;
 	if (dbbc->pos + size > dbbc->capacity)
 		size -= dbbc->pos + size - dbbc->capacity;
-	memcpy(bytes, dbbc->bytes + dbbc->pos, size);
+	memcpy(bytes, dbbc->bytes + dbbc->pos, (size_t) size);
 	dbbc->pos += size;
 	return size;
 }
@@ -199,7 +199,7 @@ static int byteArrayReadFun(GifFileType* gif, GifByteType* bytes, int size)
 	(*jvm)->AttachCurrentThread(jvm, &env, NULL);
 	if (bac->pos + size > bac->arrLen)
 		size -= bac->pos + size - bac->arrLen;
-	(*env)->GetByteArrayRegion(env, bac->buffer, bac->pos, size, bytes);
+	(*env)->GetByteArrayRegion(env, bac->buffer, (jsize) bac->pos, size, (jbyte *) bytes);
 	bac->pos += size;
 	return size;
 }
@@ -238,7 +238,7 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size)
 	}
 	else if (len > 0)
 	{
-		(*env)->GetByteArrayRegion(env, sc->buffer, 0, len, bytes);
+		(*env)->GetByteArrayRegion(env, sc->buffer, 0, len, (jbyte *) bytes);
 	}
 
 	(*env)->MonitorExit(env, sc->stream);
@@ -322,7 +322,7 @@ static void eraseColor(argb* bm, int w, int h, argb color)
 static inline bool setupBackupBmp(GifInfo* info, int transpIndex)
 {
 	GifFileType* fGIF = info->gifFilePtr;
-	info->backupPtr = calloc(fGIF->SWidth * fGIF->SHeight, sizeof(argb));
+	info->backupPtr = calloc((size_t) (fGIF->SWidth * fGIF->SHeight), sizeof(argb));
 	if (!info->backupPtr)
 	{
 		info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
@@ -342,18 +342,18 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 {
 	if (ExtData == NULL)
 		return GIF_OK;
-	if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData[0] == 4)
+	if (ExtFunction == GRAPHICS_EXT_FUNC_CODE)
 	{
         GraphicsControlBlock GCB;
-        if (DGifExtensionToGCB(4,  ExtData+1,   &GCB) == GIF_ERROR)
+        if (DGifExtensionToGCB(ExtData[0],  ExtData+1,   &GCB) == GIF_ERROR)
             return GIF_ERROR;
 
         FrameInfo* fi = &info->infos[info->gifFilePtr->ImageCount];
-        fi->disposalMethod=GCB.DisposalMode;
-        fi->duration=GCB.DelayTime> 1 ? GCB.DelayTime * 10 : 100;
+        fi->disposalMethod= (unsigned char) GCB.DisposalMode;
+        fi->duration= GCB.DelayTime> 1 ? (unsigned int)GCB.DelayTime * 10 : 100;
         fi->transpIndex=GCB.TransparentColor;
 
-        if (fi->disposalMethod == 3 && info->backupPtr == NULL)
+        if (fi->disposalMethod == DISPOSE_PREVIOUS && info->backupPtr == NULL)
         {
             if (!setupBackupBmp(info, fi->transpIndex))
                 return GIF_ERROR;
@@ -369,8 +369,8 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 	}
 	else if (ExtFunction == APPLICATION_EXT_FUNC_CODE && ExtData[0] == 11)
 	{
-		if (strncmp("NETSCAPE2.0", &ExtData[1], 11) == 0
-				|| strncmp("ANIMEXTS1.0", &ExtData[1], 11) == 0)
+		if (strcmp("NETSCAPE2.0", ExtData+1) == 0
+				|| strcmp("ANIMEXTS1.0", ExtData+1) == 0)
 		{
 			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
 					&ExtFunction)==GIF_ERROR)
@@ -595,7 +595,7 @@ static GifInfo* open(GifFileType *GifFileIn, int Error, long startPos,
 	if (justDecodeMetaData == JNI_TRUE)
 	    info->rasterBits=NULL;
 	else
-	    info->rasterBits = calloc(GifFileIn->SHeight * GifFileIn->SWidth,
+	    info->rasterBits = calloc((size_t) (GifFileIn->SHeight * GifFileIn->SWidth),
 			sizeof(GifPixelType));
 	info->infos = malloc(sizeof(FrameInfo));
 	info->backupPtr = NULL;
@@ -609,8 +609,8 @@ static GifInfo* open(GifFileType *GifFileIn, int Error, long startPos,
 		return NULL;
 	}
 	info->infos->duration = 0;
-	info->infos->disposalMethod = 0;
-	info->infos->transpIndex = -1;
+	info->infos->disposalMethod = DISPOSAL_UNSPECIFIED;
+	info->infos->transpIndex = NO_TRANSPARENT_COLOR;
 	if (GifFileIn->SColorMap == NULL
 			|| GifFileIn->SColorMap->ColorCount
 					!= (1 << GifFileIn->SColorMap->BitsPerPixel))
@@ -915,18 +915,18 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	SavedImage* next = &fGif->SavedImages[idx];
 	// We can skip disposal process if next frame is not transparent
 	// and completely covers current area
-	int curDisposal = info->infos[idx - 1].disposalMethod;
-	bool nextTrans = info->infos[idx].transpIndex != -1;
-	int nextDisposal = info->infos[idx].disposalMethod;
+    unsigned char curDisposal = info->infos[idx - 1].disposalMethod;
+	bool nextTrans = info->infos[idx].transpIndex != NO_TRANSPARENT_COLOR;
+    unsigned char nextDisposal = info->infos[idx].disposalMethod;
 	if (nextTrans || !checkIfCover(next, cur))
 	{
-		if (curDisposal == 2)
+		if (curDisposal == DISPOSE_BACKGROUND)
 		{// restore to background (under this image) color
 			fillRect(bm, fGif->SWidth, fGif->SHeight, cur->ImageDesc.Left,
 					cur->ImageDesc.Top, cur->ImageDesc.Width,
 					cur->ImageDesc.Height, color);
         }
-		else if (curDisposal == 3 && nextDisposal == 3)
+		else if (curDisposal == DISPOSE_PREVIOUS && nextDisposal == DISPOSE_PREVIOUS)
 		{// restore to previous
 			argb* tmp = bm;
 			bm = backup;
@@ -934,8 +934,8 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 	    }
 	}
 
-	// Save current image if next frame's disposal method == 3
-	if (nextDisposal == 3)
+	// Save current image if next frame's disposal method == DISPOSE_PREVIOUS
+	if (nextDisposal == DISPOSE_PREVIOUS)
 		memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
 }
 
