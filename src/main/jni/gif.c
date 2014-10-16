@@ -344,19 +344,20 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 		return GIF_OK;
 	if (ExtFunction == GRAPHICS_EXT_FUNC_CODE && ExtData[0] == 4)
 	{
-		FrameInfo* fi = &info->infos[info->gifFilePtr->ImageCount];
-		fi->transpIndex = -1;
-		char* b = (char*) ExtData + 1;
-		short delay = (((b[2] & 0xFF) << 8) | (b[1] & 0xFF));
-		fi->duration = delay > 1 ? delay * 10 : 100;
-		fi->disposalMethod = ((b[0] >> 2) & 7);
-		if (ExtData[1] & 1)
-			fi->transpIndex = 0xff&b[3];
-		if (fi->disposalMethod == 3 && info->backupPtr == NULL)
-		{
-			if (!setupBackupBmp(info, fi->transpIndex))
-				return GIF_ERROR;
-		}
+        GraphicsControlBlock GCB;
+        if (DGifExtensionToGCB(4,  ExtData+1,   &GCB) == GIF_ERROR)
+            return GIF_ERROR;
+
+        FrameInfo* fi = &info->infos[info->gifFilePtr->ImageCount];
+        fi->disposalMethod=GCB.DisposalMode;
+        fi->duration=GCB.DelayTime> 1 ? GCB.DelayTime * 10 : 100;
+        fi->transpIndex=GCB.TransparentColor;
+
+        if (fi->disposalMethod == 3 && info->backupPtr == NULL)
+        {
+            if (!setupBackupBmp(info, fi->transpIndex))
+                return GIF_ERROR;
+        }
 	}
 	else if (ExtFunction == COMMENT_EXT_FUNC_CODE)
 	{
