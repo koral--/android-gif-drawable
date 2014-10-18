@@ -1,104 +1,20 @@
-#include <jni.h>
-#include <time.h>
-#include <stdio.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <malloc.h>
+#include "gif.h"
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <limits.h>
-#include "giflib/gif_lib.h"
-
-//#include <android/log.h>
-//#define  LOG_TAG    "libgif"
-//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+static ColorMapObject* genDefColorMap(void);
+/**
+ * Returns the real time, in ms
+ */
+static __time_t getRealTime(void);
 
 /**
- * some gif files are not strictly follow 89a.
- * DGifSlurp will return read head error or get record type error.
- * but the image still can display. so here should ignore the error.
- */
-//#define STRICT_FORMAT_89A
+* Frees dynamically allocated memory
+*/
+static void cleanUp(GifInfo* info);
 
-
-/**
- * Decoding error - no frames
- */
-#define D_GIF_ERR_NO_FRAMES     	1000
-#define D_GIF_ERR_INVALID_SCR_DIMS 	1001
-#define D_GIF_ERR_INVALID_IMG_DIMS 	1002
-#define D_GIF_ERR_IMG_NOT_CONFINED 	1003
-#define D_GIF_ERR_REWIND_FAILED 	1004
-
-typedef struct
-{
-	uint8_t blue;
-	uint8_t green;
-	uint8_t red;
-	uint8_t alpha;
-} argb;
-
-
-typedef struct
-{
-	unsigned int duration;
-	int transpIndex;
-	unsigned char disposalMethod;
-} FrameInfo;
-
-typedef struct GifInfo GifInfo;
-typedef int
-(*RewindFunc)(GifInfo *);
-
-struct GifInfo
-{
-	GifFileType* gifFilePtr;
-    __time_t lastFrameReaminder;
-	__time_t nextStartTime;
-	int currentIndex;
-    FrameInfo* infos;
-	argb* backupPtr;
-	long startPos;
-	unsigned char* rasterBits;
-	char* comment;
-	unsigned short loopCount;
-	int currentLoop;
-	RewindFunc rewindFunc;
-	jfloat speedFactor;
-};
-
-typedef struct
-{
-	JavaVM* jvm;
-	jobject stream;
-	jclass streamCls;
-	jmethodID readMID;
-	jmethodID resetMID;
-	jbyteArray buffer;
-} StreamContainer;
-
-typedef struct
-{
-	JavaVM* jvm;
-	long pos;
-	jbyteArray buffer;
-	jsize arrLen;
-} ByteArrayContainer;
-
-typedef struct
-{
-	long pos;
-	jbyte* bytes;
-	jlong capacity;
-} DirectByteBufferContainer;
-
-static JavaVM *g_jvm;
+static JavaVM* g_jvm;
 static ColorMapObject* defaultCmap = NULL;
 
-static ColorMapObject*
-genDefColorMap(void)
+static ColorMapObject* genDefColorMap(void)
 {
 	ColorMapObject* cmap = GifMakeMapObject(256, NULL);
 	if (cmap != NULL)
@@ -114,9 +30,6 @@ genDefColorMap(void)
 	return cmap;
 }
 
-/**
-* Frees dynamically allocated memory
-*/
 static void cleanUp(GifInfo* info)
 {
 	free(info->backupPtr);
@@ -133,7 +46,7 @@ static void cleanUp(GifInfo* info)
 		GifFile->SColorMap = NULL;
 	if (GifFile->SavedImages != NULL)
 	{
-		SavedImage *sp;
+		SavedImage* sp;
 		for (sp = GifFile->SavedImages;
 				sp < GifFile->SavedImages + GifFile->ImageCount; sp++)
 		{
@@ -150,9 +63,6 @@ static void cleanUp(GifInfo* info)
 	free(info);
 }
 
-/**
- * Returns the real time, in ms
- */
 static __time_t getRealTime(void)
 {
 	struct timespec ts;
@@ -167,21 +77,15 @@ static int fileReadFunc(GifFileType* gif, GifByteType* bytes, int size)
 	return (int) fread(bytes, 1, (size_t) size, file);
 }
 
-static JNIEnv*
-getEnv(GifFileType* gif)
+static JNIEnv* getEnv(GifFileType* gif)
 {
 	JNIEnv* env = NULL;
 	StreamContainer* sc = (StreamContainer*) (gif->UserData);
-	if (sc != NULL)
-	{
-		JavaVM* jvm = sc->jvm;
-		(*jvm)->AttachCurrentThread(jvm, &env, NULL);
-	}
+    (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
 	return env;
 }
 
-static int directByteBufferReadFun(GifFileType* gif, GifByteType* bytes,
-		int size)
+static int directByteBufferReadFun(GifFileType* gif, GifByteType* bytes, int size)
 {
 	DirectByteBufferContainer* dbbc = gif->UserData;
 	if (dbbc->pos + size > dbbc->capacity)
@@ -195,8 +99,7 @@ static int byteArrayReadFun(GifFileType* gif, GifByteType* bytes, int size)
 {
 	ByteArrayContainer* bac = gif->UserData;
 	JNIEnv* env = NULL;
-	JavaVM* jvm = bac->jvm;
-	(*jvm)->AttachCurrentThread(jvm, &env, NULL);
+	(*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
 	if (bac->pos + size > bac->arrLen)
 		size -= bac->pos + size - bac->arrLen;
 	(*env)->GetByteArrayRegion(env, bac->buffer, (jsize) bac->pos, size, (jbyte *) bytes);
@@ -229,8 +132,7 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size)
 		}
 	}
 
-	int len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0,
-			size);
+	int len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0, size);
 	if ((*env)->ExceptionOccurred(env))
 	{
 		(*env)->ExceptionClear(env);
@@ -338,7 +240,7 @@ static inline bool setupBackupBmp(GifInfo* info, int transpIndex)
 	return true;
 }
 
-static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
+static int readExtensions(int ExtFunction, GifByteType* ExtData, GifInfo* info)
 {
 	if (ExtData == NULL)
 		return GIF_OK;
@@ -388,10 +290,10 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo* info)
 	return GIF_OK;
 }
 
-static int DDGifSlurp(GifFileType *GifFile, GifInfo* info, bool shouldDecode)
+static int DDGifSlurp(GifFileType* GifFile, GifInfo* info, bool shouldDecode)
 {
 	GifRecordType RecordType;
-	GifByteType *ExtData;
+	GifByteType* ExtData;
 	int codeSize;
 	int ExtFunction;
 	int ImageSize;
@@ -553,7 +455,7 @@ static void setMetaData(int width, int height, int ImageCount, int errorCode,
 		(*env)->Throw(env, exception);
 }
 
-static GifInfo* open(GifFileType *GifFileIn, int Error, long startPos,
+static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData, const jboolean justDecodeMetaData)
 {
 	if (startPos < 0)
@@ -678,7 +580,6 @@ Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
 	container->buffer = (*env)->NewGlobalRef(env, bytes);
 	container->arrLen = (*env)->GetArrayLength(env, container->buffer);
 	container->pos = 0;
-	container->jvm = g_jvm;
 	int Error = 0;
 	GifFileType* GifFileIn = DGifOpen(container, &byteArrayReadFun, &Error);
 
@@ -760,7 +661,6 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 	container->readMID = readMID;
 	container->resetMID = resetMID;
 
-	container->jvm = g_jvm;
 	container->stream = (*env)->NewGlobalRef(env, stream);
 	container->streamCls = streamCls;
 	container->buffer = NULL;
@@ -950,7 +850,7 @@ static bool reset(GifInfo* info)
 	return true;
 }
 
-static void getBitmap(argb *bm, GifInfo *info)
+static void getBitmap(argb* bm, GifInfo* info)
 {
 	GifFileType* fGIF = info->gifFilePtr;
     if (fGIF->Error == D_GIF_ERR_REWIND_FAILED)
@@ -1291,7 +1191,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getAllocationByteCount(JNIEnv * env,
 	return (jlong) sum;
 }
 
-jint JNI_OnLoad(JavaVM *vm, void *reserved)
+jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
 	JNIEnv* env;
 	if ((*vm)->GetEnv(vm, (void**) (&env), JNI_VERSION_1_6) != JNI_OK)
@@ -1305,7 +1205,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved)
 	return JNI_VERSION_1_6;
 }
 
-void JNI_OnUnload(JavaVM *vm, void *reserved)
+void JNI_OnUnload(JavaVM* vm, void* reserved)
 {
 	GifFreeMapObject(defaultCmap);
 }

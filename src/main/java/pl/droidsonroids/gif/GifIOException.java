@@ -20,7 +20,7 @@ public class GifIOException extends IOException {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-        // native code only
+        //invoked from native code
     GifIOException(int errorCode) {
         this(GifError.fromCode(errorCode));
     }

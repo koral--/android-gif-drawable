@@ -51,7 +51,7 @@ and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer 
 
 #### Proguard configuration
 Add following line to proguard configuration file (usually `proguard-rules.txt` or `proguard-project.txt`):
-`-keep public class pl.droidsonroids.gif.GifIOException{*;}`
+`-keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}`
 
 ###Requirements
 + Android 1.6+ (API level 4+)
