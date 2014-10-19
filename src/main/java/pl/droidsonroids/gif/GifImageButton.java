@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 
 import java.io.IOException;
 
@@ -22,7 +21,7 @@ public class GifImageButton extends ImageButton {
      * A corresponding superclass constructor wrapper.
      *
      * @param context
-     * @see ImageView#ImageView(Context)
+     * @see ImageButton#ImageButton(Context)
      */
     public GifImageButton(Context context) {
         super(context);
@@ -34,7 +33,7 @@ public class GifImageButton extends ImageButton {
      *
      * @param context
      * @param attrs
-     * @see ImageView#ImageView(Context, AttributeSet)
+     * @see ImageButton#ImageButton(Context, AttributeSet)
      */
     public GifImageButton(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -48,10 +47,26 @@ public class GifImageButton extends ImageButton {
      * @param context
      * @param attrs
      * @param defStyle
-     * @see ImageView#ImageView(Context, AttributeSet, int)
+     * @see ImageButton#ImageButton(Context, AttributeSet, int)
      */
     public GifImageButton(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        trySetGifDrawable(attrs, getResources());
+    }
+
+    /**
+     * Like equivalent from superclass but also try to interpret src and background
+     * attributes as GIFs.
+     *
+     * @param context
+     * @param attrs
+     * @param defStyle
+     * @param defStyleRes
+     * @see ImageButton#ImageButton(Context, AttributeSet, int, int)
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public GifImageButton(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
+        super(context, attrs, defStyle, defStyleRes);
         trySetGifDrawable(attrs, getResources());
     }
 

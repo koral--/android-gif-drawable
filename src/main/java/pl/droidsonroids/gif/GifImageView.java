@@ -56,6 +56,22 @@ public class GifImageView extends ImageView {
         trySetGifDrawable(attrs, getResources());
     }
 
+    /**
+     * Like equivalent from superclass but also try to interpret src and background
+     * attributes as GIFs.
+     *
+     * @param context
+     * @param attrs
+     * @param defStyle
+     * @param defStyleRes
+     * @see ImageView#ImageView(Context, AttributeSet, int, int)
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public GifImageView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
+        super(context, attrs, defStyle, defStyleRes);
+        trySetGifDrawable(attrs, getResources());
+    }
+
     @Override
     public void setImageResource(int resId) {
         setResource(true, resId, getResources());
