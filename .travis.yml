@@ -15,9 +15,10 @@ before_install:
   - export TERM=dumb
   - android list sdk --no-ui --all --extended
   # newest Android NDK
-  - if [ `uname -m` = x86_64 ]; then wget http://dl.google.com/android/ndk/android-ndk-r10c-linux-x86_64.bin -O ndk.tgz; else wget http://dl.google.com/android/ndk/android-ndk-r10c-linux-x86.bin -O ndk.tgz; fi
-  - tar -xf ndk.tgz
-  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10b
+  - wget http://dl.google.com/android/ndk/android-ndk-r10c-linux-x86_64.bin
+  - chmod +x android-ndk-r10c-linux-x86_64.bin
+  - ./android-ndk-r10c-linux-x86_64.bin
+  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10c
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:
