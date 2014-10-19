@@ -31,9 +31,9 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      *
      * @param res Resources to read from
      * @param id  resource id
-     * @throws android.content.res.Resources.NotFoundException    if the given ID does not exist.
-     * @throws java.io.IOException          when opening failed
-     * @throws NullPointerException if res is null
+     * @throws android.content.res.Resources.NotFoundException if the given ID does not exist.
+     * @throws java.io.IOException                             when opening failed
+     * @throws NullPointerException                            if res is null
      */
     public GifAnimationMetaData(Resources res, int id) throws Resources.NotFoundException, IOException {
         this(res.openRawResourceFd(id));
@@ -183,16 +183,14 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
     /**
      * @return width od the GIF canvas in pixels
      */
-    public int getWidth()
-    {
+    public int getWidth() {
         return mMetaData[0];
     }
 
     /**
      * @return height od the GIF canvas in pixels
      */
-    public int getHeight()
-    {
+    public int getHeight() {
         return mMetaData[1];
     }
 
@@ -228,15 +226,14 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
     /**
      * @return true if GIF is animated (has at least 2 frames and positive duration), false otherwise
      */
-    public boolean isAnimated()
-    {
-        return mMetaData[2]>1 && mMetaData[4]>0;
+    public boolean isAnimated() {
+        return mMetaData[2] > 1 && mMetaData[4] > 0;
     }
 
     @Override
     public String toString() {
-        String loopCount=mMetaData[3] == 0 ? "Infinity" : Integer.toString(mMetaData[3]);
-        String suffix= String.format(Locale.US,
+        String loopCount = mMetaData[3] == 0 ? "Infinity" : Integer.toString(mMetaData[3]);
+        String suffix = String.format(Locale.US,
                 "GIF: size: %dx%d, frames: %d, loops: %s, duration: %d",
                 mMetaData[0], mMetaData[1], mMetaData[2], loopCount, mMetaData[4]);
         return isAnimated() ? "Animated " + suffix : suffix;

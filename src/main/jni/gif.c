@@ -1,14 +1,18 @@
 #include "gif.h"
 
-static ColorMapObject* genDefColorMap(void);
 /**
- * Returns the real time, in ms
+ * Generates default color map, used when there is no color map defined in GIF file
+ */
+static ColorMapObject* genDefColorMap(void);
+
+/**
+ * @return the real time, in ms
  */
 static __time_t getRealTime(void);
 
 /**
-* Frees dynamically allocated memory
-*/
+ * Frees dynamically allocated memory
+ */
 static void cleanUp(GifInfo* info);
 
 static JavaVM* g_jvm;

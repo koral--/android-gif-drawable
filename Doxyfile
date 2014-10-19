@@ -5,6 +5,7 @@ OUTPUT_DIRECTORY       = build/doxygen
 #JAVADOC_AUTOBRIEF      = YES
 OPTIMIZE_OUTPUT_FOR_C  = YES
 EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
 HIDE_SCOPE_NAMES       = YES
 FILE_PATTERNS          = *.c \
                          *.h
