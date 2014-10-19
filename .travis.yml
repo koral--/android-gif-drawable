@@ -17,7 +17,7 @@ before_install:
   # newest Android NDK
   - wget http://dl.google.com/android/ndk/android-ndk-r10c-linux-x86_64.bin
   - chmod +x android-ndk-r10c-linux-x86_64.bin
-  - ./android-ndk-r10c-linux-x86_64.bin >/dev/null
+  - ./android-ndk-r10c-linux-x86_64.bin | egrep -v ^Extracting
   - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10c
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
