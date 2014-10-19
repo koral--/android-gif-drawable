@@ -75,16 +75,15 @@ static __time_t getRealTime(void)
 	return -1;
 }
 
-static int fileReadFunc(GifFileType* gif, GifByteType* bytes, int size)
+static int fileRead(GifFileType *gif, GifByteType *bytes, int size)
 {
 	FILE* file = (FILE*) gif->UserData;
 	return (int) fread(bytes, 1, (size_t) size, file);
 }
 
-static JNIEnv* getEnv(GifFileType* gif)
+static JNIEnv *getEnv(void)
 {
 	JNIEnv* env = NULL;
-	StreamContainer* sc = (StreamContainer*) (gif->UserData);
     (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
 	return env;
 }
@@ -114,7 +113,7 @@ static int byteArrayReadFun(GifFileType* gif, GifByteType* bytes, int size)
 static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size)
 {
 	StreamContainer* sc = gif->UserData;
-	JNIEnv* env = getEnv(gif);
+	JNIEnv* env = getEnv();
 
 	(*env)->MonitorEnter(env, sc->stream);
 
@@ -152,16 +151,16 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size)
 	return len >= 0 ? len : 0;
 }
 
-static int fileRewindFun(GifInfo* info)
+static int fileRewind(GifInfo *info)
 {
 	return fseek(info->gifFilePtr->UserData, info->startPos, SEEK_SET);
 }
 
-static int streamRewindFun(GifInfo* info)
+static int streamRewind(GifInfo *info)
 {
 	GifFileType* gif = info->gifFilePtr;
 	StreamContainer* sc = gif->UserData;
-	JNIEnv* env = getEnv(gif);
+	JNIEnv* env = getEnv();
 	(*env)->CallVoidMethod(env, sc->stream, sc->resetMID);
 	if ((*env)->ExceptionOccurred(env))
 	{
@@ -171,7 +170,7 @@ static int streamRewindFun(GifInfo* info)
 	return 0;
 }
 
-static int byteArrayRewindFun(GifInfo* info)
+static int byteArrayRewind(GifInfo *info)
 {
 	GifFileType* gif = info->gifFilePtr;
 	ByteArrayContainer* bac = gif->UserData;
@@ -364,7 +363,7 @@ static int DDGifSlurp(GifFileType* GifFile, GifInfo* info, bool shouldDecode)
 				{
 					if (info->loopCount > 0)
 						info->currentLoop++;
-					if (info->rewindFunc(info) != 0)
+					if (info->rewindFunction(info) != 0)
 					{
 						info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 						return GIF_ERROR;
@@ -421,7 +420,7 @@ static int DDGifSlurp(GifFileType* GifFile, GifInfo* info, bool shouldDecode)
 	bool ok = true;
 	if (shouldDecode)
 	{
-		ok = (info->rewindFunc(info) == 0);
+		ok = (info->rewindFunction(info) == 0);
 	}
 	if (ok)
 		return (GIF_OK);
@@ -505,7 +504,7 @@ static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 			sizeof(GifPixelType));
 	info->infos = malloc(sizeof(FrameInfo));
 	info->backupPtr = NULL;
-	info->rewindFunc = rewindFunc;
+	info->rewindFunction = rewindFunc;
 
 	if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL)
 	{
@@ -536,7 +535,7 @@ static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 
 	if (imgCount < 1)
 		Error = D_GIF_ERR_NO_FRAMES;
-	if (info->rewindFunc(info) != 0)
+	if (info->rewindFunction(info) != 0)
 		Error = D_GIF_ERR_READ_FAILED;
 	if (Error != 0)
 		cleanUp(info);
@@ -566,8 +565,8 @@ Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env, jclass class,
 		return (jlong)(intptr_t) NULL;
 	}
 	int Error = 0;
-	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, &Error);
-	return (jlong)(intptr_t) open(GifFileIn, Error, ftell(file), fileRewindFun, env, metaData, justDecodeMetaData);
+	GifFileType* GifFileIn = DGifOpen(file, &fileRead, &Error);
+	return (jlong)(intptr_t) open(GifFileIn, Error, ftell(file), fileRewind, env, metaData, justDecodeMetaData);
 }
 
 JNIEXPORT jlong JNICALL
@@ -587,8 +586,8 @@ Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
 	int Error = 0;
 	GifFileType* GifFileIn = DGifOpen(container, &byteArrayReadFun, &Error);
 
-	GifInfo* openResult = open(GifFileIn, Error, container->pos, byteArrayRewindFun,
-			env, metaData, justDecodeMetaData);
+	GifInfo* openResult = open(GifFileIn, Error, container->pos, byteArrayRewind,
+            env, metaData, justDecodeMetaData);
 
 	if (openResult == NULL)
 	{
@@ -674,7 +673,7 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 
 	(*env)->CallVoidMethod(env, stream, mid, LONG_MAX); //TODO better length?
 
-	GifInfo* openResult = open(GifFileIn, Error, 0, streamRewindFun, env, metaData, justDecodeMetaData);
+	GifInfo* openResult = open(GifFileIn, Error, 0, streamRewind, env, metaData, justDecodeMetaData);
 	if (openResult == NULL)
 	{
 		(*env)->DeleteGlobalRef(env, streamCls);
@@ -708,10 +707,10 @@ Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env, jclass class,
 	}
 
 	int Error = 0;
-	GifFileType* GifFileIn = DGifOpen(file, &fileReadFunc, &Error);
+	GifFileType* GifFileIn = DGifOpen(file, &fileRead, &Error);
 	long startPos = ftell(file);
 
-	return (jlong)(intptr_t) open(GifFileIn, Error, startPos, fileRewindFun, env, metaData, justDecodeMetaData);
+	return (jlong)(intptr_t) open(GifFileIn, Error, startPos, fileRewind, env, metaData, justDecodeMetaData);
 }
 
 static void copyLine(argb* dst, const unsigned char* src,
@@ -845,7 +844,7 @@ static inline void disposeFrameIfNeeded(argb* bm, GifInfo* info,
 
 static bool reset(GifInfo* info)
 {
-	if (info->rewindFunc(info) != 0)
+	if (info->rewindFunction(info) != 0)
 		return false;
 	info->nextStartTime = 0;
 	info->currentLoop = -1;
@@ -1062,7 +1061,7 @@ Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
 	if (gifInfo == (jlong)(intptr_t) NULL)
 		return;
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
-	if (info->rewindFunc == streamRewindFun)
+	if (info->rewindFunction == streamRewind)
 	{
 		StreamContainer* sc = info->gifFilePtr->UserData;
 		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close",
@@ -1082,12 +1081,12 @@ Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
 
 		free(sc);
 	}
-	else if (info->rewindFunc == fileRewindFun)
+	else if (info->rewindFunction == fileRewind)
 	{
 		FILE* file = info->gifFilePtr->UserData;
 		fclose(file);
 	}
-	else if (info->rewindFunc == byteArrayRewindFun)
+	else if (info->rewindFunction == byteArrayRewind)
 	{
 		ByteArrayContainer* bac = info->gifFilePtr->UserData;
 		if (bac->buffer != NULL)
@@ -1096,7 +1095,7 @@ Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
 		}
 		free(bac);
 	}
-	else if (info->rewindFunc == directByteBufferRewindFun)
+	else if (info->rewindFunction == directByteBufferRewindFun)
 	{
 		DirectByteBufferContainer* dbbc = info->gifFilePtr->UserData;
 		free(dbbc);

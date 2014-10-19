@@ -65,7 +65,7 @@ struct GifInfo
 	char* comment;
 	unsigned short loopCount;
 	int currentLoop;
-	RewindFunc rewindFunc;
+	RewindFunc rewindFunction;
 	jfloat speedFactor;
 };
 

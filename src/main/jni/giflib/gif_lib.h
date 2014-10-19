@@ -12,8 +12,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 #define GIFLIB_MAJOR 5
-#define GIFLIB_MINOR 0
-#define GIFLIB_RELEASE 5
+#define GIFLIB_MINOR 1
+#define GIFLIB_RELEASE 0
 
 #define GIF_ERROR   0
 #define GIF_OK      1
@@ -97,11 +97,6 @@ typedef enum {
 /* func type to read gif data from arbitrary sources (TVT) */
 typedef int (*InputFunc) (GifFileType *, GifByteType *, int);
 
-/* func type to write gif data to arbitrary targets.
- * Returns count of bytes written. (MRB)
- */
-typedef int (*OutputFunc) (GifFileType *, const GifByteType *, int);
-
 /******************************************************************************
  GIF89 structures
 ******************************************************************************/
@@ -117,58 +112,6 @@ typedef struct GraphicsControlBlock {
     int TransparentColor;    /* Palette index for transparency, -1 if none */
 #define NO_TRANSPARENT_COLOR	-1
 } GraphicsControlBlock;
-
-/******************************************************************************
- GIF encoding routines
-******************************************************************************/
-
-/* Main entry points */
-GifFileType *EGifOpenFileName(const char *GifFileName,
-                              const bool GifTestExistence, int *Error);
-GifFileType *EGifOpenFileHandle(const int GifFileHandle, int *Error);
-GifFileType *EGifOpen(void *userPtr, OutputFunc writeFunc, int *Error);
-int EGifSpew(GifFileType * GifFile);
-char *EGifGetGifVersion(GifFileType *GifFile); /* new in 5.x */
-int EGifCloseFile(GifFileType * GifFile);
-
-#define E_GIF_ERR_OPEN_FAILED    1    /* And EGif possible errors. */
-#define E_GIF_ERR_WRITE_FAILED   2
-#define E_GIF_ERR_HAS_SCRN_DSCR  3
-#define E_GIF_ERR_HAS_IMAG_DSCR  4
-#define E_GIF_ERR_NO_COLOR_MAP   5
-#define E_GIF_ERR_DATA_TOO_BIG   6
-#define E_GIF_ERR_NOT_ENOUGH_MEM 7
-#define E_GIF_ERR_DISK_IS_FULL   8
-#define E_GIF_ERR_CLOSE_FAILED   9
-#define E_GIF_ERR_NOT_WRITEABLE  10
-
-/* These are legacy.  You probably do not want to call them directly */
-int EGifPutScreenDesc(GifFileType *GifFile,
-                      const int GifWidth, const int GifHeight, 
-		      const int GifColorRes,
-                      const int GifBackGround,
-                      const ColorMapObject *GifColorMap);
-int EGifPutImageDesc(GifFileType *GifFile, 
-		     const int GifLeft, const int GifTop,
-                     const int GifWidth, const int GifHeight, 
-		     const bool GifInterlace,
-                     const ColorMapObject *GifColorMap);
-void EGifSetGifVersion(GifFileType *GifFile, const bool gif89);
-int EGifPutLine(GifFileType *GifFile, GifPixelType *GifLine,
-                int GifLineLen);
-int EGifPutPixel(GifFileType *GifFile, const GifPixelType GifPixel);
-int EGifPutComment(GifFileType *GifFile, const char *GifComment);
-int EGifPutExtensionLeader(GifFileType *GifFile, const int GifExtCode);
-int EGifPutExtensionBlock(GifFileType *GifFile,
-                         const int GifExtLen, const void *GifExtension);
-int EGifPutExtensionTrailer(GifFileType *GifFile);
-int EGifPutExtension(GifFileType *GifFile, const int GifExtCode, 
-		     const int GifExtLen,
-                     const void *GifExtension);
-int EGifPutCode(GifFileType *GifFile, int GifCodeSize,
-                const GifByteType *GifCodeBlock);
-int EGifPutCodeNext(GifFileType *GifFile,
-                    const GifByteType *GifCodeBlock);
 
 /******************************************************************************
  GIF decoding routines

@@ -43,7 +43,7 @@ typedef struct GifFilePrivateType {
     unsigned long PixelCount;   /* Number of pixels in image. */
     FILE *File;    /* File as stream. */
     InputFunc Read;     /* function to read gif input (TVT) */
-    OutputFunc Write;   /* function to write gif output (MRB) */
+//    OutputFunc Write;   /* function to write gif output (MRB) */
     GifByteType Buf[256];   /* Compressed input is buffered here. */
     GifByteType Stack[LZ_MAX_CODE]; /* Decoded pixels are stacked here. */
     GifByteType Suffix[LZ_MAX_CODE + 1];    /* So we can trace the codes. */
