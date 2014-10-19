@@ -10,6 +10,11 @@ android:
     - build-tools-21.0.1
     - android-21
 
+before_script:
+  - sudo service postgresql stop
+  - sudo service mysql stop
+  - sudo service memcached stop
+
 before_install:
   # for gradle output style
   - export TERM=dumb
