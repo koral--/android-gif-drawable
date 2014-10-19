@@ -7,17 +7,23 @@ jdk:
   - oraclejdk8
 android:
   components:
-    - build-tools-20.0.0
-    - android-20
+    - build-tools-21.0.1
+    - android-21
+
+before_script:
+  - sudo service postgresql stop || true
+  - sudo service mysql stop || true
+  - sudo service memcached stop || true
 
 before_install:
   # for gradle output style
   - export TERM=dumb
   - android list sdk --no-ui --all --extended
   # newest Android NDK
-  - if [ `uname -m` = x86_64 ]; then wget http://dl.google.com/android/ndk/android-ndk64-r10b-linux-x86_64.tar.bz2 -O ndk.tgz; else wget http://dl.google.com/android/ndk/android-ndk64-r10b-linux-x86.tar.bz2 -O ndk.tgz; fi
-  - tar -xf ndk.tgz
-  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10b
+  - wget http://dl.google.com/android/ndk/android-ndk-r10c-linux-x86_64.bin
+  - chmod +x android-ndk-r10c-linux-x86_64.bin
+  - ./android-ndk-r10c-linux-x86_64.bin | egrep -v ^Extracting
+  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10c
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:

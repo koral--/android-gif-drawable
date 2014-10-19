@@ -22,6 +22,7 @@ import java.io.IOException;
 public class GifTextView extends TextView {
 
     /**
+     * A corresponding superclass constructor wrapper.
      * @param context
      */
     public GifTextView(Context context) {
@@ -29,6 +30,9 @@ public class GifTextView extends TextView {
     }
 
     /**
+     * Like equivalent from superclass but also try to interpret compound drawables defined in XML
+     * attributes as GIFs.
+     * @see TextView#TextView(Context, AttributeSet)
      * @param context
      * @param attrs
      */
@@ -38,12 +42,31 @@ public class GifTextView extends TextView {
     }
 
     /**
+     * Like equivalent from superclass but also try to interpret compound drawables defined in XML
+     * attributes as GIFs.
+     * @see TextView#TextView(Context, AttributeSet, int)
      * @param context
      * @param attrs
      * @param defStyle
      */
     public GifTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        parseAttrs(attrs);
+    }
+
+    /**
+     * Like equivalent from superclass but also try to interpret compound drawables defined in XML
+     * attributes as GIFs.
+     *
+     * @param context
+     * @param attrs
+     * @param defStyle
+     * @param defStyleRes
+     * @see TextView#TextView(Context, AttributeSet, int, int)
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public GifTextView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
+        super(context, attrs, defStyle, defStyleRes);
         parseAttrs(attrs);
     }
 

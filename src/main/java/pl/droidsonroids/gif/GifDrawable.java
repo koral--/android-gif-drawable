@@ -770,4 +770,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public boolean removeAnimationListener(AnimationListener listener) {
         return mListeners.remove(listener);
     }
+
+    @Override
+    public ColorFilter getColorFilter() {
+        return mPaint.getColorFilter();
+    }
 }
