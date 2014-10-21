@@ -28,7 +28,7 @@ gif_lib_private.h - internal giflib routines and structures
 #define IS_READABLE(Private)    (Private->FileState & FILE_STATE_READ)
 
 typedef struct GifFilePrivateType {
-    GifWord FileState, FileHandle,  /* Where all this data goes to! */
+    GifWord FileState, /*FileHandle,*/  /* Where all this data goes to! */
       BitsPerPixel,     /* Bits per pixel (Codes uses at least this + 1). */
       ClearCode,   /* The CLEAR LZ code. */
       EOFCode,     /* The EOF LZ code. */
@@ -36,7 +36,7 @@ typedef struct GifFilePrivateType {
       RunningBits, /* The number of bits required to represent RunningCode. */
       MaxCode1,    /* 1 bigger than max. possible code, in RunningBits bits. */
       LastCode,    /* The code before the current code. */
-      CrntCode,    /* Current algorithm code. */
+//      CrntCode,    /* Current algorithm code. */
       StackPtr,    /* For character stack (see below). */
       CrntShiftState;    /* Number of bits in CrntShiftDWord. */
     unsigned long CrntShiftDWord;   /* For bytes decomposition into codes. */
@@ -48,7 +48,7 @@ typedef struct GifFilePrivateType {
     GifByteType Stack[LZ_MAX_CODE]; /* Decoded pixels are stacked here. */
     GifByteType Suffix[LZ_MAX_CODE + 1];    /* So we can trace the codes. */
     GifPrefixType Prefix[LZ_MAX_CODE + 1];
-    bool gif89;
+//    bool gif89;
 } GifFilePrivateType;
 
 #endif /* _GIF_LIB_PRIVATE_H */

@@ -310,8 +310,7 @@ static int DDGifSlurp(GifFileType* GifFile, GifInfo* info, bool shouldDecode)
 
 			if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
 				return (GIF_ERROR);
-			int i = shouldDecode ? info->currentIndex : GifFile->ImageCount - 1;
-			SavedImage* sp = &GifFile->SavedImages[i];
+			SavedImage* sp = &GifFile->SavedImages[(shouldDecode ? info->currentIndex : GifFile->ImageCount - 1)];
 			ImageSize = sp->ImageDesc.Width * sp->ImageDesc.Height;
 
 			if (sp->ImageDesc.Width < 1 || sp->ImageDesc.Height < 1

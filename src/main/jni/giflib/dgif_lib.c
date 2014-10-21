@@ -73,7 +73,7 @@ DGifOpen(void *userData, InputFunc readFunc, int *Error)
     }
 
     GifFile->Private = (void *)Private;
-    Private->FileHandle = 0;
+//    Private->FileHandle = 0;
     Private->File = NULL;
     Private->FileState = FILE_STATE_READ;
 
@@ -109,7 +109,7 @@ DGifOpen(void *userData, InputFunc readFunc, int *Error)
     GifFile->Error = 0;
 
     /* What version of GIF? */
-    Private->gif89 = (Buf[GIF_VERSION_POS] == '9');
+    //Private->gif89 = (Buf[GIF_VERSION_POS] == '9');
 
     return GifFile;
 }
@@ -143,11 +143,11 @@ DGifGetScreenDesc(GifFileType *GifFile)
 	GifFile->SColorMap = NULL;
         return GIF_ERROR;
     }
-    GifFile->SColorResolution = (((Buf[0] & 0x70) + 1) >> 4) + 1;
-    SortFlag = (Buf[0] & 0x08) != 0;
+//    GifFile->SColorResolution = (((Buf[0] & 0x70) + 1) >> 4) + 1;
+//    SortFlag = (Buf[0] & 0x08) != 0;
     BitsPerPixel = (Buf[0] & 0x07) + 1;
     GifFile->SBackGroundColor = Buf[1];
-    GifFile->AspectByte = Buf[2]; 
+//    GifFile->AspectByte = Buf[2];
     if (Buf[0] & 0x80) {    /* Do we have global color map? */
 	int i;
 
@@ -158,7 +158,7 @@ DGifGetScreenDesc(GifFileType *GifFile)
         }
 
         /* Get the global color map: */
-	GifFile->SColorMap->SortFlag = SortFlag;
+//	GifFile->SColorMap->SortFlag = SortFlag;
         for (i = 0; i < GifFile->SColorMap->ColorCount; i++) {
             if (READ(GifFile, Buf, 3) != 3) {
                 GifFreeMapObject(GifFile->SColorMap);
@@ -432,7 +432,7 @@ int DGifExtensionToGCB(const size_t GifExtensionLength,
     }
 
     GCB->DisposalMode = (GifExtension[0] >> 2) & 0x07;
-    GCB->UserInputFlag = (GifExtension[0] & 0x02) != 0;
+//    GCB->UserInputFlag = (GifExtension[0] & 0x02) != 0;
     GCB->DelayTime = UNSIGNED_LITTLE_ENDIAN(GifExtension[1], GifExtension[2]);
     if (GifExtension[0] & 0x01)
 	GCB->TransparentColor = (int)GifExtension[3];
@@ -468,7 +468,7 @@ DGifCloseFile(GifFileType *GifFile)
         GifFile->SavedImages = NULL;
     }
 
-    GifFreeExtensions(&GifFile->ExtensionBlockCount, &GifFile->ExtensionBlocks);
+//    GifFreeExtensions(&GifFile->ExtensionBlockCount, &GifFile->ExtensionBlocks);
 
     Private = (GifFilePrivateType *) GifFile->Private;
 

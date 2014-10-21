@@ -7,14 +7,6 @@ gif_lib.h - service library for decoding and encoding GIF images
 #ifndef _GIF_LIB_H_
 #define _GIF_LIB_H_ 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-#define GIFLIB_MAJOR 5
-#define GIFLIB_MINOR 1
-#define GIFLIB_RELEASE 0
-
 #define GIF_ERROR   0
 #define GIF_OK      1
 
@@ -24,11 +16,8 @@ extern "C" {
 #define GIF_STAMP "GIFVER"          /* First chars in file - GIF stamp.  */
 #define GIF_STAMP_LEN sizeof(GIF_STAMP) - 1
 #define GIF_VERSION_POS 3           /* Version first character in stamp. */
-#define GIF87_STAMP "GIF87a"        /* First chars in file - GIF stamp.  */
-#define GIF89_STAMP "GIF89a"        /* First chars in file - GIF stamp.  */
 
 typedef unsigned char GifPixelType;
-typedef unsigned char *GifRowType;
 typedef unsigned char GifByteType;
 typedef unsigned int GifPrefixType;
 typedef int GifWord;
@@ -40,7 +29,7 @@ typedef struct GifColorType {
 typedef struct ColorMapObject {
     int ColorCount;
     int BitsPerPixel;
-    bool SortFlag;
+//    bool SortFlag;
     GifColorType *Colors;    /* on malloc(3) heap */
 } ColorMapObject;
 
@@ -51,9 +40,9 @@ typedef struct GifImageDesc {
 } GifImageDesc;
 
 typedef struct ExtensionBlock {
-    int ByteCount;
+//    int ByteCount;
     GifByteType *Bytes; /* on malloc(3) heap */
-    int Function;       /* The block function code */
+//    int Function;       /* The block function code */
 #define CONTINUE_EXT_FUNC_CODE    0x00    /* continuation subblock */
 #define COMMENT_EXT_FUNC_CODE     0xfe    /* comment */
 #define GRAPHICS_EXT_FUNC_CODE    0xf9    /* graphics control (GIF89) */
@@ -70,15 +59,15 @@ typedef struct SavedImage {
 
 typedef struct GifFileType {
     GifWord SWidth, SHeight;         /* Size of virtual canvas */
-    GifWord SColorResolution;        /* How many colors can we generate? */
+//    GifWord SColorResolution;        /* How many colors can we generate? */
     GifWord SBackGroundColor;        /* Background color for virtual canvas */
-    GifByteType AspectByte;	     /* Used to compute pixel aspect ratio */
+//    GifByteType AspectByte;	     /* Used to compute pixel aspect ratio */
     ColorMapObject *SColorMap;       /* Global colormap, NULL if nonexistent. */
     int ImageCount;                  /* Number of current image (both APIs) */
     GifImageDesc Image;              /* Current image (low-level API) */
     SavedImage *SavedImages;         /* Image sequence (high-level API) */
-    int ExtensionBlockCount;         /* Count extensions past last image */
-    ExtensionBlock *ExtensionBlocks; /* Extensions past last image */    
+//    int ExtensionBlockCount;         /* Count extensions past last image */
+//    ExtensionBlock *ExtensionBlocks; /* Extensions past last image */
     int Error;			     /* Last error condition reported */
     void *UserData;                  /* hook to attach user data (TVT) */
     void *Private;                   /* Don't mess with this! */
@@ -107,7 +96,7 @@ typedef struct GraphicsControlBlock {
 #define DISPOSE_DO_NOT            1       /* Leave image in place */
 #define DISPOSE_BACKGROUND        2       /* Set area too background color */
 #define DISPOSE_PREVIOUS          3       /* Restore to previous content */
-    bool UserInputFlag;      /* User confirmation required before disposal */
+//    bool UserInputFlag;      /* User confirmation required before disposal */
     int DelayTime;           /* pre-display delay in 0.01sec units */
     int TransparentColor;    /* Palette index for transparency, -1 if none */
 #define NO_TRANSPARENT_COLOR	-1
@@ -179,13 +168,6 @@ int DGifExtensionToGCB(const size_t GifExtensionLength,
 		       const GifByteType *GifExtension,
 		       GraphicsControlBlock *GCB);
 
-/******************************************************************************
- The library's internal utility font                          
-******************************************************************************/
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 #endif /* _GIF_LIB_H */
 
 /* end */

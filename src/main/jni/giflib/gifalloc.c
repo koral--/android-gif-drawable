@@ -106,42 +106,6 @@ GifFreeExtensions(int *ExtensionBlockCount,
  Image block allocation functions                          
 ******************************************************************************/
 
-/* Private Function:
- * Frees the last image in the GifFile->SavedImages array
- */
-void
-FreeLastSavedImage(GifFileType *GifFile)
-{
-    SavedImage *sp;
-    
-    if ((GifFile == NULL) || (GifFile->SavedImages == NULL))
-        return;
-
-    /* Remove one SavedImage from the GifFile */
-    GifFile->ImageCount--;
-    sp = &GifFile->SavedImages[GifFile->ImageCount];
-
-    /* Deallocate its Colormap */
-    if (sp->ImageDesc.ColorMap != NULL) {
-        GifFreeMapObject(sp->ImageDesc.ColorMap);
-        sp->ImageDesc.ColorMap = NULL;
-    }
-
-    /* Deallocate the image data */
-    if (sp->RasterBits != NULL)
-        free((char *)sp->RasterBits);
-
-    /* Deallocate any extensions */
-    GifFreeExtensions(&sp->ExtensionBlockCount, &sp->ExtensionBlocks);
-
-    /*** FIXME: We could realloc the GifFile->SavedImages structure but is
-     * there a point to it? Saves some memory but we'd have to do it every
-     * time.  If this is used in GifFreeSavedImages then it would be inefficient
-     * (The whole array is going to be deallocated.)  If we just use it when
-     * we want to free the last Image it's convenient to do it here.
-     */
-}
-
 void
 GifFreeSavedImages(GifFileType *GifFile)
 {

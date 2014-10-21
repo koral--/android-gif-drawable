@@ -23,7 +23,6 @@ android {
 
         ndk {
             moduleName 'gif'
-            cFlags '-DHAVE_CONFIG_H'
             //ldLibs 'log'
             abiFilter 'all'
         }
