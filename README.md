@@ -193,7 +193,7 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 
 
 ###References
-This library uses code from [GIFLIB](http://giflib.sourceforge.net/) 5.0.5 and [SKIA](https://code.google.com/p/skia/).
+This library uses code from [GIFLIB](http://giflib.sourceforge.net/) 5.1.0 and [SKIA](https://code.google.com/p/skia/).
 
 ##License
 
