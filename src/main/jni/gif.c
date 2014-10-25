@@ -8,7 +8,7 @@ static ColorMapObject* genDefColorMap(void);
 /**
  * @return the real time, in ms
  */
-static __time_t getRealTime(void);
+static inline __time_t getRealTime(void);
 
 /**
  * Frees dynamically allocated memory
@@ -67,12 +67,12 @@ static void cleanUp(GifInfo* info)
 	free(info);
 }
 
-static __time_t getRealTime(void)
+static inline __time_t getRealTime(void)
 {
 	struct timespec ts;
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) != -1)
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
 		return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-	return -1;
+	return -1; //should not happen since ts is in addresable space and CLOCK_MONOTONIC_RAW should be present
 }
 
 static int fileRead(GifFileType *gif, GifByteType *bytes, int size)
@@ -84,8 +84,9 @@ static int fileRead(GifFileType *gif, GifByteType *bytes, int size)
 static JNIEnv *getEnv(void)
 {
 	JNIEnv* env = NULL;
-    (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
-	return env;
+    if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
+	    return env;
+    return NULL;
 }
 
 static int directByteBufferReadFun(GifFileType* gif, GifByteType* bytes, int size)
@@ -114,6 +115,8 @@ static int streamReadFun(GifFileType* gif, GifByteType* bytes, int size)
 {
 	StreamContainer* sc = gif->UserData;
 	JNIEnv* env = getEnv();
+    if (env == NULL)
+        return 0;
 
 	(*env)->MonitorEnter(env, sc->stream);
 
@@ -161,6 +164,8 @@ static int streamRewind(GifInfo *info)
 	GifFileType* gif = info->gifFilePtr;
 	StreamContainer* sc = gif->UserData;
 	JNIEnv* env = getEnv();
+    if (env == NULL)
+        return -1;
 	(*env)->CallVoidMethod(env, sc->stream, sc->resetMID);
 	if ((*env)->ExceptionOccurred(env))
 	{
@@ -234,7 +239,7 @@ static inline bool setupBackupBmp(GifInfo* info, int transpIndex)
 		return false;
 	}
 	argb paintingColor;
-	if (transpIndex == -1)
+	if (transpIndex == NO_TRANSPARENT_COLOR)
 		getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
 				fGIF->SColorMap);
 	else
@@ -872,7 +877,7 @@ static void getBitmap(argb* bm, GifInfo* info)
 	if (i == 0)
 	{
 	    argb paintingColor;
-		if (transpIndex == -1)
+		if (transpIndex == NO_TRANSPARENT_COLOR)
 			getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
 					fGIF->SColorMap);
 		else
@@ -989,7 +994,6 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 	else
 		info->nextStartTime = getRealTime()
                 + (unsigned long) (info->infos[info->currentIndex].duration * info->speedFactor);
-
 }
 
 JNIEXPORT jboolean JNICALL
@@ -1007,11 +1011,11 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 		if (++info->currentIndex >= info->gifFilePtr->ImageCount)
 			info->currentIndex = 0;
 		needRedraw = true;
-		isAnimationCompleted = info->currentIndex >= info->gifFilePtr->ImageCount -1 ?
+		isAnimationCompleted = info->currentIndex >= info->gifFilePtr->ImageCount - 1 ?
 		    JNI_TRUE : JNI_FALSE;
 	}
 	else
-	    isAnimationCompleted=JNI_FALSE;
+	    isAnimationCompleted = JNI_FALSE;
 
 	jint* const rawMetaData = (*env)->GetIntArrayElements(env, metaData, 0);
 	if (rawMetaData==NULL)
@@ -1046,7 +1050,7 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 	    long delay=info->nextStartTime-rt;
 	    if (delay<0)
 	        rawMetaData[4] = -1;
-	    else //no need to check upper bound since info->nextStartTime<=rt+INT_MAX always
+	    else //no need to check upper bound since info->nextStartTime<=rt+LONG_MAX always
 		    rawMetaData[4] = (int) delay;
 	}
 	(*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
@@ -1155,7 +1159,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
 			info->lastFrameReaminder == ULONG_MAX ?
 					getRealTime() - info->nextStartTime :
 					info->lastFrameReaminder;
-	return (int) (sum + remainder);
+	return (jint) (sum + remainder); //2^31-1[ms]>596[h] so jint is enough
 }
 
 JNIEXPORT void JNICALL
