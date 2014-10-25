@@ -1,7 +1,9 @@
 #include "gif.h"
 
 /**
- * Generates default color map, used when there is no color map defined in GIF file
+ * Generates default color map, used when there is no color map defined in GIF file.
+ * Upon succesfull allocation in JNI_OnLoad it is stored for further use.
+ *
  */
 static ColorMapObject* genDefColorMap(void);
 
@@ -15,8 +17,15 @@ static inline __time_t getRealTime(void);
  */
 static void cleanUp(GifInfo* info);
 
+/**
+* Global VM reference, initialized in JNI_OnLoad
+*/
 static JavaVM* g_jvm;
-static ColorMapObject* defaultCmap = NULL;
+
+/**
+* Global default color map, initialized by genDefColorMap(void)
+*/
+static ColorMapObject* defaultCmap;
 
 static ColorMapObject* genDefColorMap(void)
 {
@@ -430,7 +439,7 @@ static int DDGifSlurp(GifFileType* GifFile, GifInfo* info, bool shouldDecode)
 		return (GIF_OK);
 	else
 	{
-		info->gifFilePtr->Error = D_GIF_ERR_READ_FAILED;
+		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 		return (GIF_ERROR);
 	}
 }
@@ -540,7 +549,7 @@ static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 	if (imgCount < 1)
 		Error = D_GIF_ERR_NO_FRAMES;
 	if (info->rewindFunction(info) != 0)
-		Error = D_GIF_ERR_READ_FAILED;
+		Error = D_GIF_ERR_REWIND_FAILED;
 	if (Error != 0)
 		cleanUp(info);
 	setMetaData(width, height, imgCount, Error, env, metaData);

@@ -16,7 +16,7 @@
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 /**
- * some gif files are not strictly follow 89a.
+ * Some gif files are not strictly follow 89a.
  * DGifSlurp will return read head error or get record type error.
  * but the image still can display. so here should ignore the error.
  */
@@ -27,9 +27,21 @@
  * Decoding error - no frames
  */
 #define D_GIF_ERR_NO_FRAMES     	1000
+/**
+* Decoding error - invalid GIF screen size
+*/
 #define D_GIF_ERR_INVALID_SCR_DIMS 	1001
+/**
+* Decoding error - invalid frame size
+*/
 #define D_GIF_ERR_INVALID_IMG_DIMS 	1002
+/**
+* Decoding error - frame size is greater that screen size
+*/
 #define D_GIF_ERR_IMG_NOT_CONFINED 	1003
+/**
+* Decoding error - input source rewind failed
+*/
 #define D_GIF_ERR_REWIND_FAILED 	1004
 
 typedef struct
