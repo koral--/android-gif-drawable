@@ -18,12 +18,12 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
     defaultConfig {
-        minSdkVersion 4
+        minSdkVersion 8
         targetSdkVersion 21
 
         ndk {
             moduleName 'gif'
-            //ldLibs 'log'
+            ldLibs 'jnigraphics' //'log'
             abiFilter 'all'
         }
     }

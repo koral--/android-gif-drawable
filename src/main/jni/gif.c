@@ -1006,11 +1006,11 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT jboolean JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
-		jintArray jPixels, jlong gifInfo, jintArray metaData)
+Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv* env, jclass class,
+		jobject jbitmap, jlong gifInfo, jintArray metaData)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
-	if (info == NULL || jPixels==NULL)
+	if (info == NULL || jbitmap==NULL) //TODO check if needed
 		return JNI_FALSE;
 	bool needRedraw = false;
 	__time_t rt = getRealTime();
@@ -1032,16 +1032,16 @@ Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv * env, jclass class,
 
  	if (needRedraw)
 	{
-		jint* const pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
-		if (pixels==NULL)
+        void* pixels = NULL;
+        if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS)
 		{
 		    (*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
-		    return isAnimationCompleted;
+		    return JNI_FALSE;
 		}
         getBitmap((argb *) pixels, info);
 		rawMetaData[3] = info->gifFilePtr->Error;
 
-		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
+        AndroidBitmap_unlockPixels(env, jbitmap);//TODO check result
 		unsigned int scaledDuration = info->infos[info->currentIndex].duration;
 		if (info->speedFactor != 1.0)
 		{
