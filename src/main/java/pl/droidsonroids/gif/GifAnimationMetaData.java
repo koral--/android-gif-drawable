@@ -21,10 +21,13 @@ import java.util.Locale;
  * without having to allocate the memory for its pixels.
  */
 public class GifAnimationMetaData implements Serializable, Parcelable {
-    private static final long serialVersionUID = 6518019337497570800L;
+    private static final long serialVersionUID = 5692363926580237325L;
 
-    //[w,h,imageCount,loopCount,duration]
-    private final int[] mMetaData = new int[5];
+    private final int mLoopCount;
+    private final int mDuration;
+    private final int mHeight;
+    private final int mWidth;
+    private final int mImageCount;
 
     /**
      * Retrieves from resource.
@@ -62,9 +65,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if filePath is null
      */
     public GifAnimationMetaData(String filePath) throws IOException {
-        if (filePath == null)
-            throw new NullPointerException("Source is null");
-        init(GifDrawable.openFile(mMetaData, filePath, true));
+        this(GifDrawable.openFile(filePath, true));
     }
 
     /**
@@ -75,9 +76,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if file is null
      */
     public GifAnimationMetaData(File file) throws IOException {
-        if (file == null)
-            throw new NullPointerException("Source is null");
-        init(GifDrawable.openFile(mMetaData, file.getPath(), true));
+        this(GifDrawable.openFile(file.getPath(), true));
     }
 
     /**
@@ -90,11 +89,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException     if stream is null
      */
     public GifAnimationMetaData(InputStream stream) throws IOException {
-        if (stream == null)
-            throw new NullPointerException("Source is null");
-        if (!stream.markSupported())
-            throw new IllegalArgumentException("InputStream does not support marking");
-        init(GifDrawable.openStream(mMetaData, stream, true));
+        this(GifDrawable.openMarkableInputStream(stream, true));
     }
 
     /**
@@ -106,15 +101,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException          when opening failed
      */
     public GifAnimationMetaData(AssetFileDescriptor afd) throws IOException {
-        if (afd == null)
-            throw new NullPointerException("Source is null");
-        FileDescriptor fd = afd.getFileDescriptor();
-        try {
-            init(GifDrawable.openFd(mMetaData, fd, afd.getStartOffset(), true));
-        } catch (IOException ex) {
-            afd.close();
-            throw ex;
-        }
+        this(GifDrawable.openAssetFileDescriptor(afd, true));
     }
 
     /**
@@ -125,9 +112,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if fd is null
      */
     public GifAnimationMetaData(FileDescriptor fd) throws IOException {
-        if (fd == null)
-            throw new NullPointerException("Source is null");
-        init(GifDrawable.openFd(mMetaData, fd, 0, true));
+        this(GifDrawable.openFd(fd, 0, true));
     }
 
     /**
@@ -139,9 +124,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if bytes are null
      */
     public GifAnimationMetaData(byte[] bytes) throws IOException {
-        if (bytes == null)
-            throw new NullPointerException("Source is null");
-        init(GifDrawable.openByteArray(mMetaData, bytes, true));
+        this(GifDrawable.openByteArray(bytes, true));
     }
 
     /**
@@ -154,11 +137,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException     if buffer is null
      */
     public GifAnimationMetaData(ByteBuffer buffer) throws IOException {
-        if (buffer == null)
-            throw new NullPointerException("Source is null");
-        if (!buffer.isDirect())
-            throw new IllegalArgumentException("ByteBuffer is not direct");
-        init(GifDrawable.openDirectByteBuffer(mMetaData, buffer, true));
+        this(GifDrawable.openDirectByteBuffer(buffer, true));
     }
 
     /**
@@ -174,31 +153,34 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
         this(resolver.openAssetFileDescriptor(uri, "r"));
     }
 
-    private void init(final long gifInfoPtr) {
-        mMetaData[3] = GifDrawable.getLoopCount(gifInfoPtr);
-        mMetaData[4] = GifDrawable.getDuration(gifInfoPtr);
-        GifDrawable.free(gifInfoPtr);
+    private GifAnimationMetaData(final GifInfoHandle gifInfoHandle) {
+        mLoopCount = GifDrawable.getLoopCount(gifInfoHandle.gifInfoPtr);
+        mDuration = GifDrawable.getDuration(gifInfoHandle.gifInfoPtr);
+        GifDrawable.free(gifInfoHandle.gifInfoPtr);
+        mWidth = gifInfoHandle.width;
+        mHeight = gifInfoHandle.height;
+        mImageCount = gifInfoHandle.imageCount;
     }
 
     /**
      * @return width od the GIF canvas in pixels
      */
     public int getWidth() {
-        return mMetaData[0];
+        return mWidth;
     }
 
     /**
      * @return height od the GIF canvas in pixels
      */
     public int getHeight() {
-        return mMetaData[1];
+        return mHeight;
     }
 
     /**
      * @return number of frames in GIF, at least one
      */
     public int getNumberOfFrames() {
-        return mMetaData[2];
+        return mImageCount;
     }
 
     /**
@@ -208,7 +190,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @return loop count, 0 means that animation is infinite
      */
     public int getLoopCount() {
-        return mMetaData[3];
+        return mLoopCount;
     }
 
     /**
@@ -220,22 +202,22 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
      */
     public int getDuration() {
-        return mMetaData[4];
+        return mDuration;
     }
 
     /**
      * @return true if GIF is animated (has at least 2 frames and positive duration), false otherwise
      */
     public boolean isAnimated() {
-        return mMetaData[2] > 1 && mMetaData[4] > 0;
+        return mImageCount > 1 && mDuration > 0;
     }
 
     @Override
     public String toString() {
-        String loopCount = mMetaData[3] == 0 ? "Infinity" : Integer.toString(mMetaData[3]);
+        String loopCount = mLoopCount == 0 ? "Infinity" : Integer.toString(mLoopCount);
         String suffix = String.format(Locale.US,
                 "GIF: size: %dx%d, frames: %d, loops: %s, duration: %d",
-                mMetaData[0], mMetaData[1], mMetaData[2], loopCount, mMetaData[4]);
+                mWidth, mHeight, mImageCount, loopCount, mDuration);
         return isAnimated() ? "Animated " + suffix : suffix;
     }
 
@@ -246,13 +228,19 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        for (int i = 0; i < mMetaData.length; i++)
-            dest.writeInt(mMetaData[i]);
+        dest.writeInt(mLoopCount);
+        dest.writeInt(mDuration);
+        dest.writeInt(mHeight);
+        dest.writeInt(mWidth);
+        dest.writeInt(mImageCount);
     }
 
     private GifAnimationMetaData(Parcel in) {
-        for (int i = 0; i < mMetaData.length; i++)
-            mMetaData[i] = in.readInt();
+        mLoopCount = in.readInt();
+        mDuration = in.readInt();
+        mHeight = in.readInt();
+        mWidth = in.readInt();
+        mImageCount = in.readInt();
     }
 
     public static final Parcelable.Creator<GifAnimationMetaData> CREATOR = new Parcelable.Creator<GifAnimationMetaData>() {

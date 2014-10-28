@@ -2,7 +2,7 @@
 
 /**
  * Generates default color map, used when there is no color map defined in GIF file.
- * Upon succesfull allocation in JNI_OnLoad it is stored for further use.
+ * Upon successful allocation in JNI_OnLoad it is stored for further use.
  *
  */
 static ColorMapObject* genDefColorMap(void);
@@ -10,7 +10,7 @@ static ColorMapObject* genDefColorMap(void);
 /**
  * @return the real time, in ms
  */
-static inline __time_t getRealTime(void);
+static inline time_t getRealTime(void);
 
 /**
  * Frees dynamically allocated memory
@@ -26,6 +26,23 @@ static JavaVM* g_jvm;
 * Global default color map, initialized by genDefColorMap(void)
 */
 static ColorMapObject* defaultCmap;
+
+static jobject createGifInfoHandle(GifInfo *gifInfo, JNIEnv *env)
+{
+    if (gifInfo == NULL)
+        return NULL;
+    jclass gifInfoHandleClass = (*env)->FindClass(env,
+            "pl/droidsonroids/gif/GifInfoHandle");
+    if (gifInfoHandleClass == NULL)
+        return NULL;
+    jmethodID gifInfoHandleCtorMID = (*env)->GetMethodID(env, gifInfoHandleClass, "<init>", "(JIII)V");
+    if (gifInfoHandleCtorMID == NULL)
+        return NULL;
+
+    return (*env)->NewObject(env, gifInfoHandleClass, gifInfoHandleCtorMID,
+            (jlong)(intptr_t)gifInfo, gifInfo->gifFilePtr->SWidth, gifInfo->gifFilePtr->SHeight,
+             gifInfo->gifFilePtr->ImageCount);
+}
 
 static ColorMapObject* genDefColorMap(void)
 {
@@ -76,12 +93,29 @@ static void cleanUp(GifInfo* info)
 	free(info);
 }
 
-static inline __time_t getRealTime(void)
+static inline time_t getRealTime(void)
 {
 	struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
 		return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-	return -1; //should not happen since ts is in addresable space and CLOCK_MONOTONIC_RAW should be present
+	return -1; //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
+}
+
+static inline bool isSourceNull(void *ptr, JNIEnv* env)
+{
+    if (ptr!=NULL)
+        return false;
+    jclass exClass = (*env)->FindClass(env,
+            "java/lang/NullPointerException");
+    if (exClass == NULL)
+        return true;
+    jmethodID mid = (*env)->GetMethodID(env, exClass, "<init>", "(Ljava/lang/String;)V");
+    if (mid == NULL)
+        return true;
+    jobject exception = (*env)->NewObject(env, exClass, mid, (*env)->NewStringUTF(env, "Source is null"));
+    if (exception != NULL)
+        (*env)->Throw(env, exception);
+    return true;
 }
 
 static int fileRead(GifFileType *gif, GifByteType *bytes, int size)
@@ -444,23 +478,10 @@ static int DDGifSlurp(GifFileType* GifFile, GifInfo* info, bool shouldDecode)
 	}
 }
 
-static void setMetaData(int width, int height, int ImageCount, int errorCode,
-		JNIEnv * env, jintArray metaData)
-{
-	jint* const ints = (*env)->GetIntArrayElements(env, metaData, 0);
-	if (ints==NULL)
-	    return;
-	ints[0] = width;
-	ints[1] = height;
-	ints[2] = ImageCount;
-	ints[3] = errorCode;
-	(*env)->ReleaseIntArrayElements(env, metaData, ints, 0);
-	if (errorCode == 0)
-		return;
-
+static void throwGifIOException(int errorCode, JNIEnv *env)
+{//nullchecks just to prevent segfaults, LinkageError will be thrown if GifIOException cannot be instantiated
 	jclass exClass = (*env)->FindClass(env,
 			"pl/droidsonroids/gif/GifIOException");
-
 	if (exClass == NULL)
 		return;
 	jmethodID mid = (*env)->GetMethodID(env, exClass, "<init>", "(I)V");
@@ -471,8 +492,7 @@ static void setMetaData(int width, int height, int ImageCount, int errorCode,
 		(*env)->Throw(env, exception);
 }
 
-static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
-		RewindFunc rewindFunc, JNIEnv * env, jintArray metaData, const jboolean justDecodeMetaData)
+static GifInfo *open(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData)
 {
 	if (startPos < 0)
 	{
@@ -481,7 +501,7 @@ static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 	}
 	if (Error != 0 || GifFileIn == NULL)
 	{
-		setMetaData(0, 0, 0, Error, env, metaData);
+        throwGifIOException(Error, env);
 		return NULL;
 	}
 	int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
@@ -489,16 +509,14 @@ static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 	if (wxh < 1 || wxh > INT_MAX)
 	{
 		DGifCloseFile(GifFileIn);
-		setMetaData(width, height, 0,
-		D_GIF_ERR_INVALID_SCR_DIMS, env, metaData);
+        throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env);
 		return NULL;
 	}
 	GifInfo* info = malloc(sizeof(GifInfo));
 	if (info == NULL)
 	{
 		DGifCloseFile(GifFileIn);
-		setMetaData(width, height, 0,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
+        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
 		return NULL;
 	}
 	info->gifFilePtr = GifFileIn;
@@ -522,8 +540,7 @@ static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 	if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL)
 	{
 		cleanUp(info);
-		setMetaData(width, height, 0,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
+        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
 		return NULL;
 	}
 	info->infos->duration = 0;
@@ -544,114 +561,111 @@ static GifInfo* open(GifFileType* GifFileIn, int Error, long startPos,
 	DDGifSlurp(GifFileIn, info, false);
 #endif
 
-	int imgCount = GifFileIn->ImageCount;
-
-	if (imgCount < 1)
-		Error = D_GIF_ERR_NO_FRAMES;
-	if (info->rewindFunction(info) != 0)
-		Error = D_GIF_ERR_REWIND_FAILED;
-	if (Error != 0)
-		cleanUp(info);
-	setMetaData(width, height, imgCount, Error, env, metaData);
-
-	return Error == 0 ? info : NULL;
+    if (GifFileIn->ImageCount < 1) {
+        Error = D_GIF_ERR_NO_FRAMES;
+    }
+	else if (info->rewindFunction(info) != 0) {
+        Error = D_GIF_ERR_REWIND_FAILED;
+    }
+	if (Error != 0) {
+        cleanUp(info);
+        throwGifIOException(Error, env);
+        return NULL;
+    }
+    return info;
 }
 
-JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env, jclass class,
-		jintArray metaData, jstring jfname, jboolean justDecodeMetaData)
+JNIEXPORT jobject JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openFile(JNIEnv * env, jclass __unused class,
+		jstring jfname, jboolean justDecodeMetaData)
 {
-	if (jfname == NULL)
-	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_OPEN_FAILED, env, metaData);
-		return (jlong)(intptr_t) NULL;
-	}
+    if (isSourceNull(jfname, env))
+    {
+        return NULL;
+    }
 
 	const char * const fname = (*env)->GetStringUTFChars(env, jfname, 0);
 	FILE * file = fopen(fname, "rb");
 	(*env)->ReleaseStringUTFChars(env, jfname, fname);
 	if (file == NULL)
 	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_OPEN_FAILED, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+		return NULL;
 	}
-	int Error = 0;
+	int Error;
 	GifFileType* GifFileIn = DGifOpen(file, &fileRead, &Error);
-	return (jlong)(intptr_t) open(GifFileIn, Error, ftell(file), fileRewind, env, metaData, justDecodeMetaData);
+	return createGifInfoHandle(open(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData), env);
 }
 
-JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass class,
-		jintArray metaData, jbyteArray bytes, jboolean justDecodeMetaData)
+JNIEXPORT jobject JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openByteArray(JNIEnv * env, jclass __unused class,
+		jbyteArray bytes, jboolean justDecodeMetaData)
 {
+    if (isSourceNull(bytes, env))
+    {
+        return NULL;
+    }
 	ByteArrayContainer* container = malloc(sizeof(ByteArrayContainer));
 	if (container == NULL)
 	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+		return NULL;
 	}
 	container->buffer = (*env)->NewGlobalRef(env, bytes);
 	container->arrLen = (*env)->GetArrayLength(env, container->buffer);
 	container->pos = 0;
-	int Error = 0;
+	int Error;
 	GifFileType* GifFileIn = DGifOpen(container, &byteArrayReadFun, &Error);
 
-	GifInfo* openResult = open(GifFileIn, Error, container->pos, byteArrayRewind,
-            env, metaData, justDecodeMetaData);
+	GifInfo* openResult = open(GifFileIn, Error, container->pos, byteArrayRewind, env, justDecodeMetaData);
 
 	if (openResult == NULL)
 	{
 		(*env)->DeleteGlobalRef(env, container->buffer);
 		free(container);
-		container=NULL;
+		return NULL;
 	}
-	return (jlong)(intptr_t) openResult;
+	return createGifInfoHandle(openResult, env);
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT jobject JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_openDirectByteBuffer(JNIEnv * env,
-		jclass class, jintArray metaData, jobject buffer, jboolean justDecodeMetaData)
+		jclass __unused class, jobject buffer, jboolean justDecodeMetaData)
 {
 	jbyte* bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
 	if (bytes == NULL || capacity <= 0)
 	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_OPEN_FAILED, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+		return NULL;
 	}
 	DirectByteBufferContainer* container = malloc(
 			sizeof(DirectByteBufferContainer));
 	if (container == NULL)
 	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+		return NULL;
 	}
 	container->bytes = bytes;
 	container->capacity = capacity;
 	container->pos = 0;
-	int Error = 0;
+	int Error;
 	GifFileType* GifFileIn = DGifOpen(container, &directByteBufferReadFun,
 			&Error);
 
-	GifInfo* openResult = open(GifFileIn, Error, container->pos,
-			directByteBufferRewindFun, env, metaData, justDecodeMetaData);
+	GifInfo* openResult = open(GifFileIn, Error, container->pos, directByteBufferRewindFun, env, justDecodeMetaData);
 
 	if (openResult == NULL)
 	{
 		free(container);
-		container=NULL;
+        return NULL;
     }
-	return (jlong)(intptr_t) openResult;
+    return createGifInfoHandle(openResult, env);
 }
 
-JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
-		jintArray metaData, jobject stream, jboolean justDecodeMetaData)
+JNIEXPORT jobject JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass __unused class,
+		jobject stream, jboolean justDecodeMetaData)
 {
 	jclass streamCls = (*env)->NewGlobalRef(env,
 			(*env)->GetObjectClass(env, stream));
@@ -662,17 +676,15 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 	if (mid == 0 || readMID == 0 || resetMID == 0)
 	{
 		(*env)->DeleteGlobalRef(env, streamCls);
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_OPEN_FAILED, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+		return NULL;
 	}
 
 	StreamContainer* container = malloc(sizeof(StreamContainer));
 	if (container == NULL)
 	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_NOT_ENOUGH_MEM, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+		return NULL;
 	}
 	container->readMID = readMID;
 	container->resetMID = resetMID;
@@ -686,44 +698,46 @@ Java_pl_droidsonroids_gif_GifDrawable_openStream(JNIEnv * env, jclass class,
 
 	(*env)->CallVoidMethod(env, stream, mid, LONG_MAX); //TODO better length?
 
-	GifInfo* openResult = open(GifFileIn, Error, 0, streamRewind, env, metaData, justDecodeMetaData);
+	GifInfo* openResult = open(GifFileIn, Error, 0, streamRewind, env, justDecodeMetaData);
 	if (openResult == NULL)
 	{
 		(*env)->DeleteGlobalRef(env, streamCls);
 		(*env)->DeleteGlobalRef(env, container->stream);
 		free(container);
-		container=NULL;
+		return NULL;
 	}
-	return (jlong)(intptr_t) openResult;
+	return createGifInfoHandle(openResult, env);
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT jobject JNICALL
 Java_pl_droidsonroids_gif_GifDrawable_openFd(JNIEnv * env, jclass class,
-		jintArray metaData, jobject jfd, jlong offset, jboolean justDecodeMetaData)
+		jobject jfd, jlong offset, jboolean justDecodeMetaData)
 {
+    if (isSourceNull(jfd, env))
+    {
+        return NULL;
+    }
 	jclass fdClass = (*env)->GetObjectClass(env, jfd);
 	jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass,
 			"descriptor", "I");
 	if (fdClassDescriptorFieldID == NULL)
 	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_OPEN_FAILED, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+		return NULL;
 	}
 	jint fd = (*env)->GetIntField(env, jfd, fdClassDescriptorFieldID);
 	FILE* file = fdopen(dup(fd), "rb");
 	if (file == NULL || fseek(file, offset, SEEK_SET) != 0)
 	{
-		setMetaData(0, 0, 0,
-		D_GIF_ERR_OPEN_FAILED, env, metaData);
-		return (jlong)(intptr_t) NULL;
+        throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+		return NULL;
 	}
 
 	int Error = 0;
 	GifFileType* GifFileIn = DGifOpen(file, &fileRead, &Error);
 	long startPos = ftell(file);
 
-	return (jlong)(intptr_t) open(GifFileIn, Error, startPos, fileRewind, env, metaData, justDecodeMetaData);
+	return createGifInfoHandle(open(GifFileIn, Error, startPos, fileRewind, env, justDecodeMetaData), env);
 }
 
 static void copyLine(argb* dst, const unsigned char* src,
@@ -903,7 +917,7 @@ static void getBitmap(argb* bm, GifInfo* info)
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
+Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv* __unused  env, jclass  __unused class,
 		jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
@@ -913,7 +927,7 @@ Java_pl_droidsonroids_gif_GifDrawable_reset(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(JNIEnv * env, jclass class,
+Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(JNIEnv __unused  *env, jclass __unused class,
 		jlong gifInfo, jfloat factor)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
@@ -923,11 +937,11 @@ Java_pl_droidsonroids_gif_GifDrawable_setSpeedFactor(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
-		jlong gifInfo, jint desiredPos, jintArray jPixels)
+Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass __unused class,
+		jlong gifInfo, jint desiredPos, jobject jbitmap)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
-	if (info == NULL ||jPixels==NULL)
+	if (info == NULL)
 		return;
 	int imgCount = info->gifFilePtr->ImageCount;
 	if (imgCount <= 1)
@@ -945,20 +959,22 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 	if (i < info->currentIndex)
 		return;
 
-	unsigned long lastFrameRemainder = desiredPos - sum;
+    time_t lastFrameRemainder = desiredPos - sum;
 	if (i == imgCount - 1 && lastFrameRemainder > info->infos[i].duration)
 		lastFrameRemainder = info->infos[i].duration;
 	if (i > info->currentIndex)
 	{
-		jint* const pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
-		if (pixels==NULL)
-		    return;
+        void* pixels;
+        if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS)
+        {
+            return;
+        }
 		while (info->currentIndex <= i)
 		{
 			info->currentIndex++;
             getBitmap((argb *) pixels, info);
 		}
-		(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
+        AndroidBitmap_unlockPixels(env, jbitmap); //TODO check result?
 	}
 	info->lastFrameReaminder = lastFrameRemainder;
 
@@ -966,26 +982,27 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToTime(JNIEnv * env, jclass class,
 		info->nextStartTime = getRealTime() + lastFrameRemainder;
 	else
 		info->nextStartTime = getRealTime()
-				+ (unsigned long)(lastFrameRemainder * info->speedFactor);
+				+ (time_t)(lastFrameRemainder * info->speedFactor);
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
-		jlong gifInfo, jint desiredIdx, jintArray jPixels)
+Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass __unused class,
+		jlong gifInfo, jint desiredIdx, jobject jbitmap)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
-	if (info == NULL|| jPixels==NULL)
+	if (info == NULL)
 		return;
 	if (desiredIdx <= info->currentIndex)
 		return;
 
-	int imgCount = info->gifFilePtr->ImageCount;
+	const int imgCount = info->gifFilePtr->ImageCount;
 	if (imgCount <= 1)
 		return;
-
-	jint * const pixels = (*env)->GetIntArrayElements(env, jPixels, 0);
-	if (pixels==NULL)
-	    return;
+    void* pixels;
+    if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS)
+    {
+        return;
+    }
 
 	info->lastFrameReaminder = 0;
 	if (desiredIdx >= imgCount)
@@ -996,88 +1013,89 @@ Java_pl_droidsonroids_gif_GifDrawable_seekToFrame(JNIEnv * env, jclass class,
 		info->currentIndex++;
         getBitmap((argb *) pixels, info);
 	}
-	(*env)->ReleaseIntArrayElements(env, jPixels, pixels, 0);
+    AndroidBitmap_unlockPixels(env, jbitmap); //TODO check result?
+
 	if (info->speedFactor == 1.0)
 		info->nextStartTime = getRealTime()
 				+ info->infos[info->currentIndex].duration;
 	else
 		info->nextStartTime = getRealTime()
-                + (unsigned long) (info->infos[info->currentIndex].duration * info->speedFactor);
+                + (time_t) (info->infos[info->currentIndex].duration * info->speedFactor);
 }
 
-JNIEXPORT jboolean JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv* env, jclass class,
-		jobject jbitmap, jlong gifInfo, jintArray metaData)
+static inline jlong packRenderFrameResult(int invalidationDelay, bool isAnimationCompleted)
+{
+    return (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L));
+}
+
+JNIEXPORT jlong JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_renderFrame(JNIEnv* env, jclass __unused class,
+		jobject jbitmap, jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
-	if (info == NULL || jbitmap==NULL) //TODO check if needed
-		return JNI_FALSE;
+	if (info == NULL)
+		return packRenderFrameResult(-1, false);
 	bool needRedraw = false;
-	__time_t rt = getRealTime();
-	jboolean isAnimationCompleted;
+	time_t rt = getRealTime();
+	bool isAnimationCompleted;
 	if (rt >= info->nextStartTime && info->currentLoop < info->loopCount)
 	{
 		if (++info->currentIndex >= info->gifFilePtr->ImageCount)
 			info->currentIndex = 0;
 		needRedraw = true;
-		isAnimationCompleted = info->currentIndex >= info->gifFilePtr->ImageCount - 1 ?
-		    JNI_TRUE : JNI_FALSE;
+		isAnimationCompleted = info->currentIndex >= info->gifFilePtr->ImageCount - 1;
 	}
 	else
-	    isAnimationCompleted = JNI_FALSE;
+	    isAnimationCompleted = 0;
 
-	jint* const rawMetaData = (*env)->GetIntArrayElements(env, metaData, 0);
-	if (rawMetaData==NULL)
-	    return JNI_FALSE;
-
+    int invalidationDelay;
  	if (needRedraw)
 	{
         void* pixels = NULL;
         if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS)
 		{
-		    (*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
-		    return JNI_FALSE;
+		    return packRenderFrameResult(-1, isAnimationCompleted);
 		}
-        getBitmap((argb *) pixels, info);
-		rawMetaData[3] = info->gifFilePtr->Error;
+        getBitmap((argb*) pixels, info);
 
-        AndroidBitmap_unlockPixels(env, jbitmap);//TODO check result
-		unsigned int scaledDuration = info->infos[info->currentIndex].duration;
-		if (info->speedFactor != 1.0)
-		{
-			scaledDuration /= info->speedFactor;
-			if (scaledDuration<=0)
-			    scaledDuration=1;
-			else if (scaledDuration>INT_MAX)
-			    scaledDuration=INT_MAX;
-		}
-		info->nextStartTime = rt + scaledDuration;
-		rawMetaData[4] = scaledDuration;
+        if (AndroidBitmap_unlockPixels(env, jbitmap) == ANDROID_BITMAP_RESULT_SUCCESS)
+        {
+            unsigned int scaledDuration = info->infos[info->currentIndex].duration;
+            if (info->speedFactor != 1.0) {
+                scaledDuration /= info->speedFactor;
+                if (scaledDuration <= 0)
+                    scaledDuration = 1;
+                else if (scaledDuration > INT_MAX)
+                    scaledDuration = INT_MAX;
+            }
+            info->nextStartTime = rt + scaledDuration;
+            invalidationDelay = scaledDuration;
+        }
+        else
+            return packRenderFrameResult(-1, isAnimationCompleted);;
 	}
 	else
 	{
 	    long delay=info->nextStartTime-rt;
 	    if (delay<0)
-	        rawMetaData[4] = -1;
+            invalidationDelay = -1;
 	    else //no need to check upper bound since info->nextStartTime<=rt+LONG_MAX always
-		    rawMetaData[4] = (int) delay;
+            invalidationDelay = (int) delay;
 	}
-	(*env)->ReleaseIntArrayElements(env, metaData, rawMetaData, 0);
-	return isAnimationCompleted;
+    return packRenderFrameResult(invalidationDelay, isAnimationCompleted);
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
+Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass __unused class,
 		jlong gifInfo)
 {
-	if (gifInfo == (jlong)(intptr_t) NULL)
+    GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
+	if (info == NULL)
 		return;
-	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
 	if (info->rewindFunction == streamRewind)
 	{
 		StreamContainer* sc = info->gifFilePtr->UserData;
-		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close",
-				"()V");
+		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close", "()V");
 		if (closeMID != NULL)
 			(*env)->CallVoidMethod(env, sc->stream, closeMID);
 		if ((*env)->ExceptionOccurred(env))
@@ -1117,7 +1135,7 @@ Java_pl_droidsonroids_gif_GifDrawable_free(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT jstring JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env, jclass class,
+Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env, jclass __unused class,
 		jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
@@ -1127,7 +1145,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getComment(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv * env, jclass class,
+Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv __unused  * env, jclass __unused  class,
 		jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
@@ -1137,7 +1155,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getLoopCount(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_getDuration(JNIEnv * env, jclass class,
+Java_pl_droidsonroids_gif_GifDrawable_getDuration(JNIEnv* __unused  env, jclass __unused class,
 		jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
@@ -1151,8 +1169,8 @@ Java_pl_droidsonroids_gif_GifDrawable_getDuration(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
-		jclass class, jlong gifInfo)
+Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv* __unused env,
+		jclass __unused class, jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
 	if (info == NULL)
@@ -1164,7 +1182,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
 	unsigned int sum = 0;
 	for (i = 0; i < idx; i++)
 		sum += info->infos[i].duration;
-	__time_t remainder =
+	time_t remainder =
 			info->lastFrameReaminder == ULONG_MAX ?
 					getRealTime() - info->nextStartTime :
 					info->lastFrameReaminder;
@@ -1172,7 +1190,7 @@ Java_pl_droidsonroids_gif_GifDrawable_getCurrentPosition(JNIEnv * env,
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_saveRemainder(JNIEnv * env, jclass class,
+Java_pl_droidsonroids_gif_GifDrawable_saveRemainder(JNIEnv* __unused  env, jclass __unused class,
 		jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
@@ -1182,8 +1200,8 @@ Java_pl_droidsonroids_gif_GifDrawable_saveRemainder(JNIEnv * env, jclass class,
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_restoreRemainder(JNIEnv * env,
-		jclass class, jlong gifInfo)
+Java_pl_droidsonroids_gif_GifDrawable_restoreRemainder(JNIEnv* __unused  env,
+		jclass __unused class, jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
 	if (info == NULL || info->lastFrameReaminder == ULONG_MAX)
@@ -1193,8 +1211,8 @@ Java_pl_droidsonroids_gif_GifDrawable_restoreRemainder(JNIEnv * env,
 }
 
 JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifDrawable_getAllocationByteCount(JNIEnv * env,
-		jclass class, jlong gifInfo)
+Java_pl_droidsonroids_gif_GifDrawable_getAllocationByteCount(JNIEnv* __unused  env,
+		jclass __unused class, jlong gifInfo)
 {
 	GifInfo* info = (GifInfo*)(intptr_t) gifInfo;
 	if (info == NULL)
@@ -1206,7 +1224,17 @@ Java_pl_droidsonroids_gif_GifDrawable_getAllocationByteCount(JNIEnv * env,
 	return (jlong) sum;
 }
 
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
+JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifDrawable_getNativeErrorCode(JNIEnv* __unused  env,
+        jclass __unused class, jlong gifInfo)
+{
+    GifInfo* info = (GifInfo*)(intptr_t) gifInfo;
+    if (info == NULL)
+        return 0;
+    return info->gifFilePtr->Error;
+}
+
+jint JNI_OnLoad(JavaVM* vm, void* __unused reserved)
 {
 	JNIEnv* env;
 	if ((*vm)->GetEnv(vm, (void**) (&env), JNI_VERSION_1_6) != JNI_OK)
@@ -1220,7 +1248,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	return JNI_VERSION_1_6;
 }
 
-void JNI_OnUnload(JavaVM* vm, void* reserved)
+void JNI_OnUnload(JavaVM* __unused vm, void* __unused reserved)
 {
 	GifFreeMapObject(defaultCmap);
 }

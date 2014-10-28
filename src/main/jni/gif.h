@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
+#include <sys/cdefs.h>
 #include "giflib/gif_lib.h"
 
 //#include <android/log.h>
@@ -68,8 +69,8 @@ typedef int
 struct GifInfo
 {
 	GifFileType* gifFilePtr;
-    __time_t lastFrameReaminder;
-	__time_t nextStartTime;
+    time_t lastFrameReaminder;
+    time_t nextStartTime;
 	int currentIndex;
     FrameInfo* infos;
 	argb* backupPtr;
