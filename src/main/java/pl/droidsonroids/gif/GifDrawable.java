@@ -1,5 +1,6 @@
 package pl.droidsonroids.gif;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -589,6 +590,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @return size of the allocated memory used to store pixels of this object
      */
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     public long getAllocationByteCount() {
         long byteCount = getAllocationByteCount(mNativeInfoHandle.gifInfoPtr);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
