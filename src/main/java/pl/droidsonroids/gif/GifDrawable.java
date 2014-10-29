@@ -36,58 +36,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
-    static {
-        System.loadLibrary("gif");
-    }
-
-    /**
-     * Decodes a frame if needed.
-     *
-     * @param buffer   frame destination
-     * @param gifFileInPtr GifInfo pointer
-     * @return true if loop of the animation is completed
-     */
-    private native long renderFrame(Bitmap buffer, long gifFileInPtr);
-
-    static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
-
-    static native GifInfoHandle openByteArray(byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
-
-    static native GifInfoHandle openDirectByteBuffer(ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
-
-    private static native GifInfoHandle openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
-
-    static native GifInfoHandle openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
-
-    static native void free(long gifFileInPtr);
-
-    private static native void reset(long gifFileInPtr);
-
-    private static native void setSpeedFactor(long gifFileInPtr, float factor);
-
-    private static native String getComment(long gifFileInPtr);
-
-    static native int getLoopCount(long gifFileInPtr);
-
-    static native int getDuration(long gifFileInPtr);
-
-    private static native int getCurrentPosition(long gifFileInPtr);
-
-    private static native void seekToTime(long gifFileInPtr, int pos, Bitmap buffer);
-
-    private static native void seekToFrame(long gifFileInPtr, int frameNr, Bitmap buffer);
-
-    private static native void saveRemainder(long gifFileInPtr);
-
-    private static native void restoreRemainder(long gifFileInPtr);
-
-    private static native long getAllocationByteCount(long gifFileInPtr);
-
-    private static native int getNativeErrorCode(long gifFileInPtr);
-
     private volatile boolean mIsRunning = true;
-
-    //private final int[] mMetaData = new int[5];//[w,h,imageCount,errorCode,post invalidation time]
     private final long mInputSourceLength;
 
     private float mSx = 1f;
@@ -109,14 +58,14 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Runnable mResetTask = new Runnable() {
         @Override
         public void run() {
-            reset(mNativeInfoHandle.gifInfoPtr);
+            GifInfoHandle.reset(mNativeInfoHandle.gifInfoPtr);
         }
     };
 
     private final Runnable mStartTask = new Runnable() {
         @Override
         public void run() {
-            restoreRemainder(mNativeInfoHandle.gifInfoPtr);
+            GifInfoHandle.restoreRemainder(mNativeInfoHandle.gifInfoPtr);
             invalidateSelf();
         }
     };
@@ -124,7 +73,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Runnable mSaveRemainderTask = new Runnable() {
         @Override
         public void run() {
-            saveRemainder(mNativeInfoHandle.gifInfoPtr);
+            GifInfoHandle.saveRemainder(mNativeInfoHandle.gifInfoPtr);
         }
     };
 
@@ -175,7 +124,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if filePath is null
      */
     public GifDrawable(String filePath) throws IOException {
-        this(openFile(filePath, false), new File(filePath).length());
+        this(GifInfoHandle.openFile(filePath, false), new File(filePath).length(), null);
     }
 
     /**
@@ -186,7 +135,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if file is null
      */
     public GifDrawable(File file) throws IOException {
-        this(openFile(file.getPath(), false), file.length());
+        this(GifInfoHandle.openFile(file.getPath(), false), file.length(), null);
     }
 
     /**
@@ -199,7 +148,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException     if stream is null
      */
     public GifDrawable(InputStream stream) throws IOException {
-        this(openMarkableInputStream(stream, false), -1L);
+        this(GifInfoHandle.openMarkableInputStream(stream, false), -1L, null);
     }
 
     /**
@@ -211,7 +160,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      */
     public GifDrawable(AssetFileDescriptor afd) throws IOException {
-        this(openAssetFileDescriptor(afd, false), afd.getLength());
+        this(GifInfoHandle.openAssetFileDescriptor(afd, false), afd.getLength(), null);
     }
 
     /**
@@ -222,7 +171,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if fd is null
      */
     public GifDrawable(FileDescriptor fd) throws IOException {
-        this(openFd(fd, 0, false), -1L);
+        this(GifInfoHandle.openFd(fd, 0, false), -1L, null);
     }
 
     /**
@@ -234,7 +183,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if bytes are null
      */
     public GifDrawable(byte[] bytes) throws IOException {
-        this(openByteArray(bytes, false), bytes.length);
+        this(GifInfoHandle.openByteArray(bytes, false), bytes.length, null);
     }
 
     /**
@@ -247,7 +196,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException     if buffer is null
      */
     public GifDrawable(ByteBuffer buffer) throws IOException {
-        this(openDirectByteBuffer(buffer, false), buffer.capacity());
+        this(GifInfoHandle.openDirectByteBuffer(buffer, false), buffer.capacity(), null);
     }
 
     /**
@@ -263,10 +212,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         this(resolver.openAssetFileDescriptor(uri, "r"));
     }
 
-    private GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength) {
+    GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, GifDrawable oldDrawable) {
         mNativeInfoHandle = gifInfoHandle;
         mInputSourceLength = inputSourceLength;
-        mBuffer = Bitmap.createBitmap(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
+        if (oldDrawable != null && oldDrawable.mNativeInfoHandle.isEqualSized(mNativeInfoHandle))
+            mBuffer = oldDrawable.mBuffer;
+        else
+            mBuffer = Bitmap.createBitmap(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
     }
 
     /**
@@ -278,10 +230,17 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public void recycle() {
         mIsRunning = false;
+        mBuffer.recycle();
         long tmpPtr = mNativeInfoHandle.gifInfoPtr;
         mNativeInfoHandle.gifInfoPtr = 0L;
-        mBuffer.recycle();
-        free(tmpPtr);
+        GifInfoHandle.free(tmpPtr);
+    }
+
+    /**
+     * @return true if drawable is recycled
+     */
+    public boolean isRecycled() {
+        return mNativeInfoHandle.gifInfoPtr == 0L;
     }
 
     @Override
@@ -364,7 +323,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return comment or null if there is no one defined in file
      */
     public String getComment() {
-        return getComment(mNativeInfoHandle.gifInfoPtr);
+        return GifInfoHandle.getComment(mNativeInfoHandle.gifInfoPtr);
     }
 
     /**
@@ -374,7 +333,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return loop count, 0 means that animation is infinite
      */
     public int getLoopCount() {
-        return getLoopCount(mNativeInfoHandle.gifInfoPtr);
+        return GifInfoHandle.getLoopCount(mNativeInfoHandle.gifInfoPtr);
     }
 
     /**
@@ -384,7 +343,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public String toString() {
         return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width,
                 mNativeInfoHandle.height, mNativeInfoHandle.imageCount,
-                getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
+                GifInfoHandle.getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
     }
 
     /**
@@ -400,7 +359,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return current error or {@link GifError#NO_ERROR} if there was no error or drawable is recycled
      */
     public GifError getError() {
-        return GifError.fromCode(getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
+        return GifError.fromCode(GifInfoHandle.getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
     }
 
     /**
@@ -432,7 +391,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void setSpeed(float factor) {
         if (factor <= 0f)
             throw new IllegalArgumentException("Speed factor is not positive");
-        setSpeedFactor(mNativeInfoHandle.gifInfoPtr, factor);
+        GifInfoHandle.setSpeedFactor(mNativeInfoHandle.gifInfoPtr, factor);
     }
 
     /**
@@ -453,7 +412,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public int getDuration() {
-        return getDuration(mNativeInfoHandle.gifInfoPtr);
+        return GifInfoHandle.getDuration(mNativeInfoHandle.gifInfoPtr);
     }
 
     /**
@@ -464,7 +423,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public int getCurrentPosition() {
-        return getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
+        return GifInfoHandle.getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
     }
 
     /**
@@ -487,14 +446,14 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                seekToTime(mNativeInfoHandle.gifInfoPtr, position, mBuffer);
+                GifInfoHandle.seekToTime(mNativeInfoHandle.gifInfoPtr, position, mBuffer);
                 invalidateSelf();
             }
         });
     }
 
     /**
-     * Like {@link #seekToTime(long, int, android.graphics.Bitmap)} but uses index of the frame instead of time.
+     * Like {@link GifInfoHandle#seekToTime(long, int, android.graphics.Bitmap)} but uses index of the frame instead of time.
      *
      * @param frameIndex index of the frame to seek to (zero based)
      * @throws IllegalArgumentException if frameIndex&lt;0
@@ -505,7 +464,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                seekToFrame(mNativeInfoHandle.gifInfoPtr, frameIndex, mBuffer);
+                GifInfoHandle.seekToFrame(mNativeInfoHandle.gifInfoPtr, frameIndex, mBuffer);
                 invalidateSelf();
             }
         });
@@ -592,11 +551,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public long getAllocationByteCount() {
-        long byteCount = getAllocationByteCount(mNativeInfoHandle.gifInfoPtr);
+        long byteCount = GifInfoHandle.getAllocationByteCount(mNativeInfoHandle.gifInfoPtr);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
             byteCount += mBuffer.getAllocationByteCount();
         else
-            byteCount += mBuffer.getRowBytes() * mBuffer.getWidth();
+            byteCount += mBuffer.getRowBytes() * mBuffer.getHeight();
         return byteCount;
     }
 
@@ -658,7 +617,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (mPaint.getShader() == null) {
             final int invalidationDelay;
             if (mIsRunning) {
-                long renderResult = renderFrame(mBuffer, mNativeInfoHandle.gifInfoPtr);
+                long renderResult = GifInfoHandle.renderFrame(mBuffer, mNativeInfoHandle.gifInfoPtr);
                 invalidationDelay = (int) (renderResult >> 1);
                 if ((int) (renderResult & 1L) == 1)
                     for (AnimationListener listener : mListeners)
@@ -734,18 +693,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         return mPaint.getColorFilter();
     }
 
-    static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
-        if (!stream.markSupported())
-            throw new IllegalArgumentException("InputStream does not support marking");
-        return openStream(stream, justDecodeMetaData);
-    }
-
-    static GifInfoHandle openAssetFileDescriptor(AssetFileDescriptor afd, boolean justDecodeMetaData) throws IOException {
-        try {
-            return openFd(afd.getFileDescriptor(), afd.getStartOffset(), justDecodeMetaData);
-        } catch (IOException ex) {
-            afd.close();
-            throw ex;
-        }
+    /**
+     * Retrieves currently buffered frame. If drawable is recycled, returned bitmap will be
+     * recycled as well. This bitmap should not be recycled manually, recycle drawable instead.
+     *
+     * @return current frame, may be recycled but not null
+     */
+    public Bitmap getCurrentFrame() {
+        return mBuffer;
     }
 }

@@ -65,7 +65,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if filePath is null
      */
     public GifAnimationMetaData(String filePath) throws IOException {
-        this(GifDrawable.openFile(filePath, true));
+        this(GifInfoHandle.openFile(filePath, true));
     }
 
     /**
@@ -76,7 +76,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if file is null
      */
     public GifAnimationMetaData(File file) throws IOException {
-        this(GifDrawable.openFile(file.getPath(), true));
+        this(GifInfoHandle.openFile(file.getPath(), true));
     }
 
     /**
@@ -89,7 +89,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException     if stream is null
      */
     public GifAnimationMetaData(InputStream stream) throws IOException {
-        this(GifDrawable.openMarkableInputStream(stream, true));
+        this(GifInfoHandle.openMarkableInputStream(stream, true));
     }
 
     /**
@@ -101,7 +101,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException          when opening failed
      */
     public GifAnimationMetaData(AssetFileDescriptor afd) throws IOException {
-        this(GifDrawable.openAssetFileDescriptor(afd, true));
+        this(GifInfoHandle.openAssetFileDescriptor(afd, true));
     }
 
     /**
@@ -112,7 +112,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if fd is null
      */
     public GifAnimationMetaData(FileDescriptor fd) throws IOException {
-        this(GifDrawable.openFd(fd, 0, true));
+        this(GifInfoHandle.openFd(fd, 0, true));
     }
 
     /**
@@ -124,7 +124,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if bytes are null
      */
     public GifAnimationMetaData(byte[] bytes) throws IOException {
-        this(GifDrawable.openByteArray(bytes, true));
+        this(GifInfoHandle.openByteArray(bytes, true));
     }
 
     /**
@@ -137,7 +137,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException     if buffer is null
      */
     public GifAnimationMetaData(ByteBuffer buffer) throws IOException {
-        this(GifDrawable.openDirectByteBuffer(buffer, true));
+        this(GifInfoHandle.openDirectByteBuffer(buffer, true));
     }
 
     /**
@@ -154,9 +154,9 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
     }
 
     private GifAnimationMetaData(final GifInfoHandle gifInfoHandle) {
-        mLoopCount = GifDrawable.getLoopCount(gifInfoHandle.gifInfoPtr);
-        mDuration = GifDrawable.getDuration(gifInfoHandle.gifInfoPtr);
-        GifDrawable.free(gifInfoHandle.gifInfoPtr);
+        mLoopCount = GifInfoHandle.getLoopCount(gifInfoHandle.gifInfoPtr);
+        mDuration = GifInfoHandle.getDuration(gifInfoHandle.gifInfoPtr);
+        GifInfoHandle.free(gifInfoHandle.gifInfoPtr);
         mWidth = gifInfoHandle.width;
         mHeight = gifInfoHandle.height;
         mImageCount = gifInfoHandle.imageCount;
