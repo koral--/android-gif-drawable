@@ -21,10 +21,6 @@ class GifInfoHandle {
         this.imageCount = imageCount;
     }
 
-    boolean isEqualSized(GifInfoHandle another) {
-        return gifInfoPtr != 0L && width == another.width && height == another.height;
-    }
-
     static {
         System.loadLibrary("gif");
     }

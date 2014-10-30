@@ -39,11 +39,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
 
-    private float mSx = 1f;
-    private float mSy = 1f;
-    private boolean mApplyTransformation;
     private final Rect mDstRect = new Rect();
-
+    private final Rect mSrcRect;
     /**
      * Paint used to draw on a Canvas
      */
@@ -215,10 +212,25 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, GifDrawable oldDrawable) {
         mNativeInfoHandle = gifInfoHandle;
         mInputSourceLength = inputSourceLength;
-        if (oldDrawable != null && oldDrawable.mNativeInfoHandle.isEqualSized(mNativeInfoHandle))
-            mBuffer = oldDrawable.mBuffer;
-        else
+        Bitmap oldBitmap = null;
+        if (oldDrawable != null && oldDrawable.mNativeInfoHandle.gifInfoPtr != 0L) {
+            final int oldHeight = oldDrawable.mBuffer.getHeight();
+            final int oldWidth = oldDrawable.mBuffer.getWidth();
+            if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
+                final long oldGifInfoPtr = oldDrawable.mNativeInfoHandle.gifInfoPtr;
+                oldDrawable.mNativeInfoHandle.gifInfoPtr = 0L;
+                oldDrawable.mIsRunning = false;
+                GifInfoHandle.free(oldGifInfoPtr);
+                oldBitmap = oldDrawable.mBuffer;
+            }
+        }
+
+        if (oldBitmap == null)
             mBuffer = Bitmap.createBitmap(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
+        else
+            mBuffer = oldBitmap;
+
+        mSrcRect = new Rect(0, 0, mBuffer.getWidth(), mBuffer.getHeight());
     }
 
     /**
@@ -229,10 +241,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * is invoked implicitly by finalizer.
      */
     public void recycle() {
+        final long tmpPtr = mNativeInfoHandle.gifInfoPtr;
+        if (tmpPtr == 0L)
+            return;
+        mNativeInfoHandle.gifInfoPtr = 0L;
         mIsRunning = false;
         mBuffer.recycle();
-        long tmpPtr = mNativeInfoHandle.gifInfoPtr;
-        mNativeInfoHandle.gifInfoPtr = 0L;
         GifInfoHandle.free(tmpPtr);
     }
 
@@ -597,8 +611,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     @Override
     protected void onBoundsChange(Rect bounds) {
-        super.onBoundsChange(bounds);
-        mApplyTransformation = true;
+        mDstRect.set(getBounds());
     }
 
     /**
@@ -608,12 +621,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void draw(Canvas canvas) {
-        if (mApplyTransformation) {
-            mDstRect.set(getBounds());
-            mSx = (float) mDstRect.width() / mNativeInfoHandle.width;
-            mSy = (float) mDstRect.height() / mNativeInfoHandle.height;
-            mApplyTransformation = false;
-        }
         if (mPaint.getShader() == null) {
             final int invalidationDelay;
             if (mIsRunning) {
@@ -625,8 +632,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             } else
                 invalidationDelay = -1;
 
-            canvas.scale(mSx, mSy);
-            canvas.drawBitmap(mBuffer, 0, 0, mPaint);
+            canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
 
             if (invalidationDelay >= 0 && mNativeInfoHandle.imageCount > 1)
                 scheduleSelf(mInvalidateTask, invalidationDelay);//TODO don't post if message for given frame was already posted
@@ -694,12 +700,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     * Retrieves currently buffered frame. If drawable is recycled, returned bitmap will be
-     * recycled as well. This bitmap should not be recycled manually, recycle drawable instead.
+     * Retrieves a copy of currently buffered frame.
      *
-     * @return current frame, may be recycled but not null
+     * @return current frame
      */
     public Bitmap getCurrentFrame() {
-        return mBuffer;
+        return mBuffer.copy(mBuffer.getConfig(), mBuffer.isMutable());
     }
 }
