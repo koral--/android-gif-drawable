@@ -77,7 +77,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Runnable mInvalidateTask = new Runnable() {
         @Override
         public void run() {
-            invalidateSelf();
+            if (mIsRunning)
+                invalidateSelf();
         }
     };
 
@@ -219,7 +220,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
                 final long oldGifInfoPtr = oldDrawable.mNativeInfoHandle.gifInfoPtr;
                 oldDrawable.mNativeInfoHandle.gifInfoPtr = 0L;
-                oldDrawable.mIsRunning = false;
+                oldDrawable.unscheduleSelf(oldDrawable.mInvalidateTask);
                 GifInfoHandle.free(oldGifInfoPtr);
                 oldBitmap = oldDrawable.mBuffer;
             }
@@ -245,7 +246,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (tmpPtr == 0L)
             return;
         mNativeInfoHandle.gifInfoPtr = 0L;
-        mIsRunning = false;
+        unscheduleSelf(mInvalidateTask);
         mBuffer.recycle();
         GifInfoHandle.free(tmpPtr);
     }
@@ -324,6 +325,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void stop() {
         mIsRunning = false;
         runOnUiThread(mSaveRemainderTask);
+        unscheduleSelf(mInvalidateTask);
     }
 
     @Override
@@ -622,19 +624,15 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void draw(Canvas canvas) {
         if (mPaint.getShader() == null) {
-            final int invalidationDelay;
-            if (mIsRunning) {
-                long renderResult = GifInfoHandle.renderFrame(mBuffer, mNativeInfoHandle.gifInfoPtr);
-                invalidationDelay = (int) (renderResult >> 1);
-                if ((int) (renderResult & 1L) == 1)
-                    for (AnimationListener listener : mListeners)
-                        listener.onAnimationCompleted();
-            } else
-                invalidationDelay = -1;
+            long renderResult = GifInfoHandle.renderFrame(mBuffer, mNativeInfoHandle.gifInfoPtr);
+            final int invalidationDelay = (int) (renderResult >> 1);
+            if ((int) (renderResult & 1L) == 1)
+                for (AnimationListener listener : mListeners)
+                    listener.onAnimationCompleted();
 
             canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
 
-            if (invalidationDelay >= 0 && mNativeInfoHandle.imageCount > 1)
+            if (invalidationDelay >= 0)
                 scheduleSelf(mInvalidateTask, invalidationDelay);//TODO don't post if message for given frame was already posted
         } else
             canvas.drawRect(mDstRect, mPaint);

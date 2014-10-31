@@ -1040,7 +1040,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv* env, jclass __unused
 		isAnimationCompleted = info->currentIndex >= info->gifFilePtr->ImageCount - 1;
 	}
 	else
-	    isAnimationCompleted = 0;
+	    isAnimationCompleted = false;
 
     int invalidationDelay;
  	if (needRedraw)
@@ -1054,19 +1054,23 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv* env, jclass __unused
 
         if (AndroidBitmap_unlockPixels(env, jbitmap) == ANDROID_BITMAP_RESULT_SUCCESS)
         {
-            unsigned int scaledDuration = info->infos[info->currentIndex].duration;
-            if (info->speedFactor != 1.0) {
-                scaledDuration /= info->speedFactor;
-                if (scaledDuration <= 0)
-                    scaledDuration = 1;
-                else if (scaledDuration > INT_MAX)
-                    scaledDuration = INT_MAX;
+            if (info->gifFilePtr->ImageCount > 1) {
+                unsigned int scaledDuration = info->infos[info->currentIndex].duration;
+                if (info->speedFactor != 1.0) {
+                    scaledDuration /= info->speedFactor;
+                    if (scaledDuration <= 0)
+                        scaledDuration = 1;
+                    else if (scaledDuration > INT_MAX)
+                        scaledDuration = INT_MAX;
+                }
+                info->nextStartTime = rt + scaledDuration;
+                invalidationDelay = scaledDuration;
             }
-            info->nextStartTime = rt + scaledDuration;
-            invalidationDelay = scaledDuration;
+            else
+                invalidationDelay = -1;
         }
         else
-            return packRenderFrameResult(-1, isAnimationCompleted);;
+            return packRenderFrameResult(-1, isAnimationCompleted);
 	}
 	else
 	{
@@ -1198,7 +1202,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv* __unused  env,
 		jclass __unused class, jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
-	if (info == NULL || info->lastFrameReaminder == ULONG_MAX)
+	if (info == NULL || info->lastFrameReaminder == ULONG_MAX || info->gifFilePtr->ImageCount <=1)
 		return;
 	info->nextStartTime = getRealTime() + info->lastFrameReaminder;
 	info->lastFrameReaminder = ULONG_MAX;
