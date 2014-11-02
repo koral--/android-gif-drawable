@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.3'
+        classpath 'com.android.tools.build:gradle:0.14.0'
     }
 }
 
@@ -12,7 +12,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion '21.0.2'
+    buildToolsVersion '21.1'
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
@@ -27,7 +27,7 @@ android {
             abiFilter 'all'
         }
     }
-    //buildTypes.debug.jniDebugBuild true
+    //buildTypes.debug.jniDebuggable true
 }
 
 def isReleaseBuild() {
