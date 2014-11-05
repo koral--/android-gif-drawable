@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -36,6 +38,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
 
@@ -63,7 +66,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         @Override
         public void run() {
             GifInfoHandle.restoreRemainder(mNativeInfoHandle.gifInfoPtr);
-            invalidateSelf();
+            postInvalidateSelf();
         }
     };
 
@@ -82,8 +85,28 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
     };
 
-    private void runOnUiThread(Runnable task) {
-        scheduleSelf(task, SystemClock.uptimeMillis());
+    private final Runnable mRenderTask = new Runnable() {
+        @Override
+        public void run() {
+            long renderResult = GifInfoHandle.renderFrame(mBuffer, mNativeInfoHandle.gifInfoPtr);
+            final int invalidationDelay = (int) (renderResult >> 1);
+            if ((int) (renderResult & 1L) == 1 && !mListeners.isEmpty())
+                scheduleSelf(mNotifyListenersTask, SystemClock.uptimeMillis());
+            if (invalidationDelay >= 0)
+                scheduleSelf(mInvalidateTask, invalidationDelay);//TODO don't post if message for given frame was already posted
+        }
+    };
+
+    private final Runnable mNotifyListenersTask = new Runnable() {
+        @Override
+        public void run() {
+            for (AnimationListener listener : mListeners)
+                listener.onAnimationCompleted();
+        }
+    };
+
+    private void runOnBgThread(Runnable task) {
+        mExecutor.submit(task);
     }
 
     /**
@@ -304,7 +327,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void start() {
         mIsRunning = true;
-        runOnUiThread(mStartTask);
+        runOnBgThread(mStartTask);
     }
 
     /**
@@ -314,7 +337,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * This method is thread-safe.
      */
     public void reset() {
-        runOnUiThread(mResetTask);
+        runOnBgThread(mResetTask);
     }
 
     /**
@@ -324,7 +347,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void stop() {
         mIsRunning = false;
-        runOnUiThread(mSaveRemainderTask);
+        runOnBgThread(mSaveRemainderTask);
         unscheduleSelf(mInvalidateTask);
     }
 
@@ -374,7 +397,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @return current error or {@link GifError#NO_ERROR} if there was no error or drawable is recycled
      */
-    public GifError getError() {
+    public GifError getError() { //TODO make thread-safe
         return GifError.fromCode(GifInfoHandle.getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
     }
 
@@ -438,7 +461,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return elapsed time from the beginning of a loop in ms
      */
     @Override
-    public int getCurrentPosition() {
+    public int getCurrentPosition() { //TODO make thread-safe
         return GifInfoHandle.getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
     }
 
@@ -459,13 +482,17 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void seekTo(final int position) {
         if (position < 0)
             throw new IllegalArgumentException("Position is not positive");
-        runOnUiThread(new Runnable() {
+        runOnBgThread(new Runnable() {
             @Override
             public void run() {
                 GifInfoHandle.seekToTime(mNativeInfoHandle.gifInfoPtr, position, mBuffer);
-                invalidateSelf();
+                postInvalidateSelf();
             }
         });
+    }
+
+    private void postInvalidateSelf() {
+        scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
     }
 
     /**
@@ -477,11 +504,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void seekToFrame(final int frameIndex) {
         if (frameIndex < 0)
             throw new IllegalArgumentException("frameIndex is not positive");
-        runOnUiThread(new Runnable() {
+        runOnBgThread(new Runnable() {
             @Override
             public void run() {
                 GifInfoHandle.seekToFrame(mNativeInfoHandle.gifInfoPtr, frameIndex, mBuffer);
-                invalidateSelf();
+                postInvalidateSelf();
             }
         });
     }
@@ -624,16 +651,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void draw(Canvas canvas) {
         if (mPaint.getShader() == null) {
-            long renderResult = GifInfoHandle.renderFrame(mBuffer, mNativeInfoHandle.gifInfoPtr);
-            final int invalidationDelay = (int) (renderResult >> 1);
-            if ((int) (renderResult & 1L) == 1)
-                for (AnimationListener listener : mListeners)
-                    listener.onAnimationCompleted();
-
+            runOnBgThread(mRenderTask);
             canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
-
-            if (invalidationDelay >= 0)
-                scheduleSelf(mInvalidateTask, invalidationDelay);//TODO don't post if message for given frame was already posted
         } else
             canvas.drawRect(mDstRect, mPaint);
     }
