@@ -27,7 +27,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,7 +40,7 @@ import java.util.concurrent.Executors;
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor(); //TODO don't ignore exceptions
     private volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
 
@@ -270,6 +272,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             return;
         mNativeInfoHandle.gifInfoPtr = 0L;
         unscheduleSelf(mInvalidateTask);
+        mExecutor.shutdown(); //TODO handle rejections
         mBuffer.recycle();
         GifInfoHandle.free(tmpPtr);
     }
@@ -397,7 +400,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @return current error or {@link GifError#NO_ERROR} if there was no error or drawable is recycled
      */
-    public GifError getError() { //TODO make thread-safe
+    public GifError getError() {
         return GifError.fromCode(GifInfoHandle.getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
     }
 
@@ -456,13 +459,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Retrieves elapsed time from the beginning of a current loop of animation.
-     * If there is only 1 frame, 0 is returned.
+     * If there is only 1 frame or drawable is recycled 0 is returned.
      *
      * @return elapsed time from the beginning of a loop in ms
      */
     @Override
-    public int getCurrentPosition() { //TODO make thread-safe
-        return GifInfoHandle.getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
+    public int getCurrentPosition() {
+        try {
+            return mExecutor.submit(new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    return GifInfoHandle.getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
+                }
+            }).get();
+        } catch (InterruptedException | ExecutionException e) {
+            return 0;
+        }
     }
 
     /**
@@ -650,6 +662,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void draw(Canvas canvas) {
+        System.out.println(getCurrentPosition());
         if (mPaint.getShader() == null) {
             runOnBgThread(mRenderTask);
             canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);

@@ -1167,23 +1167,27 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv* __unused  env, jclas
 }
 
 JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv* __unused env,
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv* env,
 		jclass __unused class, jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
 	if (info == NULL)
 		return 0;
-	int idx = info->currentIndex;
+	const int idx = info->currentIndex;
 	if (idx < 0 || info->gifFilePtr->ImageCount <= 1)
 		return 0;
 	int i;
 	unsigned int sum = 0;
 	for (i = 0; i < idx; i++)
 		sum += info->infos[i].duration;
-	time_t remainder =
-			info->lastFrameReaminder == ULONG_MAX ?
-					getRealTime() - info->nextStartTime :
-					info->lastFrameReaminder;
+	time_t remainder;
+    if (info->lastFrameReaminder == ULONG_MAX) {
+        remainder = info->nextStartTime - getRealTime();
+        if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed
+            remainder = 0;
+    }
+    else
+		remainder = info->lastFrameReaminder;
 	return (jint) (sum + remainder); //2^31-1[ms]>596[h] so jint is enough
 }
 
@@ -1198,7 +1202,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv* __unused  env, jcl
 }
 
 JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv* __unused  env,
+Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv* __unused env,
 		jclass __unused class, jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;
