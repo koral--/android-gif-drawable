@@ -1167,7 +1167,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv* __unused  env, jclas
 }
 
 JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv* env,
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv* __unused env,
 		jclass __unused class, jlong gifInfo)
 {
 	GifInfo* info =(GifInfo*)(intptr_t) gifInfo;

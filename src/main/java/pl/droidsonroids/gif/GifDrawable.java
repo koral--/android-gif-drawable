@@ -27,11 +27,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -40,7 +39,8 @@ import java.util.concurrent.Executors;
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor(); //TODO don't ignore exceptions
+    private static final ThreadPoolExecutor.DiscardPolicy DISCARD_POLICY = new ThreadPoolExecutor.DiscardPolicy();
+    private final ThreadPoolExecutor mExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(1), DISCARD_POLICY);
     private volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
 
@@ -56,28 +56,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Bitmap mBuffer;
     private final GifInfoHandle mNativeInfoHandle;
     private final ConcurrentLinkedQueue<AnimationListener> mListeners = new ConcurrentLinkedQueue<>();
-
-    private final Runnable mResetTask = new Runnable() {
-        @Override
-        public void run() {
-            GifInfoHandle.reset(mNativeInfoHandle.gifInfoPtr);
-        }
-    };
-
-    private final Runnable mStartTask = new Runnable() {
-        @Override
-        public void run() {
-            GifInfoHandle.restoreRemainder(mNativeInfoHandle.gifInfoPtr);
-            postInvalidateSelf();
-        }
-    };
-
-    private final Runnable mSaveRemainderTask = new Runnable() {
-        @Override
-        public void run() {
-            GifInfoHandle.saveRemainder(mNativeInfoHandle.gifInfoPtr);
-        }
-    };
 
     private final Runnable mInvalidateTask = new Runnable() {
         @Override
@@ -106,10 +84,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                 listener.onAnimationCompleted();
         }
     };
-
-    private void runOnBgThread(Runnable task) {
-        mExecutor.submit(task);
-    }
 
     /**
      * Creates drawable from resource.
@@ -228,7 +202,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * is used to open an Uri.
      *
      * @param uri      GIF Uri, cannot be null.
-     * @param resolver resolver, cannot be null.
+     * @param resolver resolver used to query {@code uri}, cannot be null
      * @throws IOException if resolution fails or destination is not a GIF.
      */
     public GifDrawable(ContentResolver resolver, Uri uri) throws IOException {
@@ -272,7 +246,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             return;
         mNativeInfoHandle.gifInfoPtr = 0L;
         unscheduleSelf(mInvalidateTask);
-        mExecutor.shutdown(); //TODO handle rejections
+        mExecutor.shutdown();
         mBuffer.recycle();
         GifInfoHandle.free(tmpPtr);
     }
@@ -330,7 +304,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void start() {
         mIsRunning = true;
-        runOnBgThread(mStartTask);
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                GifInfoHandle.restoreRemainder(mNativeInfoHandle.gifInfoPtr);
+                scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
+            }
+        });
     }
 
     /**
@@ -340,7 +320,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * This method is thread-safe.
      */
     public void reset() {
-        runOnBgThread(mResetTask);
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                GifInfoHandle.reset(mNativeInfoHandle.gifInfoPtr);
+            }
+        });
     }
 
     /**
@@ -350,8 +335,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void stop() {
         mIsRunning = false;
-        runOnBgThread(mSaveRemainderTask);
         unscheduleSelf(mInvalidateTask);
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                GifInfoHandle.saveRemainder(mNativeInfoHandle.gifInfoPtr);
+            }
+        });
     }
 
     @Override
@@ -465,16 +455,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public int getCurrentPosition() {
-        try {
-            return mExecutor.submit(new Callable<Integer>() {
-                @Override
-                public Integer call() throws Exception {
-                    return GifInfoHandle.getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
-                }
-            }).get();
-        } catch (InterruptedException | ExecutionException e) {
-            return 0;
-        }
+        return GifInfoHandle.getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
     }
 
     /**
@@ -485,7 +466,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * (or whole animation if there is no loop) then animation will be sought to the end.<br>
      * NOTE: all frames from current to desired must be rendered sequentially to perform seeking.
      * It may take a lot of time if number of such frames is large.
-     * This method can be called from any thread but actual work will be performed on UI thread.
+     * Method is thread-safe. Decoding is performed in background thread and drawable is invalidated automatically
+     * afterwards.
      *
      * @param position position to seek to in milliseconds
      * @throws IllegalArgumentException if position&lt;0
@@ -494,21 +476,18 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void seekTo(final int position) {
         if (position < 0)
             throw new IllegalArgumentException("Position is not positive");
-        runOnBgThread(new Runnable() {
+        mExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 GifInfoHandle.seekToTime(mNativeInfoHandle.gifInfoPtr, position, mBuffer);
-                postInvalidateSelf();
+                scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
             }
         });
     }
 
-    private void postInvalidateSelf() {
-        scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
-    }
-
     /**
-     * Like {@link GifInfoHandle#seekToTime(long, int, android.graphics.Bitmap)} but uses index of the frame instead of time.
+     * Like {@link GifInfoHandle#seekToTime(long, int, android.graphics.Bitmap)}
+     * but uses index of the frame instead of time.
      *
      * @param frameIndex index of the frame to seek to (zero based)
      * @throws IllegalArgumentException if frameIndex&lt;0
@@ -516,11 +495,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void seekToFrame(final int frameIndex) {
         if (frameIndex < 0)
             throw new IllegalArgumentException("frameIndex is not positive");
-        runOnBgThread(new Runnable() {
+        mExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 GifInfoHandle.seekToFrame(mNativeInfoHandle.gifInfoPtr, frameIndex, mBuffer);
-                postInvalidateSelf();
+                scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
             }
         });
     }
@@ -628,6 +607,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Returns in pixels[] a copy of the data in the current frame. Each value is a packed int representing a {@link Color}.
+     *
      * @param pixels the array to receive the frame's colors
      * @throws ArrayIndexOutOfBoundsException if the pixels array is too small to receive required number of pixels
      */
@@ -644,7 +624,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param y The y coordinate (0...height-1) of the pixel to return
      * @return The argb {@link Color} at the specified coordinate
      * @throws IllegalArgumentException if x, y exceed the drawable's bounds
-     * @throws IllegalStateException if drawable is recycled
+     * @throws IllegalStateException    if drawable is recycled
      */
     public int getPixel(int x, int y) {
         return mBuffer.getPixel(x, y);
@@ -662,9 +642,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void draw(Canvas canvas) {
-        System.out.println(getCurrentPosition());
         if (mPaint.getShader() == null) {
-            runOnBgThread(mRenderTask);
+            mExecutor.execute(mRenderTask);
             canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
         } else
             canvas.drawRect(mDstRect, mPaint);

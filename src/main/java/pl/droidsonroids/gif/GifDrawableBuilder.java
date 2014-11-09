@@ -13,68 +13,134 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 /**
- * TODO
+ * Builder for {@link pl.droidsonroids.gif.GifDrawable} which can be used to construct new drawables
+ * by reusing old ones.
  */
 public class GifDrawableBuilder {
     private Source mSource;
     private GifDrawable mOldDrawable;
 
+    /**
+     * Appropriate constructor wrapper. Must be preceded by on of {@code from()} calls.
+     *
+     * @return new drawable instance
+     * @throws IOException when creation fails
+     */
     public GifDrawable build() throws IOException {
         if (mSource == null)
             throw new NullPointerException("Source is not set");
         return mSource.build(mOldDrawable);
     }
 
+    /**
+     * Sets drawable to be reused when creating new one
+     * @param drawable drawable to be reused
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder with(GifDrawable drawable) {
         mOldDrawable = drawable;
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.io.InputStream)}
+     * @param inputStream data source
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(InputStream inputStream) {
         mSource = new InputStreamSource(inputStream);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(android.content.res.AssetFileDescriptor)}
+     * @param assetFileDescriptor data source
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(AssetFileDescriptor assetFileDescriptor) {
         mSource = new FileDescriptorSource(assetFileDescriptor);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.io.FileDescriptor)}
+     * @param fileDescriptor data source
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(FileDescriptor fileDescriptor) {
         mSource = new FileDescriptorSource(fileDescriptor);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(android.content.res.AssetManager, java.lang.String)}
+     * @param assetManager assets source
+     * @param assetName asset file name
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(AssetManager assetManager, String assetName) {
         mSource = new AssetSource(assetManager, assetName);
         return this;
     }
 
-    public GifDrawableBuilder from(Uri uri, ContentResolver contentResolver) {
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(android.content.ContentResolver, android.net.Uri)}
+     *
+     * @param uri             data source
+     * @param contentResolver resolver used to query {@code uri}
+     * @return this builder instance, to chain calls
+     */
+    public GifDrawableBuilder from(ContentResolver contentResolver, Uri uri) {
         mSource = new UriSource(contentResolver, uri);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.io.File)}
+     * @param file data source
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(File file) {
         mSource = new FileSource(file);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.lang.String)}
+     * @param filePath data source
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(String filePath) {
         mSource = new FileSource(filePath);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(byte[])}
+     * @param bytes data source
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(byte[] bytes) {
         mSource = new ByteArraySource(bytes);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.nio.ByteBuffer)}
+     * @param byteBuffer data source
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(ByteBuffer byteBuffer) {
         mSource = new ByteBufferSource(byteBuffer);
         return this;
     }
 
+    /**
+     * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(android.content.res.Resources, int)}
+     * @param resources Resources to read from
+     * @param resourceId resource id (data source)
+     * @return this builder instance, to chain calls
+     */
     public GifDrawableBuilder from(Resources resources, int resourceId) {
         mSource = new FileDescriptorSource(resources, resourceId);
         return this;
