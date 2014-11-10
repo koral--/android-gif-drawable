@@ -209,19 +209,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         this(resolver.openAssetFileDescriptor(uri, "r"));
     }
 
-    GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, GifDrawable oldDrawable) {
+    GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, final GifDrawable oldDrawable) {
         mNativeInfoHandle = gifInfoHandle;
         mInputSourceLength = inputSourceLength;
         Bitmap oldBitmap = null;
-        if (oldDrawable != null && oldDrawable.mNativeInfoHandle.gifInfoPtr != 0L) {
-            final int oldHeight = oldDrawable.mBuffer.getHeight();
-            final int oldWidth = oldDrawable.mBuffer.getWidth();
-            if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
+        if (oldDrawable != null) {
+            synchronized (oldDrawable.mBuffer) {
                 final long oldGifInfoPtr = oldDrawable.mNativeInfoHandle.gifInfoPtr;
-                oldDrawable.mNativeInfoHandle.gifInfoPtr = 0L;
-                oldDrawable.unscheduleSelf(oldDrawable.mInvalidateTask);
-                GifInfoHandle.free(oldGifInfoPtr);
-                oldBitmap = oldDrawable.mBuffer;
+                if (oldGifInfoPtr != 0L) {
+                    final int oldHeight = oldDrawable.mBuffer.getHeight();
+                    final int oldWidth = oldDrawable.mBuffer.getWidth();
+                    if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
+                        oldDrawable.mNativeInfoHandle.gifInfoPtr = 0L;
+                        oldDrawable.shutdown(oldGifInfoPtr);
+                        oldBitmap = oldDrawable.mBuffer;
+                    }
+                }
             }
         }
 
@@ -241,14 +244,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * is invoked implicitly by finalizer.
      */
     public void recycle() {
-        final long tmpPtr = mNativeInfoHandle.gifInfoPtr;
-        if (tmpPtr == 0L)
-            return;
-        mNativeInfoHandle.gifInfoPtr = 0L;
+        final long tmpPtr;
+        synchronized (mBuffer) {
+            tmpPtr = mNativeInfoHandle.gifInfoPtr;
+            if (tmpPtr == 0L)
+                return;
+            mNativeInfoHandle.gifInfoPtr = 0L;
+        }
+        shutdown(tmpPtr);
+        mBuffer.recycle();
+    }
+
+    private void shutdown(long gifInfoPtr) {
+        mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
         mExecutor.shutdown();
-        mBuffer.recycle();
-        GifInfoHandle.free(tmpPtr);
+        GifInfoHandle.free(gifInfoPtr);
     }
 
     /**
@@ -570,11 +581,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     /**
      * Returns the minimum number of bytes that can be used to store pixels of the single frame.
      * Returned value is the same for all the frames since it is based on the size of GIF screen.
+     * <p>This method should not be used to calculate the memory usage of the bitmap.
+     * Instead see {@link #getAllocationByteCount()}.
      *
-     * @return width * height (of the GIF screen ix pixels) * 4
+     * @return the minimum number of bytes that can be used to store pixels of the single frame
      */
     public int getFrameByteCount() {
-        return mNativeInfoHandle.width * mNativeInfoHandle.height * 4;
+        return mBuffer.getRowBytes() * mBuffer.getHeight();
     }
 
     /**
