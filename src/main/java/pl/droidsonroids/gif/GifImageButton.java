@@ -80,7 +80,7 @@ public class GifImageButton extends ImageButton {
         setResource(false, resId, getResources());
     }
 
-    void trySetGifDrawable(AttributeSet attrs, Resources res) {
+    private void trySetGifDrawable(AttributeSet attrs, Resources res) {
         if (attrs != null && res != null && !isInEditMode()) {
             int resId = attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "src", -1);
             if (resId > 0 && "drawable".equals(res.getResourceTypeName(resId)))
@@ -94,6 +94,7 @@ public class GifImageButton extends ImageButton {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @SuppressWarnings("deprecation")
+    private
         //new method not available on older API levels
     void setResource(boolean isSrc, int resId, Resources res) {
         try {
