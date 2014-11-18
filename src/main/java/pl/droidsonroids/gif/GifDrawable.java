@@ -711,8 +711,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             if (colors != null)
                 canvas.drawBitmap(colors, 0, mMetaData[0], 0f, 0f, mMetaData[0], mMetaData[1], true, mPaint);
 
-            if (mMetaData[4] >= 0 && mMetaData[2] > 1)
-                scheduleSelf(mInvalidateTask, mMetaData[4]);//TODO don't post if message for given frame was already posted
+            if (mMetaData[4] >= 0 && mMetaData[2] > 1) {
+                // don't post if message for given frame was already posted
+                unscheduleSelf(mInvalidateTask);
+                // mMetaData[4] is frame duration, scheduleSelf() is SystemClock.uptimeMillis based
+                scheduleSelf(mInvalidateTask, android.os.SystemClock.uptimeMillis() + mMetaData[4]);
+            }
         } else
             canvas.drawRect(mDstRect, mPaint);
     }
