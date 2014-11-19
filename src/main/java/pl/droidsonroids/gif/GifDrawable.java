@@ -72,8 +72,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             final int invalidationDelay = (int) (renderResult >> 1);
             if ((int) (renderResult & 1L) == 1 && !mListeners.isEmpty())
                 scheduleSelf(mNotifyListenersTask, SystemClock.uptimeMillis());
-            if (invalidationDelay >= 0)
-                scheduleSelf(mInvalidateTask, invalidationDelay);//TODO don't post if message for given frame was already posted
+            if (invalidationDelay >= 0) {
+                unscheduleSelf(mInvalidateTask);
+                scheduleSelf(mInvalidateTask, invalidationDelay + SystemClock.uptimeMillis());
+            }
         }
     };
 
