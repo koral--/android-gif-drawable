@@ -8,6 +8,7 @@ import java.util.Locale;
  *
  * @author koral--
  */
+@SuppressWarnings("MagicNumber") //error code constants matching native ones
 public enum GifError {
     /**
      * Special value indicating lack of errors

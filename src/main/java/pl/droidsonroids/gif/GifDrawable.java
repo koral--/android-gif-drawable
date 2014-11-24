@@ -18,7 +18,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
-import android.os.SystemClock;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.File;
@@ -28,8 +27,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,8 +38,8 @@ import java.util.concurrent.TimeUnit;
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
-    private static final ThreadPoolExecutor.DiscardPolicy DISCARD_POLICY = new ThreadPoolExecutor.DiscardPolicy();
-    private final ThreadPoolExecutor mExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(1), DISCARD_POLICY);
+    private static final DiscardPolicy DISCARD_POLICY = new DiscardPolicy();
+    private final ScheduledThreadPoolExecutor mExecutor = new ScheduledThreadPoolExecutor(1, DISCARD_POLICY);
     private volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
 
@@ -68,13 +67,16 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Runnable mRenderTask = new Runnable() {
         @Override
         public void run() {
-            long renderResult = GifInfoHandle.renderFrame(mBuffer, mNativeInfoHandle.gifInfoPtr);
+            if (!mIsRunning)
+                return;
+            final long renderResult = mNativeInfoHandle.renderFrame(mBuffer);
             final int invalidationDelay = (int) (renderResult >> 1);
             if ((int) (renderResult & 1L) == 1 && !mListeners.isEmpty())
-                scheduleSelf(mNotifyListenersTask, SystemClock.uptimeMillis());
+                scheduleSelf(mNotifyListenersTask, 0L);
             if (invalidationDelay >= 0) {
+                mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
                 unscheduleSelf(mInvalidateTask);
-                scheduleSelf(mInvalidateTask, invalidationDelay + SystemClock.uptimeMillis());
+                scheduleSelf(mInvalidateTask, 0L);
             }
         }
     };
@@ -216,14 +218,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mInputSourceLength = inputSourceLength;
         Bitmap oldBitmap = null;
         if (oldDrawable != null) {
-            synchronized (oldDrawable.mBuffer) {
-                final long oldGifInfoPtr = oldDrawable.mNativeInfoHandle.gifInfoPtr;
-                if (oldGifInfoPtr != 0L) {
+            synchronized (oldDrawable.mNativeInfoHandle) {
+                if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
                     final int oldHeight = oldDrawable.mBuffer.getHeight();
                     final int oldWidth = oldDrawable.mBuffer.getWidth();
                     if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
-                        oldDrawable.mNativeInfoHandle.gifInfoPtr = 0L;
-                        oldDrawable.shutdown(oldGifInfoPtr);
+                        oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
                     }
                 }
@@ -236,6 +236,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mBuffer = oldBitmap;
 
         mSrcRect = new Rect(0, 0, mBuffer.getWidth(), mBuffer.getHeight());
+        mExecutor.execute(mRenderTask);
     }
 
     /**
@@ -246,29 +247,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * is invoked implicitly by finalizer.
      */
     public void recycle() {
-        final long tmpPtr;
-        synchronized (mBuffer) {
-            tmpPtr = mNativeInfoHandle.gifInfoPtr;
-            if (tmpPtr == 0L)
-                return;
-            mNativeInfoHandle.gifInfoPtr = 0L;
-        }
-        shutdown(tmpPtr);
+        shutdown();
         mBuffer.recycle();
     }
 
-    private void shutdown(long gifInfoPtr) {
+    private void shutdown() {
         mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
-        mExecutor.shutdown();
-        GifInfoHandle.free(gifInfoPtr);
+        mExecutor.shutdownNow();
+        mNativeInfoHandle.recycle();
     }
 
     /**
      * @return true if drawable is recycled
      */
     public boolean isRecycled() {
-        return mNativeInfoHandle.gifInfoPtr == 0L;
+        return mNativeInfoHandle.isRecycled();
     }
 
     @Override
@@ -320,8 +314,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                GifInfoHandle.restoreRemainder(mNativeInfoHandle.gifInfoPtr);
-                scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
+                mNativeInfoHandle.restoreRemainder();
+                mExecutor.execute(mRenderTask);
             }
         });
     }
@@ -336,7 +330,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                GifInfoHandle.reset(mNativeInfoHandle.gifInfoPtr);
+                mNativeInfoHandle.reset();
             }
         });
     }
@@ -349,10 +343,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void stop() {
         mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
+        mExecutor.remove(mRenderTask);
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                GifInfoHandle.saveRemainder(mNativeInfoHandle.gifInfoPtr);
+                mNativeInfoHandle.saveRemainder();
             }
         });
     }
@@ -368,7 +363,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return comment or null if there is no one defined in file
      */
     public String getComment() {
-        return GifInfoHandle.getComment(mNativeInfoHandle.gifInfoPtr);
+        return mNativeInfoHandle.getComment();
     }
 
     /**
@@ -378,7 +373,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return loop count, 0 means that animation is infinite
      */
     public int getLoopCount() {
-        return GifInfoHandle.getLoopCount(mNativeInfoHandle.gifInfoPtr);
+        return mNativeInfoHandle.getLoopCount();
     }
 
     /**
@@ -388,7 +383,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public String toString() {
         return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width,
                 mNativeInfoHandle.height, mNativeInfoHandle.imageCount,
-                GifInfoHandle.getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
+                mNativeInfoHandle.getNativeErrorCode());
     }
 
     /**
@@ -404,7 +399,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return current error or {@link GifError#NO_ERROR} if there was no error or drawable is recycled
      */
     public GifError getError() {
-        return GifError.fromCode(GifInfoHandle.getNativeErrorCode(mNativeInfoHandle.gifInfoPtr));
+        return GifError.fromCode(mNativeInfoHandle.getNativeErrorCode());
     }
 
     /**
@@ -419,9 +414,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         try {
             return new GifDrawable(res, resourceId);
         } catch (IOException ignored) {
-            //ignored
+            return null;
         }
-        return null;
     }
 
     /**
@@ -436,7 +430,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void setSpeed(float factor) {
         if (factor <= 0f)
             throw new IllegalArgumentException("Speed factor is not positive");
-        GifInfoHandle.setSpeedFactor(mNativeInfoHandle.gifInfoPtr, factor);
+        mNativeInfoHandle.setSpeedFactor(factor);
     }
 
     /**
@@ -457,7 +451,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public int getDuration() {
-        return GifInfoHandle.getDuration(mNativeInfoHandle.gifInfoPtr);
+        return mNativeInfoHandle.getDuration();
     }
 
     /**
@@ -468,7 +462,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public int getCurrentPosition() {
-        return GifInfoHandle.getCurrentPosition(mNativeInfoHandle.gifInfoPtr);
+        return mNativeInfoHandle.getCurrentPosition();
     }
 
     /**
@@ -492,8 +486,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                GifInfoHandle.seekToTime(mNativeInfoHandle.gifInfoPtr, position, mBuffer);
-                scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
+                mNativeInfoHandle.seekToTime(position, mBuffer);
+                scheduleSelf(mInvalidateTask, 0L);
             }
         });
     }
@@ -511,8 +505,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                GifInfoHandle.seekToFrame(mNativeInfoHandle.gifInfoPtr, frameIndex, mBuffer);
-                scheduleSelf(mInvalidateTask, SystemClock.uptimeMillis());
+                mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
+                scheduleSelf(mInvalidateTask, 0L);
             }
         });
     }
@@ -600,7 +594,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public long getAllocationByteCount() {
-        long byteCount = GifInfoHandle.getAllocationByteCount(mNativeInfoHandle.gifInfoPtr);
+        long byteCount = mNativeInfoHandle.getAllocationByteCount();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
             byteCount += mBuffer.getAllocationByteCount();
         else
@@ -658,7 +652,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void draw(Canvas canvas) {
         if (mPaint.getShader() == null) {
-            mExecutor.execute(mRenderTask);
             canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
         } else
             canvas.drawRect(mDstRect, mPaint);

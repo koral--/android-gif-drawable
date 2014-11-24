@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.14.2'
+        classpath 'com.android.tools.build:gradle:0.14.4'
     }
 }
 
@@ -30,9 +30,6 @@ android {
     //buildTypes.debug.jniDebuggable true
 }
 
-def isReleaseBuild() {
-    return version.contains('SNAPSHOT') == false
-}
 
 allprojects {
     version = VERSION_NAME

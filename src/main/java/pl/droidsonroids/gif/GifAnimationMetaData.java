@@ -154,9 +154,9 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
     }
 
     private GifAnimationMetaData(final GifInfoHandle gifInfoHandle) {
-        mLoopCount = GifInfoHandle.getLoopCount(gifInfoHandle.gifInfoPtr);
-        mDuration = GifInfoHandle.getDuration(gifInfoHandle.gifInfoPtr);
-        GifInfoHandle.free(gifInfoHandle.gifInfoPtr);
+        mLoopCount = gifInfoHandle.getLoopCount();
+        mDuration = gifInfoHandle.getDuration();
+        gifInfoHandle.recycle();
         mWidth = gifInfoHandle.width;
         mHeight = gifInfoHandle.height;
         mImageCount = gifInfoHandle.imageCount;

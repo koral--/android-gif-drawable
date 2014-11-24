@@ -8,8 +8,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-class GifInfoHandle {
-    volatile long gifInfoPtr;
+/**
+ * Native library wrapper
+ */
+final class GifInfoHandle {
+    /**
+     * Pointer to native structure. Access must be synchronized, heap corruption may occur otherwise
+     * when {@link #recycle()} is called during another operation.
+     */
+    private volatile long gifInfoPtr;
     final int width;
     final int height;
     final int imageCount;
@@ -32,7 +39,7 @@ class GifInfoHandle {
      * @param gifFileInPtr GifInfo pointer
      * @return true if loop of the animation is completed
      */
-    static native long renderFrame(Bitmap buffer, long gifFileInPtr);
+    private static native long renderFrame(Bitmap buffer, long gifFileInPtr);
 
     static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
 
@@ -44,31 +51,31 @@ class GifInfoHandle {
 
     static native GifInfoHandle openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
 
-    static native void free(long gifFileInPtr);
+    private static native void free(long gifFileInPtr);
 
-    static native void reset(long gifFileInPtr);
+    private static native void reset(long gifFileInPtr);
 
-    static native void setSpeedFactor(long gifFileInPtr, float factor);
+    private static native void setSpeedFactor(long gifFileInPtr, float factor);
 
-    static native String getComment(long gifFileInPtr);
+    private static native String getComment(long gifFileInPtr);
 
-    static native int getLoopCount(long gifFileInPtr);
+    private static native int getLoopCount(long gifFileInPtr);
 
-    static native int getDuration(long gifFileInPtr);
+    private static native int getDuration(long gifFileInPtr);
 
-    static native int getCurrentPosition(long gifFileInPtr);
+    private static native int getCurrentPosition(long gifFileInPtr);
 
-    static native void seekToTime(long gifFileInPtr, int pos, Bitmap buffer);
+    private static native void seekToTime(long gifFileInPtr, int pos, Bitmap buffer);
 
-    static native void seekToFrame(long gifFileInPtr, int frameNr, Bitmap buffer);
+    private static native void seekToFrame(long gifFileInPtr, int frameNr, Bitmap buffer);
 
-    static native void saveRemainder(long gifFileInPtr);
+    private static native void saveRemainder(long gifFileInPtr);
 
-    static native void restoreRemainder(long gifFileInPtr);
+    private static native void restoreRemainder(long gifFileInPtr);
 
-    static native long getAllocationByteCount(long gifFileInPtr);
+    private static native long getAllocationByteCount(long gifFileInPtr);
 
-    static native int getNativeErrorCode(long gifFileInPtr);
+    private static native int getNativeErrorCode(long gifFileInPtr);
 
     static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported())
@@ -79,9 +86,69 @@ class GifInfoHandle {
     static GifInfoHandle openAssetFileDescriptor(AssetFileDescriptor afd, boolean justDecodeMetaData) throws IOException {
         try {
             return openFd(afd.getFileDescriptor(), afd.getStartOffset(), justDecodeMetaData);
-        } catch (IOException ex) {
+        } finally {
             afd.close();
-            throw ex;
         }
+    }
+
+    synchronized long renderFrame(Bitmap buffer) {
+        return renderFrame(buffer, gifInfoPtr);
+    }
+
+    synchronized void recycle() {
+        free(gifInfoPtr);
+        gifInfoPtr = 0L;
+    }
+
+    synchronized void restoreRemainder() {
+        restoreRemainder(gifInfoPtr);
+    }
+
+    synchronized void reset() {
+        reset(gifInfoPtr);
+    }
+
+    synchronized void saveRemainder() {
+        saveRemainder(gifInfoPtr);
+    }
+
+    synchronized String getComment() {
+        return getComment(gifInfoPtr);
+    }
+
+    synchronized int getLoopCount() {
+        return getLoopCount(gifInfoPtr);
+    }
+
+    synchronized int getNativeErrorCode() {
+        return getNativeErrorCode(gifInfoPtr);
+    }
+
+    synchronized void setSpeedFactor(float factor) {
+        setSpeedFactor(gifInfoPtr, factor);
+    }
+
+    synchronized int getDuration() {
+        return getDuration(gifInfoPtr);
+    }
+
+    synchronized int getCurrentPosition() {
+        return getCurrentPosition(gifInfoPtr);
+    }
+
+    synchronized void seekToTime(int position, Bitmap buffer) {
+        seekToTime(gifInfoPtr, position, buffer);
+    }
+
+    synchronized void seekToFrame(int frameIndex, Bitmap buffer) {
+        seekToFrame(gifInfoPtr, frameIndex, buffer);
+    }
+
+    synchronized long getAllocationByteCount() {
+        return getAllocationByteCount(gifInfoPtr);
+    }
+
+    synchronized boolean isRecycled() {
+        return gifInfoPtr == 0L;
     }
 }
