@@ -93,7 +93,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Creates drawable from resource.
      *
      * @param res Resources to read from
-     * @param id  resource id
+     * @param id  resource id (raw or drawable)
      * @throws NotFoundException    if the given ID does not exist.
      * @throws IOException          when opening failed
      * @throws NullPointerException if res is null
@@ -263,15 +263,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public boolean isRecycled() {
         return mNativeInfoHandle.isRecycled();
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        try {
-            recycle();
-        } finally {
-            super.finalize();
-        }
     }
 
     @Override

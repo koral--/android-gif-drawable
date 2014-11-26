@@ -151,4 +151,13 @@ final class GifInfoHandle {
     synchronized boolean isRecycled() {
         return gifInfoPtr == 0L;
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            recycle();
+        } finally {
+            super.finalize();
+        }
+    }
 }
