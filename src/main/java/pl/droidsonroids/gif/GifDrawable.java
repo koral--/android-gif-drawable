@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
@@ -12,6 +13,8 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
@@ -55,6 +58,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Bitmap mBuffer;
     private final GifInfoHandle mNativeInfoHandle;
     private final ConcurrentLinkedQueue<AnimationListener> mListeners = new ConcurrentLinkedQueue<>();
+    private ColorStateList mTint;
+    private PorterDuffColorFilter mTintFilter;
+    private PorterDuff.Mode mTintMode;
 
     private final Runnable mInvalidateTask = new Runnable() {
         @Override
@@ -642,10 +648,20 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void draw(Canvas canvas) {
+        final boolean clearColorFilter;
+        if (mTintFilter != null && mPaint.getColorFilter() == null) {
+            mPaint.setColorFilter(mTintFilter);
+            clearColorFilter = true;
+        } else {
+            clearColorFilter = false;
+        }
         if (mPaint.getShader() == null) {
             canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
         } else
             canvas.drawRect(mDstRect, mPaint);
+        if (clearColorFilter) {
+            mPaint.setColorFilter(null);
+        }
     }
 
     /**
@@ -714,5 +730,43 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public Bitmap getCurrentFrame() {
         return mBuffer.copy(mBuffer.getConfig(), mBuffer.isMutable());
+    }
+
+    private PorterDuffColorFilter updateTintFilter(ColorStateList tint,
+                                                   PorterDuff.Mode tintMode) {
+        if (tint == null || tintMode == null) {
+            return null;
+        }
+
+        final int color = tint.getColorForState(getState(), Color.TRANSPARENT);
+        return new PorterDuffColorFilter(color, tintMode);
+    }
+
+    @Override
+    public void setTintList(ColorStateList tint) {
+        mTint = tint;
+        mTintFilter = updateTintFilter(tint, mTintMode);
+        invalidateSelf();
+    }
+
+    @Override
+    public void setTintMode(PorterDuff.Mode tintMode) {
+        mTintMode = tintMode;
+        mTintFilter = updateTintFilter(mTint, tintMode);
+        invalidateSelf();
+    }
+
+    @Override
+    protected boolean onStateChange(int[] stateSet) {
+        if (mTint != null && mTintMode != null) {
+            mTintFilter = updateTintFilter(mTint, mTintMode);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isStateful() {
+        return super.isStateful() || (mTint != null && mTint.isStateful());
     }
 }
