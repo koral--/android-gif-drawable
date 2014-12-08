@@ -24,10 +24,10 @@ before_script:
   - sudo service x11-common stop || true
 
 before_install:
-  - wget http://dl.google.com/android/ndk/android-ndk-r10c-linux-x86_64.bin
-  - chmod +x android-ndk-r10c-linux-x86_64.bin
-  - ./android-ndk-r10c-linux-x86_64.bin | egrep -v ^Extracting
-  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10c
+  - wget http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin
+  - chmod +x android-ndk-r10d-linux-x86_64.bin
+  - ./android-ndk-r10d-linux-x86_64.bin | egrep -v ^Extracting
+  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10d
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:
