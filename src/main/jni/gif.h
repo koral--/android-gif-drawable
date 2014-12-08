@@ -24,7 +24,6 @@
  */
 //#define STRICT_FORMAT_89A
 
-
 /**
  * Decoding error - no frames
  */

@@ -6,11 +6,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+//#include <string.h>
 
 #include "gif_lib.h"
 
-#define MAX(x, y)    (((x) > (y)) ? (x) : (y))
+//#define MAX(x, y)    (((x) > (y)) ? (x) : (y))
 
 /******************************************************************************
  Miscellaneous utility functions                          
@@ -52,7 +52,7 @@ GifMakeMapObject(int ColorCount, const GifColorType *ColorMap)
         return ((ColorMapObject *) NULL);
     }
 
-    Object->Colors = (GifColorType *)calloc(ColorCount, sizeof(GifColorType));
+    Object->Colors = (GifColorType *)calloc((size_t) ColorCount, sizeof(GifColorType));
     if (Object->Colors == (GifColorType *) NULL) {
 	free(Object);
         return ((ColorMapObject *) NULL);
