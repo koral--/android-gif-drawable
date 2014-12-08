@@ -197,8 +197,12 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Migration from 1.0.x
+TODO proguard config
+TODO note about recycle
+TODO min api level bump
 
-###References
+##References
 This library uses code from [GIFLIB](http://giflib.sourceforge.net/) 5.1.0 and [SKIA](https://code.google.com/p/skia/).
 
 ##License
