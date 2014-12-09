@@ -51,7 +51,7 @@ and install SDK level 19: `mvn install -P 4.4` (from maven-android-sdk-deployer 
 </dependency>
 ```
 
-#### Proguard configuration
+####<a name="proguard"></a> Proguard configuration
 Add following line to proguard configuration file (usually `proguard-rules.txt` or `proguard-project.txt`):
 ```
 -keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}
@@ -59,7 +59,7 @@ Add following line to proguard configuration file (usually `proguard-rules.txt` 
 ```
 
 ###Requirements
-+ Android 1.6+ (API level 4+)
++ Android 2.2+ (API level 8+)
 
 ####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
@@ -198,9 +198,15 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `getError()` - returns last error details
 
 ##Migration from 1.0.x
-TODO proguard config
-TODO note about recycle
-TODO min api level bump
+###Proguard configuration update
+Proguard configuration has changed. See [Proguard configuration](#proguard) section.
+
+###Drawable recycling behavior change
+`GifDrawable` now uses `android.graphics.Bitmap` as frame buffer. Trying to access pixels (including drawing)
+ of recycled `GifDrawable` will cause `IllegalStateException` like in `Bitmap`.
+
+###Minimum SDK version changed
+Minimum API level is now 8 (Android 2.2).
 
 ##References
 This library uses code from [GIFLIB](http://giflib.sourceforge.net/) 5.1.0 and [SKIA](https://code.google.com/p/skia/).
