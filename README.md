@@ -209,7 +209,7 @@ Proguard configuration has changed. See [Proguard configuration](#proguard) sect
 Minimum API level is now 8 (Android 2.2).
 
 ##References
-This library uses code from [GIFLIB](http://giflib.sourceforge.net/) 5.1.0 and [SKIA](https://code.google.com/p/skia/).
+This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.0 and [SKIA](https://code.google.com/p/skia/).
 
 ##License
 

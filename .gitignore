@@ -1,10 +1,3 @@
-# built application files
-*.apk
-*.ap_
-
-# files for the dex VM
-*.dex
-
 # Java class files
 *.class
 
@@ -14,9 +7,6 @@ local.properties
 #IntelliJ IDEA
 .idea
 *.iml
-*.ipr
-*.iws
-out
 
 #Gradle
 .gradle
