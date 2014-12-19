@@ -65,22 +65,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final Runnable mInvalidateTask = new Runnable() {
         @Override
         public void run() {
-            if (mIsRunning)
-                invalidateSelf();
+            invalidateSelf();
         }
     };
 
     private final Runnable mRenderTask = new Runnable() {
         @Override
         public void run() {
-            if (!mIsRunning)
-                return;
             final long renderResult = mNativeInfoHandle.renderFrame(mBuffer);
             final int invalidationDelay = (int) (renderResult >> 1);
-            if ((int) (renderResult & 1L) == 1 && !mListeners.isEmpty())
+            if ((int) (renderResult & 1L) == 1 && !mListeners.isEmpty()) {
                 scheduleSelf(mNotifyListenersTask, 0L);
+            }
             if (invalidationDelay >= 0) {
-                mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
+                if (isVisible() && mIsRunning) {
+                    mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
+                }
                 unscheduleSelf(mInvalidateTask);
                 scheduleSelf(mInvalidateTask, 0L);
             }
@@ -236,10 +236,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             }
         }
 
-        if (oldBitmap == null)
+        if (oldBitmap == null) {
             mBuffer = Bitmap.createBitmap(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
-        else
+        } else {
             mBuffer = oldBitmap;
+        }
 
         mSrcRect = new Rect(0, 0, mBuffer.getWidth(), mBuffer.getHeight());
         mExecutor.execute(mRenderTask);
@@ -378,8 +379,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public String toString() {
-        return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width,
-                mNativeInfoHandle.height, mNativeInfoHandle.imageCount,
+        return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width, mNativeInfoHandle.height, mNativeInfoHandle.imageCount,
                 mNativeInfoHandle.getNativeErrorCode());
     }
 
@@ -425,8 +425,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IllegalArgumentException if factor&lt;=0
      */
     public void setSpeed(float factor) {
-        if (factor <= 0f)
+        if (factor <= 0f) {
             throw new IllegalArgumentException("Speed factor is not positive");
+        }
         mNativeInfoHandle.setSpeedFactor(factor);
     }
 
@@ -478,8 +479,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void seekTo(final int position) {
-        if (position < 0)
+        if (position < 0) {
             throw new IllegalArgumentException("Position is not positive");
+        }
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -497,8 +499,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IllegalArgumentException if frameIndex&lt;0
      */
     public void seekToFrame(final int frameIndex) {
-        if (frameIndex < 0)
+        if (frameIndex < 0) {
             throw new IllegalArgumentException("frameIndex is not positive");
+        }
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -592,10 +595,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public long getAllocationByteCount() {
         long byteCount = mNativeInfoHandle.getAllocationByteCount();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             byteCount += mBuffer.getAllocationByteCount();
-        else
+        } else {
             byteCount += mBuffer.getRowBytes() * mBuffer.getHeight();
+        }
         return byteCount;
     }
 
@@ -657,8 +661,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
         if (mPaint.getShader() == null) {
             canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
-        } else
+        } else {
             canvas.drawRect(mDstRect, mPaint);
+        }
         if (clearColorFilter) {
             mPaint.setColorFilter(null);
         }
@@ -732,8 +737,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         return mBuffer.copy(mBuffer.getConfig(), mBuffer.isMutable());
     }
 
-    private PorterDuffColorFilter updateTintFilter(ColorStateList tint,
-                                                   PorterDuff.Mode tintMode) {
+    private PorterDuffColorFilter updateTintFilter(ColorStateList tint, PorterDuff.Mode tintMode) {
         if (tint == null || tintMode == null) {
             return null;
         }
@@ -768,5 +772,34 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public boolean isStateful() {
         return super.isStateful() || (mTint != null && mTint.isStateful());
+    }
+
+    /**
+     * Sets whether this drawable is visible.
+     * <p/>
+     * When the drawable becomes invisible, it will pause its animation. A
+     * subsequent change to visible with <code>restart</code> set to true will
+     * restart the animation from the first frame. If <code>restart</code> is
+     * false, the animation will resume from the most recent frame.
+     *
+     * @param visible true if visible, false otherwise
+     * @param restart when visible, true to force the animation to restart
+     *                from the first frame
+     * @return true if the new visibility is different than its previous state
+     */
+    @Override
+    public boolean setVisible(boolean visible, boolean restart) {
+        final boolean changed = super.setVisible(visible, restart);
+        if (visible) {
+            if (restart) {
+                reset();
+            }
+            if (changed) {
+                start();
+            }
+        } else if (changed) {
+            stop();
+        }
+        return changed;
     }
 }
