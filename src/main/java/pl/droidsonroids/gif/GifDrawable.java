@@ -379,8 +379,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public String toString() {
-        return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width, mNativeInfoHandle.height, mNativeInfoHandle.imageCount,
-                mNativeInfoHandle.getNativeErrorCode());
+        return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width, mNativeInfoHandle.height, mNativeInfoHandle.imageCount, mNativeInfoHandle.getNativeErrorCode());
     }
 
     /**
@@ -776,7 +775,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Sets whether this drawable is visible.
-     * <p/>
      * When the drawable becomes invisible, it will pause its animation. A
      * subsequent change to visible with <code>restart</code> set to true will
      * restart the animation from the first frame. If <code>restart</code> is
