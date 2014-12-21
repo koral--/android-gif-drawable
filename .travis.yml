@@ -1,6 +1,7 @@
 #branches:
 #  except:
 #    - dev
+sudo: false
 language:
   - android
 jdk:
