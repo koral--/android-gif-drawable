@@ -43,6 +43,24 @@ import java.util.concurrent.TimeUnit;
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
     private static final DiscardPolicy DISCARD_POLICY = new DiscardPolicy();
     private final ScheduledThreadPoolExecutor mExecutor = new ScheduledThreadPoolExecutor(1, DISCARD_POLICY);
+
+    private abstract class SafeRunnable implements Runnable {
+        @Override
+        public final void run() {
+            try {
+                doWork();
+            } catch (Throwable throwable) {
+                final Thread.UncaughtExceptionHandler uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+                if (uncaughtExceptionHandler != null) {
+                    uncaughtExceptionHandler.uncaughtException(Thread.currentThread(), throwable);
+                }
+                throw throwable;
+            }
+        }
+
+        protected abstract void doWork();
+    }
+
     private volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
 
@@ -69,9 +87,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
     };
 
-    private final Runnable mRenderTask = new Runnable() {
+    private final Runnable mRenderTask = new SafeRunnable() {
         @Override
-        public void run() {
+        public void doWork() {
             final long renderResult = mNativeInfoHandle.renderFrame(mBuffer);
             final int invalidationDelay = (int) (renderResult >> 1);
             if ((int) (renderResult & 1L) == 1 && !mListeners.isEmpty()) {
@@ -309,11 +327,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void start() {
         mIsRunning = true;
-        mExecutor.execute(new Runnable() {
+        mExecutor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doWork() {
                 mNativeInfoHandle.restoreRemainder();
-                mExecutor.execute(mRenderTask);
+                mRenderTask.run();
             }
         });
     }
@@ -325,9 +343,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * This method is thread-safe.
      */
     public void reset() {
-        mExecutor.execute(new Runnable() {
+        mExecutor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doWork() {
                 mNativeInfoHandle.reset();
             }
         });
@@ -342,9 +360,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
         mExecutor.remove(mRenderTask);
-        mExecutor.execute(new Runnable() {
+        mExecutor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doWork() {
                 mNativeInfoHandle.saveRemainder();
             }
         });
@@ -481,9 +499,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (position < 0) {
             throw new IllegalArgumentException("Position is not positive");
         }
-        mExecutor.execute(new Runnable() {
+        mExecutor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doWork() {
                 mNativeInfoHandle.seekToTime(position, mBuffer);
                 scheduleSelf(mInvalidateTask, 0L);
             }
@@ -501,9 +519,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (frameIndex < 0) {
             throw new IllegalArgumentException("frameIndex is not positive");
         }
-        mExecutor.execute(new Runnable() {
+        mExecutor.execute(new SafeRunnable() {
             @Override
-            public void run() {
+            public void doWork() {
                 mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
                 scheduleSelf(mInvalidateTask, 0L);
             }
