@@ -7,8 +7,7 @@ android-gif-drawable
 `View`s and `Drawable` for animated GIFs in Android.
 
 ## Overview
-Bundled GIFLib via JNI is used to render frames. This way should be more efficient than `WebView` or `Movie` classes.<br>
-Animation starts automatically and run only if `View` with attached `GifDrawable` is visible.
+Bundled GIFLib via JNI is used to render frames. This way should be more efficient than `WebView` or `Movie` classes.
 
 ## Download
 
