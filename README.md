@@ -194,15 +194,20 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `getError()` - returns last error details
 
 ##Migration from 1.0.x
-###Proguard configuration update
+####Proguard configuration update
 Proguard configuration has changed. See [Proguard configuration](#proguard) section.
 
-###Drawable recycling behavior change
+####Drawable recycling behavior change
 `GifDrawable` now uses `android.graphics.Bitmap` as frame buffer. Trying to access pixels (including drawing)
  of recycled `GifDrawable` will cause `IllegalStateException` like in `Bitmap`.
 
-###Minimum SDK version changed
+####Minimum SDK version changed
 Minimum API level is now 8 (Android 2.2).
+
+####Rendering moved to background thread
+Rendering is performed in background thread running independently from main thread so animation is running
+even if drawable is not drawn. However rendering is not running if drawable is not visible, see [#setVisible()](http://developer.android.com/reference/android/graphics/drawable/Drawable.html#setVisible(boolean, boolean)).
+That method can be used to control drawable visibility in cases when it is not already handled by Android framework.
 
 ##References
 This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.0 and [SKIA](https://code.google.com/p/skia/).
