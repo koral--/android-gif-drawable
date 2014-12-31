@@ -256,7 +256,6 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount)
     /* Does this image have local color map? */
     if (Buf[0] & 0x80) {
 	unsigned int i;
-
         GifFile->Image.ColorMap = GifMakeMapObject(1 << BitsPerPixel, NULL);
         if (GifFile->Image.ColorMap == NULL) {
             GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
@@ -295,15 +294,8 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount)
     }
     sp = &GifFile->SavedImages[GifFile->ImageCount];
     memcpy(&sp->ImageDesc, &GifFile->Image, sizeof(GifImageDesc));
-    if (GifFile->Image.ColorMap != NULL) {
-        sp->ImageDesc.ColorMap = GifMakeMapObject(
-                                 GifFile->Image.ColorMap->ColorCount,
-                                 GifFile->Image.ColorMap->Colors);
-        if (sp->ImageDesc.ColorMap == NULL) {
-            GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-            return GIF_ERROR;
-        }
-    }
+    sp->ImageDesc.ColorMap = GifFile->Image.ColorMap;
+
     sp->RasterBits = (unsigned char *)NULL;
     sp->ExtensionBlockCount = 0;
     sp->ExtensionBlocks = (ExtensionBlock *) NULL;

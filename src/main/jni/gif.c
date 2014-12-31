@@ -71,12 +71,9 @@ static void cleanUp(GifInfo *info) {
         GifFile->SColorMap = NULL;
     if (GifFile->SavedImages != NULL) {
         SavedImage *sp;
-        for (sp = GifFile->SavedImages;
-             sp < GifFile->SavedImages + GifFile->ImageCount; sp++) {
-            if (sp->ImageDesc.ColorMap != NULL) {
-                GifFreeMapObject(sp->ImageDesc.ColorMap);
-                sp->ImageDesc.ColorMap = NULL;
-            }
+        for (sp = GifFile->SavedImages; sp < GifFile->SavedImages + GifFile->ImageCount; sp++) {
+             GifFreeMapObject(sp->ImageDesc.ColorMap);
+             sp->ImageDesc.ColorMap = NULL;
         }
         free(GifFile->SavedImages);
         GifFile->SavedImages = NULL;
