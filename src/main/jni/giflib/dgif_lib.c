@@ -226,7 +226,6 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount)
     unsigned int BitsPerPixel;
     GifByteType Buf[3];
     GifFilePrivateType *Private = (GifFilePrivateType *)GifFile->Private;
-    SavedImage *sp;
 
     if (!IS_READABLE(Private)) {
         /* This file was NOT open for reading: */
@@ -292,10 +291,19 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount)
 			}
 		}
     }
-    sp = &GifFile->SavedImages[GifFile->ImageCount];
+    SavedImage *sp = &GifFile->SavedImages[GifFile->ImageCount];
     memcpy(&sp->ImageDesc, &GifFile->Image, sizeof(GifImageDesc));
-    sp->ImageDesc.ColorMap = GifFile->Image.ColorMap;
-
+    if (GifFile->Image.ColorMap != NULL) {
+            if (changeImageCount) {
+                sp->ImageDesc.ColorMap = GifMakeMapObject(
+                                 GifFile->Image.ColorMap->ColorCount,
+                                 GifFile->Image.ColorMap->Colors);
+            }
+        if (sp->ImageDesc.ColorMap == NULL) {
+            GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+            return GIF_ERROR;
+        }
+    }
     sp->RasterBits = (unsigned char *)NULL;
     sp->ExtensionBlockCount = 0;
     sp->ExtensionBlocks = (ExtensionBlock *) NULL;
