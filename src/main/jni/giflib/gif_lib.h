@@ -52,8 +52,8 @@ typedef struct ExtensionBlock {
 
 typedef struct SavedImage {
     GifImageDesc ImageDesc;
-    GifByteType *RasterBits;         /* on malloc(3) heap */
-    int ExtensionBlockCount;         /* Count of extensions before image */    
+//    GifByteType *RasterBits;         /* on malloc(3) heap */
+//    int ExtensionBlockCount;         /* Count of extensions before image */
     ExtensionBlock *ExtensionBlocks; /* Extensions before image */    
 } SavedImage;
 

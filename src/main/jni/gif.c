@@ -69,15 +69,7 @@ static void cleanUp(GifInfo *info) {
     GifFileType *GifFile = info->gifFilePtr;
     if (GifFile->SColorMap == defaultCmap)
         GifFile->SColorMap = NULL;
-    if (GifFile->SavedImages != NULL) {
-        SavedImage *sp;
-        for (sp = GifFile->SavedImages; sp < GifFile->SavedImages + GifFile->ImageCount; sp++) {
-             GifFreeMapObject(sp->ImageDesc.ColorMap);
-             sp->ImageDesc.ColorMap = NULL;
-        }
-        free(GifFile->SavedImages);
-        GifFile->SavedImages = NULL;
-    }
+
     DGifCloseFile(GifFile);
     free(info);
 }
@@ -321,7 +313,7 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                 }
                 if (shouldDecode) {
 
-                    sp->RasterBits = info->rasterBits;
+//                    sp->RasterBits = info->rasterBits;
 
                     if (sp->ImageDesc.Interlace) {
                         int i, j;
@@ -338,13 +330,13 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                             for (j = InterlacedOffset[i]; j < sp->ImageDesc.Height;
                                  j += InterlacedJumps[i]) {
                                 if (DGifGetLine(GifFile,
-                                        sp->RasterBits + j * sp->ImageDesc.Width,
+                                        info->rasterBits + j * sp->ImageDesc.Width,
                                         sp->ImageDesc.Width) == GIF_ERROR)
                                     return GIF_ERROR;
                             }
                     }
                     else {
-                        if (DGifGetLine(GifFile, sp->RasterBits,
+                        if (DGifGetLine(GifFile, info->rasterBits,
                                 ImageSize) == GIF_ERROR)
                             return (GIF_ERROR);
                     }
@@ -658,14 +650,14 @@ static void copyLine(argb *dst, const unsigned char *src,
     }
 }
 
-static argb *
-getAddr(argb *bm, int width, int left, int top) {
+static inline argb *getAddr(argb *bm, int width, int left, int top) {
     return bm + top * width + left;
 }
 
-static void blitNormal(argb *bm, int width, int height, const SavedImage *frame,
-        const ColorMapObject *cmap, int transparent) {
-    const unsigned char *src = frame->RasterBits;
+static void blitNormal(argb *bm, GifInfo* info, SavedImage *frame, ColorMapObject *cmap, int transparent) {
+    const GifWord width=info->gifFilePtr->SWidth;
+    const GifWord height=info->gifFilePtr->SHeight;
+    const unsigned char *src = info->rasterBits;
     argb *dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
     GifWord copyWidth = frame->ImageDesc.Width;
     if (frame->ImageDesc.Left + copyWidth > width) {
@@ -703,8 +695,8 @@ static void fillRect(argb *bm, int bmWidth, int bmHeight, GifWord left,
     }
 }
 
-static void drawFrame(argb *bm, int bmWidth, int bmHeight,
-        const SavedImage *frame, const ColorMapObject *cmap, int transpIndex) {
+static void drawFrame(argb *bm, GifInfo* info, SavedImage *frame, int transpIndex) {
+    ColorMapObject *cmap = info->gifFilePtr->SColorMap;
 
     if (frame->ImageDesc.ColorMap != NULL) {
         // use local color table
@@ -713,7 +705,7 @@ static void drawFrame(argb *bm, int bmWidth, int bmHeight,
             cmap = defaultCmap;
     }
 
-    blitNormal(bm, bmWidth, bmHeight, frame, cmap, transpIndex);
+    blitNormal(bm, info, frame, cmap, transpIndex);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -798,8 +790,7 @@ static void getBitmap(argb *bm, GifInfo *info) {
         // Dispose previous frame before move to next frame.
         disposeFrameIfNeeded(bm, info, i);
     }
-    drawFrame(bm, fGIF->SWidth, fGIF->SHeight, cur, fGIF->SColorMap,
-            transpIndex);
+    drawFrame(bm, info, cur, transpIndex);
 }
 
 JNIEXPORT void JNICALL

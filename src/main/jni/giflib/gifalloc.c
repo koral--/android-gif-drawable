@@ -81,27 +81,6 @@ GifFreeMapObject(ColorMapObject *Object)
 }
 
 /******************************************************************************
- Extension record functions                              
-******************************************************************************/
-void
-GifFreeExtensions(int *ExtensionBlockCount,
-		  ExtensionBlock **ExtensionBlocks)
-{
-    ExtensionBlock *ep;
-
-    if (*ExtensionBlocks == NULL)
-        return;
-
-    for (ep = *ExtensionBlocks;
-	 ep < (*ExtensionBlocks + *ExtensionBlockCount); 
-	 ep++)
-        (void)free((char *)ep->Bytes);
-    (void)free((char *)*ExtensionBlocks);
-    *ExtensionBlocks = NULL;
-    *ExtensionBlockCount = 0;
-}
-
-/******************************************************************************
  Image block allocation functions                          
 ******************************************************************************/
 
@@ -120,10 +99,10 @@ GifFreeSavedImages(GifFileType *GifFile)
             sp->ImageDesc.ColorMap = NULL;
         }
 
-        if (sp->RasterBits != NULL)
-            free((char *)sp->RasterBits);
-	
-	GifFreeExtensions(&sp->ExtensionBlockCount, &sp->ExtensionBlocks);
+//        if (sp->RasterBits != NULL)
+//            free((char *)sp->RasterBits);
+//
+//	GifFreeExtensions(&sp->ExtensionBlockCount, &sp->ExtensionBlocks);
     }
     free((char *)GifFile->SavedImages);
     GifFile->SavedImages = NULL;

@@ -210,7 +210,7 @@ even if drawable is not drawn. However rendering is not running if drawable is n
 That method can be used to control drawable visibility in cases when it is not already handled by Android framework.
 
 ##References
-This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.0 and [SKIA](https://code.google.com/p/skia/).
+This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.1 and [SKIA](https://code.google.com/p/skia/).
 
 ##License
 

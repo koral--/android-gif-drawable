@@ -106,7 +106,8 @@ DGifOpen(void *userData, InputFunc readFunc, int *Error) {
     if (DGifGetScreenDesc(GifFile) == GIF_ERROR) {
         free((char *) Private);
         free((char *) GifFile);
-        *Error = D_GIF_ERR_NO_SCRN_DSCR;
+        if (Error != NULL)
+            *Error = D_GIF_ERR_NO_SCRN_DSCR;
         return NULL;
     }
 
@@ -276,11 +277,12 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
         }
     }
     if (changeImageCount) {
-        GifFile->SavedImages = (SavedImage *) realloc(GifFile->SavedImages, sizeof(SavedImage) * (GifFile->ImageCount + 1));
-        if (GifFile->SavedImages  == NULL) {
+        SavedImage* new_saved_images = (SavedImage *) realloc(GifFile->SavedImages, sizeof(SavedImage) * (GifFile->ImageCount + 1));
+        if (new_saved_images == NULL) {
             GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
             return GIF_ERROR;
         }
+        GifFile->SavedImages = new_saved_images;
 
         SavedImage *sp = &GifFile->SavedImages[GifFile->ImageCount];
         memcpy(&sp->ImageDesc, &GifFile->Image, sizeof(GifImageDesc));
@@ -293,9 +295,9 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
                 return GIF_ERROR;
             }
         }
-        sp->RasterBits = (unsigned char *) NULL;
-        sp->ExtensionBlockCount = 0;
-        sp->ExtensionBlocks = (ExtensionBlock *) NULL;
+//        sp->RasterBits = (unsigned char *) NULL;
+//        sp->ExtensionBlockCount = 0;
+//        sp->ExtensionBlocks = (ExtensionBlock *) NULL;
         GifFile->ImageCount++;
     }
     Private->PixelCount = (unsigned long) GifFile->Image.Width *
