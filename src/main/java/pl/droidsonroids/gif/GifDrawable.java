@@ -31,7 +31,6 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,14 +40,15 @@ import java.util.concurrent.TimeUnit;
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
-    private static final DiscardPolicy DISCARD_POLICY = new DiscardPolicy();
-    private final ScheduledThreadPoolExecutor mExecutor = new ScheduledThreadPoolExecutor(1, DISCARD_POLICY);
+    private final ScheduledThreadPoolExecutor mExecutor;
 
     private abstract class SafeRunnable implements Runnable {
         @Override
         public final void run() {
             try {
-                doWork();
+                if (!isRecycled()) {
+                    doWork();
+                }
             } catch (Throwable throwable) {
                 final Thread.UncaughtExceptionHandler uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
                 if (uncaughtExceptionHandler != null) {
@@ -149,7 +149,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if filePath is null
      */
     public GifDrawable(String filePath) throws IOException {
-        this(GifInfoHandle.openFile(filePath, false), new File(filePath).length(), null);
+        this(GifInfoHandle.openFile(filePath, false), new File(filePath).length(), null, null);
     }
 
     /**
@@ -160,7 +160,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if file is null
      */
     public GifDrawable(File file) throws IOException {
-        this(GifInfoHandle.openFile(file.getPath(), false), file.length(), null);
+        this(GifInfoHandle.openFile(file.getPath(), false), file.length(), null, null);
     }
 
     /**
@@ -173,7 +173,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException     if stream is null
      */
     public GifDrawable(InputStream stream) throws IOException {
-        this(GifInfoHandle.openMarkableInputStream(stream, false), -1L, null);
+        this(GifInfoHandle.openMarkableInputStream(stream, false), -1L, null, null);
     }
 
     /**
@@ -185,7 +185,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      */
     public GifDrawable(AssetFileDescriptor afd) throws IOException {
-        this(GifInfoHandle.openAssetFileDescriptor(afd, false), afd.getLength(), null);
+        this(GifInfoHandle.openAssetFileDescriptor(afd, false), afd.getLength(), null, null);
     }
 
     /**
@@ -196,7 +196,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if fd is null
      */
     public GifDrawable(FileDescriptor fd) throws IOException {
-        this(GifInfoHandle.openFd(fd, 0, false), -1L, null);
+        this(GifInfoHandle.openFd(fd, 0, false), -1L, null, null);
     }
 
     /**
@@ -208,7 +208,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if bytes are null
      */
     public GifDrawable(byte[] bytes) throws IOException {
-        this(GifInfoHandle.openByteArray(bytes, false), bytes.length, null);
+        this(GifInfoHandle.openByteArray(bytes, false), bytes.length, null, null);
     }
 
     /**
@@ -221,7 +221,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException     if buffer is null
      */
     public GifDrawable(ByteBuffer buffer) throws IOException {
-        this(GifInfoHandle.openDirectByteBuffer(buffer, false), buffer.capacity(), null);
+        this(GifInfoHandle.openDirectByteBuffer(buffer, false), buffer.capacity(), null, null);
     }
 
     /**
@@ -237,7 +237,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         this(resolver.openAssetFileDescriptor(uri, "r"));
     }
 
-    GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, final GifDrawable oldDrawable) {
+    GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) {
+        mExecutor = executor != null ? executor : new GifRenderingExecutor();
         mNativeInfoHandle = gifInfoHandle;
         mInputSourceLength = inputSourceLength;
         Bitmap oldBitmap = null;
@@ -279,7 +280,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private void shutdown() {
         mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
-        mExecutor.shutdownNow();
+        if (mExecutor.getClass() == GifRenderingExecutor.class) //instanceof not needed since GifRenderingExecutor is final
+        {
+            mExecutor.shutdownNow();
+        }
         mNativeInfoHandle.recycle();
     }
 
@@ -359,7 +363,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void stop() {
         mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
-        mExecutor.remove(mRenderTask);
         mExecutor.execute(new SafeRunnable() {
             @Override
             public void doWork() {

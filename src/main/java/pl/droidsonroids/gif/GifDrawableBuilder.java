@@ -11,6 +11,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * Builder for {@link pl.droidsonroids.gif.GifDrawable} which can be used to construct new drawables
@@ -19,6 +20,7 @@ import java.nio.ByteBuffer;
 public class GifDrawableBuilder {
     private Source mSource;
     private GifDrawable mOldDrawable;
+    private ScheduledThreadPoolExecutor mExecutor;
 
     /**
      * Appropriate constructor wrapper. Must be preceded by on of {@code from()} calls.
@@ -29,7 +31,7 @@ public class GifDrawableBuilder {
     public GifDrawable build() throws IOException {
         if (mSource == null)
             throw new NullPointerException("Source is not set");
-        return mSource.build(mOldDrawable);
+        return mSource.build(mOldDrawable, mExecutor);
     }
 
     /**
@@ -39,6 +41,30 @@ public class GifDrawableBuilder {
      */
     public GifDrawableBuilder with(GifDrawable drawable) {
         mOldDrawable = drawable;
+        return this;
+    }
+
+    /**
+     * Sets thread pool size for rendering tasks.
+     * Warning: custom executor set by {@link #taskExecutor(java.util.concurrent.ScheduledThreadPoolExecutor)}
+     * will be overwritten after setting pool size
+     * @param threadPoolSize size of the pool
+     * @return this builder instance, to chain calls
+     */
+    public GifDrawableBuilder threadPoolSize(int threadPoolSize) {
+        mExecutor = new ScheduledThreadPoolExecutor(threadPoolSize);
+        return this;
+    }
+
+    /**
+     * Sets or resets executor for rendering tasks.
+     * Warning: value set by {@link #threadPoolSize(int)} will not be taken into account after setting executor
+     *
+     * @param executor executor to be used or null for default (each drawable instance has its own executor)
+     * @return this builder instance, to chain calls
+     */
+    public GifDrawableBuilder taskExecutor(ScheduledThreadPoolExecutor executor) {
+        mExecutor = executor;
         return this;
     }
 
@@ -154,8 +180,8 @@ public class GifDrawableBuilder {
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable) throws IOException {
-            return new GifDrawable(GifInfoHandle.openDirectByteBuffer(byteBuffer, false), byteBuffer.capacity(), oldDrawable);
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException {
+            return new GifDrawable(GifInfoHandle.openDirectByteBuffer(byteBuffer, false), byteBuffer.capacity(), oldDrawable, executor);
         }
     }
 
@@ -167,8 +193,8 @@ public class GifDrawableBuilder {
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable) throws IOException {
-            return new GifDrawable(GifInfoHandle.openByteArray(bytes, false), bytes.length, oldDrawable);
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException {
+            return new GifDrawable(GifInfoHandle.openByteArray(bytes, false), bytes.length, oldDrawable, executor);
         }
     }
 
@@ -184,8 +210,8 @@ public class GifDrawableBuilder {
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable) throws IOException {
-            return new GifDrawable(GifInfoHandle.openFile(mFile.getPath(), false), mFile.length(), oldDrawable);
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException {
+            return new GifDrawable(GifInfoHandle.openFile(mFile.getPath(), false), mFile.length(), oldDrawable, executor);
         }
     }
 
@@ -199,8 +225,8 @@ public class GifDrawableBuilder {
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable) throws IOException {
-            return new FileDescriptorSource(mContentResolver.openAssetFileDescriptor(mUri, "r")).build(oldDrawable);
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException {
+            return new FileDescriptorSource(mContentResolver.openAssetFileDescriptor(mUri, "r")).build(oldDrawable, executor);
         }
     }
 
@@ -214,8 +240,8 @@ public class GifDrawableBuilder {
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable) throws IOException {
-            return new FileDescriptorSource(mAssetManager.openFd(mAssetName)).build(oldDrawable);
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException {
+            return new FileDescriptorSource(mAssetManager.openFd(mAssetName)).build(oldDrawable, executor);
         }
     }
 
@@ -240,8 +266,8 @@ public class GifDrawableBuilder {
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable) throws IOException {
-            return new GifDrawable(GifInfoHandle.openFd(mFd, startOffset, false), length, oldDrawable);
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException {
+            return new GifDrawable(GifInfoHandle.openFd(mFd, startOffset, false), length, oldDrawable, executor);
         }
     }
 
@@ -253,12 +279,12 @@ public class GifDrawableBuilder {
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable) throws IOException {
-            return new GifDrawable(GifInfoHandle.openMarkableInputStream(inputStream, false), -1L, oldDrawable);
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException {
+            return new GifDrawable(GifInfoHandle.openMarkableInputStream(inputStream, false), -1L, oldDrawable, executor);
         }
     }
 
     private static interface Source {
-        GifDrawable build(GifDrawable oldDrawable) throws IOException;
+        GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) throws IOException;
     }
 }
