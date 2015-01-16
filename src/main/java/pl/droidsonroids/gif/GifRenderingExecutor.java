@@ -1,16 +1,28 @@
 package pl.droidsonroids.gif;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Default executor for rendering tasks - {@link java.util.concurrent.ScheduledThreadPoolExecutor}
  * with 1 worker thread and {@link java.util.concurrent.ThreadPoolExecutor.DiscardPolicy}.
  */
 final class GifRenderingExecutor extends ScheduledThreadPoolExecutor {
-    private static final ThreadPoolExecutor.DiscardPolicy DISCARD_POLICY = new ThreadPoolExecutor.DiscardPolicy();
 
-    GifRenderingExecutor() {
-        super(1, DISCARD_POLICY);
+    private GifRenderingExecutor() {
+        super(1, new DiscardPolicy());
+    }
+
+    @SuppressWarnings("StaticNonFinalField") //double-checked singleton initialization
+    private static volatile GifRenderingExecutor instance = null;
+
+    public static GifRenderingExecutor getInstance() {
+        if (instance == null) {
+            synchronized (GifRenderingExecutor.class) {
+                if (instance == null) {
+                    instance = new GifRenderingExecutor();
+                }
+            }
+        }
+        return instance;
     }
 }

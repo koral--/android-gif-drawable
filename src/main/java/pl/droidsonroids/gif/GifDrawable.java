@@ -237,12 +237,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         this(resolver.openAssetFileDescriptor(uri, "r"));
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor) {
-        mExecutor = executor != null ? executor : new GifRenderingExecutor();
+        mExecutor = executor != null ? executor : GifRenderingExecutor.getInstance();
         mNativeInfoHandle = gifInfoHandle;
         mInputSourceLength = inputSourceLength;
         Bitmap oldBitmap = null;
-        if (oldDrawable != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && oldDrawable != null) {
             synchronized (oldDrawable.mNativeInfoHandle) {
                 if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
                     final int oldHeight = oldDrawable.mBuffer.getHeight();
@@ -250,6 +251,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                     if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
                         oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
+                        oldBitmap.eraseColor(Color.TRANSPARENT);
+                        oldBitmap.reconfigure(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
                     }
                 }
             }
@@ -261,7 +264,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mBuffer = oldBitmap;
         }
 
-        mSrcRect = new Rect(0, 0, mBuffer.getWidth(), mBuffer.getHeight());
+        mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
         mExecutor.execute(mRenderTask);
     }
 
@@ -280,10 +283,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private void shutdown() {
         mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
-        if (mExecutor.getClass() == GifRenderingExecutor.class) //instanceof not needed since GifRenderingExecutor is final
-        {
-            mExecutor.shutdownNow();
-        }
         mNativeInfoHandle.recycle();
     }
 
