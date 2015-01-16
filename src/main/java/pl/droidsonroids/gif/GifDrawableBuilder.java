@@ -29,13 +29,16 @@ public class GifDrawableBuilder {
      * @throws IOException when creation fails
      */
     public GifDrawable build() throws IOException {
-        if (mSource == null)
+        if (mSource == null) {
             throw new NullPointerException("Source is not set");
+        }
         return mSource.build(mOldDrawable, mExecutor);
     }
 
     /**
-     * Sets drawable to be reused when creating new one
+     * Sets drawable to be reused when creating new one. Currently it works only on {@link android.os.Build.VERSION_CODES#KITKAT}
+     * and newer, on older API levels call has no effect.
+     *
      * @param drawable drawable to be reused
      * @return this builder instance, to chain calls
      */
@@ -48,6 +51,7 @@ public class GifDrawableBuilder {
      * Sets thread pool size for rendering tasks.
      * Warning: custom executor set by {@link #taskExecutor(java.util.concurrent.ScheduledThreadPoolExecutor)}
      * will be overwritten after setting pool size
+     *
      * @param threadPoolSize size of the pool
      * @return this builder instance, to chain calls
      */
@@ -70,6 +74,7 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.io.InputStream)}
+     *
      * @param inputStream data source
      * @return this builder instance, to chain calls
      */
@@ -80,6 +85,7 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(android.content.res.AssetFileDescriptor)}
+     *
      * @param assetFileDescriptor data source
      * @return this builder instance, to chain calls
      */
@@ -90,6 +96,7 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.io.FileDescriptor)}
+     *
      * @param fileDescriptor data source
      * @return this builder instance, to chain calls
      */
@@ -100,8 +107,9 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(android.content.res.AssetManager, java.lang.String)}
+     *
      * @param assetManager assets source
-     * @param assetName asset file name
+     * @param assetName    asset file name
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(AssetManager assetManager, String assetName) {
@@ -123,6 +131,7 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.io.File)}
+     *
      * @param file data source
      * @return this builder instance, to chain calls
      */
@@ -133,6 +142,7 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.lang.String)}
+     *
      * @param filePath data source
      * @return this builder instance, to chain calls
      */
@@ -143,6 +153,7 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(byte[])}
+     *
      * @param bytes data source
      * @return this builder instance, to chain calls
      */
@@ -153,6 +164,7 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(java.nio.ByteBuffer)}
+     *
      * @param byteBuffer data source
      * @return this builder instance, to chain calls
      */
@@ -163,7 +175,8 @@ public class GifDrawableBuilder {
 
     /**
      * Wrapper of {@link pl.droidsonroids.gif.GifDrawable#GifDrawable(android.content.res.Resources, int)}
-     * @param resources Resources to read from
+     *
+     * @param resources  Resources to read from
      * @param resourceId resource id (data source)
      * @return this builder instance, to chain calls
      */
