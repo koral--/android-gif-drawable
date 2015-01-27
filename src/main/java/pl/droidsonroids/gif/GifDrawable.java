@@ -661,7 +661,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     @Override
     protected void onBoundsChange(Rect bounds) {
-        mDstRect.set(getBounds());
+        mDstRect.set(bounds);
     }
 
     /**
