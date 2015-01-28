@@ -28,29 +28,30 @@ android {
         }
     }
     //buildTypes.debug.jniDebuggable true
-
-    productFlavors {
-        x86 {
-            ndk {
-                abiFilter "x86"
+    if (!gradle.startParameter.taskNames.contains("uploadArchives")) {
+        productFlavors {
+            x86 {
+                ndk {
+                    abiFilter "x86"
+                }
             }
-        }
-        mips {
-            ndk {
-                abiFilter "mips"
+            mips {
+                ndk {
+                    abiFilter "mips"
+                }
             }
-        }
-        armv7 {
-            ndk {
-                abiFilter "armeabi-v7a"
+            armv7 {
+                ndk {
+                    abiFilter "armeabi-v7a"
+                }
             }
-        }
-        arm {
-            ndk {
-                abiFilter "armeabi"
+            arm {
+                ndk {
+                    abiFilter "armeabi"
+                }
             }
+            fat
         }
-        fat
     }
 }
 
