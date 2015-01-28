@@ -31,7 +31,6 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -40,32 +39,12 @@ import java.util.concurrent.TimeUnit;
  * @author koral--
  */
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
-    private final ScheduledThreadPoolExecutor mExecutor;
+    final ScheduledThreadPoolExecutor mExecutor;
 
-    private abstract class SafeRunnable implements Runnable {
-        @Override
-        public final void run() {
-            try {
-                if (!isRecycled()) {
-                    doWork();
-                }
-            } catch (Throwable throwable) {
-                final Thread.UncaughtExceptionHandler uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-                if (uncaughtExceptionHandler != null) {
-                    uncaughtExceptionHandler.uncaughtException(Thread.currentThread(), throwable);
-                }
-                throw throwable;
-            }
-        }
-
-        protected abstract void doWork();
-    }
-
-    private volatile boolean mIsRunning = true;
+    volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
 
     private final Rect mDstRect = new Rect();
-    private final Rect mSrcRect;
     /**
      * Paint used to draw on a Canvas
      */
@@ -73,45 +52,21 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     /**
      * Frame buffer, holds current frame.
      */
-    private final Bitmap mBuffer;
-    private final GifInfoHandle mNativeInfoHandle;
-    private final ConcurrentLinkedQueue<AnimationListener> mListeners = new ConcurrentLinkedQueue<>();
+    final Bitmap mBuffer;
+    final GifInfoHandle mNativeInfoHandle;
+    final ConcurrentLinkedQueue<AnimationListener> mListeners = new ConcurrentLinkedQueue<>();
     private ColorStateList mTint;
     private PorterDuffColorFilter mTintFilter;
     private PorterDuff.Mode mTintMode;
 
-    private final Runnable mInvalidateTask = new Runnable() {
+    final Runnable mInvalidateTask = new Runnable() {
         @Override
         public void run() {
             invalidateSelf();
         }
     };
 
-    private final Runnable mRenderTask = new SafeRunnable() {
-        @Override
-        public void doWork() {
-            final long renderResult = mNativeInfoHandle.renderFrame(mBuffer);
-            final int invalidationDelay = (int) (renderResult >> 1);
-            if ((int) (renderResult & 1L) == 1 && !mListeners.isEmpty()) {
-                scheduleSelf(mNotifyListenersTask, 0L);
-            }
-            if (invalidationDelay >= 0) {
-                if (isVisible() && mIsRunning) {
-                    mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
-                }
-                unscheduleSelf(mInvalidateTask);
-                scheduleSelf(mInvalidateTask, 0L);
-            }
-        }
-    };
-
-    private final Runnable mNotifyListenersTask = new Runnable() {
-        @Override
-        public void run() {
-            for (AnimationListener listener : mListeners)
-                listener.onAnimationCompleted();
-        }
-    };
+    private final Runnable mRenderTask = new RenderTask(this);
 
     /**
      * Creates drawable from resource.
@@ -264,7 +219,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mBuffer = oldBitmap;
         }
 
-        mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
         mExecutor.execute(mRenderTask);
     }
 
@@ -330,7 +284,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void start() {
         mIsRunning = true;
-        mExecutor.execute(new SafeRunnable() {
+        mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
                 mNativeInfoHandle.restoreRemainder();
@@ -346,7 +300,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * This method is thread-safe.
      */
     public void reset() {
-        mExecutor.execute(new SafeRunnable() {
+        mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
                 mNativeInfoHandle.reset();
@@ -362,7 +316,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void stop() {
         mIsRunning = false;
         unscheduleSelf(mInvalidateTask);
-        mExecutor.execute(new SafeRunnable() {
+        mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
                 mNativeInfoHandle.saveRemainder();
@@ -501,7 +455,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (position < 0) {
             throw new IllegalArgumentException("Position is not positive");
         }
-        mExecutor.execute(new SafeRunnable() {
+        mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToTime(position, mBuffer);
@@ -521,7 +475,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (frameIndex < 0) {
             throw new IllegalArgumentException("frameIndex is not positive");
         }
-        mExecutor.execute(new SafeRunnable() {
+        mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
@@ -679,7 +633,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             clearColorFilter = false;
         }
         if (mPaint.getShader() == null) {
-            canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
+            canvas.drawBitmap(mBuffer, null, mDstRect, mPaint);
         } else {
             canvas.drawRect(mDstRect, mPaint);
         }
