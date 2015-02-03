@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -43,6 +44,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
+    long nextFrameRenderTime = System.currentTimeMillis();
 
     private final Rect mDstRect = new Rect();
     /**
@@ -640,6 +642,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (clearColorFilter) {
             mPaint.setColorFilter(null);
         }
+
+        int invalidationDelay = (int)Math.max(0, this.nextFrameRenderTime - System.currentTimeMillis());
+        mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
     }
 
     /**

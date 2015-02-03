@@ -20,15 +20,15 @@ class RenderTask extends SafeRunnable {
     public void doWork() {
         final long renderResult = mGifDrawable.mNativeInfoHandle.renderFrame(mGifDrawable.mBuffer);
         final int invalidationDelay = (int) (renderResult >> 1);
+        mGifDrawable.nextFrameRenderTime = System.currentTimeMillis() + invalidationDelay;
         if ((int) (renderResult & 1L) == 1 && !mGifDrawable.mListeners.isEmpty()) {
             mGifDrawable.scheduleSelf(mNotifyListenersTask, 0L);
         }
         if (invalidationDelay >= 0) {
             if (mGifDrawable.isVisible() && mGifDrawable.mIsRunning) {
-                mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
+                mGifDrawable.unscheduleSelf(mGifDrawable.mInvalidateTask);
+                mGifDrawable.scheduleSelf(mGifDrawable.mInvalidateTask, 0L);
             }
-            mGifDrawable.unscheduleSelf(mGifDrawable.mInvalidateTask);
-            mGifDrawable.scheduleSelf(mGifDrawable.mInvalidateTask, 0L);
         }
     }
 }
