@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
-    long nextFrameRenderTime = System.currentTimeMillis();
+    long nextFrameRenderTime = SystemClock.elapsedRealtime();
 
     private final Rect mDstRect = new Rect();
     /**
@@ -643,7 +644,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mPaint.setColorFilter(null);
         }
 
-        int invalidationDelay = (int)Math.max(0, this.nextFrameRenderTime - System.currentTimeMillis());
+        int invalidationDelay = (int)Math.max(0, this.nextFrameRenderTime - SystemClock.elapsedRealtime());
         mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
     }
 

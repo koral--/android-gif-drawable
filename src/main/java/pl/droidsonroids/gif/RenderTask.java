@@ -1,6 +1,6 @@
 package pl.droidsonroids.gif;
 
-import java.util.concurrent.TimeUnit;
+import android.os.SystemClock;
 
 class RenderTask extends SafeRunnable {
 
@@ -20,7 +20,7 @@ class RenderTask extends SafeRunnable {
     public void doWork() {
         final long renderResult = mGifDrawable.mNativeInfoHandle.renderFrame(mGifDrawable.mBuffer);
         final int invalidationDelay = (int) (renderResult >> 1);
-        mGifDrawable.nextFrameRenderTime = System.currentTimeMillis() + invalidationDelay;
+        mGifDrawable.nextFrameRenderTime = SystemClock.elapsedRealtime() + invalidationDelay;
         if ((int) (renderResult & 1L) == 1 && !mGifDrawable.mListeners.isEmpty()) {
             mGifDrawable.scheduleSelf(mNotifyListenersTask, 0L);
         }
