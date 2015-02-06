@@ -465,7 +465,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     * Like {@link GifInfoHandle#seekToTime(long, int, android.graphics.Bitmap)}
+     * Like {@link #seekTo(int)}
      * but uses index of the frame instead of time.
      *
      * @param frameIndex index of the frame to seek to (zero based)
