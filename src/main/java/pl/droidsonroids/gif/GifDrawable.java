@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -43,6 +45,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
+    long nextFrameRenderTime = SystemClock.elapsedRealtime();
 
     private final Rect mDstRect = new Rect();
     /**
@@ -640,6 +643,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (clearColorFilter) {
             mPaint.setColorFilter(null);
         }
+
+        int invalidationDelay = (int)Math.max(0, this.nextFrameRenderTime - SystemClock.elapsedRealtime());
+        mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
     }
 
     /**
