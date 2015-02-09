@@ -45,7 +45,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     volatile boolean mIsRunning = true;
     private final long mInputSourceLength;
-    long nextFrameRenderTime = SystemClock.elapsedRealtime();
+    long mNextFrameRenderTime = SystemClock.elapsedRealtime();
 
     private final Rect mDstRect = new Rect();
     /**
@@ -61,6 +61,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private ColorStateList mTint;
     private PorterDuffColorFilter mTintFilter;
     private PorterDuff.Mode mTintMode;
+    volatile boolean mIsRenderingAlwaysEnabled; //TODO add setting flow
 
     final Runnable mInvalidateTask = new Runnable() {
         @Override
@@ -644,8 +645,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mPaint.setColorFilter(null);
         }
 
-        int invalidationDelay = (int)Math.max(0, this.nextFrameRenderTime - SystemClock.elapsedRealtime());
-        mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
+        if (!mIsRenderingAlwaysEnabled) {
+            long invalidationDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime());
+            mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
+        }
     }
 
     /**
