@@ -817,7 +817,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
-    int imgCount = info->gifFilePtr->ImageCount;
+    const int imgCount = info->gifFilePtr->ImageCount;
     if (imgCount <= 1)
         return;
 
@@ -829,8 +829,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
             break;
         sum = newSum;
     }
-    if (i < info->currentIndex)
-        return;
+
+    if (i < info->currentIndex)  {
+       if (!reset(info)) {
+           info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+           return;
+       }
+    }
 
     time_t lastFrameRemainder = desiredPos - sum;
     if (i == imgCount - 1 && lastFrameRemainder > info->infos[i].duration)
@@ -861,12 +866,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
-    if (desiredIdx <= info->currentIndex)
-        return;
 
     const int imgCount = info->gifFilePtr->ImageCount;
     if (imgCount <= 1)
         return;
+    if (desiredIdx <= info->currentIndex)  {
+        if (!reset(info)) {
+            info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+            return;
+        }
+     }
+
     void *pixels;
     if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
         return;
