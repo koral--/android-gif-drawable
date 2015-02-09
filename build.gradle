@@ -28,26 +28,22 @@ android {
         }
     }
     //buildTypes.debug.jniDebuggable true
-    if (!gradle.startParameter.taskNames.contains("uploadArchives")) {
+    def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
+    boolean applyFlavors = false
+    gradle.startParameter.taskNames.each() {
+        String normalizedTaskName = it.toLowerCase(Locale.US)
+        flavors.each() {
+            applyFlavors |= normalizedTaskName.contains(it)
+        }
+    }
+    if (applyFlavors) {
         productFlavors {
-            x86 {
-                ndk {
-                    abiFilter "x86"
-                }
-            }
-            mips {
-                ndk {
-                    abiFilter "mips"
-                }
-            }
-            armv7 {
-                ndk {
-                    abiFilter "armeabi-v7a"
-                }
-            }
-            arm {
-                ndk {
-                    abiFilter "armeabi"
+            flavors.each() {
+                String flavor = it
+                "${it}" {
+                    ndk {
+                        abiFilter flavor
+                    }
                 }
             }
             fat
