@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
- * Basic GIF metadata can be also obtained.
+ * Basic GIF metadata can also be examined.
  *
  * @author koral--
  */
