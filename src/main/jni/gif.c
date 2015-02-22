@@ -956,6 +956,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
         else //no need to check upper bound since info->nextStartTime<=rt+LONG_MAX always
             invalidationDelay = (int) delay;
     }
+    if (invalidationDelay > 0)
+    {//exclude rendering time
+        invalidationDelay -= getRealTime() - rt;
+        if (invalidationDelay < 0)
+            invalidationDelay = 0;
+    }
     return packRenderFrameResult(invalidationDelay, isAnimationCompleted);
 }
 
