@@ -926,7 +926,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     if (needRedraw) {
         void *pixels = NULL;
         if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
-            return packRenderFrameResult(-1, isAnimationCompleted);
+            if (--info->currentIndex < 0)
+                info->currentIndex = 0;
+            return packRenderFrameResult(0, false);
         }
         getBitmap((argb *) pixels, info);
 
@@ -946,8 +948,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
             else
                 invalidationDelay = -1;
         }
-        else
-            return packRenderFrameResult(-1, isAnimationCompleted);
+        else {
+            if (--info->currentIndex < 0)
+                info->currentIndex = 0;
+            return packRenderFrameResult(0, false);
+        }
     }
     else {
         long delay = info->nextStartTime - rt;
