@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <jni.h>
 #include <android/bitmap.h>
 #include <time.h>
