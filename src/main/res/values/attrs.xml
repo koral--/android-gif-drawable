@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GifSurfaceView">
+        <attr name="srcId" format="reference"/>
+        <attr name="srcAsset" format="string"/>
+        <attr name="srcPath" format="string"/>
+    </declare-styleable>
+</resources>

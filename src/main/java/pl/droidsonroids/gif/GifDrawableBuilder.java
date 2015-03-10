@@ -1,13 +1,16 @@
 package pl.droidsonroids.gif;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Bundle;
 
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -81,6 +84,7 @@ public class GifDrawableBuilder {
      * By default this option is enabled. Note that drawing does not happen if view containing
      * drawable is obscured. Disabling this option will prevent that however battery draining will be
      * higher.
+     *
      * @param isRenderingTriggeredOnDraw whether rendering of the next frame is scheduled after drawing (default)
      *                                   current one or just after it is rendered
      * @return this builder instance, to chain calls
@@ -203,119 +207,167 @@ public class GifDrawableBuilder {
         return this;
     }
 
-    private static class ByteBufferSource implements Source {
+    public static final class ByteBufferSource extends Source {
         private final ByteBuffer byteBuffer;
 
-        private ByteBufferSource(ByteBuffer byteBuffer) {
+        public ByteBufferSource(ByteBuffer byteBuffer) {
             this.byteBuffer = byteBuffer;
         }
 
         @Override
+        GifInfoHandle open() throws GifIOException {
+            return GifInfoHandle.openDirectByteBuffer(byteBuffer, false);
+        }
+
+        @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(GifInfoHandle.openDirectByteBuffer(byteBuffer, false), byteBuffer.capacity(), oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), byteBuffer.capacity(), oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
-    private static class ByteArraySource implements Source {
+    public static final class ByteArraySource extends Source {
         private final byte[] bytes;
 
-        private ByteArraySource(byte[] bytes) {
+        public ByteArraySource(byte[] bytes) {
             this.bytes = bytes;
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(GifInfoHandle.openByteArray(bytes, false), bytes.length, oldDrawable, executor, isRenderingAlwaysEnabled);
-        }
-    }
-
-    private static class FileSource implements Source {
-        private final File mFile;
-
-        private FileSource(File file) {
-            mFile = file;
-        }
-
-        private FileSource(String filePath) {
-            mFile = new File(filePath);
+        GifInfoHandle open() throws GifIOException {
+            return GifInfoHandle.openByteArray(bytes, false);
         }
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(GifInfoHandle.openFile(mFile.getPath(), false), mFile.length(), oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), bytes.length, oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
-    private static class UriSource implements Source {
+    public static final class FileSource extends Source {
+        private final File mFile;
+
+        public FileSource(File file) {
+            mFile = file;
+        }
+
+        public FileSource(String filePath) {
+            mFile = new File(filePath);
+        }
+
+        @Override
+        GifInfoHandle open() throws GifIOException {
+            return GifInfoHandle.openFile(mFile.getPath(), false);
+        }
+
+        @Override
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
+            return new GifDrawable(open(), mFile.length(), oldDrawable, executor, isRenderingAlwaysEnabled);
+        }
+    }
+
+    public static final class UriSource extends Source {
         private final ContentResolver mContentResolver;
         private final Uri mUri;
 
-        private UriSource(ContentResolver contentResolver, Uri uri) {
+        public UriSource(ContentResolver contentResolver, Uri uri) {
             mContentResolver = contentResolver;
             mUri = uri;
         }
 
         @Override
+        GifInfoHandle open() throws IOException {
+            return getFileDescriptorSource().open();
+        }
+
+        private FileDescriptorSource getFileDescriptorSource() throws FileNotFoundException {
+            return new FileDescriptorSource(mContentResolver.openAssetFileDescriptor(mUri, "r"));
+        }
+
+        @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new FileDescriptorSource(mContentResolver.openAssetFileDescriptor(mUri, "r")).build(oldDrawable, executor, isRenderingAlwaysEnabled);
+            return getFileDescriptorSource().build(oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
-    private static class AssetSource implements Source {
+    public static final class AssetSource extends Source {
         private final AssetManager mAssetManager;
         private final String mAssetName;
 
-        private AssetSource(AssetManager assetManager, String assetName) {
+        public AssetSource(AssetManager assetManager, String assetName) {
             mAssetManager = assetManager;
             mAssetName = assetName;
         }
 
         @Override
+        GifInfoHandle open() throws IOException {
+            return getFileDescriptorSource().open();
+        }
+
+        private FileDescriptorSource getFileDescriptorSource() throws IOException {
+            return new FileDescriptorSource(mAssetManager.openFd(mAssetName));
+        }
+
+        @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new FileDescriptorSource(mAssetManager.openFd(mAssetName)).build(oldDrawable, executor, isRenderingAlwaysEnabled);
+            return getFileDescriptorSource().build(oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
-    private static class FileDescriptorSource implements Source {
+    public static final class FileDescriptorSource extends Source {
         private final FileDescriptor mFd;
         private final long length, startOffset;
 
-        private FileDescriptorSource(AssetFileDescriptor assetFileDescriptor) {
+        public FileDescriptorSource(AssetFileDescriptor assetFileDescriptor) {
             mFd = assetFileDescriptor.getFileDescriptor();
             length = assetFileDescriptor.getLength();
             startOffset = assetFileDescriptor.getStartOffset();
         }
 
-        private FileDescriptorSource(FileDescriptor fileDescriptor) {
+        public FileDescriptorSource(FileDescriptor fileDescriptor) {
             mFd = fileDescriptor;
             length = -1L;
             startOffset = 0;
         }
 
-        private FileDescriptorSource(Resources resources, int resourceId) {
+        public FileDescriptorSource(Resources resources, int resourceId) {
             this(resources.openRawResourceFd(resourceId));
         }
 
         @Override
-        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(GifInfoHandle.openFd(mFd, startOffset, false), length, oldDrawable, executor, isRenderingAlwaysEnabled);
-        }
-    }
-
-    private static class InputStreamSource implements Source {
-        private final InputStream inputStream;
-
-        private InputStreamSource(InputStream inputStream) {
-            this.inputStream = inputStream;
+        GifInfoHandle open() throws IOException {
+            return GifInfoHandle.openFd(mFd, startOffset, false);
         }
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(GifInfoHandle.openMarkableInputStream(inputStream, false), -1L, oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), length, oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
-    private static interface Source {
-        GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException;
+    public static final class InputStreamSource extends Source {
+        private final InputStream inputStream;
+
+        public InputStreamSource(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        GifInfoHandle open() throws IOException {
+            return GifInfoHandle.openMarkableInputStream(inputStream, false);
+        }
+
+        @Override
+        public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
+            return new GifDrawable(open(), -1L, oldDrawable, executor, isRenderingAlwaysEnabled);
+        }
+    }
+
+    public static abstract class Source {
+        Source() {
+        }
+
+        abstract GifInfoHandle open() throws IOException;
+
+        abstract GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException;
     }
 }
