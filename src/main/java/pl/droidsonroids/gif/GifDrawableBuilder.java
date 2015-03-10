@@ -21,7 +21,7 @@ public class GifDrawableBuilder {
     private Source mSource;
     private GifDrawable mOldDrawable;
     private ScheduledThreadPoolExecutor mExecutor;
-    private boolean mIsRenderingAlwaysEnabled;
+    private boolean mIsRenderingTriggeredOnDraw = true;
 
     /**
      * Appropriate constructor wrapper. Must be preceded by on of {@code from()} calls.
@@ -33,7 +33,7 @@ public class GifDrawableBuilder {
         if (mSource == null) {
             throw new NullPointerException("Source is not set");
         }
-        return mSource.build(mOldDrawable, mExecutor, mIsRenderingAlwaysEnabled);
+        return mSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw);
     }
 
     /**
@@ -74,12 +74,19 @@ public class GifDrawableBuilder {
     }
 
     /**
-     * TODO
-     * @param isRenderingAlwaysEnabled
+     * Sets whether rendering of the next frame is scheduled after drawing current one (so animation
+     * will be paused if drawing does not happen) or just after rendering frame (no matter if it is
+     * drawn or not). However animation will never run if drawable is set to not visible. See
+     * {@link GifDrawable#isVisible()} for more information about drawable visibility.
+     * By default this option is enabled. Note that drawing does not happen if view containing
+     * drawable is obscured. Disabling this option will prevent that however battery draining will be
+     * higher.
+     * @param isRenderingTriggeredOnDraw whether rendering of the next frame is scheduled after drawing (default)
+     *                                   current one or just after it is rendered
      * @return this builder instance, to chain calls
      */
-    public GifDrawableBuilder setRenderingAlwaysEnabled(boolean isRenderingAlwaysEnabled) {
-        mIsRenderingAlwaysEnabled = isRenderingAlwaysEnabled;
+    public GifDrawableBuilder setRenderingTriggeredOnDraw(boolean isRenderingTriggeredOnDraw) {
+        mIsRenderingTriggeredOnDraw = isRenderingTriggeredOnDraw;
         return this;
     }
 

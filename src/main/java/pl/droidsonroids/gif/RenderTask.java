@@ -28,7 +28,7 @@ class RenderTask extends SafeRunnable {
         }
         if (invalidationDelay >= 0) {
             if (mGifDrawable.isVisible()) {
-                if (mGifDrawable.mIsRunning && mGifDrawable.mIsRenderingAlwaysEnabled) {
+                if (mGifDrawable.mIsRunning && !mGifDrawable.mIsRenderingTriggeredOnDraw) {
                     mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
                 }
                 mGifDrawable.unscheduleSelf(mGifDrawable.mInvalidateTask);

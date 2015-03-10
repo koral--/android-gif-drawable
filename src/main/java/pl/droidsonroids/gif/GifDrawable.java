@@ -61,7 +61,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private ColorStateList mTint;
     private PorterDuffColorFilter mTintFilter;
     private PorterDuff.Mode mTintMode;
-    final boolean mIsRenderingAlwaysEnabled;
+    final boolean mIsRenderingTriggeredOnDraw;
 
     final Runnable mInvalidateTask = new Runnable() {
         @Override
@@ -108,7 +108,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if filePath is null
      */
     public GifDrawable(String filePath) throws IOException {
-        this(GifInfoHandle.openFile(filePath, false), new File(filePath).length(), null, null, false);
+        this(GifInfoHandle.openFile(filePath, false), new File(filePath).length(), null, null, true);
     }
 
     /**
@@ -119,7 +119,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if file is null
      */
     public GifDrawable(File file) throws IOException {
-        this(GifInfoHandle.openFile(file.getPath(), false), file.length(), null, null, false);
+        this(GifInfoHandle.openFile(file.getPath(), false), file.length(), null, null, true);
     }
 
     /**
@@ -132,7 +132,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException     if stream is null
      */
     public GifDrawable(InputStream stream) throws IOException {
-        this(GifInfoHandle.openMarkableInputStream(stream, false), -1L, null, null, false);
+        this(GifInfoHandle.openMarkableInputStream(stream, false), -1L, null, null, true);
     }
 
     /**
@@ -144,7 +144,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      */
     public GifDrawable(AssetFileDescriptor afd) throws IOException {
-        this(GifInfoHandle.openAssetFileDescriptor(afd, false), afd.getLength(), null, null, false);
+        this(GifInfoHandle.openAssetFileDescriptor(afd, false), afd.getLength(), null, null, true);
     }
 
     /**
@@ -155,7 +155,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if fd is null
      */
     public GifDrawable(FileDescriptor fd) throws IOException {
-        this(GifInfoHandle.openFd(fd, 0, false), -1L, null, null, false);
+        this(GifInfoHandle.openFd(fd, 0, false), -1L, null, null, true);
     }
 
     /**
@@ -167,7 +167,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if bytes are null
      */
     public GifDrawable(byte[] bytes) throws IOException {
-        this(GifInfoHandle.openByteArray(bytes, false), bytes.length, null, null, false);
+        this(GifInfoHandle.openByteArray(bytes, false), bytes.length, null, null, true);
     }
 
     /**
@@ -180,7 +180,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException     if buffer is null
      */
     public GifDrawable(ByteBuffer buffer) throws IOException {
-        this(GifInfoHandle.openDirectByteBuffer(buffer, false), buffer.capacity(), null, null, false);
+        this(GifInfoHandle.openDirectByteBuffer(buffer, false), buffer.capacity(), null, null, true);
     }
 
     /**
@@ -197,8 +197,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) {
-        mIsRenderingAlwaysEnabled = isRenderingAlwaysEnabled;
+    GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingTriggeredOnDraw) {
+        mIsRenderingTriggeredOnDraw = false;// isRenderingTriggeredOnDraw;
         mExecutor = executor != null ? executor : GifRenderingExecutor.getInstance();
         mNativeInfoHandle = gifInfoHandle;
         mInputSourceLength = inputSourceLength;
@@ -645,7 +645,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mPaint.setColorFilter(null);
         }
 
-        if (!mIsRenderingAlwaysEnabled && mIsRunning) {
+        if (mIsRenderingTriggeredOnDraw && mIsRunning) {
             long invalidationDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime());
             mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
         }
