@@ -40,6 +40,65 @@ static ColorMapObject *genDefColorMap(void) {
     return cmap;
 }
 
+static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels) {
+    int i;
+    int lockPixelsResult = 1;
+    for (i = 0; i < 20; i++) {
+        lockPixelsResult = AndroidBitmap_lockPixels(env, jbitmap, pixels);
+        if (lockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS) {
+            return true;
+        }
+    }
+    char *message;
+    switch (lockPixelsResult) {
+        case ANDROID_BITMAP_RESULT_ALLOCATION_FAILED:
+            message = "Lock pixels error, frame buffer allocation failed";
+            break;
+        case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
+            message = "Lock pixels error, bad parameter";
+            break;
+        case ANDROID_BITMAP_RESULT_JNI_EXCEPTION:
+            message = "Lock pixels error, JNI exception";
+            break;
+        default:
+            message = "Lock pixels error";
+    }
+    jclass exClass = (*env)->FindClass(env,
+            "java/lang/IllegalStateException");
+    if (exClass != NULL) {
+        (*env)->ThrowNew(env, exClass, message);
+    }
+    else {
+        (*env)->FatalError(env, message);
+    }
+    return false;
+}
+
+void unlockPixels(JNIEnv *env, jobject jbitmap) {
+    const int unlockPixelsResult = AndroidBitmap_unlockPixels(env, jbitmap);
+    if (unlockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS)
+        return;
+    char *message;
+    switch (unlockPixelsResult) {
+        case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
+            message = "Unlock pixels error, bad parameter";
+            break;
+        case ANDROID_BITMAP_RESULT_JNI_EXCEPTION:
+            message = "Unlock pixels error, JNI exception";
+            break;
+        default:
+            message = "Unlock pixels error";
+    }
+    jclass exClass = (*env)->FindClass(env,
+            "java/lang/IllegalStateException");
+    if (exClass != NULL) {
+        (*env)->ThrowNew(env, exClass, message);
+    }
+    else {
+        (*env)->FatalError(env, message);
+    }
+}
+
 static void cleanUp(GifInfo *info) {
     free(info->backupPtr);
     info->backupPtr = NULL;
@@ -633,9 +692,9 @@ static inline argb *getAddr(argb *bm, int width, int left, int top) {
     return bm + top * width + left;
 }
 
-static void blitNormal(argb *bm, GifInfo* info, SavedImage *frame, ColorMapObject *cmap, int transparent) {
-    const GifWord width=info->gifFilePtr->SWidth;
-    const GifWord height=info->gifFilePtr->SHeight;
+static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, int transparent) {
+    const GifWord width = info->gifFilePtr->SWidth;
+    const GifWord height = info->gifFilePtr->SHeight;
     const unsigned char *src = info->rasterBits;
     argb *dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
     GifWord copyWidth = frame->ImageDesc.Width;
@@ -674,7 +733,7 @@ static void fillRect(argb *bm, int bmWidth, int bmHeight, GifWord left,
     }
 }
 
-static void drawFrame(argb *bm, GifInfo* info, SavedImage *frame, int transpIndex) {
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, int transpIndex) {
     ColorMapObject *cmap = info->gifFilePtr->SColorMap;
 
     if (frame->ImageDesc.ColorMap != NULL) {
@@ -809,11 +868,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         sum = newSum;
     }
 
-    if (i < info->currentIndex)  {
-       if (!reset(info)) {
-           info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
-           return;
-       }
+    if (i < info->currentIndex) {
+        if (!reset(info)) {
+            info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+            return;
+        }
     }
 
     time_t lastFrameRemainder = desiredPos - sum;
@@ -821,14 +880,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         lastFrameRemainder = info->infos[i].duration;
     if (i > info->currentIndex) {
         void *pixels;
-        if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
+        if (!lockPixels(env, jbitmap, &pixels)) {
             return;
         }
         while (info->currentIndex <= i) {
             info->currentIndex++;
             getBitmap((argb *) pixels, info);
         }
-        AndroidBitmap_unlockPixels(env, jbitmap); //TODO check result?
+        unlockPixels(env, jbitmap);
     }
     info->lastFrameReaminder = lastFrameRemainder;
 
@@ -849,15 +908,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     const int imgCount = info->gifFilePtr->ImageCount;
     if (imgCount <= 1)
         return;
-    if (desiredIdx <= info->currentIndex)  {
+    if (desiredIdx <= info->currentIndex) {
         if (!reset(info)) {
             info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
             return;
         }
-     }
+    }
 
     void *pixels;
-    if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
+    if (!lockPixels(env, jbitmap, &pixels)) {
         return;
     }
 
@@ -869,7 +928,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
         info->currentIndex++;
         getBitmap((argb *) pixels, info);
     }
-    AndroidBitmap_unlockPixels(env, jbitmap); //TODO check result?
+    unlockPixels(env, jbitmap);
 
     if (info->speedFactor == 1.0)
         info->nextStartTime = getRealTime()
@@ -904,33 +963,25 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     int invalidationDelay;
     if (needRedraw) {
         void *pixels = NULL;
-        if (AndroidBitmap_lockPixels(env, jbitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) {
-            if (--info->currentIndex < 0)
-                info->currentIndex = 0;
-            return packRenderFrameResult(0, false);
+        if (!lockPixels(env, jbitmap, &pixels)) {
+            return packRenderFrameResult(-1, false);
         }
         getBitmap((argb *) pixels, info);
-        if (AndroidBitmap_unlockPixels(env, jbitmap) == ANDROID_BITMAP_RESULT_SUCCESS) {
-            if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
-                unsigned int scaledDuration = info->infos[info->currentIndex].duration;
-                if (info->speedFactor != 1.0) {
-                    scaledDuration /= info->speedFactor;
-                    if (scaledDuration <= 0)
-                        scaledDuration = 1;
-                    else if (scaledDuration > INT_MAX)
-                        scaledDuration = INT_MAX;
-                }
-                info->nextStartTime = rt + scaledDuration;
-                invalidationDelay = scaledDuration;
+        unlockPixels(env, jbitmap);
+        if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
+            unsigned int scaledDuration = info->infos[info->currentIndex].duration;
+            if (info->speedFactor != 1.0) {
+                scaledDuration /= info->speedFactor;
+                if (scaledDuration <= 0)
+                    scaledDuration = 1;
+                else if (scaledDuration > INT_MAX)
+                    scaledDuration = INT_MAX;
             }
-            else
-                invalidationDelay = -1;
+            info->nextStartTime = rt + scaledDuration;
+            invalidationDelay = scaledDuration;
         }
-        else {
-            if (--info->currentIndex < 0)
-                info->currentIndex = 0;
-            return packRenderFrameResult(0, false);
-        }
+        else
+            invalidationDelay = -1;
     }
     else {
         long delay = info->nextStartTime - rt;
@@ -939,8 +990,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
         else //no need to check upper bound since info->nextStartTime<=rt+LONG_MAX always
             invalidationDelay = (int) delay;
     }
-    if (invalidationDelay > 0)
-    {//exclude rendering time
+    if (invalidationDelay > 0) {//exclude rendering time
         invalidationDelay -= getRealTime() - rt;
         if (invalidationDelay < 0)
             invalidationDelay = 0;
