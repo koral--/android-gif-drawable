@@ -136,7 +136,11 @@ public class GifTextView extends TextView {
                 // ignored
             }
         }
-        return resources.getDrawable(resId);
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP)
+            return resources.getDrawable(resId, getContext().getTheme());
+        else
+            //noinspection deprecation
+            return resources.getDrawable(resId);
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
