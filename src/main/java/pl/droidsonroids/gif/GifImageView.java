@@ -4,8 +4,10 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -134,5 +136,22 @@ public class GifImageView extends ImageView {
                 //ignored
             }
         super.setImageURI(uri);
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        return new GifImageViewSavedState(super.onSaveInstanceState(), getDrawable(), getBackground());
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        GifImageViewSavedState ss = (GifImageViewSavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        Drawable drawable = getDrawable();
+        if (drawable instanceof GifDrawable)
+            ((GifDrawable) drawable).seekTo(ss.mSrcPosition);
+        Drawable background = getBackground();
+        if (background instanceof GifDrawable)
+            ((GifDrawable) background).seekTo(ss.mSrcPosition);
     }
 }
