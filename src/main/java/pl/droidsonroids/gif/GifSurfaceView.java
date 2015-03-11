@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -30,6 +31,8 @@ public class GifSurfaceView extends SurfaceView {
     private RenderThread mThread;
     private int mSavedPosition;
     private GifDrawableBuilder.Source mSource;
+    private boolean shouldSaveSource;
+    private boolean shouldSaveBackground;
     private final SurfaceHolder.Callback mCallback = new SurfaceHolder.Callback() {
         @Override
         public synchronized void surfaceCreated(SurfaceHolder holder) {
@@ -85,6 +88,8 @@ public class GifSurfaceView extends SurfaceView {
             mSource = new GifDrawableBuilder.FileDescriptorSource(getContext().getResources(), resourceId);
         typedArray.recycle();
         getHolder().addCallback(mCallback);
+        shouldSaveSource = true;
+        shouldSaveBackground = true;
     }
 
     private static class RenderThread extends Thread {
@@ -136,8 +141,8 @@ public class GifSurfaceView extends SurfaceView {
     }
 
     /**
-     * Sets the source of the animation. Not that it will not be persisted when saving instance state.
-     * @param source new animation source.
+     * Sets the source of the animation.
+     * @param source new animation source
      */
     public synchronized void setSource(GifDrawableBuilder.Source source) {
         int oldVisibility = getVisibility();
@@ -145,24 +150,35 @@ public class GifSurfaceView extends SurfaceView {
         mSource = source;
         mSavedPosition = 0;
         setVisibility(oldVisibility);
+        shouldSaveSource = false;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void setBackgroundDrawable(Drawable background) {
+        super.setBackgroundDrawable(background);
+        shouldSaveBackground = false;
     }
 
     @Override
-    protected void onRestoreInstanceState(Parcelable state) {
-        Bundle bundle = (Bundle) state;
-        super.onRestoreInstanceState(bundle.getParcelable(SUPER_STATE));
-        mSavedPosition = bundle.getInt(POSITION);
+    public void setBackground(Drawable background) {
+        super.setBackground(background);
+        shouldSaveBackground = false;
     }
 
     @Override
-    protected Parcelable onSaveInstanceState() {
-        Bundle state = new Bundle();
-        state.putParcelable(SUPER_STATE, super.onSaveInstanceState());
-        if (mThread.mGifInfoHandle != null)
-            mSavedPosition = mThread.mGifInfoHandle.getCurrentPosition();
-        else
-            mSavedPosition = 0;
-        state.putInt(POSITION, mSavedPosition);
-        return state;
+    public Parcelable onSaveInstanceState() {
+        Drawable background = shouldSaveBackground ? getBackground() : null;
+        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), mThread.mGifInfoHandle, background);
+        mSavedPosition = gifViewSavedState.mPositions[0];
+        return gifViewSavedState;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        GifViewSavedState ss = (GifViewSavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        mSavedPosition = ss.mPositions[0];
+        ss.setPostion(getBackground(), 1);
     }
 }

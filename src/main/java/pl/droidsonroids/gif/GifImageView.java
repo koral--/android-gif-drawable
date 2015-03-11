@@ -12,6 +12,7 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * An {@link ImageView} which tries treating background and src as {@link GifDrawable}
@@ -41,7 +42,7 @@ public class GifImageView extends ImageView {
      */
     public GifImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        trySetGifDrawable(attrs, getResources());
+        trySetGifDrawable(attrs);
     }
 
     /**
@@ -55,7 +56,7 @@ public class GifImageView extends ImageView {
      */
     public GifImageView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        trySetGifDrawable(attrs, getResources());
+        trySetGifDrawable(attrs);
     }
 
     /**
@@ -71,46 +72,44 @@ public class GifImageView extends ImageView {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public GifImageView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
         super(context, attrs, defStyle, defStyleRes);
-        trySetGifDrawable(attrs, getResources());
+        trySetGifDrawable(attrs);
     }
 
-    @Override
-    public void setImageResource(int resId) {
-        setResource(true, resId, getResources());
-    }
+    private boolean shouldSaveSource;
+    private boolean shouldSaveBackground;
 
-    @Override
-    public void setBackgroundResource(int resId) {
-        setResource(false, resId, getResources());
-    }
-
-    void trySetGifDrawable(AttributeSet attrs, Resources res) {
+    void trySetGifDrawable(AttributeSet attrs) {
+        Resources res = getResources();
         if (attrs != null && res != null && !isInEditMode()) {
             int resId = attrs.getAttributeResourceValue(ANDROID_NS, "src", -1);
             if (resId > 0 && "drawable".equals(res.getResourceTypeName(resId)))
-                setResource(true, resId, res);
+                setResource(true, resId);
 
             resId = attrs.getAttributeResourceValue(ANDROID_NS, "background", -1);
             if (resId > 0 && "drawable".equals(res.getResourceTypeName(resId)))
-                setResource(false, resId, res);
+                setResource(false, resId);
         }
+        shouldSaveSource = true;
+        shouldSaveBackground = true;
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @SuppressWarnings("deprecation")
-        //new method not available on older API levels
-    void setResource(boolean isSrc, int resId, Resources res) {
-        try {
-            GifDrawable d = new GifDrawable(res, resId);
-            if (isSrc)
-                setImageDrawable(d);
-            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-                setBackground(d);
-            else
-                setBackgroundDrawable(d);
-            return;
-        } catch (IOException | NotFoundException ignored) {
-            //ignored
+    void setResource(boolean isSrc, int resId) {
+        Resources res = getResources();
+        if (res != null) {
+            try {
+                GifDrawable d = new GifDrawable(res, resId);
+                if (isSrc)
+                    setImageDrawable(d);
+                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+                    setBackground(d);
+                else
+                    setBackgroundDrawable(d);
+                return;
+            } catch (IOException | NotFoundException ignored) {
+                //ignored
+            }
         }
         if (isSrc)
             super.setImageResource(resId);
@@ -139,19 +138,46 @@ public class GifImageView extends ImageView {
     }
 
     @Override
+    public void setImageResource(int resId) {
+        setResource(true, resId);
+    }
+
+    @Override
+    public void setImageDrawable(Drawable drawable) {
+        super.setImageDrawable(drawable);
+        shouldSaveSource = false;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void setBackgroundDrawable(Drawable background) {
+        super.setBackgroundDrawable(background);
+        shouldSaveBackground = false;
+    }
+
+    @Override
+    public void setBackground(Drawable background) {
+        super.setBackground(background);
+        shouldSaveBackground = false;
+    }
+
+    @Override
+    public void setBackgroundResource(int resId) {
+        setResource(false, resId);
+    }
+
+    @Override
     public Parcelable onSaveInstanceState() {
-        return new GifImageViewSavedState(super.onSaveInstanceState(), getDrawable(), getBackground());
+        Drawable source = shouldSaveSource ? getDrawable() : null;
+        Drawable background = shouldSaveBackground ? getBackground() : null;
+        return new GifViewSavedState(super.onSaveInstanceState(), source, background);
     }
 
     @Override
     public void onRestoreInstanceState(Parcelable state) {
-        GifImageViewSavedState ss = (GifImageViewSavedState) state;
+        GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
-        Drawable drawable = getDrawable();
-        if (drawable instanceof GifDrawable)
-            ((GifDrawable) drawable).seekTo(ss.mSrcPosition);
-        Drawable background = getBackground();
-        if (background instanceof GifDrawable)
-            ((GifDrawable) background).seekTo(ss.mSrcPosition);
+        ss.setPostion(getDrawable(), 0);
+        ss.setPostion(getBackground(), 1);
     }
 }
