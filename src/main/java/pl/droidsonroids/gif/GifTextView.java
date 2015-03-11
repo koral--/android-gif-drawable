@@ -124,6 +124,8 @@ public class GifTextView extends TextView {
         setBackgroundInternal(getGifOrDefaultDrawable(resid));
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP) //Resources#getDrawable(int, Theme)
+    @SuppressWarnings("deprecation") //Resources#getDrawable(int)
     private Drawable getGifOrDefaultDrawable(int resId) {
         if (resId == 0) {
             return null;
@@ -139,7 +141,6 @@ public class GifTextView extends TextView {
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP)
             return resources.getDrawable(resId, getContext().getTheme());
         else
-            //noinspection deprecation
             return resources.getDrawable(resId);
     }
 
