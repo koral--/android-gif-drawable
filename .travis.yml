@@ -25,7 +25,7 @@ before_script:
   - sudo service x11-common stop || true
 
 before_install:
-  - yes | android update sdk --all --no-ui --force
+  - echo  y | android update sdk --all --no-ui --force --filter build-tools-22.0.0,android-22
   - wget http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin
   - chmod +x android-ndk-r10d-linux-x86_64.bin
   - ./android-ndk-r10d-linux-x86_64.bin | egrep -v ^Extracting
