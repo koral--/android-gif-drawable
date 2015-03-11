@@ -9,7 +9,7 @@ jdk:
 android:
   components:
     - build-tools-21.1.2
-    - android-21
+    - android-22
 
 before_script:
   - sudo service postgresql stop || true

@@ -11,7 +11,7 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 22
     buildToolsVersion '21.1.2'
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -19,7 +19,7 @@ android {
     }
     defaultConfig {
         minSdkVersion 8
-        targetSdkVersion 21
+        targetSdkVersion 22
 
         ndk {
             moduleName 'gif'
