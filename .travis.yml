@@ -25,7 +25,11 @@ before_script:
   - sudo service x11-common stop || true
 
 before_install:
-  - echo yes | android update sdk --all --no-ui --force
+  - (while :
+    do
+      echo 'y'
+      sleep 2
+    done) | android update sdk --all --no-ui --force
   - wget http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin
   - chmod +x android-ndk-r10d-linux-x86_64.bin
   - ./android-ndk-r10d-linux-x86_64.bin | egrep -v ^Extracting
