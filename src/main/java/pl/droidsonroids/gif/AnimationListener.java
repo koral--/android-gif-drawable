@@ -7,5 +7,5 @@ public interface AnimationListener {
     /**
      * Called when a single loop of the animation is completed.
      */
-    public void onAnimationCompleted();
+    void onAnimationCompleted();
 }

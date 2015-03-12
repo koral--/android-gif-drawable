@@ -41,7 +41,7 @@ public class GifTextView extends TextView {
      */
     public GifTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(attrs);
+        init(attrs, 0, 0);
     }
 
     /**
@@ -55,7 +55,7 @@ public class GifTextView extends TextView {
      */
     public GifTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init(attrs);
+        init(attrs, defStyle, 0);
     }
 
     /**
@@ -71,45 +71,51 @@ public class GifTextView extends TextView {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public GifTextView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
         super(context, attrs, defStyle, defStyleRes);
-        init(attrs);
+        init(attrs, defStyle, defStyleRes);
     }
 
     private boolean shouldSaveCompoundDrawables;
     private boolean shouldSaveCompoundDrawablesRelative;
     private boolean shouldSaveBackground;
+    private boolean freezesAnimation;
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private void init(AttributeSet attrs) {
+    private void init(AttributeSet attrs, int defStyle, int defStyleRes) {
         if (attrs != null) {
-            Drawable left = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "drawableLeft", 0));
-            Drawable top = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "drawableTop", 0));
-            Drawable right = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "drawableRight", 0));
-            Drawable bottom = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "drawableBottom", 0));
-            Drawable start = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "drawableStart", 0));
-            Drawable end = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "drawableEnd", 0));
+            Drawable left = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableLeft", 0));
+            Drawable top = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableTop", 0));
+            Drawable right = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableRight", 0));
+            Drawable bottom = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableBottom", 0));
+            Drawable start = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableStart", 0));
+            Drawable end = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableEnd", 0));
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 if (getLayoutDirection() == LAYOUT_DIRECTION_LTR) {
-                    if (start == null)
+                    if (start == null) {
                         start = left;
-                    if (end == null)
+                    }
+                    if (end == null) {
                         end = right;
+                    }
                 } else {
-                    if (start == null)
+                    if (start == null) {
                         start = right;
-                    if (end == null)
+                    }
+                    if (end == null) {
                         end = left;
+                    }
                 }
                 setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom);
                 setCompoundDrawablesWithIntrinsicBounds(left, top, right, bottom);
             } else {
                 setCompoundDrawablesWithIntrinsicBounds(left, top, right, bottom);
             }
-            setBackgroundInternal(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifImageView.ANDROID_NS, "background", 0)));
+            setBackgroundInternal(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "background", 0)));
         }
         shouldSaveCompoundDrawables = true;
         shouldSaveCompoundDrawablesRelative = true;
         shouldSaveBackground = true;
+        freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyle, defStyleRes);
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -156,10 +162,11 @@ public class GifTextView extends TextView {
                 // ignored
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             return resources.getDrawable(resId, getContext().getTheme());
-        else
+        } else {
             return resources.getDrawable(resId);
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -204,41 +211,45 @@ public class GifTextView extends TextView {
     }
 
     @Override
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public Parcelable onSaveInstanceState() {
         Drawable[] savedDrawables = new Drawable[7];
-        if (shouldSaveCompoundDrawables) {
-            Drawable[] compoundDrawables = getCompoundDrawables();
-            System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-            savedDrawables[4] = shouldSaveCompoundDrawablesRelative ? compoundDrawablesRelative[0] : null; //start
-            savedDrawables[5] = shouldSaveCompoundDrawablesRelative ? compoundDrawablesRelative[2] : null; //end
-            if (!shouldSaveCompoundDrawablesRelative) {
-                savedDrawables[2] = null;
-                savedDrawables[4] = null;
+        if (freezesAnimation) {
+            if (shouldSaveCompoundDrawables) {
+                Drawable[] compoundDrawables = getCompoundDrawables();
+                System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
+                savedDrawables[4] = shouldSaveCompoundDrawablesRelative ? compoundDrawablesRelative[0] : null; //start
+                savedDrawables[5] = shouldSaveCompoundDrawablesRelative ? compoundDrawablesRelative[2] : null; //end
+                if (!shouldSaveCompoundDrawablesRelative) {
+                    savedDrawables[2] = null;
+                    savedDrawables[4] = null;
+                }
+            }
+            savedDrawables[6] = shouldSaveBackground ? getBackground() : null;
         }
-        savedDrawables[6] = shouldSaveBackground ? getBackground() : null;
         return new GifViewSavedState(super.onSaveInstanceState(), savedDrawables);
     }
 
     @Override
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public void onRestoreInstanceState(Parcelable state) {
         GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
 
         Drawable[] compoundDrawables = getCompoundDrawables();
-        ss.setPostion(compoundDrawables[0], 0);
-        ss.setPostion(compoundDrawables[1], 1);
-        ss.setPostion(compoundDrawables[2], 2);
-        ss.setPostion(compoundDrawables[3], 3);
+        ss.setPosition(compoundDrawables[0], 0);
+        ss.setPosition(compoundDrawables[1], 1);
+        ss.setPosition(compoundDrawables[2], 2);
+        ss.setPosition(compoundDrawables[3], 3);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-            ss.setPostion(compoundDrawablesRelative[0], 4);
-            ss.setPostion(compoundDrawablesRelative[2], 5);
+            ss.setPosition(compoundDrawablesRelative[0], 4);
+            ss.setPosition(compoundDrawablesRelative[2], 5);
         }
-        ss.setPostion(getBackground(), 6);
+        ss.setPosition(getBackground(), 6);
     }
 }

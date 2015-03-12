@@ -78,8 +78,9 @@ final class GifInfoHandle {
     private static native int getNativeErrorCode(long gifFileInPtr);
 
     static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
-        if (!stream.markSupported())
+        if (!stream.markSupported()) {
             throw new IllegalArgumentException("InputStream does not support marking");
+        }
         return openStream(stream, justDecodeMetaData);
     }
 

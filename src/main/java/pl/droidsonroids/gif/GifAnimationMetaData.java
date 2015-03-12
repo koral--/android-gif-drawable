@@ -215,9 +215,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
     @Override
     public String toString() {
         String loopCount = mLoopCount == 0 ? "Infinity" : Integer.toString(mLoopCount);
-        String suffix = String.format(Locale.US,
-                "GIF: size: %dx%d, frames: %d, loops: %s, duration: %d",
-                mWidth, mHeight, mImageCount, loopCount, mDuration);
+        String suffix = String.format(Locale.US, "GIF: size: %dx%d, frames: %d, loops: %s, duration: %d", mWidth, mHeight, mImageCount, loopCount, mDuration);
         return isAnimated() ? "Animated " + suffix : suffix;
     }
 

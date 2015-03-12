@@ -14,25 +14,21 @@ class GifViewSavedState extends View.BaseSavedState {
         mPositions = new int[drawables.length];
         for (int i = 0; i < drawables.length; i++) {
             Drawable drawable = drawables[i];
-            if (drawable instanceof GifDrawable)
+            if (drawable instanceof GifDrawable) {
                 mPositions[i] = ((GifDrawable) drawable).getCurrentPosition();
-            else
+            } else {
                 mPositions[i] = -1;
+            }
         }
     }
 
-    GifViewSavedState(Parcelable superState, GifInfoHandle gifInfoHandle, Drawable background)
-    {
+    GifViewSavedState(Parcelable superState, GifInfoHandle gifInfoHandle) {
         super(superState);
-        mPositions = new int[2];
-        mPositions[0] = gifInfoHandle!=null?gifInfoHandle.getCurrentPosition():-1;
-        if (background instanceof GifDrawable)
-            mPositions[1] = ((GifDrawable) background).getCurrentPosition();
-        else
-            mPositions[1] = -1;
+        mPositions = new int[1];
+        mPositions[0] = gifInfoHandle != null ? gifInfoHandle.getCurrentPosition() : -1;
     }
 
-    GifViewSavedState(Parcel in) {
+    private GifViewSavedState(Parcel in) {
         super(in);
         mPositions = new int[in.readInt()];
         in.readIntArray(mPositions);
@@ -56,8 +52,9 @@ class GifViewSavedState extends View.BaseSavedState {
         }
     };
 
-    void setPostion(Drawable drawable, int i) {
-        if (drawable instanceof GifDrawable && mPositions[i] >= 0)
+    void setPosition(Drawable drawable, int i) {
+        if (drawable instanceof GifDrawable && mPositions[i] >= 0) {
             ((GifDrawable) drawable).seekTo(mPositions[i]);
+        }
     }
 }

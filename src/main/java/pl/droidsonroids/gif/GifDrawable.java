@@ -198,7 +198,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     GifDrawable(GifInfoHandle gifInfoHandle, long inputSourceLength, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingTriggeredOnDraw) {
-        mIsRenderingTriggeredOnDraw = false;// isRenderingTriggeredOnDraw;
+        mIsRenderingTriggeredOnDraw = isRenderingTriggeredOnDraw;
         mExecutor = executor != null ? executor : GifRenderingExecutor.getInstance();
         mNativeInfoHandle = gifInfoHandle;
         mInputSourceLength = inputSourceLength;

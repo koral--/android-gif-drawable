@@ -5,4 +5,7 @@
         <attr name="srcAsset" format="string"/>
         <attr name="srcPath" format="string"/>
     </declare-styleable>
+    <declare-styleable name="GifView">
+        <attr name="freezesAnimation" format="boolean"/>
+    </declare-styleable>
 </resources>

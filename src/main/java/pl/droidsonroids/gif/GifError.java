@@ -97,15 +97,16 @@ public enum GifError {
     public final String description;
     private int errorCode;
 
-    private GifError(int code, String description) {
+    GifError(int code, String description) {
         errorCode = code;
         this.description = description;
     }
 
     static GifError fromCode(int code) {
         for (GifError err : GifError.values())
-            if (err.errorCode == code)
+            if (err.errorCode == code) {
                 return err;
+            }
         GifError unk = UNKNOWN;
         unk.errorCode = code;
         return unk;

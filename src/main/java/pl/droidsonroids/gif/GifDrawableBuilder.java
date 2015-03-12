@@ -1,12 +1,10 @@
 package pl.droidsonroids.gif;
 
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.os.Bundle;
 
 import java.io.File;
 import java.io.FileDescriptor;

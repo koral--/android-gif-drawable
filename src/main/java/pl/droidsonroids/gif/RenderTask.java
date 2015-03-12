@@ -10,7 +10,7 @@ class RenderTask extends SafeRunnable {
         super(gifDrawable);
     }
 
-    final Runnable mNotifyListenersTask = new Runnable() {
+    private final Runnable mNotifyListenersTask = new Runnable() {
         @Override
         public void run() {
             for (AnimationListener listener : mGifDrawable.mListeners)

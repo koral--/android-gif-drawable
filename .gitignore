@@ -13,3 +13,4 @@ local.properties
 build
 
 signing.properties
+CMakeLists.txt
