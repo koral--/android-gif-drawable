@@ -90,7 +90,7 @@ final class GifInfoHandle {
         return renderFrame(buffer, gifInfoPtr, false);
     }
 
-    synchronized long renderSurface(Surface buffer) {
+    long renderSurface(Surface buffer) {
         return renderFrame(buffer, gifInfoPtr, true);
     }
 

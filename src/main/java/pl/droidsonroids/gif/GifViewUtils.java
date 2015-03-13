@@ -65,7 +65,7 @@ final class GifViewUtils {
     }
 
     static boolean isFreezingAnimation(View view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        final TypedArray gifViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifSurfaceView, defStyleAttr, defStyleRes);
+        final TypedArray gifViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
         boolean freezesAnimation = gifViewAttributes.getBoolean(R.styleable.GifView_freezesAnimation, false);
         gifViewAttributes.recycle();
         return freezesAnimation;
@@ -87,10 +87,10 @@ final class GifViewUtils {
         GifDrawableBuilder.Source source;
         boolean freezesAnimation;
         if (attrs != null && !view.isInEditMode()) {
-            final TypedArray surfaceViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifSurfaceView, defStyleAttr, defStyleRes);
-            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifSurfaceView_srcId, 0);
-            String assetName = surfaceViewAttributes.getString(R.styleable.GifSurfaceView_srcAsset);
-            String path = surfaceViewAttributes.getString(R.styleable.GifSurfaceView_srcPath);
+            final TypedArray surfaceViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
+            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifView_srcId, 0);
+            String assetName = surfaceViewAttributes.getString(R.styleable.GifView_srcAsset);
+            String path = surfaceViewAttributes.getString(R.styleable.GifView_srcPath);
             if (assetName != null) {
                 source = new GifDrawableBuilder.AssetSource(view.getContext().getAssets(), assetName);
             } else if (path != null) {
