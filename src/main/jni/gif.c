@@ -1,23 +1,6 @@
 #include "gif.h"
 
 /**
-* Generates default color map, used when there is no color map defined in GIF file.
-* Upon successful allocation in JNI_OnLoad it is stored for further use.
-*
-*/
-static ColorMapObject *genDefColorMap(void);
-
-/**
-* @return the real time, in ms
-*/
-static inline time_t getRealTime(void);
-
-/**
-* Frees dynamically allocated memory
-*/
-static void cleanUp(GifInfo *info);
-
-/**
 * Global VM reference, initialized in JNI_OnLoad
 */
 static JavaVM *g_jvm;
@@ -80,7 +63,7 @@ static inline bool isSourceNull(void *ptr, JNIEnv *env) {
     return true;
 }
 
-static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels) {
+static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels, bool throwOnError) {
     int i;
     int lockPixelsResult = 1;
     for (i = 0; i < 20; i++) { //#122 workaround
@@ -89,21 +72,24 @@ static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels) {
             return true;
         }
     }
-    char *message;
-    switch (lockPixelsResult) {
-        case ANDROID_BITMAP_RESULT_ALLOCATION_FAILED:
-            message = "Lock pixels error, frame buffer allocation failed";
-            break;
-        case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
-            message = "Lock pixels error, bad parameter";
-            break;
-        case ANDROID_BITMAP_RESULT_JNI_EXCEPTION:
-            message = "Lock pixels error, JNI exception";
-            break;
-        default:
-            message = "Lock pixels error";
+    if (throwOnError) {
+        char *message;
+        switch (lockPixelsResult) {
+            case ANDROID_BITMAP_RESULT_ALLOCATION_FAILED:
+                message = "Lock pixels error, frame buffer allocation failed";
+                break;
+            case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
+                message = "Lock pixels error, bad parameter";
+                break;
+            case ANDROID_BITMAP_RESULT_JNI_EXCEPTION:
+                message = "Lock pixels error, JNI exception";
+                break;
+            default:
+                message = "Lock pixels error";
+        }
+        throwException(env, ILLEGAL_STATE_EXCEPTION, message);
+
     }
-    throwException(env, ILLEGAL_STATE_EXCEPTION, message);
     return false;
 }
 
@@ -470,7 +456,7 @@ static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos,
     info->startPos = startPos;
     info->currentIndex = -1;
     info->nextStartTime = 0;
-    info->lastFrameReaminder = ULONG_MAX;
+    info->lastFrameRemainder = ULONG_MAX;
     info->comment = NULL;
     info->loopCount = 1;
     info->currentLoop = 0;
@@ -788,7 +774,7 @@ static bool reset(GifInfo *info) {
     info->nextStartTime = 0;
     info->currentLoop = 0;
     info->currentIndex = -1;
-    info->lastFrameReaminder = ULONG_MAX;
+    info->lastFrameRemainder = ULONG_MAX;
     return true;
 }
 
@@ -869,7 +855,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         lastFrameRemainder = info->infos[i].duration;
     if (i > info->currentIndex) {
         void *pixels;
-        if (!lockPixels(env, jbitmap, &pixels)) {
+        if (!lockPixels(env, jbitmap, &pixels, true)) {
             return;
         }
         while (info->currentIndex <= i) {
@@ -878,7 +864,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         }
         unlockPixels(env, jbitmap);
     }
-    info->lastFrameReaminder = lastFrameRemainder;
+    info->lastFrameRemainder = lastFrameRemainder;
 
     if (info->speedFactor == 1.0)
         info->nextStartTime = getRealTime() + lastFrameRemainder;
@@ -905,11 +891,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     }
 
     void *pixels;
-    if (!lockPixels(env, jbitmap, &pixels)) {
+    if (!lockPixels(env, jbitmap, &pixels, true)) {
         return;
     }
 
-    info->lastFrameReaminder = 0;
+    info->lastFrameRemainder = 0;
     if (desiredIdx >= imgCount)
         desiredIdx = imgCount - 1;
 
@@ -931,9 +917,9 @@ static inline jlong packRenderFrameResult(int invalidationDelay, bool isAnimatio
     return (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L));
 }
 
-static bool renderToBitmap(JNIEnv *env, jobject jbitmap, GifInfo *info) {
+static inline bool renderToBitmap(JNIEnv *env, jobject jbitmap, GifInfo *info) {
     void *pixels = NULL;
-    if (!lockPixels(env, jbitmap, &pixels)) {
+    if (!lockPixels(env, jbitmap, &pixels, false)) {
         return false;
     }
     getBitmap((argb *) pixels, info, 0);
@@ -949,9 +935,9 @@ static bool renderToSurface(JNIEnv *env, jobject jsurface, GifInfo *info) {
         ANativeWindow_Buffer buffer;
         if (ANativeWindow_lock(window, &buffer, NULL) == 0) {
             const size_t bufferSize = buffer.width * buffer.height * sizeof(argb);
-            if (info->surfaceBackupPtr == NULL){
+            if (info->surfaceBackupPtr == NULL) {
                 info->surfaceBackupPtr = malloc(bufferSize);
-                if (info->surfaceBackupPtr == NULL){
+                if (info->surfaceBackupPtr == NULL) {
                     throwException(env, "java/lang/OutOfMemoryError", "Cannot allocate surface frame buffer");
                     ANativeWindow_release(window);
                     return result;
@@ -962,6 +948,7 @@ static bool renderToSurface(JNIEnv *env, jobject jsurface, GifInfo *info) {
             getBitmap((argb *) buffer.bits, info, widthOffset);
             memcpy(info->surfaceBackupPtr, buffer.bits, bufferSize);
             ANativeWindow_unlockAndPost(window);
+            result = true;
         } else
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
     } else
@@ -970,9 +957,28 @@ static bool renderToSurface(JNIEnv *env, jobject jsurface, GifInfo *info) {
     return result;
 }
 
+static int calculateInvalidationDelay(GifInfo *info, time_t rt) {
+    int invalidationDelay;
+    if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
+        unsigned int scaledDuration = info->infos[info->currentIndex].duration;
+        if (info->speedFactor != 1.0) {
+            scaledDuration /= info->speedFactor;
+            if (scaledDuration <= 0)
+                scaledDuration = 1;
+            else if (scaledDuration > INT_MAX)
+                scaledDuration = INT_MAX;
+        }
+        info->nextStartTime = rt + scaledDuration;
+        invalidationDelay = scaledDuration;
+    }
+    else
+        invalidationDelay = -1;
+    return invalidationDelay;
+}
+
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass,
-        jobject jframeBuffer, jlong gifInfo, jboolean isSurface) {
+        jlong gifInfo, jobject jbitmap) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return packRenderFrameResult(-1, false);
@@ -990,28 +996,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
 
     int invalidationDelay;
     if (needRedraw) {
-        bool isRenderingSuccessful;
-        if (isSurface == JNI_TRUE)
-            isRenderingSuccessful = renderToSurface(env, jframeBuffer, info);
-        else
-            isRenderingSuccessful = renderToBitmap(env, jframeBuffer, info);
-        if (!isRenderingSuccessful) {
+        bool renderingSuccessful = renderToBitmap(env, jbitmap, info);
+        if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
+            throwException(env, "java/lang/OutOfMemoryError", "Failed to allocate native memory");
+            renderingSuccessful = false;
+        }
+        if (!renderingSuccessful) {
             return packRenderFrameResult(-1, false);
         }
-        if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
-            unsigned int scaledDuration = info->infos[info->currentIndex].duration;
-            if (info->speedFactor != 1.0) {
-                scaledDuration /= info->speedFactor;
-                if (scaledDuration <= 0)
-                    scaledDuration = 1;
-                else if (scaledDuration > INT_MAX)
-                    scaledDuration = INT_MAX;
-            }
-            info->nextStartTime = rt + scaledDuration;
-            invalidationDelay = scaledDuration;
-        }
-        else
-            invalidationDelay = -1;
+        invalidationDelay = calculateInvalidationDelay(info, rt);
     }
     else {
         long delay = info->nextStartTime - rt;
@@ -1026,6 +1019,37 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
             invalidationDelay = 0;
     }
     return packRenderFrameResult(invalidationDelay, isAnimationCompleted);
+}
+
+__unused JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
+        jlong gifInfo, jobject jsurface, jlong startPosition) { //TODO start seeking
+
+    jclass threadClass = (*env)->FindClass(env, "java/lang/Thread");
+    if (threadClass == NULL)
+        return;
+    jmethodID currentThreadMID = (*env)->GetStaticMethodID(env, threadClass, "currentThread", "()Ljava/lang/Thread;");
+    jobject jCurrentThread = (*env)->CallStaticObjectMethod(env, threadClass, currentThreadMID);
+    jmethodID isInterruptedMID = (*env)->GetMethodID(env, threadClass, "isInterrupted", "()Z");
+    GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+    if (!info || !currentThreadMID || !jCurrentThread || !isInterruptedMID) {
+        return;
+    }
+    struct timespec time_to_sleep;
+
+    while ((*env)->CallBooleanMethod(env, jCurrentThread, isInterruptedMID) == JNI_FALSE) {
+        if (++info->currentIndex >= info->gifFilePtr->ImageCount)
+            info->currentIndex = 0;
+        if (!renderToSurface(env, jsurface, info))
+            return;
+        const int invalidationDelayMillis = calculateInvalidationDelay(info, 0);
+        if (invalidationDelayMillis < 0)
+            return;
+        time_to_sleep.tv_nsec = (invalidationDelayMillis % 1000) * 1000000;
+        time_to_sleep.tv_sec = invalidationDelayMillis / 1000;
+        if (nanosleep(&time_to_sleep, NULL) != 0)
+            return;
+    }
 }
 
 __unused JNIEXPORT void JNICALL
@@ -1115,13 +1139,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
     for (i = 0; i < idx; i++)
         sum += info->infos[i].duration;
     time_t remainder;
-    if (info->lastFrameReaminder == ULONG_MAX) {
+    if (info->lastFrameRemainder == ULONG_MAX) {
         remainder = info->nextStartTime - getRealTime();
         if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed
             remainder = 0;
     }
     else
-        remainder = info->lastFrameReaminder;
+        remainder = info->lastFrameRemainder;
     return (jint) (sum + remainder); //2^31-1[ms]>596[h] so jint is enough
 }
 
@@ -1131,17 +1155,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jcl
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
-    info->lastFrameReaminder = info->nextStartTime - getRealTime();
+    info->lastFrameRemainder = info->nextStartTime - getRealTime();
 }
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
         jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (info == NULL || info->lastFrameReaminder == ULONG_MAX || info->gifFilePtr->ImageCount <= 1)
+    if (info == NULL || info->lastFrameRemainder == ULONG_MAX || info->gifFilePtr->ImageCount <= 1)
         return;
-    info->nextStartTime = getRealTime() + info->lastFrameReaminder;
-    info->lastFrameReaminder = ULONG_MAX;
+    info->nextStartTime = getRealTime() + info->lastFrameRemainder;
+    info->lastFrameRemainder = ULONG_MAX;
 }
 
 __unused JNIEXPORT jlong JNICALL

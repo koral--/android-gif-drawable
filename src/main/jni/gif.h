@@ -73,7 +73,7 @@ typedef int
 struct GifInfo
 {
 	GifFileType* gifFilePtr;
-    time_t lastFrameReaminder;
+    time_t lastFrameRemainder;
     time_t nextStartTime;
 	int currentIndex;
     FrameInfo* infos;
@@ -110,3 +110,20 @@ typedef struct
 	jbyte* bytes;
 	jlong capacity;
 } DirectByteBufferContainer;
+
+/**
+* Generates default color map, used when there is no color map defined in GIF file.
+* Upon successful allocation in JNI_OnLoad it is stored for further use.
+*
+*/
+static ColorMapObject *genDefColorMap(void);
+
+/**
+* @return the real time, in ms
+*/
+static inline time_t getRealTime(void);
+
+/**
+* Frees dynamically allocated memory
+*/
+static void cleanUp(GifInfo *info);

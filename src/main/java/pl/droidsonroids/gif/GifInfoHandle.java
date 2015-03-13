@@ -33,8 +33,6 @@ final class GifInfoHandle {
         System.loadLibrary("gif");
     }
 
-    private static native long renderFrame(Object buffer, long gifFileInPtr, boolean isSurface);
-
     static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
 
     static native GifInfoHandle openByteArray(byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
@@ -44,6 +42,10 @@ final class GifInfoHandle {
     static native GifInfoHandle openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
 
     static native GifInfoHandle openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
+
+    private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
+
+    private static native void bindSurface(long gifInfoPtr, Surface surface, long startPosition);
 
     private static native void free(long gifFileInPtr);
 
@@ -86,12 +88,12 @@ final class GifInfoHandle {
         }
     }
 
-    synchronized long renderFrame(Bitmap buffer) {
-        return renderFrame(buffer, gifInfoPtr, false);
+    synchronized long renderFrame(Bitmap frameBuffer) {
+        return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    long renderSurface(Surface buffer) {
-        return renderFrame(buffer, gifInfoPtr, true);
+    void bindSurface(Surface surface, long startPosition) {
+        bindSurface(gifInfoPtr, surface, startPosition);
     }
 
     synchronized void recycle() {

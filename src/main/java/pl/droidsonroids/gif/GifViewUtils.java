@@ -6,7 +6,6 @@ import android.content.res.TypedArray;
 import android.net.Uri;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Pair;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -81,30 +80,6 @@ final class GifViewUtils {
             }
         }
         return false;
-    }
-
-    static Pair<GifDrawableBuilder.Source, Boolean> initSurfaceView(View view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        GifDrawableBuilder.Source source;
-        boolean freezesAnimation;
-        if (attrs != null && !view.isInEditMode()) {
-            final TypedArray surfaceViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
-            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifView_srcId, 0);
-            String assetName = surfaceViewAttributes.getString(R.styleable.GifView_srcAsset);
-            String path = surfaceViewAttributes.getString(R.styleable.GifView_srcPath);
-            if (assetName != null) {
-                source = new GifDrawableBuilder.AssetSource(view.getContext().getAssets(), assetName);
-            } else if (path != null) {
-                source = new GifDrawableBuilder.FileSource(path);
-            } else {
-                source = new GifDrawableBuilder.FileDescriptorSource(view.getContext().getResources(), resourceId);
-            }
-            surfaceViewAttributes.recycle();
-            freezesAnimation = isFreezingAnimation(view, attrs, defStyleAttr, defStyleRes);
-        } else {
-            source = null;
-            freezesAnimation = false;
-        }
-        return Pair.create(source, freezesAnimation);
     }
 
     static class InitResult {

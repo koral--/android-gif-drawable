@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author koral--
  */
+@SuppressWarnings("ALL")
 public class GifDrawable extends Drawable implements Animatable, MediaPlayerControl {
     final ScheduledThreadPoolExecutor mExecutor;
 

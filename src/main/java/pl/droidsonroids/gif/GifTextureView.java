@@ -2,20 +2,12 @@ package pl.droidsonroids.gif;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.Rect;
+import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Parcelable;
-import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Pair;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 import android.view.TextureView;
 
 import java.io.IOException;
@@ -81,9 +73,21 @@ public class GifTextureView extends TextureView {
     }
 
     private void init(AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        final Pair<GifDrawableBuilder.Source, Boolean> initResult = GifViewUtils.initSurfaceView(this, attrs, defStyleAttr, defStyleRes);
-        freezesAnimation = initResult.second;
-        mSource = initResult.first;
+        if (attrs != null && !isInEditMode()) {
+            final TypedArray surfaceViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
+            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifView_srcId, 0);
+            String assetName = surfaceViewAttributes.getString(R.styleable.GifView_srcAsset);
+            String path = surfaceViewAttributes.getString(R.styleable.GifView_srcPath);
+            if (assetName != null) {
+                mSource = new GifDrawableBuilder.AssetSource(getContext().getAssets(), assetName);
+            } else if (path != null) {
+                mSource = new GifDrawableBuilder.FileSource(path);
+            } else {
+                mSource = new GifDrawableBuilder.FileDescriptorSource(getContext().getResources(), resourceId);
+            }
+            surfaceViewAttributes.recycle();
+            freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
+        }
         setSurfaceTextureListener(mCallback);
         shouldSaveSource = true;
     }
@@ -110,21 +114,15 @@ public class GifTextureView extends TextureView {
             } catch (IOException e) {
                 return;
             }
-            if (mStartPosition > 0) {
-                //TODO mGifInfoHandle.seekToTime(mStartPosition, mBitmap);
-            }
+
             Surface surface = new Surface(mSurfaceTexture);
-            while (!Thread.currentThread().isInterrupted()) {
-                int sleepTime = (int) (mGifInfoHandle.renderSurface(surface) >> 1);
-                if (sleepTime > 0) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-            }
+            mGifInfoHandle.bindSurface(surface, mStartPosition);
             surface.release();
+        }
+
+        void setSpeed(float speedFactor) {
+            if (mGifInfoHandle != null)
+                mGifInfoHandle.setSpeedFactor(speedFactor);
         }
     }
 
@@ -142,6 +140,10 @@ public class GifTextureView extends TextureView {
         shouldSaveSource = false;
     }
 
+    public void setSpeed(float speedFactor) {
+        if (mThread != null)
+            mThread.setSpeed(speedFactor);
+    }
 
     @Override
     public Parcelable onSaveInstanceState() {
