@@ -16,9 +16,9 @@
 #include <sys/cdefs.h>
 #include "giflib/gif_lib.h"
 
-#include <android/log.h>
-#define  LOG_TAG    "libgif"
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+//#include <android/log.h>
+//#define  LOG_TAG    "libgif"
+//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 /**
  * Some gif files are not strictly follow 89a.
@@ -47,6 +47,8 @@
 * Decoding error - input source rewind failed
 */
 #define D_GIF_ERR_REWIND_FAILED 	1004
+
+#define ILLEGAL_STATE_EXCEPTION "java/lang/IllegalStateException"
 
 typedef struct
 {
@@ -83,6 +85,7 @@ struct GifInfo
 	int currentLoop;
 	RewindFunc rewindFunction;
 	jfloat speedFactor;
+	void* surfaceBackupPtr;
 };
 
 typedef struct

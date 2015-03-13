@@ -40,6 +40,46 @@ static ColorMapObject *genDefColorMap(void) {
     return cmap;
 }
 
+static void cleanUp(GifInfo *info) {
+    free(info->backupPtr);
+    info->backupPtr = NULL;
+    free(info->surfaceBackupPtr);
+    info->surfaceBackupPtr = NULL;
+    free(info->infos);
+    info->infos = NULL;
+    free(info->rasterBits);
+    info->rasterBits = NULL;
+    free(info->comment);
+    info->comment = NULL;
+
+    GifFileType *GifFile = info->gifFilePtr;
+    if (GifFile->SColorMap == defaultCmap)
+        GifFile->SColorMap = NULL;
+
+    DGifCloseFile(GifFile);
+    free(info);
+}
+
+static inline time_t getRealTime(void) {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
+        return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+    return -1; //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
+}
+
+static inline void throwException(JNIEnv *env, char *exceptionClass, char *message) {
+    jclass exClass = (*env)->FindClass(env, exceptionClass);
+    if (exClass != NULL)
+        (*env)->ThrowNew(env, exClass, message);
+}
+
+static inline bool isSourceNull(void *ptr, JNIEnv *env) {
+    if (ptr != NULL)
+        return false;
+    throwException(env, "java/lang/NullPointerException", "Input source is null");
+    return true;
+}
+
 static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels) {
     int i;
     int lockPixelsResult = 1;
@@ -63,18 +103,11 @@ static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels) {
         default:
             message = "Lock pixels error";
     }
-    jclass exClass = (*env)->FindClass(env,
-            "java/lang/IllegalStateException");
-    if (exClass != NULL) {
-        (*env)->ThrowNew(env, exClass, message);
-    }
-    else {
-        (*env)->FatalError(env, message);
-    }
+    throwException(env, ILLEGAL_STATE_EXCEPTION, message);
     return false;
 }
 
-void unlockPixels(JNIEnv *env, jobject jbitmap) {
+static void unlockPixels(JNIEnv *env, jobject jbitmap) {
     const int unlockPixelsResult = AndroidBitmap_unlockPixels(env, jbitmap);
     if (unlockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS)
         return;
@@ -89,50 +122,7 @@ void unlockPixels(JNIEnv *env, jobject jbitmap) {
         default:
             message = "Unlock pixels error";
     }
-    jclass exClass = (*env)->FindClass(env,
-            "java/lang/IllegalStateException");
-    if (exClass != NULL) {
-        (*env)->ThrowNew(env, exClass, message);
-    }
-    else {
-        (*env)->FatalError(env, message);
-    }
-}
-
-static void cleanUp(GifInfo *info) {
-    free(info->backupPtr);
-    info->backupPtr = NULL;
-    free(info->infos);
-    info->infos = NULL;
-    free(info->rasterBits);
-    info->rasterBits = NULL;
-    free(info->comment);
-    info->comment = NULL;
-
-    GifFileType *GifFile = info->gifFilePtr;
-    if (GifFile->SColorMap == defaultCmap)
-        GifFile->SColorMap = NULL;
-
-    DGifCloseFile(GifFile);
-    free(info);
-}
-
-static inline time_t getRealTime(void) {
-    struct timespec ts;
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
-        return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-    return -1; //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
-}
-
-static inline bool isSourceNull(void *ptr, JNIEnv *env) {
-    if (ptr != NULL)
-        return false;
-    jclass exClass = (*env)->FindClass(env,
-            "java/lang/NullPointerException");
-    if (exClass == NULL)
-        return true;
-    (*env)->ThrowNew(env, exClass, "Source is null");
-    return true;
+    throwException(env, ILLEGAL_STATE_EXCEPTION, message);
 }
 
 static int fileRead(GifFileType *gif, GifByteType *bytes, int size) {
@@ -492,6 +482,7 @@ static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos,
                 sizeof(GifPixelType));
     info->infos = malloc(sizeof(FrameInfo));
     info->backupPtr = NULL;
+    info->surfaceBackupPtr = NULL;
     info->rewindFunction = rewindFunc;
 
     if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL) {
@@ -763,8 +754,6 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
 static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info,
         int idx) {
     argb *backup = info->backupPtr;
-    argb color;
-    packARGB32(&color, 0, 0, 0, 0);
     GifFileType *fGif = info->gifFilePtr;
     SavedImage *cur = &fGif->SavedImages[idx - 1];
     SavedImage *next = &fGif->SavedImages[idx];
@@ -775,6 +764,8 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info,
     unsigned char nextDisposal = info->infos[idx].disposalMethod;
     if (nextTrans || !checkIfCover(next, cur)) {
         if (curDisposal == DISPOSE_BACKGROUND) {// restore to background (under this image) color
+            argb color;
+            packARGB32(&color, 0, 0, 0, 0);
             fillRect(bm, fGif->SWidth, fGif->SHeight, cur->ImageDesc.Left,
                     cur->ImageDesc.Top, cur->ImageDesc.Width,
                     cur->ImageDesc.Height, color);
@@ -957,11 +948,24 @@ static bool renderToSurface(JNIEnv *env, jobject jsurface, GifInfo *info) {
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) == 0) {
         ANativeWindow_Buffer buffer;
         if (ANativeWindow_lock(window, &buffer, NULL) == 0) {
+            const size_t bufferSize = buffer.width * buffer.height * sizeof(argb);
+            if (info->surfaceBackupPtr == NULL){
+                info->surfaceBackupPtr = malloc(bufferSize);
+                if (info->surfaceBackupPtr == NULL){
+                    throwException(env, "java/lang/OutOfMemoryError", "Cannot allocate surface frame buffer");
+                    ANativeWindow_release(window);
+                    return result;
+                }
+            }
+            else
+                memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
             getBitmap((argb *) buffer.bits, info, widthOffset);
+            memcpy(info->surfaceBackupPtr, buffer.bits, bufferSize);
             ANativeWindow_unlockAndPost(window);
-            result = true;
-        }
-    }
+        } else
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
+    } else
+        throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
     ANativeWindow_release(window);
     return result;
 }

@@ -51,7 +51,7 @@ public class GifTextureView extends TextureView {
                 mSavedPosition = 0;
             }
             mThread.interrupt();
-            return false;
+            return true;
         }
 
         @Override
@@ -120,11 +120,11 @@ public class GifTextureView extends TextureView {
                     try {
                         Thread.sleep(sleepTime);
                     } catch (InterruptedException e) {
-                        surface.release();
-                        return;
+                        break;
                     }
                 }
             }
+            surface.release();
         }
     }
 
