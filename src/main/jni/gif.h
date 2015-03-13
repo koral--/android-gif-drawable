@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <jni.h>
 #include <android/bitmap.h>
+#include <android/native_window_jni.h>
+#include <android/native_window.h>
 #include <time.h>
 #include <stdio.h>
 #include <limits.h>
@@ -14,9 +16,9 @@
 #include <sys/cdefs.h>
 #include "giflib/gif_lib.h"
 
-//#include <android/log.h>
-//#define  LOG_TAG    "libgif"
-//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#include <android/log.h>
+#define  LOG_TAG    "libgif"
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 /**
  * Some gif files are not strictly follow 89a.

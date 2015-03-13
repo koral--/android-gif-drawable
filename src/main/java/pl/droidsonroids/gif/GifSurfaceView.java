@@ -2,7 +2,6 @@ package pl.droidsonroids.gif;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,6 +12,7 @@ import android.os.Build;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Pair;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -73,21 +73,9 @@ public class GifSurfaceView extends SurfaceView {
     }
 
     private void init(AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        if (attrs != null) {
-            final TypedArray surfaceViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifSurfaceView, defStyleAttr, defStyleRes);
-            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifSurfaceView_srcId, 0);
-            String assetName = surfaceViewAttributes.getString(R.styleable.GifSurfaceView_srcAsset);
-            String path = surfaceViewAttributes.getString(R.styleable.GifSurfaceView_srcPath);
-            if (assetName != null) {
-                mSource = new GifDrawableBuilder.AssetSource(getContext().getAssets(), assetName);
-            } else if (path != null) {
-                mSource = new GifDrawableBuilder.FileSource(path);
-            } else {
-                mSource = new GifDrawableBuilder.FileDescriptorSource(getContext().getResources(), resourceId);
-            }
-            surfaceViewAttributes.recycle();
-            freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
-        }
+        final Pair<GifDrawableBuilder.Source, Boolean> initResult = GifViewUtils.initSurfaceView(this, attrs, defStyleAttr, defStyleRes);
+        freezesAnimation = initResult.second;
+        mSource = initResult.first;
         getHolder().addCallback(mCallback);
         shouldSaveSource = true;
     }
@@ -122,9 +110,9 @@ public class GifSurfaceView extends SurfaceView {
                 mGifInfoHandle.seekToTime(mStartPosition, mBitmap);
             }
 
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
+                long preRenderTimestamp = SystemClock.elapsedRealtime();
                 int sleepTime = (int) (mGifInfoHandle.renderFrame(mBitmap) >> 1);
-                long postRenderTime = SystemClock.elapsedRealtime();
                 Canvas canvas = mHolder.lockCanvas();
                 if (canvas == null) {
                     return;
@@ -132,7 +120,7 @@ public class GifSurfaceView extends SurfaceView {
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 canvas.drawBitmap(mBitmap, null, mDstRect, mPaint);
                 mHolder.unlockCanvasAndPost(canvas);
-                final long ms = sleepTime - (SystemClock.elapsedRealtime() - postRenderTime);
+                final long ms = sleepTime - (SystemClock.elapsedRealtime() - preRenderTimestamp);
                 if (ms > 0) {
                     try {
                         Thread.sleep(ms);

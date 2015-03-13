@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
+import android.view.Surface;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -32,14 +33,7 @@ final class GifInfoHandle {
         System.loadLibrary("gif");
     }
 
-    /**
-     * Decodes a frame if needed.
-     *
-     * @param buffer       frame destination
-     * @param gifFileInPtr GifInfo pointer
-     * @return true if loop of the animation is completed
-     */
-    private static native long renderFrame(Bitmap buffer, long gifFileInPtr);
+    private static native long renderFrame(Object buffer, long gifFileInPtr, boolean isSurface);
 
     static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
 
@@ -93,7 +87,11 @@ final class GifInfoHandle {
     }
 
     synchronized long renderFrame(Bitmap buffer) {
-        return renderFrame(buffer, gifInfoPtr);
+        return renderFrame(buffer, gifInfoPtr, false);
+    }
+
+    synchronized long renderSurface(Surface buffer) {
+        return renderFrame(buffer, gifInfoPtr, true);
     }
 
     synchronized void recycle() {

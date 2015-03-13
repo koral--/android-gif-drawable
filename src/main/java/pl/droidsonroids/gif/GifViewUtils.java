@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.net.Uri;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Pair;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -17,7 +18,7 @@ final class GifViewUtils {
     private GifViewUtils() {
     }
 
-    static InitResult init(ImageView view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    static InitResult initImageView(ImageView view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         int sourceResId = 0;
         int backgroundResId = 0;
         boolean freezesAnimation = false;
@@ -80,6 +81,30 @@ final class GifViewUtils {
             }
         }
         return false;
+    }
+
+    static Pair<GifDrawableBuilder.Source, Boolean> initSurfaceView(View view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        GifDrawableBuilder.Source source;
+        boolean freezesAnimation;
+        if (attrs != null && !view.isInEditMode()) {
+            final TypedArray surfaceViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifSurfaceView, defStyleAttr, defStyleRes);
+            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifSurfaceView_srcId, 0);
+            String assetName = surfaceViewAttributes.getString(R.styleable.GifSurfaceView_srcAsset);
+            String path = surfaceViewAttributes.getString(R.styleable.GifSurfaceView_srcPath);
+            if (assetName != null) {
+                source = new GifDrawableBuilder.AssetSource(view.getContext().getAssets(), assetName);
+            } else if (path != null) {
+                source = new GifDrawableBuilder.FileSource(path);
+            } else {
+                source = new GifDrawableBuilder.FileDescriptorSource(view.getContext().getResources(), resourceId);
+            }
+            surfaceViewAttributes.recycle();
+            freezesAnimation = isFreezingAnimation(view, attrs, defStyleAttr, defStyleRes);
+        } else {
+            source = null;
+            freezesAnimation = false;
+        }
+        return Pair.create(source, freezesAnimation);
     }
 
     static class InitResult {

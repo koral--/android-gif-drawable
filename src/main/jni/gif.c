@@ -43,7 +43,7 @@ static ColorMapObject *genDefColorMap(void) {
 static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels) {
     int i;
     int lockPixelsResult = 1;
-    for (i = 0; i < 20; i++) {
+    for (i = 0; i < 20; i++) { //#122 workaround
         lockPixelsResult = AndroidBitmap_lockPixels(env, jbitmap, pixels);
         if (lockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS) {
             return true;
@@ -692,7 +692,7 @@ static inline argb *getAddr(argb *bm, int width, int left, int top) {
     return bm + top * width + left;
 }
 
-static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, int transparent) {
+static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, int widthOffset) {
     const GifWord width = info->gifFilePtr->SWidth;
     const GifWord height = info->gifFilePtr->SHeight;
     const unsigned char *src = info->rasterBits;
@@ -708,9 +708,10 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
     }
 
     for (; copyHeight > 0; copyHeight--) {
-        copyLine(dst, src, cmap, transparent, copyWidth);
+        copyLine(dst, src, cmap, info->infos[info->currentIndex].transpIndex, copyWidth);
         src += frame->ImageDesc.Width;
         dst += width;
+        dst += widthOffset;
     }
 }
 
@@ -733,7 +734,7 @@ static void fillRect(argb *bm, int bmWidth, int bmHeight, GifWord left,
     }
 }
 
-static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, int transpIndex) {
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, int widthOffset) {
     ColorMapObject *cmap = info->gifFilePtr->SColorMap;
 
     if (frame->ImageDesc.ColorMap != NULL) {
@@ -743,7 +744,7 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, int transpInde
             cmap = defaultCmap;
     }
 
-    blitNormal(bm, info, frame, cmap, transpIndex);
+    blitNormal(bm, info, frame, cmap, widthOffset);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -800,12 +801,10 @@ static bool reset(GifInfo *info) {
     return true;
 }
 
-static void getBitmap(argb *bm, GifInfo *info) {
+static void getBitmap(argb *bm, GifInfo *info, int widthOffset) {
     GifFileType *fGIF = info->gifFilePtr;
     if (fGIF->Error == D_GIF_ERR_REWIND_FAILED)
         return;
-
-    int i = info->currentIndex;
 
     if (DDGifSlurp(fGIF, info, true) == GIF_ERROR) {
         if (!reset(info))
@@ -813,11 +812,10 @@ static void getBitmap(argb *bm, GifInfo *info) {
         return;
     }
 
-    SavedImage *cur = &fGIF->SavedImages[i];
-    int transpIndex = info->infos[i].transpIndex;
-    if (i == 0) {
+    SavedImage *cur = &fGIF->SavedImages[info->currentIndex];
+    if (info->currentIndex == 0) {
         argb paintingColor;
-        if (transpIndex == NO_TRANSPARENT_COLOR)
+        if (info->infos[info->currentIndex].transpIndex == NO_TRANSPARENT_COLOR)
             getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
                     fGIF->SColorMap);
         else
@@ -826,9 +824,9 @@ static void getBitmap(argb *bm, GifInfo *info) {
     }
     else {
         // Dispose previous frame before move to next frame.
-        disposeFrameIfNeeded(bm, info, i);
+        disposeFrameIfNeeded(bm, info, info->currentIndex);
     }
-    drawFrame(bm, info, cur, transpIndex);
+    drawFrame(bm, info, cur, widthOffset);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -885,7 +883,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         }
         while (info->currentIndex <= i) {
             info->currentIndex++;
-            getBitmap((argb *) pixels, info);
+            getBitmap((argb *) pixels, info, 0);
         }
         unlockPixels(env, jbitmap);
     }
@@ -926,7 +924,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
 
     while (info->currentIndex < desiredIdx) {
         info->currentIndex++;
-        getBitmap((argb *) pixels, info);
+        getBitmap((argb *) pixels, info, 0);
     }
     unlockPixels(env, jbitmap);
 
@@ -942,9 +940,35 @@ static inline jlong packRenderFrameResult(int invalidationDelay, bool isAnimatio
     return (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L));
 }
 
+static bool renderToBitmap(JNIEnv *env, jobject jbitmap, GifInfo *info) {
+    void *pixels = NULL;
+    if (!lockPixels(env, jbitmap, &pixels)) {
+        return false;
+    }
+    getBitmap((argb *) pixels, info, 0);
+    unlockPixels(env, jbitmap);
+    return true;
+}
+
+static bool renderToSurface(JNIEnv *env, jobject jsurface, GifInfo *info) {
+    int widthOffset = (16 - (info->gifFilePtr->SWidth % 16)) % 16;
+    ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
+    bool result = false;
+    if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) == 0) {
+        ANativeWindow_Buffer buffer;
+        if (ANativeWindow_lock(window, &buffer, NULL) == 0) {
+            getBitmap((argb *) buffer.bits, info, widthOffset);
+            ANativeWindow_unlockAndPost(window);
+            result = true;
+        }
+    }
+    ANativeWindow_release(window);
+    return result;
+}
+
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass,
-        jobject jbitmap, jlong gifInfo) {
+        jobject jframeBuffer, jlong gifInfo, jboolean isSurface) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return packRenderFrameResult(-1, false);
@@ -962,12 +986,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
 
     int invalidationDelay;
     if (needRedraw) {
-        void *pixels = NULL;
-        if (!lockPixels(env, jbitmap, &pixels)) {
+        bool isRenderingSuccessful;
+        if (isSurface == JNI_TRUE)
+            isRenderingSuccessful = renderToSurface(env, jframeBuffer, info);
+        else
+            isRenderingSuccessful = renderToBitmap(env, jframeBuffer, info);
+        if (!isRenderingSuccessful) {
             return packRenderFrameResult(-1, false);
         }
-        getBitmap((argb *) pixels, info);
-        unlockPixels(env, jbitmap);
         if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
             unsigned int scaledDuration = info->infos[info->currentIndex].duration;
             if (info->speedFactor != 1.0) {

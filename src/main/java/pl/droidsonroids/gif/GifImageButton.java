@@ -40,7 +40,7 @@ public class GifImageButton extends ImageButton {
      */
     public GifImageButton(Context context, AttributeSet attrs) {
         super(context, attrs);
-        postInit(GifViewUtils.init(this, attrs, 0, 0));
+        postInit(GifViewUtils.initImageView(this, attrs, 0, 0));
     }
 
     /**
@@ -54,7 +54,7 @@ public class GifImageButton extends ImageButton {
      */
     public GifImageButton(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        postInit(GifViewUtils.init(this, attrs, defStyle, 0));
+        postInit(GifViewUtils.initImageView(this, attrs, defStyle, 0));
     }
 
     /**
@@ -70,7 +70,7 @@ public class GifImageButton extends ImageButton {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public GifImageButton(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
         super(context, attrs, defStyle, defStyleRes);
-        postInit(GifViewUtils.init(this, attrs, defStyle, defStyleRes));
+        postInit(GifViewUtils.initImageView(this, attrs, defStyle, defStyleRes));
     }
 
     private void postInit(GifViewUtils.InitResult result) {
