@@ -225,8 +225,7 @@ static int getComment(GifByteType *Bytes, char **cmt) {
     return GIF_ERROR;
 }
 
-static void packARGB32(argb *pixel, GifByteType alpha, GifByteType red,
-        GifByteType green, GifByteType blue) {
+static inline void packARGB32(argb *pixel, GifByteType alpha, GifByteType red, GifByteType green, GifByteType blue) {
     pixel->alpha = alpha;
     pixel->red = red;
     pixel->green = green;
@@ -927,36 +926,6 @@ static inline bool renderToBitmap(JNIEnv *env, jobject jbitmap, GifInfo *info) {
     return true;
 }
 
-static bool renderToSurface(JNIEnv *env, jobject jsurface, GifInfo *info) {
-    int widthOffset = (16 - (info->gifFilePtr->SWidth % 16)) % 16;
-    ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
-    bool result = false;
-    if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) == 0) {
-        ANativeWindow_Buffer buffer;
-        if (ANativeWindow_lock(window, &buffer, NULL) == 0) {
-            const size_t bufferSize = buffer.width * buffer.height * sizeof(argb);
-            if (info->surfaceBackupPtr == NULL) {
-                info->surfaceBackupPtr = malloc(bufferSize);
-                if (info->surfaceBackupPtr == NULL) {
-                    throwException(env, "java/lang/OutOfMemoryError", "Cannot allocate surface frame buffer");
-                    ANativeWindow_release(window);
-                    return result;
-                }
-            }
-            else
-                memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
-            getBitmap((argb *) buffer.bits, info, widthOffset);
-            memcpy(info->surfaceBackupPtr, buffer.bits, bufferSize);
-            ANativeWindow_unlockAndPost(window);
-            result = true;
-        } else
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
-    } else
-        throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
-    ANativeWindow_release(window);
-    return result;
-}
-
 static int calculateInvalidationDelay(GifInfo *info, time_t rt) {
     int invalidationDelay;
     if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
@@ -1035,21 +1004,48 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     if (!info || !currentThreadMID || !jCurrentThread || !isInterruptedMID) {
         return;
     }
+
+    const size_t bufferSize = info->gifFilePtr->SWidth * info->gifFilePtr->SHeight * sizeof(argb);
+    info->surfaceBackupPtr = malloc(bufferSize);
+    if (info->surfaceBackupPtr == NULL) {
+        throwException(env, "java/lang/OutOfMemoryError", "Cannot allocate surface frame buffer");
+        return;
+    }
+    struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
+    if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
+        ANativeWindow_release(window);
+        throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
+        return;
+    }
+    struct ANativeWindow_Buffer buffer;
     struct timespec time_to_sleep;
+    const int widthOffset = (16 - (info->gifFilePtr->SWidth % 16)) % 16;
 
     while ((*env)->CallBooleanMethod(env, jCurrentThread, isInterruptedMID) == JNI_FALSE) {
-        if (++info->currentIndex >= info->gifFilePtr->ImageCount)
+        if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
             info->currentIndex = 0;
-        if (!renderToSurface(env, jsurface, info))
-            return;
+        }
+        if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
+            break;
+        }
+        memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
+        getBitmap((argb *) buffer.bits, info, widthOffset);
+        memcpy(info->surfaceBackupPtr, buffer.bits, bufferSize);
+        ANativeWindow_unlockAndPost(window);
+
         const int invalidationDelayMillis = calculateInvalidationDelay(info, 0);
-        if (invalidationDelayMillis < 0)
-            return;
+        if (invalidationDelayMillis < 0) {
+            break;
+        }
         time_to_sleep.tv_nsec = (invalidationDelayMillis % 1000) * 1000000;
         time_to_sleep.tv_sec = invalidationDelayMillis / 1000;
-        if (nanosleep(&time_to_sleep, NULL) != 0)
-            return;
+        if (nanosleep(&time_to_sleep, NULL) != 0) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Sleep failed");
+            break;
+        }
     }
+    ANativeWindow_release(window);
 }
 
 __unused JNIEXPORT void JNICALL

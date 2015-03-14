@@ -111,19 +111,14 @@ public class GifTextureView extends TextureView {
             }
             try {
                 mGifInfoHandle = mSource.open();
-            } catch (IOException e) {
+            } catch (IOException ignored) {
                 return;
             }
-
             Surface surface = new Surface(mSurfaceTexture);
             mGifInfoHandle.bindSurface(surface, mStartPosition);
             surface.release();
         }
 
-        void setSpeed(float speedFactor) {
-            if (mGifInfoHandle != null)
-                mGifInfoHandle.setSpeedFactor(speedFactor);
-        }
     }
 
     /**
@@ -141,8 +136,8 @@ public class GifTextureView extends TextureView {
     }
 
     public void setSpeed(float speedFactor) {
-        if (mThread != null)
-            mThread.setSpeed(speedFactor);
+        if (mThread != null && mThread.mGifInfoHandle != null)
+            mThread.mGifInfoHandle.setSpeedFactor(speedFactor);
     }
 
     @Override
