@@ -20,8 +20,6 @@
 //#define  LOG_TAG    "libgif"
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
-#define GET_ADDR(bm, width, left, top) bm + top * width + left
-
 /**
  * Some gif files are not strictly follow 89a.
  * DGifSlurp will return read head error or get record type error.
@@ -51,6 +49,10 @@
 #define D_GIF_ERR_REWIND_FAILED 	1004
 
 #define ILLEGAL_STATE_EXCEPTION "java/lang/IllegalStateException"
+#define OUT_OF_MEMORY_ERROR "java/lang/OutOfMemoryError"
+
+#define PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted) (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L))
+#define GET_ADDR(bm, width, left, top) bm + top * width + left
 
 typedef struct
 {
@@ -123,9 +125,49 @@ static ColorMapObject *genDefColorMap(void);
 /**
 * @return the real time, in ms
 */
-static inline time_t getRealTime(void);
+static time_t getRealTime(JNIEnv *env);
 
 /**
 * Frees dynamically allocated memory
 */
 static void cleanUp(GifInfo *info);
+
+static void throwException(JNIEnv *env, char *exceptionClass, char *message);
+
+static bool isSourceNull(void *ptr, JNIEnv *env);
+
+static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels, bool throwOnError);
+
+static void unlockPixels(JNIEnv *env, jobject jbitmap);
+
+static int fileRead(GifFileType *gif, GifByteType *bytes, int size);
+
+static JNIEnv *getEnv(void);
+
+static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int size);
+
+static int byteArrayReadFun(GifFileType *gif, GifByteType *bytes, int size);
+
+static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size);
+
+static int fileRewind(GifInfo *info);
+
+static int streamRewind(GifInfo *info);
+
+static int byteArrayRewind(GifInfo *info);
+
+static int directByteBufferRewindFun(GifInfo *info);
+
+static int getComment(GifByteType *Bytes, char **cmt);
+
+static inline bool setupBackupBmp(GifInfo *info);
+
+static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
+
+static int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
+
+static void throwGifIOException(int errorCode, JNIEnv *env);
+
+static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData);
+
+static void copyLine(argb *dst, const unsigned char *src, const ColorMapObject *cmap, int transparent, int width);

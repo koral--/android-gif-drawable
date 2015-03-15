@@ -43,10 +43,11 @@ static void cleanUp(GifInfo *info) {
     free(info);
 }
 
-static inline time_t getRealTime(void) {
+static inline time_t getRealTime(JNIEnv *env) {
     struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
         return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+    (*env)->FatalError(env, "clock_gettime failed");
     return -1; //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
 }
 
@@ -116,8 +117,8 @@ static int fileRead(GifFileType *gif, GifByteType *bytes, int size) {
     return (int) fread(bytes, 1, (size_t) size, file);
 }
 
-static JNIEnv *getEnv(void) {
-    JNIEnv *env = NULL;
+static inline JNIEnv *getEnv(void) {
+    JNIEnv *env;
     if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
         return env;
     return NULL;
@@ -134,7 +135,7 @@ static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int siz
 
 static int byteArrayReadFun(GifFileType *gif, GifByteType *bytes, int size) {
     ByteArrayContainer *bac = gif->UserData;
-    JNIEnv *env = NULL;
+    JNIEnv *env;
     (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
     if (bac->pos + size > bac->arrLen)
         size -= bac->pos + size - bac->arrLen;
@@ -225,18 +226,14 @@ static int getComment(GifByteType *Bytes, char **cmt) {
     return GIF_ERROR;
 }
 
-static inline bool setupBackupBmp(GifInfo *info, int transpIndex) {
+static inline bool setupBackupBmp(GifInfo *info) {
     GifFileType *fGIF = info->gifFilePtr;
     info->backupPtr = calloc((size_t) (fGIF->SWidth * fGIF->SHeight), sizeof(argb));
     if (!info->backupPtr) {
         info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
         return false;
     }
-    int backgroundColor;
-    if (transpIndex != NO_TRANSPARENT_COLOR)
-        backgroundColor = fGIF->SBackGroundColor;
-    else
-        backgroundColor = 0;
+    int backgroundColor = info->infos->transpIndex != NO_TRANSPARENT_COLOR ? fGIF->SBackGroundColor : 0;
     memset(info->backupPtr, backgroundColor, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
     return true;
 }
@@ -254,7 +251,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
         fi->duration = GCB.DelayTime > 1 ? (unsigned int) GCB.DelayTime * 10 : 100;
         fi->transpIndex = GCB.TransparentColor;
         if (fi->disposalMethod == DISPOSE_PREVIOUS && info->backupPtr == NULL) {
-            if (!setupBackupBmp(info, fi->transpIndex))
+            if (!setupBackupBmp(info))
                 return GIF_ERROR;
         }
     }
@@ -395,7 +392,8 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
     }
 }
 
-static void throwGifIOException(int errorCode, JNIEnv *env) {//nullchecks just to prevent segfaults, LinkageError will be thrown if GifIOException cannot be instantiated
+static void throwGifIOException(int errorCode, JNIEnv *env) {
+//nullchecks just to prevent segfaults, LinkageError will be thrown if GifIOException cannot be instantiated
     jclass exClass = (*env)->FindClass(env,
             "pl/droidsonroids/gif/GifIOException");
     if (exClass == NULL)
@@ -635,8 +633,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
     return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData);
 }
 
-static void copyLine(argb *dst, const unsigned char *src,
-        const ColorMapObject *cmap, int transparent, int width) {
+static void copyLine(argb *dst, const unsigned char *src, const ColorMapObject *cmap, int transparent, int width) {
     for (; width > 0; width--, src++, dst++) {
         if (*src != transparent) {
             int colIdx = (*src >= cmap->ColorCount) ? 0 : *src;
@@ -759,11 +756,7 @@ static void getBitmap(argb *bm, GifInfo *info, int widthOffset) {
         return;
     }
     if (info->currentIndex == 0) {
-        int backgroundColor;
-        if (info->infos[0].transpIndex != NO_TRANSPARENT_COLOR)
-            backgroundColor = fGIF->SBackGroundColor;
-        else
-            backgroundColor = 0;
+        int backgroundColor = info->infos->transpIndex != NO_TRANSPARENT_COLOR ? fGIF->SBackGroundColor : 0;
         memset(bm, backgroundColor, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
     }
     else {
@@ -833,10 +826,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     info->lastFrameRemainder = lastFrameRemainder;
 
     if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime() + lastFrameRemainder;
+        info->nextStartTime = getRealTime(env) + lastFrameRemainder;
     else
-        info->nextStartTime = getRealTime()
-                + (time_t) (lastFrameRemainder * info->speedFactor);
+        info->nextStartTime = getRealTime(env) + (time_t) (lastFrameRemainder * info->speedFactor);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -872,15 +864,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     unlockPixels(env, jbitmap);
 
     if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime()
-                + info->infos[info->currentIndex].duration;
+        info->nextStartTime = getRealTime(env) + info->infos[info->currentIndex].duration;
     else
-        info->nextStartTime = getRealTime()
-                + (time_t) (info->infos[info->currentIndex].duration * info->speedFactor);
-}
-
-static inline jlong packRenderFrameResult(int invalidationDelay, bool isAnimationCompleted) {
-    return (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L));
+        info->nextStartTime = getRealTime(env) + (time_t) (info->infos[info->currentIndex].duration * info->speedFactor);
 }
 
 static inline bool renderToBitmap(JNIEnv *env, jobject jbitmap, GifInfo *info) {
@@ -917,9 +903,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
         jlong gifInfo, jobject jbitmap) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
-        return packRenderFrameResult(-1, false);
+        return PACK_RENDER_FRAME_RESULT(-1, false);
     bool needRedraw = false;
-    time_t rt = getRealTime();
+    time_t rt = getRealTime(env);
     bool isAnimationCompleted;
     if (rt >= info->nextStartTime) {
         if (++info->currentIndex >= info->gifFilePtr->ImageCount)
@@ -934,11 +920,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     if (needRedraw) {
         bool renderingSuccessful = renderToBitmap(env, jbitmap, info);
         if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
-            throwException(env, "java/lang/OutOfMemoryError", "Failed to allocate native memory");
+            throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
             renderingSuccessful = false;
         }
         if (!renderingSuccessful) {
-            return packRenderFrameResult(-1, false);
+            return PACK_RENDER_FRAME_RESULT(-1, false);
         }
         invalidationDelay = calculateInvalidationDelay(info, rt);
     }
@@ -950,11 +936,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
             invalidationDelay = (int) delay;
     }
     if (invalidationDelay > 0) {//exclude rendering time
-        invalidationDelay -= getRealTime() - rt;
+        invalidationDelay -= getRealTime(env) - rt;
         if (invalidationDelay < 0)
             invalidationDelay = 0;
     }
-    return packRenderFrameResult(invalidationDelay, isAnimationCompleted);
+    return PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -975,7 +961,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     const size_t bufferSize = info->gifFilePtr->SWidth * info->gifFilePtr->SHeight * sizeof(argb);
     info->surfaceBackupPtr = malloc(bufferSize);
     if (info->surfaceBackupPtr == NULL) {
-        throwException(env, "java/lang/OutOfMemoryError", "Cannot allocate surface frame buffer");
+        throwException(env, OUT_OF_MEMORY_ERROR, "Cannot allocate surface frame buffer");
         return;
     }
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
@@ -1102,7 +1088,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
         sum += info->infos[i].duration;
     time_t remainder;
     if (info->lastFrameRemainder == ULONG_MAX) {
-        remainder = info->nextStartTime - getRealTime();
+        remainder = info->nextStartTime - getRealTime(env);
         if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed
             remainder = 0;
     }
@@ -1117,7 +1103,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jcl
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
-    info->lastFrameRemainder = info->nextStartTime - getRealTime();
+    info->lastFrameRemainder = info->nextStartTime - getRealTime(env);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -1126,7 +1112,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL || info->lastFrameRemainder == ULONG_MAX || info->gifFilePtr->ImageCount <= 1)
         return;
-    info->nextStartTime = getRealTime() + info->lastFrameRemainder;
+    info->nextStartTime = getRealTime(env) + info->lastFrameRemainder;
     info->lastFrameRemainder = ULONG_MAX;
 }
 
