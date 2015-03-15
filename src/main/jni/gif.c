@@ -225,25 +225,6 @@ static int getComment(GifByteType *Bytes, char **cmt) {
     return GIF_ERROR;
 }
 
-static inline void packARGB32(argb *pixel, GifByteType alpha, GifByteType red, GifByteType green, GifByteType blue) {
-    pixel->alpha = alpha;
-    pixel->red = red;
-    pixel->green = green;
-    pixel->blue = blue;
-}
-
-static void getColorFromTable(int idx, argb *dst, const ColorMapObject *cmap) {
-    int colIdx = (idx >= cmap->ColorCount) ? 0 : idx;
-    GifColorType *col = &cmap->Colors[colIdx];
-    packARGB32(dst, 0xFF, col->Red, col->Green, col->Blue);
-}
-
-static void eraseColor(argb *bm, int w, int h, argb color) {
-    int i;
-    for (i = 0; i < w * h; i++)
-        *(bm + i) = color;
-}
-
 static inline bool setupBackupBmp(GifInfo *info, int transpIndex) {
     GifFileType *fGIF = info->gifFilePtr;
     info->backupPtr = calloc((size_t) (fGIF->SWidth * fGIF->SHeight), sizeof(argb));
@@ -251,13 +232,12 @@ static inline bool setupBackupBmp(GifInfo *info, int transpIndex) {
         info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
         return false;
     }
-    argb paintingColor;
-    if (transpIndex == NO_TRANSPARENT_COLOR)
-        getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
-                fGIF->SColorMap);
+    int backgroundColor;
+    if (transpIndex != NO_TRANSPARENT_COLOR)
+        backgroundColor = fGIF->SBackGroundColor;
     else
-        packARGB32(&paintingColor, 0, 0, 0, 0);
-    eraseColor(info->backupPtr, fGIF->SWidth, fGIF->SHeight, paintingColor);
+        backgroundColor = 0;
+    memset(info->backupPtr, backgroundColor, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
     return true;
 }
 
@@ -273,7 +253,6 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
         fi->disposalMethod = (unsigned char) GCB.DisposalMode;
         fi->duration = GCB.DelayTime > 1 ? (unsigned int) GCB.DelayTime * 10 : 100;
         fi->transpIndex = GCB.TransparentColor;
-
         if (fi->disposalMethod == DISPOSE_PREVIOUS && info->backupPtr == NULL) {
             if (!setupBackupBmp(info, fi->transpIndex))
                 return GIF_ERROR;
@@ -659,20 +638,22 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 static void copyLine(argb *dst, const unsigned char *src,
         const ColorMapObject *cmap, int transparent, int width) {
     for (; width > 0; width--, src++, dst++) {
-        if (*src != transparent)
-            getColorFromTable(*src, dst, cmap);
+        if (*src != transparent) {
+            int colIdx = (*src >= cmap->ColorCount) ? 0 : *src;
+            GifColorType *col = &cmap->Colors[colIdx];
+            dst->alpha = 0xFF;
+            dst->red = col->Red;
+            dst->green = col->Green;
+            dst->blue = col->Blue;
+        }
     }
-}
-
-static inline argb *getAddr(argb *bm, int width, int left, int top) {
-    return bm + top * width + left;
 }
 
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, int widthOffset) {
     const GifWord width = info->gifFilePtr->SWidth;
     const GifWord height = info->gifFilePtr->SHeight;
     const unsigned char *src = info->rasterBits;
-    argb *dst = getAddr(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
+    argb *dst = GET_ADDR(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
     GifWord copyWidth = frame->ImageDesc.Width;
     if (frame->ImageDesc.Left + copyWidth > width) {
         copyWidth = width - frame->ImageDesc.Left;
@@ -688,25 +669,6 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
         src += frame->ImageDesc.Width;
         dst += width;
         dst += widthOffset;
-    }
-}
-
-static void fillRect(argb *bm, int bmWidth, int bmHeight, GifWord left,
-        GifWord top, GifWord width, GifWord height, argb col) {
-    uint32_t *dst = (uint32_t *) getAddr(bm, bmWidth, left, top);
-    GifWord copyWidth = width;
-    if (left + copyWidth > bmWidth) {
-        copyWidth = bmWidth - left;
-    }
-
-    GifWord copyHeight = height;
-    if (top + copyHeight > bmHeight) {
-        copyHeight = bmHeight - top;
-    }
-    uint32_t *pColor = (uint32_t *) (&col);
-    for (; copyHeight > 0; copyHeight--) {
-        memset(dst, *pColor, copyWidth * sizeof(argb));
-        dst += bmWidth;
     }
 }
 
@@ -749,11 +711,20 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info,
     unsigned char nextDisposal = info->infos[idx].disposalMethod;
     if (nextTrans || !checkIfCover(next, cur)) {
         if (curDisposal == DISPOSE_BACKGROUND) {// restore to background (under this image) color
-            argb color;
-            packARGB32(&color, 0, 0, 0, 0);
-            fillRect(bm, fGif->SWidth, fGif->SHeight, cur->ImageDesc.Left,
-                    cur->ImageDesc.Top, cur->ImageDesc.Width,
-                    cur->ImageDesc.Height, color);
+            uint32_t *dst = (uint32_t *) GET_ADDR(bm, fGif->SWidth, cur->ImageDesc.Left, cur->ImageDesc.Top);
+            int copyWidth = cur->ImageDesc.Width;
+            if (cur->ImageDesc.Left + copyWidth > fGif->SWidth) {
+                copyWidth = fGif->SWidth - cur->ImageDesc.Left;
+            }
+
+            int copyHeight = cur->ImageDesc.Height;
+            if (cur->ImageDesc.Top + copyHeight > fGif->SHeight) {
+                copyHeight = fGif->SHeight - cur->ImageDesc.Top;
+            }
+            for (; copyHeight > 0; copyHeight--) {
+                memset(dst, 0, copyWidth * sizeof(argb));
+                dst += fGif->SWidth;
+            }
         }
         else if (curDisposal == DISPOSE_PREVIOUS && nextDisposal == DISPOSE_PREVIOUS) {// restore to previous
             argb *tmp = bm;
@@ -787,22 +758,18 @@ static void getBitmap(argb *bm, GifInfo *info, int widthOffset) {
             fGIF->Error = D_GIF_ERR_REWIND_FAILED;
         return;
     }
-
-    SavedImage *cur = &fGIF->SavedImages[info->currentIndex];
     if (info->currentIndex == 0) {
-        argb paintingColor;
-        if (info->infos[info->currentIndex].transpIndex == NO_TRANSPARENT_COLOR)
-            getColorFromTable(fGIF->SBackGroundColor, &paintingColor,
-                    fGIF->SColorMap);
+        int backgroundColor;
+        if (info->infos[0].transpIndex != NO_TRANSPARENT_COLOR)
+            backgroundColor = fGIF->SBackGroundColor;
         else
-            packARGB32(&paintingColor, 0, 0, 0, 0);
-        eraseColor(bm, fGIF->SWidth, fGIF->SHeight, paintingColor);
+            backgroundColor = 0;
+        memset(bm, backgroundColor, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
     }
     else {
-        // Dispose previous frame before move to next frame.
         disposeFrameIfNeeded(bm, info, info->currentIndex);
     }
-    drawFrame(bm, info, cur, widthOffset);
+    drawFrame(bm, info, &fGIF->SavedImages[info->currentIndex], widthOffset);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -1029,9 +996,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
             break;
         }
+        getBitmap(info->surfaceBackupPtr, info, widthOffset);
         memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
-        getBitmap((argb *) buffer.bits, info, widthOffset);
-        memcpy(info->surfaceBackupPtr, buffer.bits, bufferSize);
         ANativeWindow_unlockAndPost(window);
 
         const int invalidationDelayMillis = calculateInvalidationDelay(info, 0);

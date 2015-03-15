@@ -20,6 +20,8 @@
 //#define  LOG_TAG    "libgif"
 //#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
+#define GET_ADDR(bm, width, left, top) bm + top * width + left
+
 /**
  * Some gif files are not strictly follow 89a.
  * DGifSlurp will return read head error or get record type error.
