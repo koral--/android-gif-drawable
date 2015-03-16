@@ -984,10 +984,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
         time_to_sleep.tv_nsec = (invalidationDelayMillis % 1000) * 1000000;
         time_to_sleep.tv_sec = invalidationDelayMillis / 1000;
-//        if (nanosleep(&time_to_sleep, NULL) != 0) {
-//            throwException(env, ILLEGAL_STATE_EXCEPTION, "Sleep failed");
-//            break;
-//        }
+        if (nanosleep(&time_to_sleep, NULL) != 0) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Sleep failed");
+            break;
+        }
     }
     ANativeWindow_release(window);
 }
