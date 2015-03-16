@@ -16,9 +16,9 @@
 #include <sys/cdefs.h>
 #include "giflib/gif_lib.h"
 
-#include <android/log.h>
-#define  LOG_TAG    "libgif"
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+//#include <android/log.h>
+//#define  LOG_TAG    "libgif"
+//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 /**
  * Some gif files are not strictly follow 89a.
@@ -89,7 +89,7 @@ struct GifInfo
 	int currentLoop;
 	RewindFunc rewindFunction;
 	jfloat speedFactor;
-	void* surfaceBackupPtr;
+	int32_t stride;
 };
 
 typedef struct
@@ -159,8 +159,6 @@ static int byteArrayRewind(GifInfo *info);
 static int directByteBufferRewindFun(GifInfo *info);
 
 static int getComment(GifByteType *Bytes, char **cmt);
-
-static inline bool setupBackupBmp(GifInfo *info);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 

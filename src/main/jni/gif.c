@@ -26,8 +26,6 @@ static ColorMapObject *genDefColorMap(void) {
 static void cleanUp(GifInfo *info) {
     free(info->backupPtr);
     info->backupPtr = NULL;
-    free(info->surfaceBackupPtr);
-    info->surfaceBackupPtr = NULL;
     free(info->infos);
     info->infos = NULL;
     free(info->rasterBits);
@@ -226,18 +224,6 @@ static int getComment(GifByteType *Bytes, char **cmt) {
     return GIF_ERROR;
 }
 
-static inline bool setupBackupBmp(GifInfo *info) {
-    GifFileType *fGIF = info->gifFilePtr;
-    info->backupPtr = calloc((size_t) (fGIF->SWidth * fGIF->SHeight), sizeof(argb));
-    if (!info->backupPtr) {
-        info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-        return false;
-    }
-    int backgroundColor = info->infos->transpIndex != NO_TRANSPARENT_COLOR ? fGIF->SBackGroundColor : 0;
-    memset(info->backupPtr, backgroundColor, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
-    return true;
-}
-
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) {
     if (ExtData == NULL)
         return GIF_OK;
@@ -250,10 +236,6 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
         fi->disposalMethod = (unsigned char) GCB.DisposalMode;
         fi->duration = GCB.DelayTime > 1 ? (unsigned int) GCB.DelayTime * 10 : 100;
         fi->transpIndex = GCB.TransparentColor;
-        if (fi->disposalMethod == DISPOSE_PREVIOUS && info->backupPtr == NULL) {
-            if (!setupBackupBmp(info))
-                return GIF_ERROR;
-        }
     }
     else if (ExtFunction == COMMENT_EXT_FUNC_CODE) {
         if (getComment(ExtData, &info->comment) == GIF_ERROR) {
@@ -437,14 +419,13 @@ static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos,
     info->loopCount = 1;
     info->currentLoop = 0;
     info->speedFactor = 1.0;
+    info->stride = width;
     if (justDecodeMetaData == JNI_TRUE)
         info->rasterBits = NULL;
     else
-        info->rasterBits = calloc((size_t) (GifFileIn->SHeight * GifFileIn->SWidth),
-                sizeof(GifPixelType));
+        info->rasterBits = malloc(GifFileIn->SHeight * GifFileIn->SWidth * sizeof(GifPixelType));
     info->infos = malloc(sizeof(FrameInfo));
     info->backupPtr = NULL;
-    info->surfaceBackupPtr = NULL;
     info->rewindFunction = rewindFunc;
 
     if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL) {
@@ -455,9 +436,7 @@ static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos,
     info->infos->duration = 0;
     info->infos->disposalMethod = DISPOSAL_UNSPECIFIED;
     info->infos->transpIndex = NO_TRANSPARENT_COLOR;
-    if (GifFileIn->SColorMap == NULL
-            || GifFileIn->SColorMap->ColorCount
-            != (1 << GifFileIn->SColorMap->BitsPerPixel)) {
+    if (GifFileIn->SColorMap == NULL || GifFileIn->SColorMap->ColorCount != (1 << GifFileIn->SColorMap->BitsPerPixel)) {
         GifFreeMapObject(GifFileIn->SColorMap);
         GifFileIn->SColorMap = defaultCmap;
     }
@@ -547,8 +526,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env,
         throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
         return NULL;
     }
-    DirectByteBufferContainer *container = malloc(
-            sizeof(DirectByteBufferContainer));
+    DirectByteBufferContainer *container = malloc(sizeof(DirectByteBufferContainer));
     if (container == NULL) {
         throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
         return NULL;
@@ -633,11 +611,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
     return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData);
 }
 
-static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, int widthOffset) {
+static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
     const GifWord width = info->gifFilePtr->SWidth;
     const GifWord height = info->gifFilePtr->SHeight;
     const unsigned char *src = info->rasterBits;
-    argb *dst = GET_ADDR(bm, width, frame->ImageDesc.Left, frame->ImageDesc.Top);
+    argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
     GifWord copyWidth = frame->ImageDesc.Width;
     if (frame->ImageDesc.Left + copyWidth > width) {
         copyWidth = width - frame->ImageDesc.Left;
@@ -651,7 +629,7 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
     int x;
     int colorIndex;
     argb *copyDst;
-    for (; copyHeight>0 ; copyHeight--) {
+    for (; copyHeight > 0; copyHeight--) {
         copyDst = dst;
         for (x = copyWidth; x > 0; x--, src++, copyDst++) {
             if (*src != info->infos[info->currentIndex].transpIndex) {
@@ -663,12 +641,11 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
                 copyDst->blue = col->Blue;
             }
         }
-        dst += width;
-        dst += widthOffset;
+        dst += info->stride;
     }
 }
 
-static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, int widthOffset) {
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
     ColorMapObject *cmap = info->gifFilePtr->SColorMap;
 
     if (frame->ImageDesc.ColorMap != NULL) {
@@ -678,7 +655,7 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, int widthOffse
             cmap = defaultCmap;
     }
 
-    blitNormal(bm, info, frame, cmap, widthOffset);
+    blitNormal(bm, info, frame, cmap);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -695,8 +672,15 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
 }
 
 static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
-    argb *backup = info->backupPtr;
     GifFileType *fGif = info->gifFilePtr;
+    if (info->backupPtr == NULL) {
+        info->backupPtr = malloc(info->stride * fGif->SHeight * sizeof(argb));
+        if (!info->backupPtr) {
+            info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+            return;
+        }
+    }
+    argb *backup = info->backupPtr;
     SavedImage *cur = &fGif->SavedImages[idx - 1];
     SavedImage *next = &fGif->SavedImages[idx];
     // We can skip disposal process if next frame is not transparent
@@ -706,7 +690,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
     unsigned char nextDisposal = info->infos[idx].disposalMethod;
     if (nextTrans || !checkIfCover(next, cur)) {
         if (curDisposal == DISPOSE_BACKGROUND) {// restore to background (under this image) color
-            uint32_t *dst = (uint32_t *) GET_ADDR(bm, fGif->SWidth, cur->ImageDesc.Left, cur->ImageDesc.Top);
+            uint32_t *dst = (uint32_t *) GET_ADDR(bm, info->stride, cur->ImageDesc.Left, cur->ImageDesc.Top);
             int copyWidth = cur->ImageDesc.Width;
             if (cur->ImageDesc.Left + copyWidth > fGif->SWidth) {
                 copyWidth = fGif->SWidth - cur->ImageDesc.Left;
@@ -718,7 +702,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
             }
             for (; copyHeight > 0; copyHeight--) {
                 memset(dst, 0, copyWidth * sizeof(argb));
-                dst += fGif->SWidth;
+                dst += info->stride;
             }
         }
         else if (curDisposal == DISPOSE_PREVIOUS && nextDisposal == DISPOSE_PREVIOUS) {// restore to previous
@@ -730,7 +714,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
 
     // Save current image if next frame's disposal method == DISPOSE_PREVIOUS
     if (nextDisposal == DISPOSE_PREVIOUS)
-        memcpy(backup, bm, fGif->SWidth * fGif->SHeight * sizeof(argb));
+        memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
 }
 
 static bool reset(GifInfo *info) {
@@ -743,7 +727,7 @@ static bool reset(GifInfo *info) {
     return true;
 }
 
-static void getBitmap(argb *bm, GifInfo *info, int widthOffset) {
+static void getBitmap(argb *bm, GifInfo *info) {
     GifFileType *fGIF = info->gifFilePtr;
     if (fGIF->Error == D_GIF_ERR_REWIND_FAILED)
         return;
@@ -760,7 +744,7 @@ static void getBitmap(argb *bm, GifInfo *info, int widthOffset) {
     else {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
     }
-    drawFrame(bm, info, &fGIF->SavedImages[info->currentIndex], widthOffset);
+    drawFrame(bm, info, &fGIF->SavedImages[info->currentIndex]);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -817,7 +801,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         }
         while (info->currentIndex <= i) {
             info->currentIndex++;
-            getBitmap((argb *) pixels, info, 0);
+            getBitmap((argb *) pixels, info);
         }
         unlockPixels(env, jbitmap);
     }
@@ -857,7 +841,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
 
     while (info->currentIndex < desiredIdx) {
         info->currentIndex++;
-        getBitmap((argb *) pixels, info, 0);
+        getBitmap((argb *) pixels, info);
     }
     unlockPixels(env, jbitmap);
 
@@ -867,17 +851,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
         info->nextStartTime = getRealTime(env) + (time_t) (info->infos[info->currentIndex].duration * info->speedFactor);
 }
 
-static inline bool renderToBitmap(JNIEnv *env, jobject jbitmap, GifInfo *info) {
-    void *pixels = NULL;
-    if (!lockPixels(env, jbitmap, &pixels, false)) {
-        return false;
+static int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env) {
+    if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
+        throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
+        return -1;
     }
-    getBitmap((argb *) pixels, info, 0);
-    unlockPixels(env, jbitmap);
-    return true;
-}
-
-static int calculateInvalidationDelay(GifInfo *info, time_t rt) {
     int invalidationDelay;
     if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
         unsigned int scaledDuration = info->infos[info->currentIndex].duration;
@@ -916,18 +894,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
 
     int invalidationDelay;
     if (needRedraw) {
-        bool renderingSuccessful = renderToBitmap(env, jbitmap, info);
-        if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
-            throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
-            renderingSuccessful = false;
-        }
-        if (!renderingSuccessful) {
+        void *pixels = NULL;
+        if (!lockPixels(env, jbitmap, &pixels, false)) {
             return PACK_RENDER_FRAME_RESULT(-1, false);
         }
-        invalidationDelay = calculateInvalidationDelay(info, rt);
+        getBitmap((argb *) pixels, info);
+        unlockPixels(env, jbitmap);
+        invalidationDelay = calculateInvalidationDelay(info, rt, env);
     }
     else {
-        long delay = info->nextStartTime - rt;
+        time_t delay = info->nextStartTime - rt;
         if (delay < 0)
             invalidationDelay = -1;
         else //no need to check upper bound since info->nextStartTime<=rt+LONG_MAX always
@@ -956,35 +932,46 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         return;
     }
 
-    const size_t bufferSize = info->gifFilePtr->SWidth * info->gifFilePtr->SHeight * sizeof(argb);
-    info->surfaceBackupPtr = malloc(bufferSize);
-    if (info->surfaceBackupPtr == NULL) {
-        throwException(env, OUT_OF_MEMORY_ERROR, "Cannot allocate surface frame buffer");
-        return;
-    }
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
         return;
     }
-    struct ANativeWindow_Buffer buffer;
-    struct timespec time_to_sleep;
-    const int widthOffset = (16 - (info->gifFilePtr->SWidth % 16)) % 16;
 
+    struct ANativeWindow_Buffer buffer;
+    buffer.bits = NULL;
+    struct timespec time_to_sleep;
+
+    void *oldBufferBits;
     while ((*env)->CallBooleanMethod(env, jCurrentThread, isInterruptedMID) == JNI_FALSE) {
         if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
             info->currentIndex = 0;
         }
+
+        oldBufferBits = buffer.bits;
         if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
             break;
         }
-        getBitmap(info->surfaceBackupPtr, info, widthOffset);
-        memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
+        if (oldBufferBits != NULL)
+            memcpy(buffer.bits, oldBufferBits, buffer.stride * buffer.height * sizeof(argb));
+        if (buffer.stride != info->stride) {
+            if (info->backupPtr != NULL) {
+                void *tmpBackupPtr = realloc(info->backupPtr, info->stride * info->gifFilePtr->SHeight * sizeof(argb));
+                if (tmpBackupPtr == NULL) {
+                    ANativeWindow_unlockAndPost(window);
+                    throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
+                    break;
+                }
+                info->backupPtr = tmpBackupPtr;
+            }
+            info->stride = buffer.stride;
+        }
+        getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
 
-        const int invalidationDelayMillis = calculateInvalidationDelay(info, 0);
+        const int invalidationDelayMillis = calculateInvalidationDelay(info, 0, env);
         if (invalidationDelayMillis < 0) {
             break;
         }
