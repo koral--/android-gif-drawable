@@ -1,10 +1,13 @@
 package pl.droidsonroids.gif;
 
+import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.view.Surface;
 
 import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -57,6 +60,8 @@ final class GifInfoHandle {
 
     private static native int getLoopCount(long gifFileInPtr);
 
+    private static native long getSourceLength(long gifFileInPtr);
+
     private static native int getDuration(long gifFileInPtr);
 
     private static native int getCurrentPosition(long gifFileInPtr);
@@ -86,6 +91,12 @@ final class GifInfoHandle {
         } finally {
             afd.close();
         }
+    }
+
+    static GifInfoHandle openUri(ContentResolver resolver, Uri uri, boolean justDecodeMetaData) throws IOException {
+        if (ContentResolver.SCHEME_FILE.equals(uri.getScheme()))
+            return openAssetFileDescriptor(resolver.openAssetFileDescriptor(uri,"r"), justDecodeMetaData);
+        return openFile(uri.getPath(), justDecodeMetaData);
     }
 
     synchronized long renderFrame(Bitmap frameBuffer) {
@@ -119,6 +130,10 @@ final class GifInfoHandle {
 
     synchronized int getLoopCount() {
         return getLoopCount(gifInfoPtr);
+    }
+
+    synchronized long getSourceLength() {
+        return getSourceLength(gifInfoPtr);
     }
 
     synchronized int getNativeErrorCode() {

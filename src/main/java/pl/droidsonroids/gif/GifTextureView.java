@@ -102,6 +102,7 @@ public class GifTextureView extends TextureView {
             mSurfaceTexture = surfaceTexture;
             mSource = source;
             mStartPosition = startPosition;
+            setPriority(MAX_PRIORITY);
         }
 
         @Override

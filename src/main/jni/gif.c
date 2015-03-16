@@ -388,7 +388,7 @@ static void throwGifIOException(int errorCode, JNIEnv *env) {
         (*env)->Throw(env, exception);
 }
 
-static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData) {
+static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData, jlong sourceLength) {
     if (startPos < 0) {
         Error = D_GIF_ERR_NOT_READABLE;
         DGifCloseFile(GifFileIn);
@@ -420,6 +420,7 @@ static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos,
     info->currentLoop = 0;
     info->speedFactor = 1.0;
     info->stride = width;
+    info->sourceLength = sourceLength;
     if (justDecodeMetaData == JNI_TRUE)
         info->rasterBits = NULL;
     else
@@ -488,7 +489,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
     }
     int Error;
     GifFileType *GifFileIn = DGifOpen(file, &fileRead, &Error);
-    return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData);
+    struct stat st;
+    if (stat(fname, &st) != 0)
+        st.st_size = -1;
+    return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData, st.st_size);
 }
 
 __unused JNIEXPORT jobject JNICALL
@@ -508,7 +512,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
     int Error;
     GifFileType *GifFileIn = DGifOpen(container, &byteArrayReadFun, &Error);
 
-    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, container->pos, byteArrayRewind, env, justDecodeMetaData);
+    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, container->pos, byteArrayRewind, env, justDecodeMetaData, container->arrLen);
 
     if (gifInfoHandle == NULL) {
         (*env)->DeleteGlobalRef(env, container->buffer);
@@ -537,7 +541,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env,
     int Error;
     GifFileType *GifFileIn = DGifOpen(container, &directByteBufferReadFun, &Error);
 
-    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, container->pos, directByteBufferRewindFun, env, justDecodeMetaData);
+    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, container->pos, directByteBufferRewindFun, env, justDecodeMetaData, container->capacity);
     if (gifInfoHandle == NULL) {
         free(container);
     }
@@ -576,7 +580,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
     (*env)->CallVoidMethod(env, stream, mid, LONG_MAX); //TODO better length?
 
-    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, 0, streamRewind, env, justDecodeMetaData);
+    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, 0, streamRewind, env, justDecodeMetaData, -1);
     if (gifInfoHandle == NULL) {
         (*env)->DeleteGlobalRef(env, streamCls);
         (*env)->DeleteGlobalRef(env, container->stream);
@@ -599,7 +603,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
         return NULL;
     }
     jint fd = (*env)->GetIntField(env, jfd, fdClassDescriptorFieldID);
-    FILE *file = fdopen(dup(fd), "rb");
+    int dupFd = dup(fd);
+    FILE *file = fdopen(dupFd, "rb");
     if (file == NULL || fseek(file, offset, SEEK_SET) != 0) {
         throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
         return NULL;
@@ -607,8 +612,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 
     int Error = 0;
     GifFileType *GifFileIn = DGifOpen(file, &fileRead, &Error);
-
-    return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData);
+    struct stat st;
+    if (fstat(dupFd, &st) != 0)
+        st.st_size = -1;
+    return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData, st.st_size);
 }
 
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
@@ -977,10 +984,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
         time_to_sleep.tv_nsec = (invalidationDelayMillis % 1000) * 1000000;
         time_to_sleep.tv_sec = invalidationDelayMillis / 1000;
-        if (nanosleep(&time_to_sleep, NULL) != 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Sleep failed");
-            break;
-        }
+//        if (nanosleep(&time_to_sleep, NULL) != 0) {
+//            throwException(env, ILLEGAL_STATE_EXCEPTION, "Sleep failed");
+//            break;
+//        }
     }
     ANativeWindow_release(window);
 }
@@ -1056,6 +1063,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclas
     for (i = 0; i < info->gifFilePtr->ImageCount; i++)
         sum += info->infos[i].duration;
     return sum;
+}
+
+__unused JNIEXPORT jlong JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jclass __unused handleClass,
+        jlong gifInfo) {
+    GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+    if (info == NULL)
+        return -1;
+    return info->sourceLength;
 }
 
 __unused JNIEXPORT jint JNICALL

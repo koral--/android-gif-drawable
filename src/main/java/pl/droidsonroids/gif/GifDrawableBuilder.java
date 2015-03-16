@@ -219,7 +219,7 @@ public class GifDrawableBuilder {
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(open(), byteBuffer.capacity(), oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
@@ -237,7 +237,7 @@ public class GifDrawableBuilder {
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(open(), bytes.length, oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
@@ -259,7 +259,7 @@ public class GifDrawableBuilder {
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(open(), mFile.length(), oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
@@ -278,6 +278,7 @@ public class GifDrawableBuilder {
         }
 
         private FileDescriptorSource getFileDescriptorSource() throws FileNotFoundException {
+            //TODO build File source or FileDescriptorSource
             return new FileDescriptorSource(mContentResolver.openAssetFileDescriptor(mUri, "r"));
         }
 
@@ -338,7 +339,7 @@ public class GifDrawableBuilder {
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(open(), length, oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 
@@ -356,7 +357,7 @@ public class GifDrawableBuilder {
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(open(), -1L, oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 

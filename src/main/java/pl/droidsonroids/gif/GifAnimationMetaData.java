@@ -150,7 +150,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException if resolution fails or destination is not a GIF.
      */
     public GifAnimationMetaData(ContentResolver resolver, Uri uri) throws IOException {
-        this(resolver.openAssetFileDescriptor(uri, "r"));
+        this(GifInfoHandle.openUri(resolver, uri, true));
     }
 
     private GifAnimationMetaData(final GifInfoHandle gifInfoHandle) {

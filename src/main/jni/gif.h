@@ -14,11 +14,12 @@
 #include <string.h>
 #include <limits.h>
 #include <sys/cdefs.h>
+#include <sys/stat.h>
 #include "giflib/gif_lib.h"
 
-//#include <android/log.h>
-//#define  LOG_TAG    "libgif"
-//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#include <android/log.h>
+#define  LOG_TAG    "libgif"
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 /**
  * Some gif files are not strictly follow 89a.
@@ -90,6 +91,7 @@ struct GifInfo
 	RewindFunc rewindFunction;
 	jfloat speedFactor;
 	int32_t stride;
+	jlong sourceLength;
 };
 
 typedef struct
@@ -166,5 +168,5 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
 
 static void throwGifIOException(int errorCode, JNIEnv *env);
 
-static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData);
+static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData, jlong sourceLength);
 
