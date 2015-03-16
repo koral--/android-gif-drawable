@@ -633,19 +633,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
     return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData);
 }
 
-static void copyLine(argb *dst, const unsigned char *src, const ColorMapObject *cmap, int transparent, int width) {
-    for (; width > 0; width--, src++, dst++) {
-        if (*src != transparent) {
-            int colIdx = (*src >= cmap->ColorCount) ? 0 : *src;
-            GifColorType *col = &cmap->Colors[colIdx];
-            dst->alpha = 0xFF;
-            dst->red = col->Red;
-            dst->green = col->Green;
-            dst->blue = col->Blue;
-        }
-    }
-}
-
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, int widthOffset) {
     const GifWord width = info->gifFilePtr->SWidth;
     const GifWord height = info->gifFilePtr->SHeight;
@@ -661,9 +648,21 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
         copyHeight = height - frame->ImageDesc.Top;
     }
 
-    for (; copyHeight > 0; copyHeight--) {
-        copyLine(dst, src, cmap, info->infos[info->currentIndex].transpIndex, copyWidth);
-        src += frame->ImageDesc.Width;
+    int x;
+    int colorIndex;
+    argb *copyDst;
+    for (; copyHeight>0 ; copyHeight--) {
+        copyDst = dst;
+        for (x = copyWidth; x > 0; x--, src++, copyDst++) {
+            if (*src != info->infos[info->currentIndex].transpIndex) {
+                colorIndex = (*src >= cmap->ColorCount) ? 0 : *src;
+                GifColorType *col = &cmap->Colors[colorIndex];
+                copyDst->alpha = 0xFF;
+                copyDst->red = col->Red;
+                copyDst->green = col->Green;
+                copyDst->blue = col->Blue;
+            }
+        }
         dst += width;
         dst += widthOffset;
     }
@@ -695,8 +694,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
     return false;
 }
 
-static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info,
-        int idx) {
+static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
     argb *backup = info->backupPtr;
     GifFileType *fGif = info->gifFilePtr;
     SavedImage *cur = &fGif->SavedImages[idx - 1];

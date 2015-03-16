@@ -16,9 +16,9 @@
 #include <sys/cdefs.h>
 #include "giflib/gif_lib.h"
 
-//#include <android/log.h>
-//#define  LOG_TAG    "libgif"
-//#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#include <android/log.h>
+#define  LOG_TAG    "libgif"
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 /**
  * Some gif files are not strictly follow 89a.
@@ -170,4 +170,3 @@ static void throwGifIOException(int errorCode, JNIEnv *env);
 
 static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData);
 
-static void copyLine(argb *dst, const unsigned char *src, const ColorMapObject *cmap, int transparent, int width);
