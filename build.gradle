@@ -25,6 +25,7 @@ android {
             moduleName 'gif'
             ldLibs 'jnigraphics', 'android'//, 'log'
             abiFilter 'all'
+            cFlags '-fvisibility=hidden'
         }
     }
     //buildTypes.debug.jniDebuggable true

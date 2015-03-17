@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include <jni.h>
-#include <android/bitmap.h>
 #include <android/native_window_jni.h>
 #include <android/native_window.h>
 #include <time.h>
@@ -127,6 +126,11 @@ typedef struct
 } GifSourceDescriptor;
 
 /**
+* Global default color map, initialized by genDefColorMap(void)
+*/
+static ColorMapObject *defaultCmap;
+
+/**
 * Generates default color map, used when there is no color map defined in GIF file.
 * Upon successful allocation in JNI_OnLoad it is stored for further use.
 *
@@ -136,20 +140,16 @@ static ColorMapObject *genDefColorMap(void);
 /**
 * @return the real time, in ms
 */
-static time_t getRealTime(JNIEnv *env);
+time_t getRealTime(JNIEnv *env);
 
 /**
 * Frees dynamically allocated memory
 */
 static void cleanUp(GifInfo *info);
 
-static void throwException(JNIEnv *env, char *exceptionClass, char *message);
+void throwException(JNIEnv *env, char *exceptionClass, char *message);
 
-static bool isSourceNull(void *ptr, JNIEnv *env);
-
-static bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels, bool throwOnError);
-
-static void unlockPixels(JNIEnv *env, jobject jbitmap);
+bool isSourceNull(void *ptr, JNIEnv *env);
 
 static int fileRead(GifFileType *gif, GifByteType *bytes, int size);
 
@@ -173,9 +173,27 @@ static int getComment(GifByteType *Bytes, char **cmt);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
-static int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
+int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
 
-static void throwGifIOException(int errorCode, JNIEnv *env);
+void throwGifIOException(int errorCode, JNIEnv *env);
 
 static jobject createGifHandle(GifSourceDescriptor* descriptor, JNIEnv *env, jboolean justDecodeMetaData);
+
+static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
+
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
+
+static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
+
+static void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx);
+
+void getBitmap(argb *bm, GifInfo *info);
+
+bool reset(GifInfo *info);
+
+bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels, bool throwOnError);
+
+void unlockPixels(JNIEnv *env, jobject jbitmap);
+
+int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env);
 
