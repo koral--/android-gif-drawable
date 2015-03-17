@@ -274,17 +274,12 @@ public class GifDrawableBuilder {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return getFileDescriptorSource().open();
-        }
-
-        private FileDescriptorSource getFileDescriptorSource() throws FileNotFoundException {
-            //TODO build File source or FileDescriptorSource
-            return new FileDescriptorSource(mContentResolver.openAssetFileDescriptor(mUri, "r"));
+            return GifInfoHandle.openUri(mContentResolver, mUri, false);
         }
 
         @Override
         public GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return getFileDescriptorSource().build(oldDrawable, executor, isRenderingAlwaysEnabled);
+            return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
         }
     }
 

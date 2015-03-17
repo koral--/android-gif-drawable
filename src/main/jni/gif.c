@@ -388,30 +388,30 @@ static void throwGifIOException(int errorCode, JNIEnv *env) {
         (*env)->Throw(env, exception);
 }
 
-static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData, jlong sourceLength) {
-    if (startPos < 0) {
-        Error = D_GIF_ERR_NOT_READABLE;
-        DGifCloseFile(GifFileIn);
+static jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData) {
+    if (descriptor->startPos < 0) {
+        descriptor->Error = D_GIF_ERR_NOT_READABLE;
+        DGifCloseFile(descriptor->GifFileIn);
     }
-    if (Error != 0 || GifFileIn == NULL) {
-        throwGifIOException(Error, env);
+    if (descriptor->Error != 0 || descriptor->GifFileIn == NULL) {
+        throwGifIOException(descriptor->Error, env);
         return NULL;
     }
-    int width = GifFileIn->SWidth, height = GifFileIn->SHeight;
+    int width = descriptor->GifFileIn->SWidth, height = descriptor->GifFileIn->SHeight;
     int wxh = width * height;
     if (wxh < 1 || wxh > INT_MAX) {
-        DGifCloseFile(GifFileIn);
+        DGifCloseFile(descriptor->GifFileIn);
         throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env);
         return NULL;
     }
     GifInfo *info = malloc(sizeof(GifInfo));
     if (info == NULL) {
-        DGifCloseFile(GifFileIn);
+        DGifCloseFile(descriptor->GifFileIn);
         throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
         return NULL;
     }
-    info->gifFilePtr = GifFileIn;
-    info->startPos = startPos;
+    info->gifFilePtr = descriptor->GifFileIn;
+    info->startPos = descriptor->startPos;
     info->currentIndex = -1;
     info->nextStartTime = 0;
     info->lastFrameRemainder = ULONG_MAX;
@@ -420,14 +420,14 @@ static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos,
     info->currentLoop = 0;
     info->speedFactor = 1.0;
     info->stride = width;
-    info->sourceLength = sourceLength;
+    info->sourceLength = descriptor->sourceLength;
     if (justDecodeMetaData == JNI_TRUE)
         info->rasterBits = NULL;
     else
-        info->rasterBits = malloc(GifFileIn->SHeight * GifFileIn->SWidth * sizeof(GifPixelType));
+        info->rasterBits = malloc(descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
     info->infos = malloc(sizeof(FrameInfo));
     info->backupPtr = NULL;
-    info->rewindFunction = rewindFunc;
+    info->rewindFunction = descriptor->rewindFunc;
 
     if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL) {
         cleanUp(info);
@@ -437,31 +437,30 @@ static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos,
     info->infos->duration = 0;
     info->infos->disposalMethod = DISPOSAL_UNSPECIFIED;
     info->infos->transpIndex = NO_TRANSPARENT_COLOR;
-    if (GifFileIn->SColorMap == NULL || GifFileIn->SColorMap->ColorCount != (1 << GifFileIn->SColorMap->BitsPerPixel)) {
-        GifFreeMapObject(GifFileIn->SColorMap);
-        GifFileIn->SColorMap = defaultCmap;
+    if (descriptor->GifFileIn->SColorMap == NULL || descriptor->GifFileIn->SColorMap->ColorCount != (1 << descriptor->GifFileIn->SColorMap->BitsPerPixel)) {
+        GifFreeMapObject(descriptor->GifFileIn->SColorMap);
+        descriptor->GifFileIn->SColorMap = defaultCmap;
     }
 
 #if defined(STRICT_FORMAT_89A)
-	if (DDGifSlurp(GifFileIn, info, false) == GIF_ERROR)
-		Error = GifFileIn->Error;
+	if (DDGifSlurp(descriptor->GifFileIn, info, false) == GIF_descriptor->Error)
+		descriptor->Error = descriptor->GifFileIn->descriptor->Error;
 #else
-    DDGifSlurp(GifFileIn, info, false);
+    DDGifSlurp(descriptor->GifFileIn, info, false);
 #endif
 
-    if (GifFileIn->ImageCount < 1) {
-        Error = D_GIF_ERR_NO_FRAMES;
+    if (descriptor->GifFileIn->ImageCount < 1) {
+        descriptor->Error = D_GIF_ERR_NO_FRAMES;
     }
     else if (info->rewindFunction(info) != 0) {
-        Error = D_GIF_ERR_REWIND_FAILED;
+        descriptor->Error = D_GIF_ERR_REWIND_FAILED;
     }
-    if (Error != 0) {
+    if (descriptor->Error != 0) {
         cleanUp(info);
-        throwGifIOException(Error, env);
+        throwGifIOException(descriptor->Error, env);
         return NULL;
     }
-    jclass gifInfoHandleClass = (*env)->FindClass(env,
-            "pl/droidsonroids/gif/GifInfoHandle");
+    jclass gifInfoHandleClass = (*env)->FindClass(env, "pl/droidsonroids/gif/GifInfoHandle");
     if (gifInfoHandleClass == NULL)
         return NULL;
     jmethodID gifInfoHandleCtorMID = (*env)->GetMethodID(env, gifInfoHandleClass, "<init>", "(JIII)V");
@@ -487,12 +486,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
         throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
         return NULL;
     }
-    int Error;
-    GifFileType *GifFileIn = DGifOpen(file, &fileRead, &Error);
+    GifSourceDescriptor descriptor;
+    descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
+    descriptor.rewindFunc = fileRewind;
+    descriptor.startPos = ftell(file);
     struct stat st;
-    if (stat(fname, &st) != 0)
-        st.st_size = -1;
-    return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData, st.st_size);
+    descriptor.sourceLength = stat(fname, &st) == 0 ? st.st_size : -1;
+    return createGifHandle(&descriptor, env, justDecodeMetaData);
 }
 
 __unused JNIEXPORT jobject JNICALL
@@ -509,10 +509,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
     container->buffer = (*env)->NewGlobalRef(env, bytes);
     container->arrLen = (*env)->GetArrayLength(env, container->buffer);
     container->pos = 0;
-    int Error;
-    GifFileType *GifFileIn = DGifOpen(container, &byteArrayReadFun, &Error);
 
-    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, container->pos, byteArrayRewind, env, justDecodeMetaData, container->arrLen);
+    GifSourceDescriptor descriptor;
+    descriptor.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error);
+    descriptor.rewindFunc = byteArrayRewind;
+    descriptor.startPos = container->pos;
+    descriptor.sourceLength = container->arrLen;
+
+    jobject gifInfoHandle = createGifHandle(&descriptor, env, justDecodeMetaData);
 
     if (gifInfoHandle == NULL) {
         (*env)->DeleteGlobalRef(env, container->buffer);
@@ -538,10 +542,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env,
     container->bytes = bytes;
     container->capacity = capacity;
     container->pos = 0;
-    int Error;
-    GifFileType *GifFileIn = DGifOpen(container, &directByteBufferReadFun, &Error);
 
-    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, container->pos, directByteBufferRewindFun, env, justDecodeMetaData, container->capacity);
+    GifSourceDescriptor descriptor;
+    descriptor.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error);
+    descriptor.rewindFunc = directByteBufferRewindFun;
+    descriptor.startPos = container->pos;
+    descriptor.sourceLength = container->capacity;
+
+    jobject gifInfoHandle = createGifHandle(&descriptor, env, justDecodeMetaData);
+
     if (gifInfoHandle == NULL) {
         free(container);
     }
@@ -575,12 +584,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
     container->streamCls = streamCls;
     container->buffer = NULL;
 
-    int Error = 0;
-    GifFileType *GifFileIn = DGifOpen(container, &streamReadFun, &Error);
+    GifSourceDescriptor descriptor;
+    descriptor.GifFileIn = DGifOpen(container, &streamReadFun, &descriptor.Error);
+    descriptor.startPos = 0;
+    descriptor.rewindFunc = streamRewind;
+    descriptor.sourceLength = -1;
 
     (*env)->CallVoidMethod(env, stream, mid, LONG_MAX); //TODO better length?
 
-    jobject gifInfoHandle = createGifHandle(GifFileIn, Error, 0, streamRewind, env, justDecodeMetaData, -1);
+    jobject gifInfoHandle = createGifHandle(&descriptor, env, justDecodeMetaData);
     if (gifInfoHandle == NULL) {
         (*env)->DeleteGlobalRef(env, streamCls);
         (*env)->DeleteGlobalRef(env, container->stream);
@@ -602,20 +614,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
         throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
         return NULL;
     }
-    jint fd = (*env)->GetIntField(env, jfd, fdClassDescriptorFieldID);
-    int dupFd = dup(fd);
-    FILE *file = fdopen(dupFd, "rb");
+    const int fd = dup((*env)->GetIntField(env, jfd, fdClassDescriptorFieldID));
+    FILE *file = fdopen(fd, "rb");
     if (file == NULL || fseek(file, offset, SEEK_SET) != 0) {
         throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
         return NULL;
     }
 
-    int Error = 0;
-    GifFileType *GifFileIn = DGifOpen(file, &fileRead, &Error);
+    GifSourceDescriptor descriptor;
+    descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
+    descriptor.rewindFunc = fileRewind;
+    descriptor.startPos = ftell(file);
     struct stat st;
-    if (fstat(dupFd, &st) != 0)
-        st.st_size = -1;
-    return createGifHandle(GifFileIn, Error, ftell(file), fileRewind, env, justDecodeMetaData, st.st_size);
+    descriptor.sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
+    return createGifHandle(&descriptor, env, justDecodeMetaData);
 }
 
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {

@@ -117,6 +117,15 @@ typedef struct
 	jlong capacity;
 } DirectByteBufferContainer;
 
+typedef struct
+{
+	GifFileType *GifFileIn;
+	int Error;
+	long startPos;
+	RewindFunc rewindFunc;
+	jlong sourceLength;
+} GifSourceDescriptor;
+
 /**
 * Generates default color map, used when there is no color map defined in GIF file.
 * Upon successful allocation in JNI_OnLoad it is stored for further use.
@@ -168,5 +177,5 @@ static int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
 
 static void throwGifIOException(int errorCode, JNIEnv *env);
 
-static jobject createGifHandle(GifFileType *GifFileIn, int Error, long startPos, RewindFunc rewindFunc, JNIEnv *env, const jboolean justDecodeMetaData, jlong sourceLength);
+static jobject createGifHandle(GifSourceDescriptor* descriptor, JNIEnv *env, jboolean justDecodeMetaData);
 

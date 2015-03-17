@@ -580,9 +580,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Returns length of the input source obtained at the opening time or -1 if
-     * length is unknown. Returned value does not change during runtime.
-     * For GifDrawables constructed from {@link InputStream} and {@link FileDescriptor} -1 is always returned.
-     * In case of {@link File}, file path, byte array and {@link ByteBuffer} length is always known.
+     * length cannot be determined. Returned value does not change during runtime.
+     * If GifDrawable is constructed from {@link InputStream} -1 is always returned.
+     * In case of byte array and {@link ByteBuffer} length is always known.
+     * In other cases length -1 can be returned if length cannot be determined.
      *
      * @return number of bytes backed by input source or -1 if it is unknown
      */
