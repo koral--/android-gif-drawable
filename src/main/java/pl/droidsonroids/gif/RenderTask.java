@@ -34,6 +34,8 @@ class RenderTask extends SafeRunnable {
                 mGifDrawable.unscheduleSelf(mGifDrawable.mInvalidateTask);
                 mGifDrawable.scheduleSelf(mGifDrawable.mInvalidateTask, 0L);
             }
+        } else {
+            mGifDrawable.mIsRunning = false;
         }
     }
 }

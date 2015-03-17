@@ -125,3 +125,16 @@ void getBitmap(argb *bm, GifInfo *info) {
     }
     drawFrame(bm, info, &fGIF->SavedImages[info->currentIndex]);
 }
+
+ColorMapObject *genDefColorMap(void) {
+    ColorMapObject *cmap = GifMakeMapObject(256, NULL);
+    if (cmap != NULL) {
+        int iColor;
+        for (iColor = 0; iColor < 256; iColor++) {
+            cmap->Colors[iColor].Red = (GifByteType) iColor;
+            cmap->Colors[iColor].Green = (GifByteType) iColor;
+            cmap->Colors[iColor].Blue = (GifByteType) iColor;
+        }
+    }
+    return cmap;
+}

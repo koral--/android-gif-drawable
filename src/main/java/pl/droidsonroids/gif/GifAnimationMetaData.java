@@ -159,7 +159,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
         gifInfoHandle.recycle();
         mWidth = gifInfoHandle.width;
         mHeight = gifInfoHandle.height;
-        mImageCount = gifInfoHandle.imageCount;
+        mImageCount = gifInfoHandle.frameCount;
     }
 
     /**
