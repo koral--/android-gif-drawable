@@ -84,7 +84,6 @@ public class GifTextureView extends TextureView {
             surfaceViewAttributes.recycle();
             freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
         }
-        freezesAnimation = true;
         setSurfaceTextureListener(mCallback);
     }
 
