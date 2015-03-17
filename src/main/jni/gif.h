@@ -135,7 +135,7 @@ static ColorMapObject *defaultCmap;
 * Upon successful allocation in JNI_OnLoad it is stored for further use.
 *
 */
-static ColorMapObject *genDefColorMap(void);
+ColorMapObject *genDefColorMap(void);
 
 /**
 * @return the real time, in ms
@@ -145,7 +145,7 @@ time_t getRealTime(JNIEnv *env);
 /**
 * Frees dynamically allocated memory
 */
-static void cleanUp(GifInfo *info);
+void cleanUp(GifInfo *info);
 
 void throwException(JNIEnv *env, char *exceptionClass, char *message);
 
@@ -177,7 +177,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
-static jobject createGifHandle(GifSourceDescriptor* descriptor, JNIEnv *env, jboolean justDecodeMetaData);
+jobject createGifHandle(GifSourceDescriptor* descriptor, JNIEnv *env, jboolean justDecodeMetaData);
 
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
 

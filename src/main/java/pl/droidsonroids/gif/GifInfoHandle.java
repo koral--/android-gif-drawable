@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.view.Surface;
 
 import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -23,13 +22,13 @@ final class GifInfoHandle {
     private volatile long gifInfoPtr;
     final int width;
     final int height;
-    final int imageCount;
+    final int frameCount;
 
-    GifInfoHandle(long gifInfoPtr, int width, int height, int imageCount) {
+    GifInfoHandle(long gifInfoPtr, int width, int height, int frameCount) {
         this.gifInfoPtr = gifInfoPtr;
         this.width = width;
         this.height = height;
-        this.imageCount = imageCount;
+        this.frameCount = frameCount;
     }
 
     static {
@@ -77,6 +76,10 @@ final class GifInfoHandle {
     private static native long getAllocationByteCount(long gifFileInPtr);
 
     private static native int getNativeErrorCode(long gifFileInPtr);
+
+    private static native int getCurrentFrameIndex(long gifFileInPtr);
+
+    private static native int getCurrentLoop(long gifFileInPtr);
 
     static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported()) {
@@ -150,6 +153,14 @@ final class GifInfoHandle {
 
     synchronized int getCurrentPosition() {
         return getCurrentPosition(gifInfoPtr);
+    }
+
+    synchronized int getCurrentFrameIndex() {
+        return getCurrentFrameIndex(gifInfoPtr);
+    }
+
+    synchronized int getCurrentLoop() {
+        return getCurrentLoop(gifInfoPtr);
     }
 
     synchronized void seekToTime(int position, Bitmap buffer) {
