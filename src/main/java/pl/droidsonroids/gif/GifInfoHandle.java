@@ -47,7 +47,7 @@ final class GifInfoHandle {
 
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
-    private static native void bindSurface(long gifInfoPtr, Surface surface, long startPosition);
+    private static native void bindSurface(long gifInfoPtr, Surface surface, int startPosition);
 
     private static native void free(long gifFileInPtr);
 
@@ -99,14 +99,14 @@ final class GifInfoHandle {
     static GifInfoHandle openUri(ContentResolver resolver, Uri uri, boolean justDecodeMetaData) throws IOException {
         if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) //workaround for #128
             return openFile(uri.getPath(), justDecodeMetaData);
-        return openAssetFileDescriptor(resolver.openAssetFileDescriptor(uri,"r"), justDecodeMetaData);
+        return openAssetFileDescriptor(resolver.openAssetFileDescriptor(uri, "r"), justDecodeMetaData);
     }
 
     synchronized long renderFrame(Bitmap frameBuffer) {
         return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    void bindSurface(Surface surface, long startPosition) {
+    void bindSurface(Surface surface, int startPosition) {
         bindSurface(gifInfoPtr, surface, startPosition);
     }
 

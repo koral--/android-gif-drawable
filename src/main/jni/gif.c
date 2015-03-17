@@ -113,9 +113,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
         return NULL;
     }
 
-    const char *const fname = (*env)->GetStringUTFChars(env, jfname, 0);
-    FILE *file = fopen(fname, "rb");
-    (*env)->ReleaseStringUTFChars(env, jfname, fname);
+    const char *const filename = (*env)->GetStringUTFChars(env, jfname, 0);
+    FILE *file = fopen(filename, "rb");
+    (*env)->ReleaseStringUTFChars(env, jfname, filename);
     if (file == NULL) {
         throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
         return NULL;
@@ -125,7 +125,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
     descriptor.rewindFunc = fileRewind;
     descriptor.startPos = ftell(file);
     struct stat st;
-    descriptor.sourceLength = stat(fname, &st) == 0 ? st.st_size : -1;
+    descriptor.sourceLength = stat(filename, &st) == 0 ? st.st_size : -1;
     return createGifHandle(&descriptor, env, justDecodeMetaData);
 }
 
@@ -288,8 +288,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
         free(sc);
     }
     else if (info->rewindFunction == fileRewind) {
-        FILE *file = info->gifFilePtr->UserData;
-        fclose(file);
+        fclose(info->gifFilePtr->UserData);
     }
     else if (info->rewindFunction == byteArrayRewind) {
         ByteArrayContainer *bac = info->gifFilePtr->UserData;
@@ -299,12 +298,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
         free(bac);
     }
     else if (info->rewindFunction == directByteBufferRewindFun) {
-        DirectByteBufferContainer *dbbc = info->gifFilePtr->UserData;
-        free(dbbc);
+        free(info->gifFilePtr->UserData);
     }
     info->gifFilePtr->UserData = NULL;
     cleanUp(info);
 }
+
 __unused JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
     JNIEnv *env;

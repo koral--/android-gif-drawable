@@ -22,16 +22,16 @@ class GifViewSavedState extends View.BaseSavedState {
         }
     }
 
-    GifViewSavedState(Parcelable superState, GifInfoHandle gifInfoHandle) {
-        super(superState);
-        mPositions = new int[1];
-        mPositions[0] = gifInfoHandle != null ? gifInfoHandle.getCurrentPosition() : -1;
-    }
-
     private GifViewSavedState(Parcel in) {
         super(in);
         mPositions = new int[in.readInt()];
         in.readIntArray(mPositions);
+    }
+
+    GifViewSavedState(Parcelable superState, int savedPosition) {
+        super(superState);
+        mPositions = new int[1];
+        mPositions[0] = savedPosition;
     }
 
     @Override

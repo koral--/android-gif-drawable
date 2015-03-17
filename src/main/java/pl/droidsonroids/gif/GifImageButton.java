@@ -17,8 +17,6 @@ import android.widget.ImageButton;
 public class GifImageButton extends ImageButton {
 
     private boolean freezesAnimation;
-    private boolean shouldSaveSource;
-    private boolean shouldSaveBackground;
 
     /**
      * A corresponding superclass constructor wrapper.
@@ -74,8 +72,6 @@ public class GifImageButton extends ImageButton {
     }
 
     private void postInit(GifViewUtils.InitResult result) {
-        shouldSaveSource = true;
-        shouldSaveBackground = true;
         freezesAnimation = result.mFreezesAnimation;
         if (result.mSourceResId > 0) {
             super.setImageResource(result.mSourceResId);
@@ -108,25 +104,6 @@ public class GifImageButton extends ImageButton {
     }
 
     @Override
-    public void setImageDrawable(Drawable drawable) {
-        super.setImageDrawable(drawable);
-        shouldSaveSource = false;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void setBackgroundDrawable(Drawable background) {
-        super.setBackgroundDrawable(background);
-        shouldSaveBackground = false;
-    }
-
-    @Override
-    public void setBackground(Drawable background) {
-        super.setBackground(background);
-        shouldSaveBackground = false;
-    }
-
-    @Override
     public void setBackgroundResource(int resId) {
         if (!GifViewUtils.setResource(this, false, resId)) {
             super.setBackgroundResource(resId);
@@ -135,8 +112,8 @@ public class GifImageButton extends ImageButton {
 
     @Override
     public Parcelable onSaveInstanceState() {
-        Drawable source = freezesAnimation && shouldSaveSource ? getDrawable() : null;
-        Drawable background = freezesAnimation && shouldSaveBackground ? getBackground() : null;
+        Drawable source = freezesAnimation ? getDrawable() : null;
+        Drawable background = freezesAnimation ? getBackground() : null;
         return new GifViewSavedState(super.onSaveInstanceState(), source, background);
     }
 

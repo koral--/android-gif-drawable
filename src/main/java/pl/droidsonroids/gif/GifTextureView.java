@@ -3,6 +3,7 @@ package pl.droidsonroids.gif;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Parcelable;
@@ -21,7 +22,6 @@ public class GifTextureView extends TextureView {
     private RenderThread mThread;
     private int mSavedPosition;
     private GifDrawableBuilder.Source mSource;
-    private boolean shouldSaveSource;
     private boolean freezesAnimation;
     private final SurfaceTextureListener mCallback = new SurfaceTextureListener() {
         @Override
@@ -37,11 +37,7 @@ public class GifTextureView extends TextureView {
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            if (mThread.mGifInfoHandle != null) {
-                mSavedPosition = mThread.mGifInfoHandle.getCurrentPosition();
-            } else {
-                mSavedPosition = 0;
-            }
+            mSavedPosition = mThread.getPosition();
             mThread.interrupt();
             return true;
         }
@@ -88,20 +84,20 @@ public class GifTextureView extends TextureView {
             surfaceViewAttributes.recycle();
             freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
         }
+        freezesAnimation = true;
         setSurfaceTextureListener(mCallback);
-        shouldSaveSource = true;
     }
 
     private static class RenderThread extends Thread {
         private final GifDrawableBuilder.Source mSource;
         private final SurfaceTexture mSurfaceTexture;
         private GifInfoHandle mGifInfoHandle;
-        private final int mStartPosition;
+        private int mPosition;
 
         RenderThread(SurfaceTexture surfaceTexture, GifDrawableBuilder.Source source, int startPosition) {
             mSurfaceTexture = surfaceTexture;
             mSource = source;
-            mStartPosition = startPosition;
+            mPosition = startPosition;
             setPriority(MAX_PRIORITY);
         }
 
@@ -116,10 +112,21 @@ public class GifTextureView extends TextureView {
                 return;
             }
             Surface surface = new Surface(mSurfaceTexture);
-            mGifInfoHandle.bindSurface(surface, mStartPosition);
-            mGifInfoHandle.recycle();
+            mGifInfoHandle.bindSurface(surface, mPosition);
+            synchronized (this) {
+                mPosition = mGifInfoHandle.getCurrentPosition();
+                mGifInfoHandle.recycle();
+            }
         }
 
+        synchronized int getPosition() {
+            if (mGifInfoHandle.isRecycled())
+                return mPosition;
+            else {
+                mGifInfoHandle.saveRemainder();
+                return mGifInfoHandle.getCurrentPosition();
+            }
+        }
     }
 
     /**
@@ -133,19 +140,30 @@ public class GifTextureView extends TextureView {
         mSource = source;
         mSavedPosition = 0;
         setVisibility(oldVisibility);
-        shouldSaveSource = false;
     }
 
-    public void setSpeed(float speedFactor) {
+    /**
+     * Sets new animation speed factor.<br>
+     * Note: If animation is in progress ({@link #draw(Canvas)}) was already called)
+     * then effects will be visible starting from the next frame. Duration of the currently rendered
+     * frame is not affected.
+     *
+     * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
+     * @throws IllegalArgumentException if factor&lt;=0
+     */
+    public void setSpeed(float factor) {
+        if (factor <= 0f) {
+            throw new IllegalArgumentException("Speed factor is not positive");
+        }
         if (mThread != null && mThread.mGifInfoHandle != null)
-            mThread.mGifInfoHandle.setSpeedFactor(speedFactor);
+            mThread.mGifInfoHandle.setSpeedFactor(factor);
     }
 
     @Override
     public Parcelable onSaveInstanceState() {
-        final GifInfoHandle gifInfoHandle = freezesAnimation && shouldSaveSource ? mThread.mGifInfoHandle : null;
-        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), gifInfoHandle);
-        mSavedPosition = gifViewSavedState.mPositions[0];
+        final int position = mThread.getPosition();
+        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), freezesAnimation ? position : 0);
+        mSavedPosition = position;
         return gifViewSavedState;
     }
 

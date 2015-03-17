@@ -17,6 +17,7 @@
 #include "giflib/gif_lib.h"
 
 #include <android/log.h>
+
 #define  LOG_TAG    "libgif"
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
@@ -30,23 +31,23 @@
 /**
  * Decoding error - no frames
  */
-#define D_GIF_ERR_NO_FRAMES     	1000
+#define D_GIF_ERR_NO_FRAMES        1000
 /**
 * Decoding error - invalid GIF screen size
 */
-#define D_GIF_ERR_INVALID_SCR_DIMS 	1001
+#define D_GIF_ERR_INVALID_SCR_DIMS    1001
 /**
 * Decoding error - invalid frame size
 */
-#define D_GIF_ERR_INVALID_IMG_DIMS 	1002
+#define D_GIF_ERR_INVALID_IMG_DIMS    1002
 /**
 * Decoding error - frame size is greater that screen size
 */
-#define D_GIF_ERR_IMG_NOT_CONFINED 	1003
+#define D_GIF_ERR_IMG_NOT_CONFINED    1003
 /**
 * Decoding error - input source rewind failed
 */
-#define D_GIF_ERR_REWIND_FAILED 	1004
+#define D_GIF_ERR_REWIND_FAILED    1004
 
 #define ILLEGAL_STATE_EXCEPTION "java/lang/IllegalStateException"
 #define OUT_OF_MEMORY_ERROR "java/lang/OutOfMemoryError"
@@ -54,75 +55,69 @@
 #define PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted) (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L))
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
 
-typedef struct
-{
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
+typedef struct {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
     uint8_t alpha;
 } argb;
 
 
-typedef struct
-{
-	unsigned int duration;
-	int transpIndex;
-	unsigned char disposalMethod;
+typedef struct {
+    unsigned int duration;
+    int transpIndex;
+    unsigned char disposalMethod;
 } FrameInfo;
 
 typedef struct GifInfo GifInfo;
+
 typedef int
 (*RewindFunc)(GifInfo *);
 
-struct GifInfo
-{
-	GifFileType* gifFilePtr;
+struct GifInfo {
+    GifFileType *gifFilePtr;
     time_t lastFrameRemainder;
     time_t nextStartTime;
-	int currentIndex;
-    FrameInfo* infos;
-	argb* backupPtr;
-	long startPos;
-	unsigned char* rasterBits;
-	char* comment;
-	unsigned short loopCount;
-	int currentLoop;
-	RewindFunc rewindFunction;
-	jfloat speedFactor;
-	int32_t stride;
-	jlong sourceLength;
+    int currentIndex;
+    FrameInfo *infos;
+    argb *backupPtr;
+    long startPos;
+    unsigned char *rasterBits;
+    char *comment;
+    unsigned short loopCount;
+    int currentLoop;
+    RewindFunc rewindFunction;
+    jfloat speedFactor;
+    int32_t stride;
+    jlong sourceLength;
 };
 
-typedef struct
-{
-	jobject stream;
-	jclass streamCls;
-	jmethodID readMID;
-	jmethodID resetMID;
-	jbyteArray buffer;
+typedef struct {
+    jobject stream;
+    jclass streamCls;
+    jmethodID readMID;
+    jmethodID resetMID;
+    jbyteArray buffer;
 } StreamContainer;
 
-typedef struct
-{
-	long pos;
-	jbyteArray buffer;
-	jsize arrLen;
+typedef struct {
+    long pos;
+    jbyteArray buffer;
+    jsize arrLen;
 } ByteArrayContainer;
 
-typedef struct
-{
-	long pos;
-	jbyte* bytes;
-	jlong capacity;
+typedef struct {
+    long pos;
+    jbyte *bytes;
+    jlong capacity;
 } DirectByteBufferContainer;
 
-typedef struct
-{
-	GifFileType *GifFileIn;
-	int Error;
-	long startPos;
-	RewindFunc rewindFunc;
-	jlong sourceLength;
+typedef struct {
+    GifFileType *GifFileIn;
+    int Error;
+    long startPos;
+    RewindFunc rewindFunc;
+    jlong sourceLength;
 } GifSourceDescriptor;
 
 /**
@@ -177,7 +172,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
-jobject createGifHandle(GifSourceDescriptor* descriptor, JNIEnv *env, jboolean justDecodeMetaData);
+jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData);
 
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
 
@@ -196,4 +191,6 @@ bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels, bool throwOnError);
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
 int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env);
+
+static int getSkippedFramesCount(GifInfo *info, jint desiredPos, JNIEnv *env);
 

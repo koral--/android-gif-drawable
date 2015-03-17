@@ -74,9 +74,6 @@ public class GifTextView extends TextView {
         init(attrs, defStyle, defStyleRes);
     }
 
-    private boolean shouldSaveCompoundDrawables;
-    private boolean shouldSaveCompoundDrawablesRelative;
-    private boolean shouldSaveBackground;
     private boolean freezesAnimation;
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -112,9 +109,6 @@ public class GifTextView extends TextView {
             }
             setBackgroundInternal(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "background", 0)));
         }
-        shouldSaveCompoundDrawables = true;
-        shouldSaveCompoundDrawablesRelative = true;
-        shouldSaveBackground = true;
         freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyle, defStyleRes);
     }
 
@@ -133,19 +127,6 @@ public class GifTextView extends TextView {
     @Override
     public void setBackgroundResource(int resid) {
         setBackgroundInternal(getGifOrDefaultDrawable(resid));
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void setBackgroundDrawable(Drawable background) {
-        super.setBackgroundDrawable(background);
-        shouldSaveBackground = false;
-    }
-
-    @Override
-    public void setBackground(Drawable background) {
-        super.setBackground(background);
-        shouldSaveBackground = false;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP) //Resources#getDrawable(int, Theme)
@@ -180,18 +161,6 @@ public class GifTextView extends TextView {
         setCompoundDrawablesWithIntrinsicBounds(getGifOrDefaultDrawable(left), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(right), getGifOrDefaultDrawable(bottom));
     }
 
-    @Override
-    public void setCompoundDrawables(Drawable left, Drawable top, Drawable right, Drawable bottom) {
-        super.setCompoundDrawables(left, top, right, bottom);
-        shouldSaveCompoundDrawables = false;
-    }
-
-    @Override
-    public void setCompoundDrawablesRelative(Drawable start, Drawable top, Drawable end, Drawable bottom) {
-        super.setCompoundDrawablesRelative(start, top, end, bottom);
-        shouldSaveCompoundDrawablesRelative = false;
-    }
-
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
     protected void onDetachedFromWindow() {
@@ -215,21 +184,15 @@ public class GifTextView extends TextView {
     public Parcelable onSaveInstanceState() {
         Drawable[] savedDrawables = new Drawable[7];
         if (freezesAnimation) {
-            if (shouldSaveCompoundDrawables) {
-                Drawable[] compoundDrawables = getCompoundDrawables();
-                System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
-            }
+            Drawable[] compoundDrawables = getCompoundDrawables();
+            System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-                savedDrawables[4] = shouldSaveCompoundDrawablesRelative ? compoundDrawablesRelative[0] : null; //start
-                savedDrawables[5] = shouldSaveCompoundDrawablesRelative ? compoundDrawablesRelative[2] : null; //end
-                if (!shouldSaveCompoundDrawablesRelative) {
-                    savedDrawables[2] = null;
-                    savedDrawables[4] = null;
-                }
+                savedDrawables[4] = compoundDrawablesRelative[0]; //start
+                savedDrawables[5] = compoundDrawablesRelative[2]; //end
             }
-            savedDrawables[6] = shouldSaveBackground ? getBackground() : null;
+            savedDrawables[6] = getBackground();
         }
         return new GifViewSavedState(super.onSaveInstanceState(), savedDrawables);
     }

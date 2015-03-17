@@ -2,7 +2,7 @@
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
-        jlong gifInfo, jobject jsurface, jlong startPosition) { //TODO start seeking
+        jlong gifInfo, jobject jsurface, jint startPosition) { //TODO start seeking
 
     jclass threadClass = (*env)->FindClass(env, "java/lang/Thread");
     if (threadClass == NULL)
@@ -22,6 +22,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         return;
     }
 
+    int framesToSkip = getSkippedFramesCount(info, startPosition, env);
     struct ANativeWindow_Buffer buffer;
     buffer.bits = NULL;
     struct timespec time_to_sleep;
@@ -51,10 +52,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             }
             info->stride = buffer.stride;
         }
+        if (framesToSkip > 0) {
+            while (--framesToSkip >= 0) {
+                getBitmap(buffer.bits, info);
+                info->currentIndex++;
+            }
+            //TODO handle last frame time
+        }
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
 
-        const int invalidationDelayMillis = calculateInvalidationDelay(info, 0, env);
+        const int invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(env), env);
         if (invalidationDelayMillis < 0) {
             break;
         }
@@ -66,4 +74,31 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
     }
     ANativeWindow_release(window);
+}
+
+static int getSkippedFramesCount(GifInfo *info, jint desiredPos, JNIEnv *env) {
+    const int imgCount = info->gifFilePtr->ImageCount;
+    if (imgCount <= 1)
+        return 0;
+
+    unsigned long sum = 0;
+    int i;
+    for (i = 0; i < imgCount; i++) {
+        unsigned long newSum = sum + info->infos[i].duration;
+        if (newSum >= desiredPos)
+            break;
+        sum = newSum;
+    }
+
+    time_t lastFrameRemainder = desiredPos - sum;
+    if (i == imgCount - 1 && lastFrameRemainder > info->infos[i].duration)
+        lastFrameRemainder = info->infos[i].duration;
+
+    info->lastFrameRemainder = lastFrameRemainder;
+
+    if (info->speedFactor == 1.0)
+        info->nextStartTime = getRealTime(env) + lastFrameRemainder;
+    else
+        info->nextStartTime = getRealTime(env) + (time_t) (lastFrameRemainder * info->speedFactor);
+    return i;
 }
