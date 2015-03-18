@@ -5,16 +5,16 @@
 */
 static JavaVM *g_jvm;
 
-static int fileRead(GifFileType *gif, GifByteType *bytes, int size) {
-    FILE *file = (FILE *) gif->UserData;
-    return (int) fread(bytes, 1, (size_t) size, file);
-}
-
 static inline JNIEnv *getEnv(void) {
     JNIEnv *env;
     if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
         return env;
     return NULL;
+}
+
+static int fileRead(GifFileType *gif, GifByteType *bytes, int size) {
+    FILE *file = (FILE *) gif->UserData;
+    return (int) fread(bytes, 1, (size_t) size, file);
 }
 
 static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int size) {

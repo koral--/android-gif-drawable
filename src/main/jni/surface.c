@@ -57,14 +57,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
                 getBitmap(buffer.bits, info);
                 info->currentIndex++;
             }
-            //TODO handle last frame time
         }
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
 
-        const int invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(env), env);
+        time_t invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(env), env);
         if (invalidationDelayMillis < 0) {
             break;
+        }
+        if (info->lastFrameRemainder > 0) {
+            invalidationDelayMillis = info->lastFrameRemainder;
+            info->lastFrameRemainder = 0;
         }
         time_to_sleep.tv_nsec = (invalidationDelayMillis % 1000) * 1000000;
         time_to_sleep.tv_sec = invalidationDelayMillis / 1000;
