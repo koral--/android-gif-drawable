@@ -519,13 +519,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Checks whether seeking backward can be performed.
-     * Due to different frame disposal methods it is not supported now.
      *
-     * @return always false
+     * @return true if GIF has at least 2 frames
      */
     @Override
     public boolean canSeekBackward() {
-        return false;
+        return getNumberOfFrames() > 1;
     }
 
     /**
