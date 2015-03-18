@@ -75,8 +75,8 @@ void
 GifFreeMapObject(ColorMapObject *Object)
 {
     if (Object != NULL) {
-        (void)free(Object->Colors);
-        (void)free(Object);
+        free(Object->Colors);
+        free(Object);
     }
 }
 

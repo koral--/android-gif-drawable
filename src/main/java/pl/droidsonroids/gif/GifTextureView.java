@@ -92,6 +92,7 @@ public class GifTextureView extends TextureView {
         private final SurfaceTexture mSurfaceTexture;
         private GifInfoHandle mGifInfoHandle;
         private int mPosition;
+        private IOException mIOException;
 
         RenderThread(SurfaceTexture surfaceTexture, GifDrawableBuilder.Source source, int startPosition) {
             mSurfaceTexture = surfaceTexture;
@@ -107,7 +108,8 @@ public class GifTextureView extends TextureView {
             }
             try {
                 mGifInfoHandle = mSource.open();
-            } catch (IOException ignored) {
+            } catch (IOException ex) {
+                mIOException = ex;
                 return;
             }
             Surface surface = new Surface(mSurfaceTexture);
@@ -125,6 +127,13 @@ public class GifTextureView extends TextureView {
                 mGifInfoHandle.saveRemainder();
                 return mGifInfoHandle.getCurrentPosition();
             }
+        }
+
+        IOException getException() {
+            if (mGifInfoHandle == null)
+                return mIOException;
+            else
+                return new GifIOException(mGifInfoHandle.getNativeErrorCode());
         }
     }
 
@@ -156,6 +165,18 @@ public class GifTextureView extends TextureView {
         }
         if (mThread != null && mThread.mGifInfoHandle != null)
             mThread.mGifInfoHandle.setSpeedFactor(factor);
+    }
+
+    /**
+     * Returns {@link IOException} occurred during loading or playing GIF (in such case only {@link GifIOException}
+     * can be returned. Null is returned when source is not set or surface was not yet created.
+     * In case of no error {@link GifIOException} with {@link GifError#NO_ERROR} code is returned.
+     * @return exception occurred during loading or playing GIF or null
+     */
+    public IOException getIOException() {
+        if (mThread != null)
+            return mThread.getException();
+        return null;
     }
 
     @Override
