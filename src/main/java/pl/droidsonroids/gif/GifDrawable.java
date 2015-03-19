@@ -404,9 +404,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IllegalArgumentException if factor&lt;=0
      */
     public void setSpeed(float factor) {
-        if (factor <= 0f) {
-            throw new IllegalArgumentException("Speed factor is not positive");
-        }
         mNativeInfoHandle.setSpeedFactor(factor);
     }
 

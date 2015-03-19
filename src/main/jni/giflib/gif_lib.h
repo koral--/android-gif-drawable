@@ -54,7 +54,7 @@ typedef struct SavedImage {
     GifImageDesc ImageDesc;
 //    GifByteType *RasterBits;         /* on malloc(3) heap */
 //    int ExtensionBlockCount;         /* Count of extensions before image */
-    ExtensionBlock *ExtensionBlocks; /* Extensions before image */    
+//    ExtensionBlock *ExtensionBlocks; /* Extensions before image */
 } SavedImage;
 
 typedef struct GifFileType {
@@ -107,9 +107,6 @@ typedef struct GraphicsControlBlock {
 ******************************************************************************/
 
 /* Main entry points */
-//GifFileType *DGifOpenFileName(const char *GifFileName, int *Error);
-GifFileType *DGifOpenFileHandle(int GifFileHandle, int *Error);
-//int DGifSlurp(GifFileType * GifFile);
 GifFileType *DGifOpen(void *userPtr, InputFunc readFunc, int *Error);    /* new one (TVT) */
 int DGifCloseFile(GifFileType * GifFile);
 
@@ -156,8 +153,8 @@ extern int GifBitSize(int n);
  Support for the in-core structures allocation (slurp mode).              
 ******************************************************************************/
 
-extern void GifFreeExtensions(int *ExtensionBlock_Count,
-			      ExtensionBlock **ExtensionBlocks);
+//extern void GifFreeExtensions(int *ExtensionBlock_Count,
+//			      ExtensionBlock **ExtensionBlocks);
 extern void GifFreeSavedImages(GifFileType *GifFile);
 
 /******************************************************************************

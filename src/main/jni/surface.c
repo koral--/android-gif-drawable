@@ -22,15 +22,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         return;
     }
 
-    int framesToSkip = getSkippedFramesCount(info, startPosition, env);
+    int framesToSkip = getSkippedFramesCount(info, startPosition);
     struct ANativeWindow_Buffer buffer;
     buffer.bits = NULL;
     struct timespec time_to_sleep;
 
     void *oldBufferBits;
+//    time_t start= getRealTime();
     while ((*env)->CallBooleanMethod(env, jCurrentThread, isInterruptedMID) == JNI_FALSE) {
         if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
             info->currentIndex = 0;
+//            time_t end= getRealTime();
+//            LOGE("fps %ld %ld", 1000*info->gifFilePtr->ImageCount/(end-start));
+//            start = end;
         }
 
         oldBufferBits = buffer.bits;
@@ -61,7 +65,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
 
-        time_t invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(env), env);
+        time_t invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(), env);
         if (invalidationDelayMillis < 0) {
             break;
         }
@@ -79,7 +83,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     ANativeWindow_release(window);
 }
 
-static int getSkippedFramesCount(GifInfo *info, jint desiredPos, JNIEnv *env) {
+static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
     const int imgCount = info->gifFilePtr->ImageCount;
     if (imgCount <= 1)
         return 0;
@@ -100,8 +104,8 @@ static int getSkippedFramesCount(GifInfo *info, jint desiredPos, JNIEnv *env) {
     info->lastFrameRemainder = lastFrameRemainder;
 
     if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime(env) + lastFrameRemainder;
+        info->nextStartTime = getRealTime() + lastFrameRemainder;
     else
-        info->nextStartTime = getRealTime(env) + (time_t) (lastFrameRemainder * info->speedFactor);
+        info->nextStartTime = getRealTime() + (time_t) (lastFrameRemainder * info->speedFactor);
     return i;
 }

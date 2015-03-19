@@ -70,9 +70,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     }
 
     if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime(env) + info->lastFrameRemainder;
+        info->nextStartTime = getRealTime() + info->lastFrameRemainder;
     else
-        info->nextStartTime = getRealTime(env) + (time_t) (info->lastFrameRemainder * info->speedFactor);
+        info->nextStartTime = getRealTime() + (time_t) (info->lastFrameRemainder * info->speedFactor);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -107,9 +107,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     unlockPixels(env, jbitmap);
 
     if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime(env) + info->infos[info->currentIndex].duration;
+        info->nextStartTime = getRealTime() + info->infos[info->currentIndex].duration;
     else
-        info->nextStartTime = getRealTime(env) + (time_t) (info->infos[info->currentIndex].duration * info->speedFactor);
+        info->nextStartTime = getRealTime() + (time_t) (info->infos[info->currentIndex].duration * info->speedFactor);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -118,7 +118,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jcl
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
-    info->lastFrameRemainder = info->nextStartTime - getRealTime(env);
+    info->lastFrameRemainder = info->nextStartTime - getRealTime();
 }
 
 __unused JNIEXPORT void JNICALL
@@ -127,6 +127,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL || info->lastFrameRemainder == ULONG_MAX || info->gifFilePtr->ImageCount <= 1)
         return;
-    info->nextStartTime = getRealTime(env) + info->lastFrameRemainder;
+    info->nextStartTime = getRealTime() + info->lastFrameRemainder;
     info->lastFrameRemainder = ULONG_MAX;
 }

@@ -62,7 +62,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     if (info == NULL)
         return PACK_RENDER_FRAME_RESULT(-1, false);
     bool needRedraw = false;
-    time_t rt = getRealTime(env);
+    time_t rt = getRealTime();
     bool isAnimationCompleted;
     if (rt >= info->nextStartTime) {
         if (++info->currentIndex >= info->gifFilePtr->ImageCount)
@@ -91,7 +91,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
             invalidationDelay = (int) delay;
     }
     if (invalidationDelay > 0) {//exclude rendering time
-        invalidationDelay -= getRealTime(env) - rt;
+        invalidationDelay -= getRealTime() - rt;
         if (invalidationDelay < 0)
             invalidationDelay = 0;
     }

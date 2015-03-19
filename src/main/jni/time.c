@@ -23,10 +23,9 @@ int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env) {
     return invalidationDelay;
 }
 
-inline time_t getRealTime(JNIEnv *env) {
+inline time_t getRealTime() {
     struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
         return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-    (*env)->FatalError(env, "clock_gettime failed");
-    return -1; //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
+    abort(); //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
 }

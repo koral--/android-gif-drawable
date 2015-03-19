@@ -64,8 +64,8 @@ final class GifViewUtils {
     }
 
     static boolean isFreezingAnimation(View view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        final TypedArray gifViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
-        boolean freezesAnimation = gifViewAttributes.getBoolean(R.styleable.GifView_freezesAnimation, false);
+        final TypedArray gifViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
+        boolean freezesAnimation = gifViewAttributes.getBoolean(R.styleable.GifTextureView_freezesAnimation, false);
         gifViewAttributes.recycle();
         return freezesAnimation;
     }

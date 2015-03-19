@@ -7,12 +7,12 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
     int ExtFunction;
     do {
         if (DGifGetRecordType(GifFile, &RecordType) == GIF_ERROR)
-            return (GIF_ERROR);
+            return GIF_ERROR;
         switch (RecordType) {
             case IMAGE_DESC_RECORD_TYPE:
 
                 if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
-                    return (GIF_ERROR);
+                    return GIF_ERROR;
                 SavedImage *sp = &GifFile->SavedImages[(shouldDecode ? info->currentIndex : GifFile->ImageCount - 1)];
                 const GifWord width = sp->ImageDesc.Width, height = sp->ImageDesc.Height;
                 const int ImageSize = width * height;
@@ -21,8 +21,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                     GifFile->Error = D_GIF_ERR_INVALID_IMG_DIMS;
                     return GIF_ERROR;
                 }
-                if (width > GifFile->SWidth
-                        || height > GifFile->SHeight) {
+                if (width > GifFile->SWidth || height > GifFile->SHeight) {
                     GifFile->Error = D_GIF_ERR_IMG_NOT_CONFINED;
                     return GIF_ERROR;
                 }
@@ -33,10 +32,8 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                          * The way an interlaced image should be read -
                          * offsets and jumps...
                          */
-                        int InterlacedOffset[] =
-                                {0, 4, 2, 1};
-                        int InterlacedJumps[] =
-                                {8, 8, 4, 2};
+                        int InterlacedOffset[] = {0, 4, 2, 1};
+                        int InterlacedJumps[] = {8, 8, 4, 2};
                         /* Need to perform 4 passes on the image */
                         for (i = 0; i < 4; i++)
                             for (j = InterlacedOffset[i]; j < sp->ImageDesc.Height;
@@ -50,7 +47,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                     else {
                         if (DGifGetLine(GifFile, info->rasterBits,
                                 ImageSize) == GIF_ERROR)
-                            return (GIF_ERROR);
+                            return GIF_ERROR;
                     }
                     if (info->currentIndex >= GifFile->ImageCount - 1) {
                         if (info->loopCount > 0)
@@ -64,17 +61,17 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                 }
                 else {
                     if (DGifGetCode(GifFile, &codeSize, &ExtData) == GIF_ERROR)
-                        return (GIF_ERROR);
+                        return GIF_ERROR;
                     while (ExtData != NULL) {
                         if (DGifGetCodeNext(GifFile, &ExtData) == GIF_ERROR)
-                            return (GIF_ERROR);
+                            return GIF_ERROR;
                     }
                 }
                 break;
 
             case EXTENSION_RECORD_TYPE:
                 if (DGifGetExtension(GifFile, &ExtFunction, &ExtData) == GIF_ERROR)
-                    return (GIF_ERROR);
+                    return GIF_ERROR;
                 if (!shouldDecode) {
                     FrameInfo *tmpInfos = realloc(info->infos,
                             (GifFile->ImageCount + 1) * sizeof(FrameInfo));
@@ -87,7 +84,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                 while (ExtData != NULL) {
                     if (DGifGetExtensionNext(GifFile, &ExtData,
                             &ExtFunction) == GIF_ERROR)
-                        return (GIF_ERROR);
+                        return GIF_ERROR;
                     if (!shouldDecode) {
                         if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
                             return GIF_ERROR;
@@ -102,16 +99,14 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                 break;
         }
     } while (RecordType != TERMINATE_RECORD_TYPE);
-    bool ok = true;
+    
     if (shouldDecode) {
-        ok = (info->rewindFunction(info) == 0);
+        if (info->rewindFunction(info) != 0) {
+            info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+            return GIF_ERROR;
+        }
     }
-    if (ok)
-        return (GIF_OK);
-    else {
-        info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
-        return (GIF_ERROR);
-    }
+    return GIF_OK;
 }
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) {

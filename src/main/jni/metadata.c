@@ -56,7 +56,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
         sum += info->infos[i].duration;
     time_t remainder;
     if (info->lastFrameRemainder == ULONG_MAX) {
-        remainder = info->nextStartTime - getRealTime(env);
+        remainder = info->nextStartTime - getRealTime();
         if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed
             remainder = 0;
     }

@@ -135,7 +135,7 @@ ColorMapObject *genDefColorMap(void);
 /**
 * @return the real time, in ms
 */
-time_t getRealTime(JNIEnv *env);
+time_t getRealTime();
 
 /**
 * Frees dynamically allocated memory
@@ -192,5 +192,5 @@ void unlockPixels(JNIEnv *env, jobject jbitmap);
 
 int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env);
 
-static int getSkippedFramesCount(GifInfo *info, jint desiredPos, JNIEnv *env);
+static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
 

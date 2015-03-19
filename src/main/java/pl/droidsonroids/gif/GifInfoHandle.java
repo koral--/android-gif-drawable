@@ -144,6 +144,9 @@ final class GifInfoHandle {
     }
 
     synchronized void setSpeedFactor(float factor) {
+        if (factor <= 0f || Float.isNaN(factor)) {
+            throw new IllegalArgumentException("Speed factor is not positive");
+        }
         setSpeedFactor(gifInfoPtr, factor);
     }
 

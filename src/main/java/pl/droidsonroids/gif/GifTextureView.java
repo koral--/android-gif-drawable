@@ -72,10 +72,10 @@ public class GifTextureView extends TextureView {
 
     private void init(AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         if (attrs != null && !isInEditMode()) {
-            final TypedArray surfaceViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
-            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifView_srcId, 0);
-            String assetName = surfaceViewAttributes.getString(R.styleable.GifView_srcAsset);
-            String path = surfaceViewAttributes.getString(R.styleable.GifView_srcPath);
+            final TypedArray surfaceViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
+            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifTextureView_srcId, 0);
+            String assetName = surfaceViewAttributes.getString(R.styleable.GifTextureView_srcAsset);
+            String path = surfaceViewAttributes.getString(R.styleable.GifTextureView_srcPath);
             if (assetName != null) {
                 mSource = new GifDrawableBuilder.AssetSource(getContext().getAssets(), assetName);
             } else if (path != null) {
@@ -85,12 +85,13 @@ public class GifTextureView extends TextureView {
             }
             surfaceViewAttributes.recycle();
             freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
+            setOpaque(surfaceViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
         }
         setSurfaceTextureListener(mCallback);
     }
 
     private class RenderThread extends Thread {
-        private ImageView.ScaleType mScaleType = ImageView.ScaleType.FIT_CENTER;
+        private ImageView.ScaleType mScaleType = ImageView.ScaleType.CENTER_CROP;
         private final GifDrawableBuilder.Source mSource;
         private final SurfaceTexture mSurfaceTexture;
         private GifInfoHandle mGifInfoHandle;
@@ -160,9 +161,14 @@ public class GifTextureView extends TextureView {
                     scaleX = mGifInfoHandle.width / viewWidth;
                     scaleY = mGifInfoHandle.height / viewHeight;
                     transform.setScale(scaleX, scaleY, pivotPointX, pivotPointY);
-
                     break;
                 case CENTER_CROP:
+                    pivotPointX = viewWidth / 2;
+                    pivotPointY = viewHeight / 2;
+                    scaleX = mGifInfoHandle.width / viewWidth;
+                    scaleY = mGifInfoHandle.height / viewHeight;
+                    float refScale = 1 / Math.min(scaleX, scaleY);
+                    transform.setScale(refScale * scaleX, refScale * scaleY, pivotPointX, pivotPointY);
                     break;
                 case CENTER_INSIDE:
                     break;
@@ -210,9 +216,6 @@ public class GifTextureView extends TextureView {
      * @throws IllegalArgumentException if factor&lt;=0
      */
     public void setSpeed(float factor) {
-        if (factor <= 0f) {
-            throw new IllegalArgumentException("Speed factor is not positive");
-        }
         if (mThread != null && mThread.mGifInfoHandle != null)
             mThread.mGifInfoHandle.setSpeedFactor(factor);
     }
