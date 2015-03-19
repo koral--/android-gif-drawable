@@ -186,7 +186,7 @@ void getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
-bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels, bool throwOnError);
+bool lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 

@@ -201,7 +201,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor = executor != null ? executor : GifRenderingExecutor.getInstance();
         mNativeInfoHandle = gifInfoHandle;
         Bitmap oldBitmap = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && oldDrawable != null) {
+        if (oldDrawable != null) {
             synchronized (oldDrawable.mNativeInfoHandle) {
                 if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
                     final int oldHeight = oldDrawable.mBuffer.getHeight();
@@ -210,7 +210,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                         oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
                         oldBitmap.eraseColor(Color.TRANSPARENT);
-                        oldBitmap.reconfigure(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                            oldBitmap.reconfigure(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
                     }
                 }
             }
@@ -286,11 +287,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void start() {
-        mIsRunning = true;
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
                 mNativeInfoHandle.restoreRemainder();
+                mIsRunning = true;
                 mRenderTask.run();
             }
         });
@@ -307,6 +308,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.reset();
+                mIsRunning = true;
+                mRenderTask.run();
             }
         });
     }

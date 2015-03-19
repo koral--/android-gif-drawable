@@ -1,33 +1,39 @@
 #include "gif.h"
 #include <android/bitmap.h>
 
-bool lockPixels(JNIEnv *env, jobject jbitmap, void **pixels, bool throwOnError) {
+bool lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
+    AndroidBitmapInfo bitmapInfo;
+    if (AndroidBitmap_getInfo(env, jbitmap, &bitmapInfo) == ANDROID_BITMAP_RESULT_SUCCESS)
+        info->stride = bitmapInfo.width;
+    else {
+        throwException(env, ILLEGAL_STATE_EXCEPTION, "Could not get bitmap info");
+        return false;
+    }
+
     int i;
-    int lockPixelsResult = 1;
+    int lockPixelsResult = ANDROID_BITMAP_RESULT_SUCCESS;
     for (i = 0; i < 20; i++) { //#122 workaround
+        usleep(100);
         lockPixelsResult = AndroidBitmap_lockPixels(env, jbitmap, pixels);
         if (lockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS) {
             return true;
         }
     }
-    if (throwOnError) {
-        char *message;
-        switch (lockPixelsResult) {
-            case ANDROID_BITMAP_RESULT_ALLOCATION_FAILED:
-                message = "Lock pixels error, frame buffer allocation failed";
-                break;
-            case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
-                message = "Lock pixels error, bad parameter";
-                break;
-            case ANDROID_BITMAP_RESULT_JNI_EXCEPTION:
-                message = "Lock pixels error, JNI exception";
-                break;
-            default:
-                message = "Lock pixels error";
-        }
-        throwException(env, ILLEGAL_STATE_EXCEPTION, message);
-
+    char *message;
+    switch (lockPixelsResult) {
+        case ANDROID_BITMAP_RESULT_ALLOCATION_FAILED:
+            message = "Lock pixels error, frame buffer allocation failed";
+            break;
+        case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
+            message = "Lock pixels error, bad parameter";
+            break;
+        case ANDROID_BITMAP_RESULT_JNI_EXCEPTION:
+            message = "Lock pixels error, JNI exception";
+            break;
+        default:
+            message = "Lock pixels error";
     }
+    throwException(env, ILLEGAL_STATE_EXCEPTION, message);
     return false;
 }
 
@@ -69,8 +75,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
 
     int invalidationDelay;
     if (needRedraw) {
-        void *pixels = NULL;
-        if (!lockPixels(env, jbitmap, &pixels, false)) {
+        void *pixels;
+        if (!lockPixels(env, jbitmap, info, &pixels)) {
             return PACK_RENDER_FRAME_RESULT(-1, false);
         }
         getBitmap((argb *) pixels, info);

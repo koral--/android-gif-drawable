@@ -49,7 +49,6 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->loopCount = 1;
     info->currentLoop = 0;
     info->speedFactor = 1.0;
-    info->stride = width;
     info->sourceLength = descriptor->sourceLength;
     if (justDecodeMetaData == JNI_TRUE)
         info->rasterBits = NULL;
