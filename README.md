@@ -11,13 +11,7 @@ android-gif-drawable
 ## Overview
 Bundled GIFLib via JNI is used to render frames. This way should be more efficient than `WebView` or `Movie` classes.
 
-## Download
-
-**[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
-
-## Javadoc
-
-**[online javadoc](http://koral--.github.io/android-gif-drawable/javadoc/)**
+### [Javadoc](http://koral--.github.io/android-gif-drawable/javadoc/)
 
 ### Setup
 
@@ -52,6 +46,10 @@ allprojects {
 	<type>aar</type>
 </dependency>
 ```
+
+#### Download
+
+**[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
 ####<a name="proguard"></a> Proguard configuration
 Add following line to proguard configuration file (usually `proguard-rules.txt` or `proguard-project.txt`):

@@ -10,6 +10,7 @@ android:
   components:
     - build-tools-22.0.0
     - android-22
+    - extra-google-m2repository
 
 before_install:
   - wget http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin
