@@ -15,6 +15,10 @@ Bundled GIFLib via JNI is used to render frames. This way should be more efficie
 
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
+## Javadoc
+
+**[online javadoc](http://koral--.github.io/android-gif-drawable/javadoc/)**
+
 ### Setup
 
 #### Gradle (Android Studio)
@@ -195,7 +199,7 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
-##Migration from 1.0.x
+##Upgrading from 1.0.x
 ####Proguard configuration update
 Proguard configuration has changed. See [Proguard configuration](#proguard) section.
 
