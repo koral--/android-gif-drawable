@@ -59,6 +59,9 @@ allprojects {
     repositories {
         mavenCentral()
     }
+    dependencies {
+        provided 'com.android.support:support-annotations:22.0.0'
+    }
 }
 
 apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'

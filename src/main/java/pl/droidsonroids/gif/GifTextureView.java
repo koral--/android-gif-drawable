@@ -8,6 +8,8 @@ import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.Surface;
 import android.view.TextureView;
@@ -194,11 +196,11 @@ public class GifTextureView extends TextureView {
     }
 
     /**
-     * Sets the source of the animation.
+     * Sets the source of the animation. Pass null to remove current source.
      *
-     * @param source new animation source
+     * @param source new animation source, may be null
      */
-    public synchronized void setSource(GifDrawableBuilder.Source source) {
+    public synchronized void setSource(@Nullable GifDrawableBuilder.Source source) {
         int oldVisibility = getVisibility();
         setVisibility(INVISIBLE); //dirty hack to force surface recreation
         mSource = source;
@@ -227,16 +229,14 @@ public class GifTextureView extends TextureView {
      *
      * @return exception occurred during loading or playing GIF or null
      */
-    public IOException getIOException() {
+    @Nullable public IOException getIOException() {
         if (mThread != null)
             return mThread.getException();
         return null;
     }
 
-    public void setScaleType(ImageView.ScaleType scaleType) {
-        Matrix transform = getTransform(null);
-        transform.postScale(0.2f, 0.2f);
-        setTransform(transform);
+    public void setScaleType(@NonNull ImageView.ScaleType scaleType) {
+        //TODO update scale type
     }
 
     @Override

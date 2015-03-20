@@ -7,6 +7,10 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RawRes;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -38,7 +42,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws java.io.IOException                             when opening failed
      * @throws NullPointerException                            if res is null
      */
-    public GifAnimationMetaData(Resources res, int id) throws Resources.NotFoundException, IOException {
+    public GifAnimationMetaData(@NonNull Resources res, @DrawableRes @RawRes int id) throws Resources.NotFoundException, IOException {
         this(res.openRawResourceFd(id));
     }
 
@@ -50,7 +54,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException          when opening failed
      * @throws NullPointerException if assets or assetName is null
      */
-    public GifAnimationMetaData(AssetManager assets, String assetName) throws IOException {
+    public GifAnimationMetaData(@NonNull AssetManager assets, @NonNull String assetName) throws IOException {
         this(assets.openFd(assetName));
     }
 
@@ -64,7 +68,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException          when opening failed
      * @throws NullPointerException if filePath is null
      */
-    public GifAnimationMetaData(String filePath) throws IOException {
+    public GifAnimationMetaData(@NonNull String filePath) throws IOException {
         this(GifInfoHandle.openFile(filePath, true));
     }
 
@@ -75,7 +79,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException          when opening failed
      * @throws NullPointerException if file is null
      */
-    public GifAnimationMetaData(File file) throws IOException {
+    public GifAnimationMetaData(@NonNull File file) throws IOException {
         this(GifInfoHandle.openFile(file.getPath(), true));
     }
 
@@ -88,7 +92,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IllegalArgumentException if stream does not support marking
      * @throws NullPointerException     if stream is null
      */
-    public GifAnimationMetaData(InputStream stream) throws IOException {
+    public GifAnimationMetaData(@NonNull InputStream stream) throws IOException {
         this(GifInfoHandle.openMarkableInputStream(stream, true));
     }
 
@@ -100,7 +104,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws NullPointerException if afd is null
      * @throws IOException          when opening failed
      */
-    public GifAnimationMetaData(AssetFileDescriptor afd) throws IOException {
+    public GifAnimationMetaData(@NonNull AssetFileDescriptor afd) throws IOException {
         this(GifInfoHandle.openAssetFileDescriptor(afd, true));
     }
 
@@ -111,7 +115,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException          when opening failed
      * @throws NullPointerException if fd is null
      */
-    public GifAnimationMetaData(FileDescriptor fd) throws IOException {
+    public GifAnimationMetaData(@NonNull FileDescriptor fd) throws IOException {
         this(GifInfoHandle.openFd(fd, 0, true));
     }
 
@@ -123,7 +127,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IOException          if bytes does not contain valid GIF data
      * @throws NullPointerException if bytes are null
      */
-    public GifAnimationMetaData(byte[] bytes) throws IOException {
+    public GifAnimationMetaData(@NonNull byte[] bytes) throws IOException {
         this(GifInfoHandle.openByteArray(bytes, true));
     }
 
@@ -136,7 +140,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * @throws IllegalArgumentException if buffer is indirect
      * @throws NullPointerException     if buffer is null
      */
-    public GifAnimationMetaData(ByteBuffer buffer) throws IOException {
+    public GifAnimationMetaData(@NonNull ByteBuffer buffer) throws IOException {
         this(GifInfoHandle.openDirectByteBuffer(buffer, true));
     }
 
@@ -146,10 +150,10 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * is used to open an Uri.
      *
      * @param uri      GIF Uri, cannot be null.
-     * @param resolver resolver, cannot be null.
+     * @param resolver resolver, null is allowed for file:// scheme Uris
      * @throws IOException if resolution fails or destination is not a GIF.
      */
-    public GifAnimationMetaData(ContentResolver resolver, Uri uri) throws IOException {
+    public GifAnimationMetaData(@Nullable ContentResolver resolver, @NonNull Uri uri) throws IOException {
         this(GifInfoHandle.openUri(resolver, uri, true));
     }
 

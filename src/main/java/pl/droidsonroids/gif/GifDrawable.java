@@ -22,6 +22,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
 import android.os.SystemClock;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RawRes;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.File;
@@ -80,7 +84,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      * @throws NullPointerException if res is null
      */
-    public GifDrawable(Resources res, int id) throws NotFoundException, IOException {
+    public GifDrawable(@NonNull Resources res,@DrawableRes @RawRes int id) throws NotFoundException, IOException {
         this(res.openRawResourceFd(id));
     }
 
@@ -92,7 +96,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      * @throws NullPointerException if assets or assetName is null
      */
-    public GifDrawable(AssetManager assets, String assetName) throws IOException {
+    public GifDrawable(@NonNull AssetManager assets,@NonNull  String assetName) throws IOException {
         this(assets.openFd(assetName));
     }
 
@@ -106,7 +110,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      * @throws NullPointerException if filePath is null
      */
-    public GifDrawable(String filePath) throws IOException {
+    public GifDrawable(@NonNull String filePath) throws IOException {
         this(GifInfoHandle.openFile(filePath, false), null, null, true);
     }
 
@@ -117,7 +121,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      * @throws NullPointerException if file is null
      */
-    public GifDrawable(File file) throws IOException {
+    public GifDrawable(@NonNull File file) throws IOException {
         this(GifInfoHandle.openFile(file.getPath(), false), null, null, true);
     }
 
@@ -130,7 +134,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IllegalArgumentException if stream does not support marking
      * @throws NullPointerException     if stream is null
      */
-    public GifDrawable(InputStream stream) throws IOException {
+    public GifDrawable(@NonNull InputStream stream) throws IOException {
         this(GifInfoHandle.openMarkableInputStream(stream, false), null, null, true);
     }
 
@@ -142,7 +146,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws NullPointerException if afd is null
      * @throws IOException          when opening failed
      */
-    public GifDrawable(AssetFileDescriptor afd) throws IOException {
+    public GifDrawable(@NonNull AssetFileDescriptor afd) throws IOException {
         this(GifInfoHandle.openAssetFileDescriptor(afd, false), null, null, true);
     }
 
@@ -153,7 +157,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      * @throws NullPointerException if fd is null
      */
-    public GifDrawable(FileDescriptor fd) throws IOException {
+    public GifDrawable(@NonNull FileDescriptor fd) throws IOException {
         this(GifInfoHandle.openFd(fd, 0, false), null, null, true);
     }
 
@@ -165,7 +169,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          if bytes does not contain valid GIF data
      * @throws NullPointerException if bytes are null
      */
-    public GifDrawable(byte[] bytes) throws IOException {
+    public GifDrawable(@NonNull byte[] bytes) throws IOException {
         this(GifInfoHandle.openByteArray(bytes, false), null, null, true);
     }
 
@@ -178,7 +182,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IllegalArgumentException if buffer is indirect
      * @throws NullPointerException     if buffer is null
      */
-    public GifDrawable(ByteBuffer buffer) throws IOException {
+    public GifDrawable(@NonNull ByteBuffer buffer) throws IOException {
         this(GifInfoHandle.openDirectByteBuffer(buffer, false), null, null, true);
     }
 
@@ -188,10 +192,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * is used to open an Uri.
      *
      * @param uri      GIF Uri, cannot be null.
-     * @param resolver resolver used to query {@code uri}, cannot be null
+     * @param resolver resolver used to query {@code uri}, can be null for file:// scheme Uris
      * @throws IOException if resolution fails or destination is not a GIF.
      */
-    public GifDrawable(ContentResolver resolver, Uri uri) throws IOException {
+    public GifDrawable(@Nullable ContentResolver resolver,@NonNull  Uri uri) throws IOException {
         this(GifInfoHandle.openUri(resolver, uri, false), null, null, true);
     }
 
@@ -267,7 +271,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     @Override
-    public void setColorFilter(ColorFilter cf) {
+    public void setColorFilter(@Nullable ColorFilter cf) {
         mPaint.setColorFilter(cf);
     }
 
@@ -340,7 +344,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @return comment or null if there is no one defined in file
      */
-    public String getComment() {
+    @Nullable public String getComment() {
         return mNativeInfoHandle.getComment();
     }
 
@@ -374,7 +378,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @return current error or {@link GifError#NO_ERROR} if there was no error or drawable is recycled
      */
-    public GifError getError() {
+    @NonNull public GifError getError() {
         return GifError.fromCode(mNativeInfoHandle.getNativeErrorCode());
     }
 
@@ -386,7 +390,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param resourceId resource id
      * @return correct drawable or null if creation failed
      */
-    public static GifDrawable createFromResource(Resources res, int resourceId) {
+    @Nullable public static GifDrawable createFromResource(@NonNull Resources res,@DrawableRes @RawRes int resourceId) {
         try {
             return new GifDrawable(res, resourceId);
         } catch (IOException ignored) {
@@ -596,7 +600,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param pixels the array to receive the frame's colors
      * @throws ArrayIndexOutOfBoundsException if the pixels array is too small to receive required number of pixels
      */
-    public void getPixels(int[] pixels) {
+    public void getPixels(@NonNull int[] pixels) {
         mBuffer.getPixels(pixels, 0, mNativeInfoHandle.width, 0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
     }
 
@@ -652,7 +656,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     /**
      * @return the paint used to render this drawable
      */
-    public final Paint getPaint() {
+    @NonNull public final Paint getPaint() {
         return mPaint;
     }
 
@@ -689,7 +693,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param listener animation listener to be added, not null
      * @throws java.lang.NullPointerException if listener is null
      */
-    public void addAnimationListener(AnimationListener listener) {
+    public void addAnimationListener(@NonNull AnimationListener listener) {
         mListeners.add(listener);
     }
 

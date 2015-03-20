@@ -5,6 +5,8 @@
         <attr name="srcAsset" format="string" />
         <attr name="srcPath" format="string" />
         <attr name="isOpaque" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="GifView">
         <attr name="freezesAnimation" format="boolean" />
     </declare-styleable>
 </resources>

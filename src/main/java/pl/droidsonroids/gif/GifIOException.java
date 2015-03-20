@@ -1,5 +1,7 @@
 package pl.droidsonroids.gif;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 
 /**
@@ -12,15 +14,15 @@ public class GifIOException extends IOException {
     /**
      * Reason which caused an exception
      */
-    public final GifError reason;
+    @NonNull public final GifError reason;
 
-    private GifIOException(GifError reason) {
+    private GifIOException(@NonNull GifError reason) {
         super(reason.getFormattedDescription());
         this.reason = reason;
     }
 
     @SuppressWarnings("UnusedDeclaration")
-        //invoked from native code
+    //invoked from native code
     GifIOException(int errorCode) {
         this(GifError.fromCode(errorCode));
     }
