@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Parcelable;
@@ -14,6 +15,7 @@ import android.util.AttributeSet;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 
 import java.io.IOException;
 
@@ -23,6 +25,7 @@ import java.io.IOException;
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
 
+    private ScaleType mScaleType = ScaleType.FIT_CENTER;
     private RenderThread mThread;
     private int mSavedPosition;
     private GifDrawableBuilder.Source mSource;
@@ -30,7 +33,7 @@ public class GifTextureView extends TextureView {
     private final SurfaceTextureListener mCallback = new SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            mThread = new RenderThread(surface, mSource, mSavedPosition);
+            mThread = new RenderThread(surface, GifTextureView.this, mSavedPosition);
             mThread.start();
         }
 
@@ -85,25 +88,26 @@ public class GifTextureView extends TextureView {
             } else {
                 mSource = new GifDrawableBuilder.FileDescriptorSource(getContext().getResources(), resourceId);
             }
+            setOpaque(surfaceViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
             surfaceViewAttributes.recycle();
             freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
-            setOpaque(surfaceViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
         }
         setSurfaceTextureListener(mCallback);
     }
 
-    private class RenderThread extends Thread {
-        private ImageView.ScaleType mScaleType = ImageView.ScaleType.CENTER_CROP;
+    private static class RenderThread extends Thread {
         private final GifDrawableBuilder.Source mSource;
         private final SurfaceTexture mSurfaceTexture;
         private GifInfoHandle mGifInfoHandle;
         private int mPosition;
         private IOException mIOException;
+        private final GifTextureView mGifTextureView;
 
-        RenderThread(SurfaceTexture surfaceTexture, GifDrawableBuilder.Source source, int startPosition) {
+        RenderThread(SurfaceTexture surfaceTexture, GifTextureView gifTextureView, int startPosition) {
             mSurfaceTexture = surfaceTexture;
-            mSource = source;
+            mSource = gifTextureView.mSource;
             mPosition = startPosition;
+            mGifTextureView = gifTextureView;
             setPriority(MAX_PRIORITY);
         }
 
@@ -119,7 +123,12 @@ public class GifTextureView extends TextureView {
                 return;
             }
 
-            updateTextureViewSize();
+            mGifTextureView.post(new Runnable() {
+                @Override
+                public void run() {
+                    mGifTextureView.updateTextureViewSize(mGifInfoHandle);
+                }
+            });
 
             Surface surface = new Surface(mSurfaceTexture);
             mGifInfoHandle.bindSurface(surface, mPosition);
@@ -143,55 +152,6 @@ public class GifTextureView extends TextureView {
                 return mIOException;
             else
                 return new GifIOException(mGifInfoHandle.getNativeErrorCode());
-        }
-
-        private void updateTextureViewSize() { //TODO support more scaletypes
-
-            float pivotPointX = 0;
-            float pivotPointY = 0;
-            final float viewWidth = getWidth();
-            final float viewHeight = getHeight();
-
-            float scaleX = 1.0f;
-            float scaleY = 1.0f;
-            final Matrix transform = getTransform(null);
-
-            switch (mScaleType) {
-                case CENTER:
-                    pivotPointX = viewWidth / 2;
-                    pivotPointY = viewHeight / 2;
-                    scaleX = mGifInfoHandle.width / viewWidth;
-                    scaleY = mGifInfoHandle.height / viewHeight;
-                    transform.setScale(scaleX, scaleY, pivotPointX, pivotPointY);
-                    break;
-                case CENTER_CROP:
-                    pivotPointX = viewWidth / 2;
-                    pivotPointY = viewHeight / 2;
-                    scaleX = mGifInfoHandle.width / viewWidth;
-                    scaleY = mGifInfoHandle.height / viewHeight;
-                    float refScale = 1 / Math.min(scaleX, scaleY);
-                    transform.setScale(refScale * scaleX, refScale * scaleY, pivotPointX, pivotPointY);
-                    break;
-                case CENTER_INSIDE:
-                    break;
-                case FIT_CENTER:
-                    break;
-                case FIT_END:
-                    break;
-                case FIT_START:
-                    break;
-                case FIT_XY:
-                    return;
-                case MATRIX:
-                    break;
-            }
-
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    setTransform(transform);
-                }
-            });
         }
     }
 
@@ -218,7 +178,7 @@ public class GifTextureView extends TextureView {
      * @throws IllegalArgumentException if factor&lt;=0
      */
     public void setSpeed(float factor) {
-        if (mThread != null && mThread.mGifInfoHandle != null)
+        if (mThread != null && mThread.mGifInfoHandle != null) //TODO thread safe
             mThread.mGifInfoHandle.setSpeedFactor(factor);
     }
 
@@ -229,14 +189,73 @@ public class GifTextureView extends TextureView {
      *
      * @return exception occurred during loading or playing GIF or null
      */
-    @Nullable public IOException getIOException() {
+    @Nullable
+    public IOException getIOException() {
         if (mThread != null)
             return mThread.getException();
         return null;
     }
 
-    public void setScaleType(@NonNull ImageView.ScaleType scaleType) {
-        //TODO update scale type
+    /**
+     * Controls how the image should be resized or moved to match the size
+     * of this ImageView.
+     *
+     * @param scaleType The desired scaling mode.
+     */
+    public void setScaleType(@NonNull ScaleType scaleType) {
+        mScaleType = scaleType;
+        if (mThread != null && mThread.mGifInfoHandle != null) {
+            updateTextureViewSize(mThread.mGifInfoHandle);
+        }
+    }
+    /**
+     * @see ScaleType
+     *
+     * @return the current scale type in use by this View.
+     */
+    public ScaleType getScaleType() {
+        return mScaleType;
+    }
+
+    private void updateTextureViewSize(final GifInfoHandle gifInfoHandle) {
+        final Matrix transform = new Matrix();
+        final float viewWidth = getWidth();
+        final float viewHeight = getHeight();
+        final float scaleRef;
+        final float scaleX = gifInfoHandle.width / viewWidth;
+        final float scaleY = gifInfoHandle.height / viewHeight;
+        RectF src = new RectF(0, 0, gifInfoHandle.width, gifInfoHandle.height);
+        RectF dst = new RectF(0, 0, viewWidth, viewHeight);
+        switch (mScaleType) {
+            case CENTER:
+                transform.setScale(scaleX, scaleY, viewWidth / 2, viewHeight / 2);
+                break;
+            case CENTER_CROP:
+                scaleRef = 1 / Math.min(scaleX, scaleY);
+                transform.setScale(scaleRef * scaleX, scaleRef * scaleY, viewWidth / 2, viewHeight / 2);
+                break;
+            case CENTER_INSIDE:
+                scaleRef = 1 / Math.max(scaleX, scaleY);
+                transform.setScale(scaleRef * scaleX, scaleRef * scaleY, viewWidth / 2, viewHeight / 2);
+                break;
+            case FIT_CENTER:
+                transform.setRectToRect(src, dst, Matrix.ScaleToFit.CENTER);
+                transform.preScale(scaleX, scaleY);
+                break;
+            case FIT_END:
+                transform.setRectToRect(src, dst, Matrix.ScaleToFit.END);
+                transform.preScale(scaleX, scaleY);
+                break;
+            case FIT_START:
+                transform.setRectToRect(src, dst, Matrix.ScaleToFit.START);
+                transform.preScale(scaleX, scaleY);
+                break;
+            case FIT_XY:
+                return;
+            case MATRIX:
+                return;
+        }
+        setTransform(transform);
     }
 
     @Override
