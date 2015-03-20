@@ -66,7 +66,7 @@ public enum GifError {
     IMAGE_DEFECT(112, "Image is defective, decoding aborted"),
     /**
      * Image EOF detected before image complete.
-     * EOF means GIF terminator, NOT end of input source.
+     * EOF means GIF terminator, NOT the end of input source.
      */
     EOF_TOO_SOON(113, "Image EOF detected before image complete"),
     /**

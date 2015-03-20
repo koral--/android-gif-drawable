@@ -46,7 +46,7 @@ public class GifTextureView extends TextureView {
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             mSavedPosition = mThread.getPosition();
             mThread.interrupt();
-            return true;
+            return false;
         }
 
         @Override
@@ -136,6 +136,7 @@ public class GifTextureView extends TextureView {
                 mPosition = mGifInfoHandle.getCurrentPosition();
                 mGifInfoHandle.recycle();
             }
+            surface.release();
         }
 
         synchronized int getPosition() {
