@@ -74,7 +74,7 @@ public class GifTextView extends TextView {
         init(attrs, defStyle, defStyleRes);
     }
 
-    private boolean freezesAnimation;
+    private boolean mFreezesAnimation;
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private void init(AttributeSet attrs, int defStyle, int defStyleRes) {
@@ -109,7 +109,7 @@ public class GifTextView extends TextView {
             }
             setBackgroundInternal(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "background", 0)));
         }
-        freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyle, defStyleRes);
+        mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyle, defStyleRes);
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -183,7 +183,7 @@ public class GifTextView extends TextView {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public Parcelable onSaveInstanceState() {
         Drawable[] savedDrawables = new Drawable[7];
-        if (freezesAnimation) {
+        if (mFreezesAnimation) {
             Drawable[] compoundDrawables = getCompoundDrawables();
             System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
 
@@ -214,5 +214,14 @@ public class GifTextView extends TextView {
             ss.setPosition(compoundDrawablesRelative[2], 5);
         }
         ss.setPosition(getBackground(), 6);
+    }
+
+    /**
+     * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored
+     * in {@link #onRestoreInstanceState(Parcelable)}. This is applicable to all compound drawables.
+     * @param freezesAnimation whether animation position is saved
+     */
+    public void setFreezesAnimation(boolean freezesAnimation) {
+        mFreezesAnimation = freezesAnimation;
     }
 }

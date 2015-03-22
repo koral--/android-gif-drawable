@@ -29,7 +29,7 @@ public class GifTextureView extends TextureView {
     private RenderThread mThread;
     private int mSavedPosition;
     private GifDrawableBuilder.Source mSource;
-    private boolean freezesAnimation;
+    private boolean mFreezesAnimation;
     private final SurfaceTextureListener mCallback = new SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -90,7 +90,7 @@ public class GifTextureView extends TextureView {
             }
             setOpaque(surfaceViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
             surfaceViewAttributes.recycle();
-            freezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
+            mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
         }
         setSurfaceTextureListener(mCallback);
     }
@@ -262,7 +262,7 @@ public class GifTextureView extends TextureView {
     @Override
     public Parcelable onSaveInstanceState() {
         final int position = mThread.getPosition();
-        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), freezesAnimation ? position : 0);
+        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), mFreezesAnimation ? position : 0);
         mSavedPosition = position;
         return gifViewSavedState;
     }
@@ -272,5 +272,14 @@ public class GifTextureView extends TextureView {
         GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
         mSavedPosition = ss.mPositions[0];
+    }
+
+    /**
+     * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored
+     * in {@link #onRestoreInstanceState(Parcelable)}
+     * @param freezesAnimation whether animation position is saved
+     */
+    public void setFreezesAnimation(boolean freezesAnimation) {
+        mFreezesAnimation = freezesAnimation;
     }
 }

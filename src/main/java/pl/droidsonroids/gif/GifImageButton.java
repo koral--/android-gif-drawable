@@ -16,7 +16,7 @@ import android.widget.ImageButton;
  */
 public class GifImageButton extends ImageButton {
 
-    private boolean freezesAnimation;
+    private boolean mFreezesAnimation;
 
     /**
      * A corresponding superclass constructor wrapper.
@@ -72,7 +72,7 @@ public class GifImageButton extends ImageButton {
     }
 
     private void postInit(GifViewUtils.InitResult result) {
-        freezesAnimation = result.mFreezesAnimation;
+        mFreezesAnimation = result.mFreezesAnimation;
         if (result.mSourceResId > 0) {
             super.setImageResource(result.mSourceResId);
         }
@@ -112,8 +112,8 @@ public class GifImageButton extends ImageButton {
 
     @Override
     public Parcelable onSaveInstanceState() {
-        Drawable source = freezesAnimation ? getDrawable() : null;
-        Drawable background = freezesAnimation ? getBackground() : null;
+        Drawable source = mFreezesAnimation ? getDrawable() : null;
+        Drawable background = mFreezesAnimation ? getBackground() : null;
         return new GifViewSavedState(super.onSaveInstanceState(), source, background);
     }
 
@@ -123,5 +123,14 @@ public class GifImageButton extends ImageButton {
         super.onRestoreInstanceState(ss.getSuperState());
         ss.setPosition(getDrawable(), 0);
         ss.setPosition(getBackground(), 1);
+    }
+
+    /**
+     * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored
+     * in {@link #onRestoreInstanceState(Parcelable)}
+     * @param freezesAnimation whether animation position is saved
+     */
+    public void setFreezesAnimation(boolean freezesAnimation) {
+        mFreezesAnimation = freezesAnimation;
     }
 }
