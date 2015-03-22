@@ -14,7 +14,6 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.Surface;
 import android.view.TextureView;
-import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 
 import java.io.IOException;
@@ -77,22 +76,29 @@ public class GifTextureView extends TextureView {
 
     private void init(AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         if (attrs != null && !isInEditMode()) {
-            final TypedArray surfaceViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
-            int resourceId = surfaceViewAttributes.getResourceId(R.styleable.GifTextureView_srcId, 0);
-            String assetName = surfaceViewAttributes.getString(R.styleable.GifTextureView_srcAsset);
-            String path = surfaceViewAttributes.getString(R.styleable.GifTextureView_srcPath);
-            if (assetName != null) {
-                mSource = new GifDrawableBuilder.AssetSource(getContext().getAssets(), assetName);
-            } else if (path != null) {
-                mSource = new GifDrawableBuilder.FileSource(path);
-            } else {
-                mSource = new GifDrawableBuilder.FileDescriptorSource(getContext().getResources(), resourceId);
-            }
-            setOpaque(surfaceViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
-            surfaceViewAttributes.recycle();
+            final TypedArray textureViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
+            mSource = findSource(textureViewAttributes, getContext());
+            setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
+            textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
         }
         setSurfaceTextureListener(mCallback);
+    }
+
+    private static GifDrawableBuilder.Source findSource(final TypedArray textureViewAttributes, Context context) {
+        final int resourceId = textureViewAttributes.getResourceId(R.styleable.GifTextureView_srcId, 0);
+        if (resourceId > 0) {
+            return new GifDrawableBuilder.FileDescriptorSource(context.getResources(), resourceId);
+        }
+        final String assetName = textureViewAttributes.getString(R.styleable.GifTextureView_srcAsset);
+        if (assetName != null) {
+            return new GifDrawableBuilder.AssetSource(context.getAssets(), assetName);
+        }
+        final String path = textureViewAttributes.getString(R.styleable.GifTextureView_srcPath);
+        if (path != null) {
+            return new GifDrawableBuilder.FileSource(path);
+        }
+        return null;
     }
 
     private static class RenderThread extends Thread {
@@ -140,19 +146,20 @@ public class GifTextureView extends TextureView {
         }
 
         synchronized int getPosition() {
-            if (mGifInfoHandle == null || mGifInfoHandle.isRecycled())
+            if (mGifInfoHandle == null || mGifInfoHandle.isRecycled()) {
                 return mPosition;
-            else {
+            } else {
                 mGifInfoHandle.saveRemainder();
                 return mGifInfoHandle.getCurrentPosition();
             }
         }
 
         IOException getException() {
-            if (mGifInfoHandle == null)
+            if (mGifInfoHandle == null) {
                 return mIOException;
-            else
+            } else {
                 return new GifIOException(mGifInfoHandle.getNativeErrorCode());
+            }
         }
     }
 
@@ -180,7 +187,9 @@ public class GifTextureView extends TextureView {
      */
     public void setSpeed(float factor) {
         if (mThread != null && mThread.mGifInfoHandle != null) //TODO thread safe
+        {
             mThread.mGifInfoHandle.setSpeedFactor(factor);
+        }
     }
 
     /**
@@ -192,8 +201,9 @@ public class GifTextureView extends TextureView {
      */
     @Nullable
     public IOException getIOException() {
-        if (mThread != null)
+        if (mThread != null) {
             return mThread.getException();
+        }
         return null;
     }
 
@@ -209,10 +219,10 @@ public class GifTextureView extends TextureView {
             updateTextureViewSize(mThread.mGifInfoHandle);
         }
     }
+
     /**
-     * @see ScaleType
-     *
      * @return the current scale type in use by this View.
+     * @see ScaleType
      */
     public ScaleType getScaleType() {
         return mScaleType;
@@ -277,6 +287,7 @@ public class GifTextureView extends TextureView {
     /**
      * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored
      * in {@link #onRestoreInstanceState(Parcelable)}
+     *
      * @param freezesAnimation whether animation position is saved
      */
     public void setFreezesAnimation(boolean freezesAnimation) {
