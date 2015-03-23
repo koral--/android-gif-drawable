@@ -316,9 +316,18 @@ public class GifDrawableBuilder {
         }
     }
 
-    public static class ResourcesSource extends AssetFileDescriptorSource {
+    public static class ResourcesSource extends Source {
+        private final Resources mResources;
+        private final int mResourceId;
+
         public ResourcesSource(Resources resources, int resourceId) {
-            super(resources.openRawResourceFd(resourceId));
+            mResources = resources;
+            mResourceId = resourceId;
+        }
+
+        @Override
+        GifInfoHandle open() throws IOException {
+            return GifInfoHandle.openAssetFileDescriptor(mResources.openRawResourceFd(mResourceId), false);
         }
     }
 

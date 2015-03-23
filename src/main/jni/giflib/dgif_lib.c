@@ -117,7 +117,7 @@ DGifGetScreenDesc(GifFileType *GifFile) {
     int BitsPerPixel;
 //    bool SortFlag;
     GifByteType Buf[3];
-    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
+//    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
 //    if (!IS_READABLE(Private)) {
 //        /* This file was NOT open for reading: */

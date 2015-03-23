@@ -12,6 +12,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
@@ -20,12 +21,21 @@ import android.widget.ImageView.ScaleType;
 import java.io.IOException;
 
 /**
- * TODO javadoc and example
+ * {@link TextureView} which can display animated GIFs.<br>
+ * <pre>
+ *     &lt;pl.droidsonroids.gif.GifTextureView
+ *          xmlns:app="http://schemas.android.com/apk/res-auto"
+ *          android:id="@+id/gif_texture_view"
+ *          app:src="@drawable/anim"
+ *          android:layout_width="match_parent"
+ *          android:layout_height="match_parent" /&gt;
+ * </pre>
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
 
     private ScaleType mScaleType = ScaleType.FIT_CENTER;
+    private final Matrix mTransform = new Matrix();
     private RenderThread mThread;
     private int mSavedPosition;
     private GifDrawableBuilder.Source mSource;
@@ -39,7 +49,7 @@ public class GifTextureView extends TextureView {
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
+            Log.e("st changed", width+" "+height);
         }
 
         @Override
@@ -75,8 +85,22 @@ public class GifTextureView extends TextureView {
         init(attrs, defStyleAttr, defStyleRes);
     }
 
+    private static final ScaleType[] sScaleTypeArray = {
+            ScaleType.MATRIX,
+            ScaleType.FIT_XY,
+            ScaleType.FIT_START,
+            ScaleType.FIT_CENTER,
+            ScaleType.FIT_END,
+            ScaleType.CENTER,
+            ScaleType.CENTER_CROP,
+            ScaleType.CENTER_INSIDE
+    };
+
     private void init(AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         if (attrs != null && !isInEditMode()) {
+            final int scaleTypeIndex = attrs.getAttributeIntValue(GifViewUtils.ANDROID_NS, "scaleType", -1);
+            if (scaleTypeIndex >= 0 && scaleTypeIndex < sScaleTypeArray.length)
+                mScaleType = sScaleTypeArray[scaleTypeIndex];
             final TypedArray textureViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
             mSource = findSource(textureViewAttributes);
             setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
@@ -248,7 +272,11 @@ public class GifTextureView extends TextureView {
                 transform.setScale(scaleRef * scaleX, scaleRef * scaleY, viewWidth / 2, viewHeight / 2);
                 break;
             case CENTER_INSIDE:
-                scaleRef = 1 / Math.max(scaleX, scaleY);
+                if (gifInfoHandle.width <= viewWidth && gifInfoHandle.height <= viewHeight) {
+                    scaleRef = 1.0f;
+                } else {
+                    scaleRef = Math.min(1 / scaleX, 1 / scaleY);
+                }
                 transform.setScale(scaleRef * scaleX, scaleRef * scaleY, viewWidth / 2, viewHeight / 2);
                 break;
             case FIT_CENTER:
@@ -266,15 +294,38 @@ public class GifTextureView extends TextureView {
             case FIT_XY:
                 return;
             case MATRIX:
-                return;
+                transform.set(mTransform);
+                transform.preScale(scaleX, scaleY);
+                break;
         }
-        setTransform(transform);
+        super.setTransform(transform);
+    }
+
+    public void setImageMatrix(Matrix matrix) {
+        setTransform(matrix);
+    }
+
+    @Override
+    public void setTransform(Matrix transform) {
+        mTransform.set(transform);
+        if (mThread != null && mThread.mGifInfoHandle != null) {
+            updateTextureViewSize(mThread.mGifInfoHandle);
+        }
+    }
+
+    @Override
+    public Matrix getTransform(Matrix transform) {
+        if (transform == null) {
+            transform = new Matrix();
+        }
+        transform.set(mTransform);
+        return transform;
     }
 
     @Override
     public Parcelable onSaveInstanceState() {
-        final int position = mThread.getPosition();
-        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), mFreezesAnimation ? position : 0);
+        final int position = mFreezesAnimation && mThread != null ? mThread.getPosition() : 0;
+        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), position);
         mSavedPosition = position;
         return gifViewSavedState;
     }

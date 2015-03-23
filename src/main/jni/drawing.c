@@ -43,6 +43,8 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
         if (cmap->ColorCount != (1 << cmap->BitsPerPixel))
             cmap = defaultCmap;
     }
+    else if (cmap == NULL)
+        cmap = defaultCmap;
 
     blitNormal(bm, info, frame, cmap);
 }
@@ -117,8 +119,23 @@ void getBitmap(argb *bm, GifInfo *info) {
         return;
     }
     if (info->currentIndex == 0) {
-        int backgroundColor = info->infos->transpIndex != NO_TRANSPARENT_COLOR ? fGIF->SBackGroundColor : 0;
-        memset(bm, backgroundColor, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
+        if (info->gifFilePtr->SColorMap && info->infos[0].disposalMethod == DISPOSAL_UNSPECIFIED) {
+            const GifColorType bgColor = info->gifFilePtr->SColorMap->Colors[fGIF->SBackGroundColor];
+            argb *dst = bm;
+            int x, y;
+            for (y = 0; y < fGIF->SHeight; y++) {
+                argb *copyDst = dst;
+                for (x = 0; x < fGIF->SWidth; x++, copyDst++) {
+                    copyDst->alpha = 0xFF;
+                    copyDst->red = bgColor.Red;
+                    copyDst->green = bgColor.Green;
+                    copyDst->blue = bgColor.Blue;
+                }
+                dst += info->stride;
+            }
+        }
+        else
+            memset(bm, 0, info->stride * fGIF->SHeight * sizeof(argb));
     }
     else {
         disposeFrameIfNeeded(bm, info, info->currentIndex);

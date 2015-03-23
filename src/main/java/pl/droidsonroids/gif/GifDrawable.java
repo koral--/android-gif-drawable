@@ -66,7 +66,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private PorterDuffColorFilter mTintFilter;
     private PorterDuff.Mode mTintMode;
     final boolean mIsRenderingTriggeredOnDraw;
-    final Handler UI_HANDLER;
+    final Handler mUiHandler;
 
     private final Runnable mRenderTask = new RenderTask(this);
 
@@ -224,7 +224,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
 
         mExecutor.execute(mRenderTask);
-        UI_HANDLER = new InvalidationHandler(this);
+        mUiHandler = new InvalidationHandler(this);
     }
 
     /**
@@ -241,8 +241,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private void shutdown() {
         mIsRunning = false;
-        UI_HANDLER.removeMessages(0);
-        //unscheduleSelf(mInvalidateTask);
+        mUiHandler.removeMessages(0);
         mNativeInfoHandle.recycle();
     }
 
@@ -323,8 +322,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void stop() {
         mIsRunning = false;
-        UI_HANDLER.removeMessages(0);
-        //unscheduleSelf(mInvalidateTask);
+        mUiHandler.removeMessages(0);
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
@@ -467,8 +465,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToTime(position, mBuffer);
-                mGifDrawable.UI_HANDLER.sendEmptyMessageAtTime(0, 0);
-                //scheduleSelf(mInvalidateTask, 0L);
+                mGifDrawable.mUiHandler.sendEmptyMessageAtTime(0, 0);
             }
         });
     }
@@ -488,8 +485,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
-                mGifDrawable.UI_HANDLER.sendEmptyMessageAtTime(0, 0);
-                //scheduleSelf(mInvalidateTask, 0L);
+                mGifDrawable.mUiHandler.sendEmptyMessageAtTime(0, 0);
             }
         });
     }
