@@ -14,7 +14,8 @@ public class GifIOException extends IOException {
     /**
      * Reason which caused an exception
      */
-    @NonNull public final GifError reason;
+    @NonNull
+    public final GifError reason;
 
     private GifIOException(@NonNull GifError reason) {
         super(reason.getFormattedDescription());
@@ -22,7 +23,7 @@ public class GifIOException extends IOException {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    //invoked from native code
+        //invoked from native code
     GifIOException(int errorCode) {
         this(GifError.fromCode(errorCode));
     }

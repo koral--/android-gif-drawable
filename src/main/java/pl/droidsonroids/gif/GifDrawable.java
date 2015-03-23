@@ -20,6 +20,7 @@ import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
@@ -65,13 +66,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private PorterDuffColorFilter mTintFilter;
     private PorterDuff.Mode mTintMode;
     final boolean mIsRenderingTriggeredOnDraw;
-
-    final Runnable mInvalidateTask = new Runnable() {
-        @Override
-        public void run() {
-            invalidateSelf();
-        }
-    };
+    final Handler UI_HANDLER;
 
     private final Runnable mRenderTask = new RenderTask(this);
 
@@ -84,7 +79,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      * @throws NullPointerException if res is null
      */
-    public GifDrawable(@NonNull Resources res,@DrawableRes @RawRes int id) throws NotFoundException, IOException {
+    public GifDrawable(@NonNull Resources res, @DrawableRes @RawRes int id) throws NotFoundException, IOException {
         this(res.openRawResourceFd(id));
     }
 
@@ -96,7 +91,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IOException          when opening failed
      * @throws NullPointerException if assets or assetName is null
      */
-    public GifDrawable(@NonNull AssetManager assets,@NonNull  String assetName) throws IOException {
+    public GifDrawable(@NonNull AssetManager assets, @NonNull String assetName) throws IOException {
         this(assets.openFd(assetName));
     }
 
@@ -195,7 +190,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param resolver resolver used to query {@code uri}, can be null for file:// scheme Uris
      * @throws IOException if resolution fails or destination is not a GIF.
      */
-    public GifDrawable(@Nullable ContentResolver resolver,@NonNull  Uri uri) throws IOException {
+    public GifDrawable(@Nullable ContentResolver resolver, @NonNull Uri uri) throws IOException {
         this(GifInfoHandle.openUri(resolver, uri, false), null, null, true);
     }
 
@@ -214,8 +209,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                         oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
                         oldBitmap.eraseColor(Color.TRANSPARENT);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                             oldBitmap.reconfigure(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
+                        }
                     }
                 }
             }
@@ -228,6 +224,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
 
         mExecutor.execute(mRenderTask);
+        UI_HANDLER = new InvalidationHandler(this);
     }
 
     /**
@@ -244,7 +241,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private void shutdown() {
         mIsRunning = false;
-        unscheduleSelf(mInvalidateTask);
+        UI_HANDLER.removeMessages(0);
+        //unscheduleSelf(mInvalidateTask);
         mNativeInfoHandle.recycle();
     }
 
@@ -325,7 +323,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void stop() {
         mIsRunning = false;
-        unscheduleSelf(mInvalidateTask);
+        UI_HANDLER.removeMessages(0);
+        //unscheduleSelf(mInvalidateTask);
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
@@ -344,7 +343,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @return comment or null if there is no one defined in file
      */
-    @Nullable public String getComment() {
+    @Nullable
+    public String getComment() {
         return mNativeInfoHandle.getComment();
     }
 
@@ -378,7 +378,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @return current error or {@link GifError#NO_ERROR} if there was no error or drawable is recycled
      */
-    @NonNull public GifError getError() {
+    @NonNull
+    public GifError getError() {
         return GifError.fromCode(mNativeInfoHandle.getNativeErrorCode());
     }
 
@@ -390,7 +391,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param resourceId resource id
      * @return correct drawable or null if creation failed
      */
-    @Nullable public static GifDrawable createFromResource(@NonNull Resources res,@DrawableRes @RawRes int resourceId) {
+    @Nullable
+    public static GifDrawable createFromResource(@NonNull Resources res, @DrawableRes @RawRes int resourceId) {
         try {
             return new GifDrawable(res, resourceId);
         } catch (IOException ignored) {
@@ -465,7 +467,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToTime(position, mBuffer);
-                scheduleSelf(mInvalidateTask, 0L);
+                mGifDrawable.UI_HANDLER.sendEmptyMessageAtTime(0, 0);
+                //scheduleSelf(mInvalidateTask, 0L);
             }
         });
     }
@@ -485,7 +488,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
-                scheduleSelf(mInvalidateTask, 0L);
+                mGifDrawable.UI_HANDLER.sendEmptyMessageAtTime(0, 0);
+                //scheduleSelf(mInvalidateTask, 0L);
             }
         });
     }
@@ -619,7 +623,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (x >= mNativeInfoHandle.width) { //need to check explicitly because reused bitmap may be larger
             throw new IllegalArgumentException("x must be < width");
         }
-        if (y >=  mNativeInfoHandle.height) {
+        if (y >= mNativeInfoHandle.height) {
             throw new IllegalArgumentException("y must be < height");
         }
         return mBuffer.getPixel(x, y);
@@ -662,7 +666,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     /**
      * @return the paint used to render this drawable
      */
-    @NonNull public final Paint getPaint() {
+    @NonNull
+    public final Paint getPaint() {
         return mPaint;
     }
 

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="GifTextureView">
-        <attr name="src" format="reference|string" />
-        <attr name="isOpaque" format="boolean" />
+        <attr name="src" format="reference|string"/>
+        <attr name="isOpaque" format="boolean"/>
     </declare-styleable>
     <declare-styleable name="GifView">
-        <attr name="freezesAnimation" format="boolean" />
+        <attr name="freezesAnimation" format="boolean"/>
     </declare-styleable>
 </resources>

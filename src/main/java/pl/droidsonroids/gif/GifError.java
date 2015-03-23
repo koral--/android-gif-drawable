@@ -96,7 +96,8 @@ public enum GifError {
     /**
      * Human readable description of the error
      */
-    @NonNull public final String description;
+    @NonNull
+    public final String description;
     private int errorCode;
 
     GifError(int code, @NonNull String description) {

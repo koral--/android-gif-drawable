@@ -128,6 +128,7 @@ public class GifImageView extends ImageView {
     /**
      * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored
      * in {@link #onRestoreInstanceState(Parcelable)}
+     *
      * @param freezesAnimation whether animation position is saved
      */
     public void setFreezesAnimation(boolean freezesAnimation) {

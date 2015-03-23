@@ -98,7 +98,9 @@ final class GifInfoHandle {
 
     static GifInfoHandle openUri(ContentResolver resolver, Uri uri, boolean justDecodeMetaData) throws IOException {
         if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) //workaround for #128
+        {
             return openFile(uri.getPath(), justDecodeMetaData);
+        }
         return openAssetFileDescriptor(resolver.openAssetFileDescriptor(uri, "r"), justDecodeMetaData);
     }
 

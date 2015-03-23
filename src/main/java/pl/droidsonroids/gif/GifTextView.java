@@ -219,6 +219,7 @@ public class GifTextView extends TextView {
     /**
      * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored
      * in {@link #onRestoreInstanceState(Parcelable)}. This is applicable to all compound drawables.
+     *
      * @param freezesAnimation whether animation position is saved
      */
     public void setFreezesAnimation(boolean freezesAnimation) {
