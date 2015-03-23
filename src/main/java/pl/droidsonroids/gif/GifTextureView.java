@@ -36,7 +36,8 @@ import java.io.IOException;
  * Note that <b>src</b> attribute comes from app namespace (you can call it whatever you want) not from
  * android one. Drawable, raw resources and assets can be specified through XML. If value is a string
  * (from resources or entered directly) it will be treated as an asset.
- * <p>{@link TextureView} is opaque by default but it can be changed by {@link #setOpaque(boolean)}.
+ * <p>Unlike {@link TextureView} GifTextureView is transparent by default, but it can be changed by
+ * {@link #setOpaque(boolean)}.
  * You can use scale types the same way as in {@link android.widget.ImageView}.</p>
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -122,6 +123,7 @@ public class GifTextureView extends TextureView {
             textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
         }
+        setOpaque(false);
         super.setSurfaceTextureListener(mCallback);
     }
 
