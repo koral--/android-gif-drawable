@@ -20,7 +20,6 @@ import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
@@ -66,7 +65,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private PorterDuffColorFilter mTintFilter;
     private PorterDuff.Mode mTintMode;
     final boolean mIsRenderingTriggeredOnDraw;
-    final Handler mUiHandler;
+    final InvalidationHandler mInvalidationHandler;
 
     private final Runnable mRenderTask = new RenderTask(this);
 
@@ -224,7 +223,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
 
         mExecutor.execute(mRenderTask);
-        mUiHandler = new InvalidationHandler(this);
+        mInvalidationHandler = new InvalidationHandler(this);
     }
 
     /**
@@ -241,7 +240,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private void shutdown() {
         mIsRunning = false;
-        mUiHandler.removeMessages(0);
+        mInvalidationHandler.removeMessages(0);
         mNativeInfoHandle.recycle();
     }
 
@@ -322,7 +321,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void stop() {
         mIsRunning = false;
-        mUiHandler.removeMessages(0);
+        mInvalidationHandler.removeMessages(0);
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
@@ -465,7 +464,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToTime(position, mBuffer);
-                mGifDrawable.mUiHandler.sendEmptyMessageAtTime(0, 0);
+                mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
             }
         });
     }
@@ -485,7 +484,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
-                mGifDrawable.mUiHandler.sendEmptyMessageAtTime(0, 0);
+                mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
             }
         });
     }

@@ -31,8 +31,8 @@ class RenderTask extends SafeRunnable {
                 if (mGifDrawable.mIsRunning && !mGifDrawable.mIsRenderingTriggeredOnDraw) {
                     mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
                 }
-                if (!mGifDrawable.mUiHandler.hasMessages(0)) {
-                    mGifDrawable.mUiHandler.sendEmptyMessageAtTime(0, 0);
+                if (!mGifDrawable.mInvalidationHandler.hasMessages(0)) {
+                    mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
                 }
             }
         } else {

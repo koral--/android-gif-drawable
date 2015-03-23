@@ -12,7 +12,6 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
@@ -21,15 +20,24 @@ import android.widget.ImageView.ScaleType;
 import java.io.IOException;
 
 /**
- * {@link TextureView} which can display animated GIFs.<br>
+ * <p>{@link TextureView} which can display animated GIFs. Available on API level 14
+ * ({@link Build.VERSION_CODES#ICE_CREAM_SANDWICH}) and above. GifTextureView can only be used in a
+ * hardware accelerated window. When rendered in software, GifTextureView will draw nothing.</p>
+ * <p>GIF source can be specified in XML or by calling {@link #setSource(GifDrawableBuilder.Source)}</p>
  * <pre>
  *     &lt;pl.droidsonroids.gif.GifTextureView
  *          xmlns:app="http://schemas.android.com/apk/res-auto"
  *          android:id="@+id/gif_texture_view"
- *          app:src="@drawable/anim"
+ *          android:scaleType="fitEnd"
+ *          app:src="@drawable/animation"
  *          android:layout_width="match_parent"
  *          android:layout_height="match_parent" /&gt;
  * </pre>
+ * Note that <b>src</b> attribute comes from app namespace (you can call it whatever you want) not from
+ * android one. Drawable, raw resources and assets can be specified through XML. If value is a string
+ * (from resources or entered directly) it will be treated as an asset.
+ * <p>{@link TextureView} is opaque by default but it can be changed by {@link #setOpaque(boolean)}.
+ * You can use scale types the same way as in {@link android.widget.ImageView}.</p>
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
@@ -40,28 +48,35 @@ public class GifTextureView extends TextureView {
     private int mSavedPosition;
     private GifDrawableBuilder.Source mSource;
     private boolean mFreezesAnimation;
+    private SurfaceTextureListener mExternalListener;
     private final SurfaceTextureListener mCallback = new SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             mThread = new RenderThread(surface, GifTextureView.this, mSavedPosition);
             mThread.start();
+            if (mExternalListener != null)
+                mExternalListener.onSurfaceTextureAvailable(surface, width, height);
         }
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            Log.e("st changed", width+" "+height);
+            if (mExternalListener != null)
+                mExternalListener.onSurfaceTextureAvailable(surface, width, height);
         }
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             mSavedPosition = mThread.getPosition();
             mThread.interrupt();
+            if (mExternalListener != null)
+                mExternalListener.onSurfaceTextureDestroyed(surface);
             return false;
         }
 
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
+            if (mExternalListener != null)
+                mExternalListener.onSurfaceTextureUpdated(surface);
         }
     };
 
@@ -107,7 +122,27 @@ public class GifTextureView extends TextureView {
             textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
         }
-        setSurfaceTextureListener(mCallback);
+        super.setSurfaceTextureListener(mCallback);
+    }
+
+    @Override
+    public void setSurfaceTextureListener(SurfaceTextureListener listener) {
+        mExternalListener = listener;
+    }
+
+    @Override
+    public SurfaceTextureListener getSurfaceTextureListener() {
+        return mExternalListener;
+    }
+
+    /**
+     * Always throws {@link UnsupportedOperationException}. Changing {@link SurfaceTexture} is not
+     * supported.
+     * @param surfaceTexture ignored
+     */
+    @Override
+    public void setSurfaceTexture(SurfaceTexture surfaceTexture) {
+        throw new UnsupportedOperationException("Changing SurfaceTexture is not supported");
     }
 
     private static GifDrawableBuilder.Source findSource(final TypedArray textureViewAttributes) {
@@ -301,10 +336,19 @@ public class GifTextureView extends TextureView {
         super.setTransform(transform);
     }
 
+    /**
+     * {@link #setTransform(Matrix)} equivalent.
+     * @param matrix The transform to apply to the content of this view.
+     */
     public void setImageMatrix(Matrix matrix) {
         setTransform(matrix);
     }
 
+    /**
+     * Works like {@link TextureView#setTransform(Matrix)} but transform will take effect only if
+     * scale type is set to {@link ScaleType#MATRIX} through XML attribute or via {@link #setScaleType(ScaleType)}
+     * @param transform The transform to apply to the content of this view.
+     */
     @Override
     public void setTransform(Matrix transform) {
         mTransform.set(transform);
