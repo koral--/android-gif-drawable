@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="GifTextureView">
-        <attr name="srcId" format="reference" />
-        <attr name="srcAsset" format="string" />
-        <attr name="srcPath" format="string" />
+        <attr name="src" format="reference|string" />
         <attr name="isOpaque" format="boolean" />
     </declare-styleable>
     <declare-styleable name="GifView">

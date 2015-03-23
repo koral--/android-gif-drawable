@@ -12,6 +12,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.ImageView.ScaleType;
@@ -77,7 +78,7 @@ public class GifTextureView extends TextureView {
     private void init(AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         if (attrs != null && !isInEditMode()) {
             final TypedArray textureViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
-            mSource = findSource(textureViewAttributes, getContext());
+            mSource = findSource(textureViewAttributes);
             setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
             textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
@@ -85,20 +86,21 @@ public class GifTextureView extends TextureView {
         setSurfaceTextureListener(mCallback);
     }
 
-    private static GifDrawableBuilder.Source findSource(final TypedArray textureViewAttributes, Context context) {
-        final int resourceId = textureViewAttributes.getResourceId(R.styleable.GifTextureView_srcId, 0);
-        if (resourceId > 0) {
-            return new GifDrawableBuilder.FileDescriptorSource(context.getResources(), resourceId);
+    private static GifDrawableBuilder.Source findSource(final TypedArray textureViewAttributes) {
+        final TypedValue value = new TypedValue();
+        if (!textureViewAttributes.getValue(R.styleable.GifTextureView_src, value)) {
+            return null;
         }
-        final String assetName = textureViewAttributes.getString(R.styleable.GifTextureView_srcAsset);
-        if (assetName != null) {
-            return new GifDrawableBuilder.AssetSource(context.getAssets(), assetName);
+
+        if (value.resourceId != 0) {
+            final String type = textureViewAttributes.getResources().getResourceTypeName(value.resourceId);
+            if ("drawable".equals(type) || "raw".equals(type)) {
+                return new GifDrawableBuilder.ResourcesSource(textureViewAttributes.getResources(), value.resourceId);
+            } else if (!"string".equals(type)) {
+                throw new IllegalArgumentException("Expected string, drawable or raw resource, type " + type + " cannot be converted to GIF");
+            }
         }
-        final String path = textureViewAttributes.getString(R.styleable.GifTextureView_srcPath);
-        if (path != null) {
-            return new GifDrawableBuilder.FileSource(path);
-        }
-        return null;
+        return new GifDrawableBuilder.AssetSource(textureViewAttributes.getResources().getAssets(), value.string.toString());
     }
 
     private static class RenderThread extends Thread {

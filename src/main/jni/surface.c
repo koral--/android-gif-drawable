@@ -2,7 +2,7 @@
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
-        jlong gifInfo, jobject jsurface, jint startPosition) { //TODO start seeking
+        jlong gifInfo, jobject jsurface, jint startPosition) {
 
     jclass threadClass = (*env)->FindClass(env, "java/lang/Thread");
     if (threadClass == NULL)

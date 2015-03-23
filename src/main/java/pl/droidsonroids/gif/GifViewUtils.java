@@ -18,27 +18,26 @@ final class GifViewUtils {
     }
 
     static InitResult initImageView(ImageView view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        int sourceResId = 0;
-        int backgroundResId = 0;
-        boolean freezesAnimation = false;
-        Resources res = view.getResources();
-        if (attrs != null && res != null && !view.isInEditMode()) {
-            int resId = attrs.getAttributeResourceValue(ANDROID_NS, "src", -1);
-            if (resId > 0 && "drawable".equals(res.getResourceTypeName(resId))) {
-                if (!setResource(view, true, resId)) {
-                    sourceResId = resId;
-                }
-            }
-
-            resId = attrs.getAttributeResourceValue(ANDROID_NS, "background", -1);
-            if (resId > 0 && "drawable".equals(res.getResourceTypeName(resId))) {
-                if (!setResource(view, true, resId)) {
-                    backgroundResId = resId;
-                }
-            }
-            freezesAnimation = isFreezingAnimation(view, attrs, defStyleAttr, defStyleRes);
+        if (attrs != null && !view.isInEditMode()) {
+            final int sourceResId = getResourceId(view, attrs, true);
+            final int backgroundResId = getResourceId(view, attrs, false);
+            final boolean freezesAnimation = isFreezingAnimation(view, attrs, defStyleAttr, defStyleRes);
+            return new InitResult(sourceResId, backgroundResId, freezesAnimation);
         }
-        return new InitResult(sourceResId, backgroundResId, freezesAnimation);
+        return new InitResult(0, 0, false);
+    }
+
+    private static int getResourceId(ImageView view, AttributeSet attrs, final boolean isSrc) {
+        final int resId = attrs.getAttributeResourceValue(ANDROID_NS, isSrc ? "src" : "background", 0);
+        if (resId > 0) {
+            final String resourceTypeName = view.getResources().getResourceTypeName(resId);
+            if ("drawable".equals(resourceTypeName) || "raw".equals(resourceTypeName)) {
+                if (!setResource(view, isSrc, resId)) {
+                    return resId;
+                }
+            }
+        }
+        return 0;
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)

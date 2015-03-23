@@ -616,6 +616,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IllegalStateException    if drawable is recycled
      */
     public int getPixel(int x, int y) {
+        if (x >= mNativeInfoHandle.width) { //need to check explicitly because reused bitmap may be larger
+            throw new IllegalArgumentException("x must be < width");
+        }
+        if (y >=  mNativeInfoHandle.height) {
+            throw new IllegalArgumentException("y must be < height");
+        }
         return mBuffer.getPixel(x, y);
     }
 
