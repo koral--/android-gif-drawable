@@ -117,8 +117,7 @@ void getBitmap(argb *bm, GifInfo *info) {
         return;
     }
     if (info->currentIndex == 0) {
-        int backgroundColor = info->infos->transpIndex != NO_TRANSPARENT_COLOR ? fGIF->SBackGroundColor : 0;
-        memset(bm, backgroundColor, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
+        memset(bm, 0, fGIF->SWidth * fGIF->SHeight * sizeof(argb));
     }
     else {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
