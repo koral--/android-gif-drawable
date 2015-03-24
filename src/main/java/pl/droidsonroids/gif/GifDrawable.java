@@ -193,7 +193,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         this(GifInfoHandle.openUri(resolver, uri, false), null, null, true);
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     GifDrawable(GifInfoHandle gifInfoHandle, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingTriggeredOnDraw) {
         mIsRenderingTriggeredOnDraw = isRenderingTriggeredOnDraw;
         mExecutor = executor != null ? executor : GifRenderingExecutor.getInstance();
@@ -208,9 +207,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                         oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
                         oldBitmap.eraseColor(Color.TRANSPARENT);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                            oldBitmap.reconfigure(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
-                        }
                     }
                 }
             }
@@ -222,8 +218,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mBuffer = oldBitmap;
         }
 
-        mExecutor.execute(mRenderTask);
         mInvalidationHandler = new InvalidationHandler(this);
+        mExecutor.execute(mRenderTask);
     }
 
     /**

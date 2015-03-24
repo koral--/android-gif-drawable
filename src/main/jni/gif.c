@@ -242,8 +242,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
         return NULL;
     }
     jclass fdClass = (*env)->GetObjectClass(env, jfd);
-    jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass,
-            "descriptor", "I");
+    jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass, "descriptor", "I");
     if (fdClassDescriptorFieldID == NULL) {
         throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
         return NULL;
@@ -265,8 +264,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handleClass,
-        jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handleClass,  jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
