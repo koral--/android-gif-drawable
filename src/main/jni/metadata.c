@@ -40,13 +40,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jc
     return ((GifInfo *) (intptr_t) gifInfo)->sourceLength;
 }
 
-__unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
-        jclass __unused handleClass, jlong gifInfo) {
-    if (gifInfo == 0) {
-        return 0;
-    }
-    GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+jint getCurrentPosition(GifInfo *info) {
     const int idx = info->currentIndex;
     if (idx < 0 || info->gifFilePtr->ImageCount <= 1)
         return 0;
@@ -63,6 +57,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
     else
         remainder = info->lastFrameRemainder;
     return (jint) (sum + remainder); //2^31-1[ms]>596[h] so jint is enough
+}
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
+        jclass __unused handleClass, jlong gifInfo) {
+    if (gifInfo == 0) {
+        return 0;
+    }
+    return getCurrentPosition((GifInfo *) (intptr_t) gifInfo);
 }
 
 __unused JNIEXPORT jlong JNICALL

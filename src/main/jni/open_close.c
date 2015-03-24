@@ -95,7 +95,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     jmethodID gifInfoHandleCtorMID = (*env)->GetMethodID(env, gifInfoHandleClass, "<init>", "(JIII)V");
     if (gifInfoHandleCtorMID == NULL)
         return NULL;
-
+    info->eventFd = -1;
     return (*env)->NewObject(env, gifInfoHandleClass, gifInfoHandleCtorMID,
             (jlong) (intptr_t) info, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
             info->gifFilePtr->ImageCount);

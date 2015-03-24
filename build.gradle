@@ -23,7 +23,7 @@ android {
 
         ndk {
             moduleName 'gif'
-            ldLibs 'jnigraphics', 'android'//, 'log'
+            ldLibs 'jnigraphics', 'android', 'log'
             abiFilter 'all'
             cFlags '-fvisibility=hidden -Ofast'
         }

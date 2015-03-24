@@ -31,6 +31,8 @@ final class GifInfoHandle {
         this.frameCount = frameCount;
     }
 
+    static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 0, 0, 0);
+
     static {
         System.loadLibrary("gif");
     }
@@ -47,7 +49,7 @@ final class GifInfoHandle {
 
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
-    private static native void bindSurface(long gifInfoPtr, Surface surface, int startPosition);
+    private static native int bindSurface(long gifInfoPtr, Surface surface, int startPosition);
 
     private static native void free(long gifFileInPtr);
 
@@ -81,6 +83,8 @@ final class GifInfoHandle {
 
     private static native int getCurrentLoop(long gifFileInPtr);
 
+    private static native int interrupt(long gifFileInPtr);
+
     static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported()) {
             throw new IllegalArgumentException("InputStream does not support marking");
@@ -108,8 +112,8 @@ final class GifInfoHandle {
         return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    void bindSurface(Surface surface, int startPosition) {
-        bindSurface(gifInfoPtr, surface, startPosition);
+    int bindSurface(Surface surface, int startPosition) {
+        return bindSurface(gifInfoPtr, surface, startPosition);
     }
 
     synchronized void recycle() {
@@ -191,5 +195,9 @@ final class GifInfoHandle {
         } finally {
             super.finalize();
         }
+    }
+
+    int interrupt() {
+        return interrupt(gifInfoPtr);
     }
 }

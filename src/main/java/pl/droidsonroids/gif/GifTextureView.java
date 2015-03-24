@@ -12,6 +12,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
@@ -45,41 +46,10 @@ public class GifTextureView extends TextureView {
 
     private ScaleType mScaleType = ScaleType.FIT_CENTER;
     private final Matrix mTransform = new Matrix();
-    private RenderThread mThread;
-    private int mSavedPosition;
     private GifDrawableBuilder.Source mSource;
     private boolean mFreezesAnimation;
-    private SurfaceTextureListener mExternalListener;
-    private final SurfaceTextureListener mCallback = new SurfaceTextureListener() {
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            mThread = new RenderThread(surface, GifTextureView.this, mSavedPosition);
-            mThread.start();
-            if (mExternalListener != null)
-                mExternalListener.onSurfaceTextureAvailable(surface, width, height);
-        }
 
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            if (mExternalListener != null)
-                mExternalListener.onSurfaceTextureAvailable(surface, width, height);
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            mSavedPosition = mThread.getPosition();
-            mThread.interrupt();
-            if (mExternalListener != null)
-                mExternalListener.onSurfaceTextureDestroyed(surface);
-            return false;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-            if (mExternalListener != null)
-                mExternalListener.onSurfaceTextureUpdated(surface);
-        }
-    };
+    private final RenderThread mRenderThread = new RenderThread();
 
     public GifTextureView(Context context) {
         super(context);
@@ -119,27 +89,32 @@ public class GifTextureView extends TextureView {
                 mScaleType = sScaleTypeArray[scaleTypeIndex];
             final TypedArray textureViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
             mSource = findSource(textureViewAttributes);
-            setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, true));
+            setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, false));
             textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
         }
-        setOpaque(false);
-        super.setSurfaceTextureListener(mCallback);
+        else
+            setOpaque(false);
+        mSource = new GifDrawableBuilder.FileSource("/sdcard/o.gif"); //TODO remove
+
+        if (mSource != null) {
+            mRenderThread.start();
+        }
     }
 
     @Override
-    public void setSurfaceTextureListener(SurfaceTextureListener listener) {
-        mExternalListener = listener;
+    public void setSurfaceTextureListener(SurfaceTextureListener listener) { //FIXME?
     }
 
-    @Override
-    public SurfaceTextureListener getSurfaceTextureListener() {
-        return mExternalListener;
-    }
+//    @Override
+//    public SurfaceTextureListener getSurfaceTextureListener() {
+//        return mExternalListener; FIXME?
+//    }
 
     /**
      * Always throws {@link UnsupportedOperationException}. Changing {@link SurfaceTexture} is not
      * supported.
+     *
      * @param surfaceTexture ignored
      */
     @Override
@@ -164,57 +139,65 @@ public class GifTextureView extends TextureView {
         return new GifDrawableBuilder.AssetSource(textureViewAttributes.getResources().getAssets(), value.string.toString());
     }
 
-    private static class RenderThread extends Thread {
-        private final GifDrawableBuilder.Source mSource;
-        private final SurfaceTexture mSurfaceTexture;
+    private class RenderThread extends Thread implements SurfaceTextureListener {
         private GifInfoHandle mGifInfoHandle;
         private int mPosition;
         private IOException mIOException;
-        private final GifTextureView mGifTextureView;
+        private boolean isValid;
 
-        RenderThread(SurfaceTexture surfaceTexture, GifTextureView gifTextureView, int startPosition) {
-            mSurfaceTexture = surfaceTexture;
-            mSource = gifTextureView.mSource;
-            mPosition = startPosition;
-            mGifTextureView = gifTextureView;
-            setPriority(MAX_PRIORITY);
-        }
+//        RenderThread(SurfaceTexture surfaceTexture, GifTextureView gifTextureView, int startPosition) {
+//            mSurfaceTexture = surfaceTexture;
+//            mSource = gifTextureView.mSource;
+//            mPosition = startPosition;
+//            mGifTextureView = gifTextureView;
+//            setPriority(MAX_PRIORITY);
+//        }
 
         @Override
         public void run() {
-            if (mSource == null) {
-                return;
-            }
             try {
                 mGifInfoHandle = mSource.open();
             } catch (IOException ex) {
+                Log.e("libgif", "fail", ex);
                 mIOException = ex;
                 return;
             }
+            Log.e("libgif", "opened " + getId());
+            isValid = isAvailable();
+            GifTextureView.super.setSurfaceTextureListener(this);
 
-            mGifTextureView.post(new Runnable() {
-                @Override
-                public void run() {
-                    mGifTextureView.updateTextureViewSize(mGifInfoHandle);
+//            mGifTextureView.post(new Runnable() { FIXME
+//                @Override
+//                public void run() {
+//                    mGifTextureView.updateTextureViewSize(mGifInfoHandle);
+//                }
+//            });
+
+            OUT:
+            while (!isInterrupted()) {
+                synchronized (this) {
+                    while (!isValid) {
+                        Log.e("libgif", "waiting");
+                        try {
+                            wait();
+                        } catch (InterruptedException e) {
+                            break OUT;
+                        }
+                    }
+                }//FIXME check if sft is not null
+                final Surface surface = new Surface(getSurfaceTexture()); //TODO make final/call super
+                try {
+                    Log.e("libgif", "binding " + mPosition);
+                    mPosition = mGifInfoHandle.bindSurface(surface, mPosition);
+                    Log.e("libgif", "unbound " + mPosition);
+                    mGifInfoHandle.reset();
+
+                } finally {
+                    surface.release();
                 }
-            });
-
-            Surface surface = new Surface(mSurfaceTexture);
-            mGifInfoHandle.bindSurface(surface, mPosition);
-            synchronized (this) {
-                mPosition = mGifInfoHandle.getCurrentPosition();
-                mGifInfoHandle.recycle();
             }
-            surface.release();
-        }
-
-        synchronized int getPosition() {
-            if (mGifInfoHandle == null || mGifInfoHandle.isRecycled()) {
-                return mPosition;
-            } else {
-                mGifInfoHandle.saveRemainder();
-                return mGifInfoHandle.getCurrentPosition();
-            }
+            mGifInfoHandle.recycle(); //TODO finally?
+            Log.e("libgif", "thread end");
         }
 
         IOException getException() {
@@ -224,6 +207,41 @@ public class GifTextureView extends TextureView {
                 return new GifIOException(mGifInfoHandle.getNativeErrorCode());
             }
         }
+
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            Log.e("libgif", "avail");
+            isValid = true;
+            synchronized (this) {
+                notify();
+            }
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            Log.e("libgif", "destroyed");
+            isValid = false;
+            mGifInfoHandle.interrupt(); //TODO check remainder
+            return false;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        Log.e("libgif", "detaching");
+        mRenderThread.isValid = false;
+        mRenderThread.interrupt();
+        super.setSurfaceTextureListener(null); //TODO clarify super?
+        super.onDetachedFromWindow();
     }
 
     /**
@@ -235,11 +253,13 @@ public class GifTextureView extends TextureView {
         int oldVisibility = getVisibility();
         setVisibility(INVISIBLE); //dirty hack to force surface recreation
         mSource = source;
-        mSavedPosition = 0;
+        mRenderThread.mPosition = 0;
+        //mSavedPosition = 0; FIXME add support for changing src, reset fields
         setVisibility(oldVisibility);
     }
 
     /**
+     * //TODO link to gifdrawable instead of copying
      * Sets new animation speed factor.<br>
      * Note: If animation is in progress ({@link #draw(Canvas)}) was already called)
      * then effects will be visible starting from the next frame. Duration of the currently rendered
@@ -249,10 +269,10 @@ public class GifTextureView extends TextureView {
      * @throws IllegalArgumentException if factor&lt;=0
      */
     public void setSpeed(float factor) {
-        if (mThread != null && mThread.mGifInfoHandle != null) //TODO thread safe
-        {
-            mThread.mGifInfoHandle.setSpeedFactor(factor);
-        }
+//        if (mThread != null && mThread.mGifInfoHandle != null) //FIXME
+//        {
+//            mThread.mGifInfoHandle.setSpeedFactor(factor);
+//        }
     }
 
     /**
@@ -264,9 +284,9 @@ public class GifTextureView extends TextureView {
      */
     @Nullable
     public IOException getIOException() {
-        if (mThread != null) {
-            return mThread.getException();
-        }
+//        if (mThread != null) { FIXME
+//            return mThread.getException();
+//        }
         return null;
     }
 
@@ -278,9 +298,9 @@ public class GifTextureView extends TextureView {
      */
     public void setScaleType(@NonNull ScaleType scaleType) {
         mScaleType = scaleType;
-        if (mThread != null && mThread.mGifInfoHandle != null) {
-            updateTextureViewSize(mThread.mGifInfoHandle);
-        }
+//        if (mThread != null && mThread.mGifInfoHandle != null) {
+//            updateTextureViewSize(mThread.mGifInfoHandle);
+//        } FIXME
     }
 
     /**
@@ -340,6 +360,7 @@ public class GifTextureView extends TextureView {
 
     /**
      * {@link #setTransform(Matrix)} equivalent.
+     *
      * @param matrix The transform to apply to the content of this view.
      */
     public void setImageMatrix(Matrix matrix) {
@@ -349,14 +370,15 @@ public class GifTextureView extends TextureView {
     /**
      * Works like {@link TextureView#setTransform(Matrix)} but transform will take effect only if
      * scale type is set to {@link ScaleType#MATRIX} through XML attribute or via {@link #setScaleType(ScaleType)}
+     *
      * @param transform The transform to apply to the content of this view.
      */
     @Override
     public void setTransform(Matrix transform) {
         mTransform.set(transform);
-        if (mThread != null && mThread.mGifInfoHandle != null) {
-            updateTextureViewSize(mThread.mGifInfoHandle);
-        }
+//        if (mThread != null && mThread.mGifInfoHandle != null) {
+//            updateTextureViewSize(mThread.mGifInfoHandle);
+//        } FIXME
     }
 
     @Override
@@ -370,17 +392,19 @@ public class GifTextureView extends TextureView {
 
     @Override
     public Parcelable onSaveInstanceState() {
-        final int position = mFreezesAnimation && mThread != null ? mThread.getPosition() : 0;
-        GifViewSavedState gifViewSavedState = new GifViewSavedState(super.onSaveInstanceState(), position);
-        mSavedPosition = position;
-        return gifViewSavedState;
+        mRenderThread.isValid = false;
+        mRenderThread.interrupt();
+        final int position = mFreezesAnimation ? mRenderThread.mGifInfoHandle.interrupt() : 0;  //TODO nullcheck mGifInfoHandle
+        Log.e("libgif", "saving "+position);
+        return new GifViewSavedState(super.onSaveInstanceState(), position);
     }
 
     @Override
     public void onRestoreInstanceState(Parcelable state) {
         GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
-        mSavedPosition = ss.mPositions[0];
+        mRenderThread.mPosition = ss.mPositions[0];
+        Log.e("libgif", "restoring "+mRenderThread.mPosition);
     }
 
     /**

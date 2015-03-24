@@ -90,6 +90,7 @@ struct GifInfo {
     jfloat speedFactor;
     int32_t stride;
     jlong sourceLength;
+    int eventFd;
 };
 
 typedef struct {
@@ -194,3 +195,4 @@ int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env);
 
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
 
+jint getCurrentPosition(GifInfo *info);

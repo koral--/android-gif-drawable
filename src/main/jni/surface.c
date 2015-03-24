@@ -1,35 +1,44 @@
 #include "gif.h"
+#include <sys/eventfd.h>
+#include <poll.h>
 
-__unused JNIEXPORT void JNICALL
+typedef uint64_t POLL_TYPE;
+#define POLL_TYPE_SIZE sizeof(POLL_TYPE)
+
+__unused JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
         jlong gifInfo, jobject jsurface, jint startPosition) {
 
-    jclass threadClass = (*env)->FindClass(env, "java/lang/Thread");
-    if (threadClass == NULL)
-        return;
-    jmethodID currentThreadMID = (*env)->GetStaticMethodID(env, threadClass, "currentThread", "()Ljava/lang/Thread;");
-    jobject jCurrentThread = (*env)->CallStaticObjectMethod(env, threadClass, currentThreadMID);
-    jmethodID isInterruptedMID = (*env)->GetMethodID(env, threadClass, "isInterrupted", "()Z");
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (!info || !currentThreadMID || !jCurrentThread || !isInterruptedMID) {
-        return;
+    if (!info)
+        return 0;
+
+    info->eventFd = eventfd(0, 0);
+    if (info->eventFd == -1) {
+        throwException(env, ILLEGAL_STATE_EXCEPTION, "Could not create eventfd");
+        return 0;
     }
 
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
-        return;
+        return 0;
     }
 
     int framesToSkip = getSkippedFramesCount(info, startPosition);
+    LOGE("fts %d cidx: %d", framesToSkip, info->currentIndex);
+
     struct ANativeWindow_Buffer buffer;
     buffer.bits = NULL;
-    struct timespec time_to_sleep;
+
+    struct pollfd eventPollFd;
+    eventPollFd.fd = info->eventFd;
+    eventPollFd.events = POLL_IN;
 
     void *oldBufferBits;
 //    time_t start= getRealTime();
-    while ((*env)->CallBooleanMethod(env, jCurrentThread, isInterruptedMID) == JNI_FALSE) {
+    while (info->eventFd != -1) {
         if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
             info->currentIndex = 0;
 //            time_t end= getRealTime();
@@ -44,6 +53,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
         if (oldBufferBits != NULL)
             memcpy(buffer.bits, oldBufferBits, buffer.stride * buffer.height * sizeof(argb));
+
         if (buffer.stride != info->stride) {
             if (info->backupPtr != NULL) {
                 void *tmpBackupPtr = realloc(info->backupPtr, info->stride * info->gifFilePtr->SHeight * sizeof(argb));
@@ -65,7 +75,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
 
-        time_t invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(), env);
+        int invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(), env);
         if (invalidationDelayMillis < 0) {
             break;
         }
@@ -73,14 +83,53 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             invalidationDelayMillis = info->lastFrameRemainder;
             info->lastFrameRemainder = 0;
         }
-        time_to_sleep.tv_nsec = (invalidationDelayMillis % 1000) * 1000000;
-        time_to_sleep.tv_sec = invalidationDelayMillis / 1000;
-        if (nanosleep(&time_to_sleep, NULL) != 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Sleep failed");
+
+        const int pollResult = poll(&eventPollFd, 1, invalidationDelayMillis);
+        if (pollResult < 0) { //error
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll failed");
             break;
         }
+        else if (pollResult > 0) {
+            LOGE("pollResult %d", pollResult);
+            POLL_TYPE eftd_ctr;
+            if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+                LOGE("read error %d", errno);
+                throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd read failed");
+            }
+            break;
+        }
+
+    }
+    info->eventFd = -1;
+    if (close(eventPollFd.fd) == -1) {
+        LOGE("close error %d", errno);
+        if ((*env)->ExceptionCheck(env) == JNI_FALSE)
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd closing failed");
     }
     ANativeWindow_release(window);
+    LOGE("ended cidx %d", info->currentIndex);
+    info->lastFrameRemainder = info->nextStartTime - getRealTime();
+    return getCurrentPosition(info);
+}
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_interrupt(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+    GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+    if (!info) {
+        return 0;
+    }
+    if (info->eventFd != -1) {
+        POLL_TYPE eftd_ctr;
+        LOGE("interrupting");
+        if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+            LOGE("write error %d", errno);
+            if (info->eventFd != -1 || errno != EBADF)
+                throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd write failed");
+        }
+        info->eventFd = -1;
+    }
+    info->lastFrameRemainder = info->nextStartTime - getRealTime();
+    return getCurrentPosition(info);
 }
 
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
