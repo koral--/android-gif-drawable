@@ -98,7 +98,7 @@ public enum GifError {
      */
     @NonNull
     public final String description;
-    private int errorCode;
+    int errorCode;
 
     GifError(int code, @NonNull String description) {
         errorCode = code;

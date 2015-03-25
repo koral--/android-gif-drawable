@@ -5,29 +5,28 @@
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
-__unused JNIEXPORT jint JNICALL
+__unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
         jlong gifInfo, jobject jsurface, jint startPosition) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (!info)
-        return 0;
+        return;
 
     info->eventFd = eventfd(0, 0);
     if (info->eventFd == -1) {
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Could not create eventfd");
-        return 0;
+        return;
     }
 
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
-        return 0;
+        return;
     }
 
     int framesToSkip = getSkippedFramesCount(info, startPosition);
-    LOGE("fts %d cidx: %d", framesToSkip, info->currentIndex);
 
     struct ANativeWindow_Buffer buffer;
     buffer.bits = NULL;
@@ -37,13 +36,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     eventPollFd.events = POLL_IN;
 
     void *oldBufferBits;
-//    time_t start= getRealTime();
+
+#ifdef DEBUG
+    time_t start= getRealTime();
+#endif
+
     while (info->eventFd != -1) {
         if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
             info->currentIndex = 0;
-//            time_t end= getRealTime();
-//            LOGE("fps %ld %ld", 1000*info->gifFilePtr->ImageCount/(end-start));
-//            start = end;
+#ifdef DEBUG
+            time_t end= getRealTime();
+            //LOGE("fps %ld", 1000*info->gifFilePtr->ImageCount/(end-start));
+            start = end;
+#endif
         }
 
         oldBufferBits = buffer.bits;
@@ -76,6 +81,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         ANativeWindow_unlockAndPost(window);
 
         int invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(), env);
+        LOGE("%d ", invalidationDelayMillis);
         if (invalidationDelayMillis < 0) {
             break;
         }
@@ -90,10 +96,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             break;
         }
         else if (pollResult > 0) {
-            LOGE("pollResult %d", pollResult);
             POLL_TYPE eftd_ctr;
             if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-                LOGE("read error %d", errno);
                 throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd read failed");
             }
             break;
@@ -102,33 +106,29 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     }
     info->eventFd = -1;
     if (close(eventPollFd.fd) == -1) {
-        LOGE("close error %d", errno);
         if ((*env)->ExceptionCheck(env) == JNI_FALSE)
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd closing failed");
     }
     ANativeWindow_release(window);
-    LOGE("ended cidx %d", info->currentIndex);
-    info->lastFrameRemainder = info->nextStartTime - getRealTime(); //TODO handle case when animation has been stopped, do not allow negative
-    return getCurrentPosition(info);
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_interrupt(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (!info) {
         return 0;
     }
     if (info->eventFd != -1) {
         POLL_TYPE eftd_ctr;
-        LOGE("interrupting");
         if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-            LOGE("write error %d", errno);
             if (info->eventFd != -1 || errno != EBADF)
                 throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd write failed");
         }
         info->eventFd = -1;
+        info->lastFrameRemainder = info->nextStartTime - getRealTime();
+        if (info->lastFrameRemainder < 0)
+            info->lastFrameRemainder = 0;
     }
-    info->lastFrameRemainder = info->nextStartTime - getRealTime(); //TODO handle case when animation has been stopped, do not allow negative
     return getCurrentPosition(info);
 }
 

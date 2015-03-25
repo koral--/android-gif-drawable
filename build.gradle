@@ -22,13 +22,20 @@ android {
         targetSdkVersion 22
 
         ndk {
-            moduleName 'gif'
-            ldLibs 'jnigraphics', 'android', 'log'
-            abiFilter 'all'
-            cFlags '-fvisibility=hidden -Ofast'
+            if (Boolean.valueOf(JNI_DEBUG)) {
+                moduleName 'gif'
+                abiFilter 'armeabi-v7a'
+                ldLibs 'jnigraphics', 'android', 'log'
+                cFlags '-DDEBUG'
+            } else {
+                moduleName 'gif'
+                ldLibs 'jnigraphics', 'android'
+                abiFilter 'all'
+                cFlags '-fvisibility=hidden -Ofast'
+            }
         }
     }
-    //buildTypes.debug.jniDebuggable true
+    buildTypes.debug.jniDebuggable Boolean.valueOf(JNI_DEBUG)
 
     def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
     boolean applyFlavors = false

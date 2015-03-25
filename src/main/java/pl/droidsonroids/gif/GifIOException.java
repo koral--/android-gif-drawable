@@ -22,9 +22,13 @@ public class GifIOException extends IOException {
         this.reason = reason;
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-        //invoked from native code
     GifIOException(int errorCode) {
         this(GifError.fromCode(errorCode));
+    }
+
+    static GifIOException fromCode(final int nativeErrorCode) {
+        if (nativeErrorCode == GifError.NO_ERROR.errorCode)
+            return null;
+        return new GifIOException(nativeErrorCode);
     }
 }

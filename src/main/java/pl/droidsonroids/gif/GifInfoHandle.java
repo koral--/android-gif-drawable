@@ -24,6 +24,7 @@ final class GifInfoHandle {
     final int height;
     final int frameCount;
 
+    @SuppressWarnings("SameParameterValue") //invoked from native code
     GifInfoHandle(long gifInfoPtr, int width, int height, int frameCount) {
         this.gifInfoPtr = gifInfoPtr;
         this.width = width;
@@ -31,8 +32,7 @@ final class GifInfoHandle {
         this.frameCount = frameCount;
     }
 
-    static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 1, 1, 0);
-
+    static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 0, 0, 0);
     static {
         System.loadLibrary("gif");
     }
@@ -49,7 +49,7 @@ final class GifInfoHandle {
 
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
-    private static native int bindSurface(long gifInfoPtr, Surface surface, int startPosition);
+    private static native void bindSurface(long gifInfoPtr, Surface surface, int startPosition);
 
     private static native void free(long gifFileInPtr);
 
@@ -83,7 +83,7 @@ final class GifInfoHandle {
 
     private static native int getCurrentLoop(long gifFileInPtr);
 
-    private static native int interrupt(long gifFileInPtr);
+    private static native int postUnbindSurface(long gifFileInPtr);
 
     static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported()) {
@@ -112,8 +112,8 @@ final class GifInfoHandle {
         return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    int bindSurface(Surface surface, int startPosition) {
-        return bindSurface(gifInfoPtr, surface, startPosition);
+    void bindSurface(Surface surface, int startPosition) {
+        bindSurface(gifInfoPtr, surface, startPosition);
     }
 
     synchronized void recycle() {
@@ -197,7 +197,7 @@ final class GifInfoHandle {
         }
     }
 
-    int interrupt() {
-        return interrupt(gifInfoPtr);
+    synchronized int postUnbindSurface() {
+        return postUnbindSurface(gifInfoPtr);
     }
 }
