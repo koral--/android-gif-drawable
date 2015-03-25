@@ -24,7 +24,8 @@ final class GifInfoHandle {
     final int height;
     final int frameCount;
 
-    @SuppressWarnings("SameParameterValue") //invoked from native code
+    @SuppressWarnings("SameParameterValue")
+        //invoked from native code
     GifInfoHandle(long gifInfoPtr, int width, int height, int frameCount) {
         this.gifInfoPtr = gifInfoPtr;
         this.width = width;
@@ -33,6 +34,7 @@ final class GifInfoHandle {
     }
 
     static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 0, 0, 0);
+
     static {
         System.loadLibrary("gif");
     }
@@ -49,7 +51,7 @@ final class GifInfoHandle {
 
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
-    private static native void bindSurface(long gifInfoPtr, Surface surface, int startPosition);
+    private static native boolean bindSurface(long gifInfoPtr, Surface surface, int startPosition);
 
     private static native void free(long gifFileInPtr);
 
@@ -112,8 +114,8 @@ final class GifInfoHandle {
         return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    void bindSurface(Surface surface, int startPosition) {
-        bindSurface(gifInfoPtr, surface, startPosition);
+    boolean bindSurface(Surface surface, int startPosition) {
+        return bindSurface(gifInfoPtr, surface, startPosition);
     }
 
     synchronized void recycle() {

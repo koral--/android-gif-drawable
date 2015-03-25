@@ -5,37 +5,36 @@
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
-__unused JNIEXPORT void JNICALL
+__unused JNIEXPORT jboolean JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
         jlong gifInfo, jobject jsurface, jint startPosition) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (!info)
-        return;
+        return JNI_FALSE;
 
     info->eventFd = eventfd(0, 0);
     if (info->eventFd == -1) {
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Could not create eventfd");
-        return;
+        return JNI_FALSE;
     }
 
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
-        return;
+        return JNI_FALSE;
     }
 
     int framesToSkip = getSkippedFramesCount(info, startPosition);
-
     struct ANativeWindow_Buffer buffer;
     buffer.bits = NULL;
+    void *oldBufferBits;
+    jboolean result = JNI_FALSE;
 
     struct pollfd eventPollFd;
     eventPollFd.fd = info->eventFd;
     eventPollFd.events = POLL_IN;
-
-    void *oldBufferBits;
 
 #ifdef DEBUG
     time_t start= getRealTime();
@@ -50,7 +49,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             start = end;
 #endif
         }
-
         oldBufferBits = buffer.bits;
         if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
@@ -81,10 +79,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         ANativeWindow_unlockAndPost(window);
 
         int invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(), env);
-        LOGE("%d ", invalidationDelayMillis);
         if (invalidationDelayMillis < 0) {
+            result = JNI_TRUE;
             break;
         }
+        else
+            result = JNI_FALSE;
+
         if (info->lastFrameRemainder > 0) {
             invalidationDelayMillis = info->lastFrameRemainder;
             info->lastFrameRemainder = 0;
@@ -102,14 +103,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             }
             break;
         }
-
     }
     info->eventFd = -1;
     if (close(eventPollFd.fd) == -1) {
         if ((*env)->ExceptionCheck(env) == JNI_FALSE)
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd closing failed");
+        result = JNI_FALSE;
     }
     ANativeWindow_release(window);
+    return result;
 }
 
 __unused JNIEXPORT jint JNICALL

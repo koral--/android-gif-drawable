@@ -16,10 +16,11 @@
 #include <sys/stat.h>
 #include "giflib/gif_lib.h"
 
+#ifdef DEBUG
 #include <android/log.h>
-
 #define  LOG_TAG    "libgif"
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#endif
 
 /**
  * Some gif files are not strictly follow 89a.

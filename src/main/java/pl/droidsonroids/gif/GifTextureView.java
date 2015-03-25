@@ -3,7 +3,10 @@ package pl.droidsonroids.gif;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
@@ -17,6 +20,9 @@ import android.view.TextureView;
 import android.widget.ImageView.ScaleType;
 
 import java.io.IOException;
+
+import static android.graphics.Paint.DITHER_FLAG;
+import static android.graphics.Paint.FILTER_BITMAP_FLAG;
 
 /**
  * <p>{@link TextureView} which can display animated GIFs. Available on API level 14
@@ -145,6 +151,7 @@ public class GifTextureView extends TextureView {
         private int mStartPosition;
         private GifInfoHandle mGifInfoHandle = GifInfoHandle.NULL_INFO;
         private IOException mIOException;
+        private Bitmap mLastFrame;
 
         @Override
         public void run() {
@@ -179,8 +186,13 @@ public class GifTextureView extends TextureView {
 
                 final Surface surface = new Surface(surfaceTexture);
                 mGifInfoHandle.reset();
+                mLastFrame = null;
                 try {
-                    mGifInfoHandle.bindSurface(surface, mStartPosition);
+                    if (mGifInfoHandle.bindSurface(surface, mStartPosition)) {
+                        mStartPosition = mGifInfoHandle.getCurrentPosition();
+                        mLastFrame = getBitmap();
+                        break;
+                    }
                 } finally {
                     surface.release();
                 }
@@ -190,8 +202,17 @@ public class GifTextureView extends TextureView {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            synchronized (this) {
-                notify();
+            if (mLastFrame != null) {
+                final Surface frameSurface = new Surface(surface);
+                final Canvas canvas = frameSurface.lockCanvas(null);
+                canvas.drawBitmap(mLastFrame, 0, 0, new Paint(FILTER_BITMAP_FLAG | DITHER_FLAG));
+                frameSurface.unlockCanvasAndPost(canvas);
+                frameSurface.release();
+            } else {
+                updateTextureViewSize(mGifInfoHandle);
+                synchronized (this) {
+                    notify();
+                }
             }
         }
 
