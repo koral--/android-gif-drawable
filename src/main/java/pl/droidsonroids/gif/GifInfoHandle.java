@@ -31,7 +31,7 @@ final class GifInfoHandle {
         this.frameCount = frameCount;
     }
 
-    static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 0, 0, 0);
+    static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 1, 1, 0);
 
     static {
         System.loadLibrary("gif");

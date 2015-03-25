@@ -108,7 +108,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     }
     ANativeWindow_release(window);
     LOGE("ended cidx %d", info->currentIndex);
-    info->lastFrameRemainder = info->nextStartTime - getRealTime();
+    info->lastFrameRemainder = info->nextStartTime - getRealTime(); //TODO handle case when animation has been stopped, do not allow negative
     return getCurrentPosition(info);
 }
 
@@ -128,7 +128,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_interrupt(JNIEnv *env, jclass __unused h
         }
         info->eventFd = -1;
     }
-    info->lastFrameRemainder = info->nextStartTime - getRealTime();
+    info->lastFrameRemainder = info->nextStartTime - getRealTime(); //TODO handle case when animation has been stopped, do not allow negative
     return getCurrentPosition(info);
 }
 
