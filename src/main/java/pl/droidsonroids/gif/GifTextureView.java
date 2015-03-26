@@ -14,9 +14,11 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
 import android.widget.ImageView.ScaleType;
 
 import java.io.IOException;
@@ -92,10 +94,16 @@ public class GifTextureView extends TextureView {
         } else {
             setOpaque(false);
         }
-
+        mInputSource = new InputSource.FileSource("/sdcard/o.gif");
         if (mInputSource != null) {
             mRenderThread.start();
         }
+        setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setInputSource(new InputSource.FileSource("/sdcard/clock.gif"));
+            }
+        });
     }
 
     /**
@@ -148,6 +156,7 @@ public class GifTextureView extends TextureView {
     }
 
     private class RenderThread extends Thread implements SurfaceTextureListener {
+        final ConditionVariable isSurfaceValid = new ConditionVariable(false);
         private int mStartPosition;
         private GifInfoHandle mGifInfoHandle = GifInfoHandle.NULL_INFO;
         private IOException mIOException;
@@ -161,6 +170,7 @@ public class GifTextureView extends TextureView {
                 mIOException = ex;
                 return;
             }
+            isSurfaceValid.set(isAvailable());
             GifTextureView.super.setSurfaceTextureListener(this);
 
             post(new Runnable() {
@@ -170,24 +180,21 @@ public class GifTextureView extends TextureView {
                 }
             });
             mGifInfoHandle.setSpeedFactor(mSpeedFactor);
-            RENDER_LOOP:
-            while (!isInterrupted()) {
-                SurfaceTexture surfaceTexture = getSurfaceTexture();
-                while (surfaceTexture == null) {
-                    try {
-                        synchronized (this) {
-                            wait();
-                        }
-                    } catch (InterruptedException e) {
-                        break RENDER_LOOP;
-                    }
-                    surfaceTexture = getSurfaceTexture();
-                }
 
+            while (!isInterrupted()) {
+                try {
+                    isSurfaceValid.block();
+                } catch (InterruptedException e) {
+                    break;
+                }
+                final SurfaceTexture surfaceTexture = getSurfaceTexture();
+                if (surfaceTexture == null)
+                    continue;
                 final Surface surface = new Surface(surfaceTexture);
                 mGifInfoHandle.reset();
                 mLastFrame = null;
                 try {
+                    Log.e("libgif", "binding " + isInterrupted());
                     if (mGifInfoHandle.bindSurface(surface, mStartPosition)) {
                         mStartPosition = mGifInfoHandle.getCurrentPosition();
                         mLastFrame = getBitmap();
@@ -210,9 +217,7 @@ public class GifTextureView extends TextureView {
                 frameSurface.release();
             } else {
                 updateTextureViewSize(mGifInfoHandle);
-                synchronized (this) {
-                    notify();
-                }
+                isSurfaceValid.open();
             }
         }
 
@@ -223,6 +228,8 @@ public class GifTextureView extends TextureView {
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            Log.e("ligbif", "destroyed");
+            isSurfaceValid.close();
             mStartPosition = mGifInfoHandle.postUnbindSurface();
             return false;
         }
@@ -232,6 +239,7 @@ public class GifTextureView extends TextureView {
         }
 
         void dispose() {
+            isSurfaceValid.close();
             GifTextureView.super.setSurfaceTextureListener(null);
             mGifInfoHandle.postUnbindSurface();
             mRenderThread.interrupt();
@@ -250,6 +258,7 @@ public class GifTextureView extends TextureView {
 
     @Override
     protected void onDetachedFromWindow() {
+        Log.e("ligbif", "detached");
         mRenderThread.dispose();
         super.onDetachedFromWindow();
         final SurfaceTexture surfaceTexture = getSurfaceTexture();
@@ -272,6 +281,7 @@ public class GifTextureView extends TextureView {
 
     /**
      * Equivalent of {@link GifDrawable#setSpeed(float)}
+     *
      * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
      * @throws IllegalArgumentException if factor&lt;=0
      * @see GifDrawable#setSpeed(float)
@@ -390,9 +400,7 @@ public class GifTextureView extends TextureView {
      * or computed according to the current scale type.
      *
      * @param transform The {@link Matrix} in which to copy the current transform. Can be null.
-     *
      * @return The specified matrix if not null or a new {@link Matrix} instance otherwise.
-     *
      * @see #setTransform(android.graphics.Matrix)
      * @see #setScaleType(ScaleType)
      */
@@ -407,13 +415,11 @@ public class GifTextureView extends TextureView {
 
     @Override
     public Parcelable onSaveInstanceState() {
-        final int position;
-        if (mFreezesAnimation) {
-            position = mRenderThread.mGifInfoHandle.postUnbindSurface();
-            mRenderThread.mStartPosition = position;
-        } else
-            position = 0;
-        return new GifViewSavedState(super.onSaveInstanceState(), position);
+        Log.e("ligbif", "saving");
+        mRenderThread.isSurfaceValid.close();
+        mRenderThread.mStartPosition = mRenderThread.mGifInfoHandle.postUnbindSurface();
+
+        return new GifViewSavedState(super.onSaveInstanceState(), mFreezesAnimation ? mRenderThread.mStartPosition : 0);
     }
 
     @Override

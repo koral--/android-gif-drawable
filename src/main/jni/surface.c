@@ -13,12 +13,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     if (!info)
         return JNI_FALSE;
 
-    info->eventFd = eventfd(0, 0);
     if (info->eventFd == -1) {
-        throwException(env, ILLEGAL_STATE_EXCEPTION, "Could not create eventfd");
-        return JNI_FALSE;
+        info->eventFd = eventfd(0, 0);
+        if (info->eventFd == -1) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Could not create eventfd");
+            return JNI_FALSE;
+        }
     }
-
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
         ANativeWindow_release(window);
@@ -36,11 +37,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     eventPollFd.fd = info->eventFd;
     eventPollFd.events = POLL_IN;
 
+    POLL_TYPE eftd_ctr;
+    int pollResult = poll(&eventPollFd, 1, 0);
+
+//    if (pollResult > 0) {
+//        while (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) ==POLL_TYPE_SIZE); //TODO error handling?
+//    }
+//    else if (pollResult < 0) {
+//        throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll on flushing failed");
+//    }
+LOGE("loop start");
 #ifdef DEBUG
     time_t start= getRealTime();
 #endif
-
-    while (info->eventFd != -1) {
+    while (1) {
         if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
             info->currentIndex = 0;
 #ifdef DEBUG
@@ -70,10 +80,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             info->stride = buffer.stride;
         }
         if (framesToSkip > 0) {
-            while (--framesToSkip >= 0) {
-                getBitmap(buffer.bits, info);
-                info->currentIndex++;
-            }
+                while (--framesToSkip >= 0) {
+                    getBitmap(buffer.bits, info);
+                    info->currentIndex++;
+                }
         }
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
@@ -91,24 +101,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             info->lastFrameRemainder = 0;
         }
 
-        const int pollResult = poll(&eventPollFd, 1, invalidationDelayMillis);
-        if (pollResult < 0) { //error
+        pollResult = poll(&eventPollFd, 1, invalidationDelayMillis);
+        if (pollResult < 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll failed");
             break;
         }
         else if (pollResult > 0) {
-            POLL_TYPE eftd_ctr;
             if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
                 throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd read failed");
             }
             break;
         }
-    }
-    info->eventFd = -1;
-    if (close(eventPollFd.fd) == -1) {
-        if ((*env)->ExceptionCheck(env) == JNI_FALSE)
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd closing failed");
-        result = JNI_FALSE;
     }
     ANativeWindow_release(window);
     return result;
@@ -120,17 +123,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
     if (!info) {
         return 0;
     }
-    if (info->eventFd != -1) {
-        POLL_TYPE eftd_ctr;
-        if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-            if (info->eventFd != -1 || errno != EBADF)
-                throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd write failed");
-        }
-        info->eventFd = -1;
-        info->lastFrameRemainder = info->nextStartTime - getRealTime();
-        if (info->lastFrameRemainder < 0)
-            info->lastFrameRemainder = 0;
+    POLL_TYPE eftd_ctr;
+    if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+        //if (info->eventFd != -1 || errno != EBADF)
+        throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd write failed");
     }
+    info->lastFrameRemainder = info->nextStartTime - getRealTime();
+    if (info->lastFrameRemainder < 0)
+        info->lastFrameRemainder = 0;
     return getCurrentPosition(info);
 }
 

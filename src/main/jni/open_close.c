@@ -1,6 +1,9 @@
 #include "gif.h"
 
 void cleanUp(GifInfo *info) {
+    if (info->eventFd != -1)
+        close(info->eventFd);
+    info->eventFd = -1;
     free(info->backupPtr);
     info->backupPtr = NULL;
     free(info->infos);
