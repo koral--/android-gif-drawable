@@ -172,8 +172,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
      *
      * @param buffer buffer containing GIF data
-     * @throws IOException              if buffer does not contain valid GIF data
-     * @throws IllegalArgumentException if buffer is indirect
+     * @throws IOException              if buffer does not contain valid GIF data or is indirect
      * @throws NullPointerException     if buffer is null
      */
     public GifDrawable(@NonNull ByteBuffer buffer) throws IOException {

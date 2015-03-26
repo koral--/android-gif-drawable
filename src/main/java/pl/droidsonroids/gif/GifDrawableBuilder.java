@@ -12,13 +12,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import static pl.droidsonroids.gif.InputSource.*;
 
 /**
  * Builder for {@link pl.droidsonroids.gif.GifDrawable} which can be used to construct new drawables
  * by reusing old ones.
  */
 public class GifDrawableBuilder {
-    private Source mSource;
+    /**
+     * Constructs empty builder.
+     */
+    public GifDrawableBuilder() {
+    }
+
+    private InputSource mInputSource;
     private GifDrawable mOldDrawable;
     private ScheduledThreadPoolExecutor mExecutor;
     private boolean mIsRenderingTriggeredOnDraw = true;
@@ -30,10 +37,10 @@ public class GifDrawableBuilder {
      * @throws IOException when creation fails
      */
     public GifDrawable build() throws IOException {
-        if (mSource == null) {
+        if (mInputSource == null) {
             throw new NullPointerException("Source is not set");
         }
-        return mSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw);
+        return mInputSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw);
     }
 
     /**
@@ -98,7 +105,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(InputStream inputStream) {
-        mSource = new InputStreamSource(inputStream);
+        mInputSource = new InputStreamSource(inputStream);
         return this;
     }
 
@@ -109,7 +116,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(AssetFileDescriptor assetFileDescriptor) {
-        mSource = new AssetFileDescriptorSource(assetFileDescriptor);
+        mInputSource = new AssetFileDescriptorSource(assetFileDescriptor);
         return this;
     }
 
@@ -120,7 +127,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(FileDescriptor fileDescriptor) {
-        mSource = new FileDescriptorSource(fileDescriptor);
+        mInputSource = new FileDescriptorSource(fileDescriptor);
         return this;
     }
 
@@ -132,7 +139,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(AssetManager assetManager, String assetName) {
-        mSource = new AssetSource(assetManager, assetName);
+        mInputSource = new AssetSource(assetManager, assetName);
         return this;
     }
 
@@ -144,7 +151,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(ContentResolver contentResolver, Uri uri) {
-        mSource = new UriSource(contentResolver, uri);
+        mInputSource = new UriSource(contentResolver, uri);
         return this;
     }
 
@@ -155,7 +162,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(File file) {
-        mSource = new FileSource(file);
+        mInputSource = new FileSource(file);
         return this;
     }
 
@@ -166,7 +173,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(String filePath) {
-        mSource = new FileSource(filePath);
+        mInputSource = new FileSource(filePath);
         return this;
     }
 
@@ -177,7 +184,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(byte[] bytes) {
-        mSource = new ByteArraySource(bytes);
+        mInputSource = new ByteArraySource(bytes);
         return this;
     }
 
@@ -188,7 +195,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(ByteBuffer byteBuffer) {
-        mSource = new ByteBufferSource(byteBuffer);
+        mInputSource = new DirectByteBufferSource(byteBuffer);
         return this;
     }
 
@@ -200,147 +207,7 @@ public class GifDrawableBuilder {
      * @return this builder instance, to chain calls
      */
     public GifDrawableBuilder from(Resources resources, int resourceId) {
-        mSource = new ResourcesSource(resources, resourceId);
+        mInputSource = new ResourcesSource(resources, resourceId);
         return this;
-    }
-
-    public static final class ByteBufferSource extends Source {
-        private final ByteBuffer byteBuffer;
-
-        public ByteBufferSource(ByteBuffer byteBuffer) {
-            this.byteBuffer = byteBuffer;
-        }
-
-        @Override
-        GifInfoHandle open() throws GifIOException {
-            return GifInfoHandle.openDirectByteBuffer(byteBuffer, false);
-        }
-    }
-
-    public static final class ByteArraySource extends Source {
-        private final byte[] bytes;
-
-        public ByteArraySource(byte[] bytes) {
-            this.bytes = bytes;
-        }
-
-        @Override
-        GifInfoHandle open() throws GifIOException {
-            return GifInfoHandle.openByteArray(bytes, false);
-        }
-    }
-
-    public static final class FileSource extends Source {
-        private final File mFile;
-
-        public FileSource(File file) {
-            mFile = file;
-        }
-
-        public FileSource(String filePath) {
-            mFile = new File(filePath);
-        }
-
-        @Override
-        GifInfoHandle open() throws GifIOException {
-            return GifInfoHandle.openFile(mFile.getPath(), false);
-        }
-    }
-
-    public static final class UriSource extends Source {
-        private final ContentResolver mContentResolver;
-        private final Uri mUri;
-
-        public UriSource(ContentResolver contentResolver, Uri uri) {
-            mContentResolver = contentResolver;
-            mUri = uri;
-        }
-
-        @Override
-        GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openUri(mContentResolver, mUri, false);
-        }
-    }
-
-    public static final class AssetSource extends Source {
-        private final AssetManager mAssetManager;
-        private final String mAssetName;
-
-        public AssetSource(AssetManager assetManager, String assetName) {
-            mAssetManager = assetManager;
-            mAssetName = assetName;
-        }
-
-        @Override
-        GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mAssetManager.openNonAssetFd(mAssetName), false);
-        }
-    }
-
-    public static final class FileDescriptorSource extends Source {
-        private final FileDescriptor mFd;
-        private final long startOffset;
-
-        public FileDescriptorSource(FileDescriptor fileDescriptor) {
-            mFd = fileDescriptor;
-            startOffset = 0;
-        }
-
-        @Override
-        GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openFd(mFd, startOffset, false);
-        }
-    }
-
-    public static final class InputStreamSource extends Source {
-        private final InputStream inputStream;
-
-        public InputStreamSource(InputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        @Override
-        GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openMarkableInputStream(inputStream, false);
-        }
-    }
-
-    public static abstract class Source {
-        Source() {
-        }
-
-        abstract GifInfoHandle open() throws IOException;
-
-        final GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-            return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
-        }
-    }
-
-    public static class ResourcesSource extends Source {
-        private final Resources mResources;
-        private final int mResourceId;
-
-        public ResourcesSource(Resources resources, int resourceId) {
-            mResources = resources;
-            mResourceId = resourceId;
-        }
-
-        @Override
-        GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mResources.openRawResourceFd(mResourceId), false);
-        }
-    }
-
-    public static class AssetFileDescriptorSource extends Source {
-        private final AssetFileDescriptor mAssetFileDescriptor;
-
-        public AssetFileDescriptorSource(AssetFileDescriptor assetFileDescriptor) {
-            mAssetFileDescriptor = assetFileDescriptor;
-        }
-
-        @Override
-        GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mAssetFileDescriptor, false);
-        }
     }
 }

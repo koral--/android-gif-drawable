@@ -39,16 +39,16 @@ typedef struct GifImageDesc {
     ColorMapObject *ColorMap;           /* The local color map */
 } GifImageDesc;
 
-typedef struct ExtensionBlock {
+//typedef struct ExtensionBlock {
 //    int ByteCount;
-    GifByteType *Bytes; /* on malloc(3) heap */
+//    GifByteType *Bytes; /* on malloc(3) heap */
 //    int Function;       /* The block function code */
 #define CONTINUE_EXT_FUNC_CODE    0x00    /* continuation subblock */
 #define COMMENT_EXT_FUNC_CODE     0xfe    /* comment */
 #define GRAPHICS_EXT_FUNC_CODE    0xf9    /* graphics control (GIF89) */
 #define PLAINTEXT_EXT_FUNC_CODE   0x01    /* plaintext */
 #define APPLICATION_EXT_FUNC_CODE 0xff    /* application block */
-} ExtensionBlock;
+//} ExtensionBlock;
 
 typedef struct SavedImage {
     GifImageDesc ImageDesc;

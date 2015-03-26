@@ -87,7 +87,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             result = JNI_FALSE;
 
         if (info->lastFrameRemainder > 0) {
-            invalidationDelayMillis = info->lastFrameRemainder;
+            invalidationDelayMillis = (int) info->lastFrameRemainder;
             info->lastFrameRemainder = 0;
         }
 

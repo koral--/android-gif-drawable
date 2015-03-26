@@ -49,6 +49,10 @@
 * Decoding error - input source rewind failed
 */
 #define D_GIF_ERR_REWIND_FAILED    1004
+/**
+* Decoding error - invalid and/or indirect byte buffer specified
+*/
+#define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
 
 #define ILLEGAL_STATE_EXCEPTION "java/lang/IllegalStateException"
 #define OUT_OF_MEMORY_ERROR "java/lang/OutOfMemoryError"

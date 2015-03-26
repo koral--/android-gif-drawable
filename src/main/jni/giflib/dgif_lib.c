@@ -176,7 +176,7 @@ This routine should be called before any attempt to read an image.
 int
 DGifGetRecordType(GifFileType *GifFile, GifRecordType *Type) {
     GifByteType Buf;
-    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
+//    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
 //    if (!IS_READABLE(Private)) {
 //        /* This file was NOT open for reading: */
@@ -347,7 +347,7 @@ Note it is assumed the Extension description header has been read.
 int
 DGifGetExtension(GifFileType *GifFile, int *ExtCode, GifByteType **Extension) {
     GifByteType Buf;
-    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
+//    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
 //    if (!IS_READABLE(Private)) {
 //        /* This file was NOT open for reading: */

@@ -136,8 +136,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
      *
      * @param buffer buffer containing GIF data
-     * @throws IOException              if buffer does not contain valid GIF data
-     * @throws IllegalArgumentException if buffer is indirect
+     * @throws IOException              if buffer does not contain valid GIF data or is indirect
      * @throws NullPointerException     if buffer is null
      */
     public GifAnimationMetaData(@NonNull ByteBuffer buffer) throws IOException {
@@ -150,7 +149,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
      * is used to open an Uri.
      *
      * @param uri      GIF Uri, cannot be null.
-     * @param resolver resolver, null is allowed for file:// scheme Uris
+     * @param resolver resolver, null is allowed for file:// scheme Uris only
      * @throws IOException if resolution fails or destination is not a GIF.
      */
     public GifAnimationMetaData(@Nullable ContentResolver resolver, @NonNull Uri uri) throws IOException {

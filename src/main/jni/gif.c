@@ -165,7 +165,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env,
     jbyte *bytes = (*env)->GetDirectBufferAddress(env, buffer);
     jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
     if (bytes == NULL || capacity <= 0) {
-        throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+        if (!isSourceNull(buffer, env))
+            throwGifIOException(D_GIF_ERR_INVALID_BYTE_BUFFER, env);
         return NULL;
     }
     DirectByteBufferContainer *container = malloc(sizeof(DirectByteBufferContainer));

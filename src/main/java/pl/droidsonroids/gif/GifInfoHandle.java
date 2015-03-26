@@ -26,7 +26,7 @@ final class GifInfoHandle {
 
     @SuppressWarnings("SameParameterValue")
         //invoked from native code
-    GifInfoHandle(long gifInfoPtr, int width, int height, int frameCount) {
+    private GifInfoHandle(long gifInfoPtr, int width, int height, int frameCount) {
         this.gifInfoPtr = gifInfoPtr;
         this.width = width;
         this.height = height;

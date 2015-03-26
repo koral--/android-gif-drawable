@@ -28,7 +28,7 @@ import static android.graphics.Paint.FILTER_BITMAP_FLAG;
  * <p>{@link TextureView} which can display animated GIFs. Available on API level 14
  * ({@link Build.VERSION_CODES#ICE_CREAM_SANDWICH}) and above. GifTextureView can only be used in a
  * hardware accelerated window. When rendered in software, GifTextureView will draw nothing.</p>
- * <p>GIF source can be specified in XML or by calling {@link #setSource(GifDrawableBuilder.Source)}</p>
+ * <p>GIF source can be specified in XML or by calling {@link #setInputSource(InputSource)}</p>
  * <pre>
  *     &lt;pl.droidsonroids.gif.GifTextureView
  *          xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -50,7 +50,7 @@ public class GifTextureView extends TextureView {
 
     private ScaleType mScaleType = ScaleType.FIT_CENTER;
     private final Matrix mTransform = new Matrix();
-    private GifDrawableBuilder.Source mSource;
+    private InputSource mInputSource;
     private boolean mFreezesAnimation;
 
     private RenderThread mRenderThread = new RenderThread();
@@ -85,7 +85,7 @@ public class GifTextureView extends TextureView {
                 mScaleType = sScaleTypeArray[scaleTypeIndex];
             }
             final TypedArray textureViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
-            mSource = findSource(textureViewAttributes);
+            mInputSource = findSource(textureViewAttributes);
             setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, false));
             textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
@@ -93,7 +93,7 @@ public class GifTextureView extends TextureView {
             setOpaque(false);
         }
 
-        if (mSource != null) {
+        if (mInputSource != null) {
             mRenderThread.start();
         }
     }
@@ -130,7 +130,7 @@ public class GifTextureView extends TextureView {
         throw new UnsupportedOperationException("Changing SurfaceTexture is not supported");
     }
 
-    private static GifDrawableBuilder.Source findSource(final TypedArray textureViewAttributes) {
+    private static InputSource findSource(final TypedArray textureViewAttributes) {
         final TypedValue value = new TypedValue();
         if (!textureViewAttributes.getValue(R.styleable.GifTextureView_src, value)) {
             return null;
@@ -139,12 +139,12 @@ public class GifTextureView extends TextureView {
         if (value.resourceId != 0) {
             final String type = textureViewAttributes.getResources().getResourceTypeName(value.resourceId);
             if ("drawable".equals(type) || "raw".equals(type)) {
-                return new GifDrawableBuilder.ResourcesSource(textureViewAttributes.getResources(), value.resourceId);
+                return new InputSource.ResourcesSource(textureViewAttributes.getResources(), value.resourceId);
             } else if (!"string".equals(type)) {
                 throw new IllegalArgumentException("Expected string, drawable or raw resource, type " + type + " cannot be converted to GIF");
             }
         }
-        return new GifDrawableBuilder.AssetSource(textureViewAttributes.getResources().getAssets(), value.string.toString());
+        return new InputSource.AssetSource(textureViewAttributes.getResources().getAssets(), value.string.toString());
     }
 
     private class RenderThread extends Thread implements SurfaceTextureListener {
@@ -156,7 +156,7 @@ public class GifTextureView extends TextureView {
         @Override
         public void run() {
             try {
-                mGifInfoHandle = mSource.open();
+                mGifInfoHandle = mInputSource.open();
             } catch (IOException ex) {
                 mIOException = ex;
                 return;
@@ -260,17 +260,18 @@ public class GifTextureView extends TextureView {
     /**
      * Sets the source of the animation. Pass null to remove current source.
      *
-     * @param source new animation source, may be null
+     * @param inputSource new animation source, may be null
      */
-    public synchronized void setSource(@Nullable GifDrawableBuilder.Source source) {
+    public synchronized void setInputSource(@Nullable InputSource inputSource) {
         mRenderThread.dispose();
-        mSource = source;
+        mInputSource = inputSource;
         mRenderThread = new RenderThread();
-        if (source != null)
+        if (inputSource != null)
             mRenderThread.start();
     }
 
     /**
+     * Equivalent of {@link GifDrawable#setSpeed(float)}
      * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
      * @throws IllegalArgumentException if factor&lt;=0
      * @see GifDrawable#setSpeed(float)
@@ -363,7 +364,8 @@ public class GifTextureView extends TextureView {
     }
 
     /**
-     * {@link #setTransform(Matrix)} equivalent.
+     * Wrapper of {@link #setTransform(Matrix)}. Introduced to preserve the same API as in
+     * {@link GifImageView}.
      *
      * @param matrix The transform to apply to the content of this view.
      */
@@ -383,6 +385,17 @@ public class GifTextureView extends TextureView {
         updateTextureViewSize(mRenderThread.mGifInfoHandle);
     }
 
+    /**
+     * Returns the transform associated with this texture view, either set explicitly by {@link #setTransform(Matrix)}
+     * or computed according to the current scale type.
+     *
+     * @param transform The {@link Matrix} in which to copy the current transform. Can be null.
+     *
+     * @return The specified matrix if not null or a new {@link Matrix} instance otherwise.
+     *
+     * @see #setTransform(android.graphics.Matrix)
+     * @see #setScaleType(ScaleType)
+     */
     @Override
     public Matrix getTransform(Matrix transform) {
         if (transform == null) {

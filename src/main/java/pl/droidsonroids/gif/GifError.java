@@ -90,6 +90,10 @@ public enum GifError {
      */
     REWIND_FAILED(1004, "Input source rewind has failed, animation is stopped"),
     /**
+     * Invalid and/or indirect byte buffer specified
+     */
+    INVALID_BYTE_BUFFER(1005, "Invalid and/or indirect byte buffer specified"),
+    /**
      * Unknown error, should never appear
      */
     UNKNOWN(-1, "Unknown error");
