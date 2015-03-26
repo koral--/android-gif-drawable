@@ -61,6 +61,7 @@ Add following line to proguard configuration file (usually `proguard-rules.txt` 
 
 ###Requirements
 + Android 2.2+ (API level 8+)
++ for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
 
 ####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
