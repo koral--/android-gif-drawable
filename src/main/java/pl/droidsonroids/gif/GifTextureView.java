@@ -18,7 +18,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.View;
 import android.widget.ImageView.ScaleType;
 
 import java.io.IOException;
@@ -94,16 +93,9 @@ public class GifTextureView extends TextureView {
         } else {
             setOpaque(false);
         }
-        mInputSource = new InputSource.FileSource("/sdcard/o.gif");
         if (mInputSource != null) {
             mRenderThread.start();
         }
-        setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setInputSource(new InputSource.FileSource("/sdcard/clock.gif"));
-            }
-        });
     }
 
     /**
@@ -188,13 +180,13 @@ public class GifTextureView extends TextureView {
                     break;
                 }
                 final SurfaceTexture surfaceTexture = getSurfaceTexture();
-                if (surfaceTexture == null)
+                if (surfaceTexture == null) {
                     continue;
+                }
                 final Surface surface = new Surface(surfaceTexture);
                 mGifInfoHandle.reset();
                 mLastFrame = null;
                 try {
-                    Log.e("libgif", "binding " + isInterrupted());
                     if (mGifInfoHandle.bindSurface(surface, mStartPosition)) {
                         mStartPosition = mGifInfoHandle.getCurrentPosition();
                         mLastFrame = getBitmap();
@@ -244,15 +236,17 @@ public class GifTextureView extends TextureView {
             mGifInfoHandle.postUnbindSurface();
             mRenderThread.interrupt();
             final boolean isCallerInterrupted = Thread.currentThread().isInterrupted();
-            if (isCallerInterrupted)
+            if (isCallerInterrupted) {
                 interrupted();
+            }
             try {
                 mRenderThread.join();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            if (isCallerInterrupted)
+            if (isCallerInterrupted) {
                 Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -262,8 +256,9 @@ public class GifTextureView extends TextureView {
         mRenderThread.dispose();
         super.onDetachedFromWindow();
         final SurfaceTexture surfaceTexture = getSurfaceTexture();
-        if (surfaceTexture != null)
+        if (surfaceTexture != null) {
             surfaceTexture.release();
+        }
     }
 
     /**
@@ -275,8 +270,9 @@ public class GifTextureView extends TextureView {
         mRenderThread.dispose();
         mInputSource = inputSource;
         mRenderThread = new RenderThread();
-        if (inputSource != null)
+        if (inputSource != null) {
             mRenderThread.start();
+        }
     }
 
     /**
@@ -300,9 +296,9 @@ public class GifTextureView extends TextureView {
      */
     @Nullable
     public IOException getIOException() {
-        if (mRenderThread.mIOException != null)
+        if (mRenderThread.mIOException != null) {
             return mRenderThread.mIOException;
-        else {
+        } else {
             return GifIOException.fromCode(mRenderThread.mGifInfoHandle.getNativeErrorCode());
         }
     }
