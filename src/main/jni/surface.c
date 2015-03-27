@@ -7,7 +7,7 @@ typedef uint64_t POLL_TYPE;
 
 __unused JNIEXPORT jboolean JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
-        jlong gifInfo, jobject jsurface, jint startPosition) {
+                                                    jlong gifInfo, jobject jsurface, jint startPosition) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (!info)
@@ -21,7 +21,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
     }
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
-    if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
+    if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
+                                         WINDOW_FORMAT_RGBA_8888) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
         return JNI_FALSE;
@@ -56,19 +57,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
     }
 
-#ifdef DEBUG
-    time_t start= getRealTime();
-#endif
+    time_t renderingStartTime;
+
     while (1) {
-        if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
-            info->currentIndex = 0;
-#ifdef DEBUG
-            time_t end= getRealTime();
-            //LOGE("fps %ld", 1000*info->gifFilePtr->ImageCount/(end-start));
-            start = end;
-#endif
-        }
         oldBufferBits = buffer.bits;
+        renderingStartTime = getRealTime();
         if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
             break;
@@ -90,15 +83,18 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
 
         if (framesToSkip > 0) {
-                while (--framesToSkip >= 0) {
-                    getBitmap(buffer.bits, info);
-                    info->currentIndex++;
-                }
+            while (--framesToSkip >= 0) {
+                getBitmap(buffer.bits, info);
+                info->currentIndex++;
+            }
+        } else {
+            if (++info->currentIndex >= info->gifFilePtr->ImageCount)
+                info->currentIndex = 0;
         }
 
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
-        int invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(), env);
+        int invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, env);
         if (invalidationDelayMillis < 0) {
             result = JNI_TRUE;
             break;

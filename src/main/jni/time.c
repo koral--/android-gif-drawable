@@ -1,6 +1,6 @@
 #include "gif.h"
 
-int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env) {
+int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, JNIEnv *env) {
     if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
         throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
         return -1;
@@ -15,8 +15,10 @@ int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env) {
             else if (scaledDuration > INT_MAX)
                 scaledDuration = INT_MAX;
         }
-        info->nextStartTime = rt + scaledDuration;
-        invalidationDelay = scaledDuration;
+        info->nextStartTime = renderStartTime + scaledDuration;
+        invalidationDelay = (int) (scaledDuration - (getRealTime() - renderStartTime));
+        if (invalidationDelay < 0)
+            invalidationDelay = 0;
     }
     else
         invalidationDelay = -1;
