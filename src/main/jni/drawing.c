@@ -117,7 +117,7 @@ void getBitmap(argb *bm, GifInfo *info) {
 #ifdef DEBUG
         LOGE("slurp error %d", fGIF->Error);
 #endif
-        if (!reset(info))
+        if (!reset(info)) //#80 - reset an animation if broken frame is encountered
             fGIF->Error = D_GIF_ERR_REWIND_FAILED;
         return;
     }

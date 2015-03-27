@@ -5,7 +5,6 @@ int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, JNIEnv *en
         throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
         return -1;
     }
-    int invalidationDelay;
     if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
         unsigned int scaledDuration = info->infos[info->currentIndex].duration;
         if (info->speedFactor != 1.0) {
@@ -16,13 +15,12 @@ int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, JNIEnv *en
                 scaledDuration = INT_MAX;
         }
         info->nextStartTime = renderStartTime + scaledDuration;
-        invalidationDelay = (int) (scaledDuration - (getRealTime() - renderStartTime));
+        int invalidationDelay = (int) (scaledDuration - (getRealTime() - renderStartTime));
         if (invalidationDelay < 0)
             invalidationDelay = 0;
+        return invalidationDelay;
     }
-    else
-        invalidationDelay = -1;
-    return invalidationDelay;
+    return -1;
 }
 
 inline time_t getRealTime() {

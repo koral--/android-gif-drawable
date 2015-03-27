@@ -16,7 +16,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     if (info->eventFd == -1) {
         info->eventFd = eventfd(0, 0);
         if (info->eventFd == -1) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Could not create eventfd");
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Could not create eventfd");
             return JNI_FALSE;
         }
     }
@@ -24,7 +24,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
                                          WINDOW_FORMAT_RGBA_8888) != 0) {
         ANativeWindow_release(window);
-        throwException(env, ILLEGAL_STATE_EXCEPTION, "Buffers geometry setting failed");
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Buffers geometry setting failed");
         return JNI_FALSE;
     }
 
@@ -46,24 +46,22 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             break;
         else if (pollResult > 0) {
             if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-                throwException(env, ILLEGAL_STATE_EXCEPTION, "Read on flushing failed");
+                throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Read on flushing failed");
                 return JNI_FALSE;
             }
-
         }
         else {
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll on flushing failed");
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll on flushing failed");
             return JNI_FALSE;
         }
     }
 
     time_t renderingStartTime;
-
     while (1) {
-        oldBufferBits = buffer.bits;
         renderingStartTime = getRealTime();
+        oldBufferBits = buffer.bits;
         if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Window lock failed");
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Window lock failed");
             break;
         }
         if (oldBufferBits != NULL)
@@ -108,12 +106,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
         pollResult = poll(&eventPollFd, 1, invalidationDelayMillis);
         if (pollResult < 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll failed");
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
             break;
         }
         else if (pollResult > 0) {
             if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-                throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd read failed");
+                throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd read failed");
             }
             break;
         }
@@ -130,7 +128,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
     }
     POLL_TYPE eftd_ctr;
     if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-        throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd write failed");
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd write failed");
     }
     info->lastFrameRemainder = info->nextStartTime - getRealTime();
     if (info->lastFrameRemainder < 0)

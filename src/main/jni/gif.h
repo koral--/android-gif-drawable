@@ -54,11 +54,11 @@
 */
 #define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
 
-#define ILLEGAL_STATE_EXCEPTION "java/lang/IllegalStateException"
-#define OUT_OF_MEMORY_ERROR "java/lang/OutOfMemoryError"
-
 #define PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted) (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L))
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
+
+enum Exception {
+    ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION };
 
 typedef struct {
     uint8_t red;
@@ -66,7 +66,6 @@ typedef struct {
     uint8_t blue;
     uint8_t alpha;
 } argb;
-
 
 typedef struct {
     unsigned int duration;
@@ -141,14 +140,14 @@ ColorMapObject *genDefColorMap(void);
 /**
 * @return the real time, in ms
 */
-time_t getRealTime();
+inline time_t getRealTime();
 
 /**
 * Frees dynamically allocated memory
 */
 void cleanUp(GifInfo *info);
 
-void throwException(JNIEnv *env, char *exceptionClass, char *message);
+void throwException(JNIEnv *env, enum Exception exception, char *message);
 
 bool isSourceNull(void *ptr, JNIEnv *env);
 
@@ -201,3 +200,5 @@ int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, JNIEnv *en
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
 
 jint getCurrentPosition(GifInfo *info);
+
+inline void timespec_subtract(struct timespec *begin, struct timespec *end, struct timespec *result);

@@ -156,15 +156,17 @@ public class GifTextureView extends TextureView {
                 mIOException = ex;
                 return;
             }
-            isSurfaceValid.set(isAvailable());
-            GifTextureView.super.setSurfaceTextureListener(this);
 
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    updateTextureViewSize(mGifInfoHandle);
-                }
-            });
+            GifTextureView.super.setSurfaceTextureListener(this);
+            final boolean isSurfaceAvailable = isAvailable();
+            isSurfaceValid.set(isSurfaceAvailable);
+            if (isSurfaceAvailable)
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateTextureViewSize(mGifInfoHandle);
+                    }
+                });
             mGifInfoHandle.setSpeedFactor(mSpeedFactor);
 
             while (!isInterrupted()) {
