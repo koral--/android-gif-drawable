@@ -38,15 +38,24 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     eventPollFd.events = POLL_IN;
 
     POLL_TYPE eftd_ctr;
-    int pollResult = poll(&eventPollFd, 1, 0);
+    int pollResult;
+    while (1) {
+        pollResult = poll(&eventPollFd, 1, 0);
+        if (pollResult == 0)
+            break;
+        else if (pollResult > 0) {
+            if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+                throwException(env, ILLEGAL_STATE_EXCEPTION, "Read on flushing failed");
+                return JNI_FALSE;
+            }
 
-//    if (pollResult > 0) {
-//        while (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) ==POLL_TYPE_SIZE); //TODO error handling?
-//    }
-//    else if (pollResult < 0) {
-//        throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll on flushing failed");
-//    }
-LOGE("loop start");
+        }
+        else {
+            throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll on flushing failed");
+            return JNI_FALSE;
+        }
+    }
+
 #ifdef DEBUG
     time_t start= getRealTime();
 #endif
@@ -79,15 +88,16 @@ LOGE("loop start");
             }
             info->stride = buffer.stride;
         }
+
         if (framesToSkip > 0) {
                 while (--framesToSkip >= 0) {
                     getBitmap(buffer.bits, info);
                     info->currentIndex++;
                 }
         }
+
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
-
         int invalidationDelayMillis = calculateInvalidationDelay(info, getRealTime(), env);
         if (invalidationDelayMillis < 0) {
             result = JNI_TRUE;
@@ -100,7 +110,6 @@ LOGE("loop start");
             invalidationDelayMillis = (int) info->lastFrameRemainder;
             info->lastFrameRemainder = 0;
         }
-
         pollResult = poll(&eventPollFd, 1, invalidationDelayMillis);
         if (pollResult < 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION, "Poll failed");
@@ -125,7 +134,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
     }
     POLL_TYPE eftd_ctr;
     if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-        //if (info->eventFd != -1 || errno != EBADF)
         throwException(env, ILLEGAL_STATE_EXCEPTION, "Eventfd write failed");
     }
     info->lastFrameRemainder = info->nextStartTime - getRealTime();

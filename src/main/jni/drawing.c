@@ -114,6 +114,9 @@ void getBitmap(argb *bm, GifInfo *info) {
         return;
 
     if (DDGifSlurp(fGIF, info, true) == GIF_ERROR) {
+#ifdef DEBUG
+        LOGE("slurp error %d", fGIF->Error);
+#endif
         if (!reset(info))
             fGIF->Error = D_GIF_ERR_REWIND_FAILED;
         return;

@@ -24,7 +24,7 @@ android {
         ndk {
             if (Boolean.valueOf(JNI_DEBUG)) {
                 moduleName 'gif'
-                abiFilter 'armeabi-v7a'
+                abiFilter 'all'
                 ldLibs 'jnigraphics', 'android', 'log'
                 cFlags '-DDEBUG'
             } else {
