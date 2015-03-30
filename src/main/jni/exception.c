@@ -1,3 +1,4 @@
+#include <errno.h>
 #include "gif.h"
 
 #define ILLEGAL_STATE_EXCEPTION_CLASS_NAME "java/lang/IllegalStateException"
