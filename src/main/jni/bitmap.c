@@ -1,29 +1,26 @@
 #include "gif.h"
 #include <android/bitmap.h>
 
-bool lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
+int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
     AndroidBitmapInfo bitmapInfo;
     if (AndroidBitmap_getInfo(env, jbitmap, &bitmapInfo) == ANDROID_BITMAP_RESULT_SUCCESS)
         info->stride = bitmapInfo.width;
     else {
         throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "Could not get bitmap info");
-        return false;
+        return -2;
     }
 
-    int i;
-    int lockPixelsResult = ANDROID_BITMAP_RESULT_SUCCESS;
-    for (i = 0; i < 20; i++) { //#122 workaround
-        usleep(100);
-        lockPixelsResult = AndroidBitmap_lockPixels(env, jbitmap, pixels);
-        if (lockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS) {
-            return true;
-        }
-    }
+    const int lockPixelsResult = AndroidBitmap_lockPixels(env, jbitmap, pixels);
+    if (lockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS)
+        return 0;
+
     char *message;
     switch (lockPixelsResult) {
         case ANDROID_BITMAP_RESULT_ALLOCATION_FAILED:
-            message = "Lock pixels error, frame buffer allocation failed";
-            break;
+#ifdef DEBUG
+            LOGE("bitmap lock allocation failed");
+#endif
+            return -1; //#122 workaround
         case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
             message = "Lock pixels error, bad parameter";
             break;
@@ -34,7 +31,7 @@ bool lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
             message = "Lock pixels error";
     }
     throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, message);
-    return false;
+    return -2;
 }
 
 void unlockPixels(JNIEnv *env, jobject jbitmap) {
@@ -57,7 +54,7 @@ void unlockPixels(JNIEnv *env, jobject jbitmap) {
 
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass,
-        jlong gifInfo, jobject jbitmap) {
+                                                    jlong gifInfo, jobject jbitmap) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return PACK_RENDER_FRAME_RESULT(-1, false);
@@ -68,7 +65,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
         if (++info->currentIndex >= info->gifFilePtr->ImageCount)
             info->currentIndex = 0;
         needRedraw = true;
-        isAnimationCompleted = info->currentIndex >= info->gifFilePtr->ImageCount - 1 && info->currentLoop >= info->loopCount;
+        isAnimationCompleted =
+                info->currentIndex >= info->gifFilePtr->ImageCount - 1 && info->currentLoop >= info->loopCount;
     }
     else
         isAnimationCompleted = false;
@@ -76,8 +74,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     time_t invalidationDelay;
     if (needRedraw) {
         void *pixels;
-        if (!lockPixels(env, jbitmap, info, &pixels)) {
-            return PACK_RENDER_FRAME_RESULT(-1, false);
+        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
+            return PACK_RENDER_FRAME_RESULT(0, false);
         }
         getBitmap((argb *) pixels, info);
         unlockPixels(env, jbitmap);

@@ -12,7 +12,7 @@ bool reset(GifInfo *info) {
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_reset(JNIEnv *__unused  env, jclass  __unused class,
-        jlong gifInfo) {
+                                              jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
@@ -21,7 +21,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_reset(JNIEnv *__unused  env, jclass  __u
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_setSpeedFactor(JNIEnv __unused *env, jclass __unused handleClass,
-        jlong gifInfo, jfloat factor) {
+                                                       jlong gifInfo, jfloat factor) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
@@ -30,7 +30,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_setSpeedFactor(JNIEnv __unused *env, jcl
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused handleClass,
-        jlong gifInfo, jint desiredPos, jobject jbitmap) {
+                                                   jlong gifInfo, jint desiredPos, jobject jbitmap) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
@@ -59,7 +59,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         info->lastFrameRemainder = info->infos[desiredIndex].duration;
     if (desiredIndex > info->currentIndex) {
         void *pixels;
-        if (!lockPixels(env, jbitmap, info, &pixels)) {
+        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
             return;
         }
         while (info->currentIndex <= desiredIndex) {
@@ -77,7 +77,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused handleClass,
-        jlong gifInfo, jint desiredIndex, jobject jbitmap) {
+                                                    jlong gifInfo, jint desiredIndex, jobject jbitmap) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
@@ -97,7 +97,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
         desiredIndex = imgCount - 1;
 
     void *pixels;
-    if (!lockPixels(env, jbitmap, info, &pixels)) {
+    if (lockPixels(env, jbitmap, info, &pixels) != 0) {
         return;
     }
     while (info->currentIndex < desiredIndex) {
@@ -114,7 +114,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jclass __unused handleClass,
-        jlong gifInfo) {
+                                                      jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
@@ -123,7 +123,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jcl
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
-        jclass __unused handleClass, jlong gifInfo) {
+                                                         jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL || info->lastFrameRemainder == ULONG_MAX || info->gifFilePtr->ImageCount <= 1)
         return;

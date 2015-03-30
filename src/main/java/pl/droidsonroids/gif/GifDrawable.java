@@ -68,6 +68,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     final InvalidationHandler mInvalidationHandler;
 
     private final Runnable mRenderTask = new RenderTask(this);
+    private final Rect mSrcRect;
 
     /**
      * Creates drawable from resource.
@@ -172,8 +173,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
      *
      * @param buffer buffer containing GIF data
-     * @throws IOException              if buffer does not contain valid GIF data or is indirect
-     * @throws NullPointerException     if buffer is null
+     * @throws IOException          if buffer does not contain valid GIF data or is indirect
+     * @throws NullPointerException if buffer is null
      */
     public GifDrawable(@NonNull ByteBuffer buffer) throws IOException {
         this(GifInfoHandle.openDirectByteBuffer(buffer, false), null, null, true);
@@ -200,9 +201,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (oldDrawable != null) {
             synchronized (oldDrawable.mNativeInfoHandle) {
                 if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
-                    final int oldHeight = oldDrawable.mBuffer.getHeight();
-                    final int oldWidth = oldDrawable.mBuffer.getWidth();
-                    if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
+                    if (oldDrawable.mNativeInfoHandle.height >= mNativeInfoHandle.height &&
+                            oldDrawable.mNativeInfoHandle.width >= mNativeInfoHandle.width) {
                         oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
                         oldBitmap.eraseColor(Color.TRANSPARENT);
@@ -217,6 +217,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mBuffer = oldBitmap;
         }
 
+        mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
         mInvalidationHandler = new InvalidationHandler(this);
         mExecutor.execute(mRenderTask);
     }
@@ -639,7 +640,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             clearColorFilter = false;
         }
         if (mPaint.getShader() == null) {
-            canvas.drawBitmap(mBuffer, null, mDstRect, mPaint);
+            canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
         } else {
             canvas.drawRect(mDstRect, mPaint);
         }
