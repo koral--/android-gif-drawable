@@ -95,6 +95,7 @@ struct GifInfo {
     int32_t stride;
     jlong sourceLength;
     int eventFd;
+    void* surfaceBackupPtr;
 };
 
 typedef struct {

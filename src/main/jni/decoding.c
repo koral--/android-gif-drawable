@@ -13,8 +13,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
 
                 if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
                     return GIF_ERROR;
-                SavedImage *sp = &GifFile->SavedImages[(shouldDecode ? info->currentIndex : GifFile->ImageCount - 1)];
-                const GifWord width = sp->ImageDesc.Width, height = sp->ImageDesc.Height;
+                const GifWord width = GifFile->Image.Width, height = GifFile->Image.Height;
                 const int ImageSize = width * height;
 
                 if ((width < 1) || (height < 1) || ImageSize > (SIZE_MAX / sizeof(GifPixelType))) {
@@ -26,7 +25,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                     return GIF_ERROR;
                 }
                 if (shouldDecode) {
-                    if (sp->ImageDesc.Interlace) {
+                    if (GifFile->Image.Interlace) {
                         int i, j;
                         /*
                          * The way an interlaced image should be read -
@@ -36,11 +35,11 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                         int InterlacedJumps[] = {8, 8, 4, 2};
                         /* Need to perform 4 passes on the image */
                         for (i = 0; i < 4; i++)
-                            for (j = InterlacedOffset[i]; j < sp->ImageDesc.Height;
+                            for (j = InterlacedOffset[i]; j < GifFile->Image.Height;
                                  j += InterlacedJumps[i]) {
                                 if (DGifGetLine(GifFile,
-                                        info->rasterBits + j * sp->ImageDesc.Width,
-                                        sp->ImageDesc.Width) == GIF_ERROR)
+                                        info->rasterBits + j * GifFile->Image.Width,
+                                                GifFile->Image.Width) == GIF_ERROR)
                                     return GIF_ERROR;
                             }
                     }

@@ -4,6 +4,8 @@ void cleanUp(GifInfo *info) {
     if (info->eventFd != -1)
         close(info->eventFd);
     info->eventFd = -1;
+    free(info->surfaceBackupPtr);
+    info->surfaceBackupPtr = NULL;
     free(info->backupPtr);
     info->backupPtr = NULL;
     free(info->infos);
@@ -56,7 +58,8 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     if (justDecodeMetaData == JNI_TRUE)
         info->rasterBits = NULL;
     else
-        info->rasterBits = malloc(descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
+        info->rasterBits = malloc(
+                descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
     info->infos = malloc(sizeof(FrameInfo));
     info->backupPtr = NULL;
     info->rewindFunction = descriptor->rewindFunc;
@@ -69,7 +72,8 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->infos->duration = 0;
     info->infos->disposalMethod = DISPOSAL_UNSPECIFIED;
     info->infos->transpIndex = NO_TRANSPARENT_COLOR;
-    if (descriptor->GifFileIn->SColorMap != NULL && descriptor->GifFileIn->SColorMap->ColorCount != (1 << descriptor->GifFileIn->SColorMap->BitsPerPixel)) {
+    if (descriptor->GifFileIn->SColorMap != NULL &&
+        descriptor->GifFileIn->SColorMap->ColorCount != (1 << descriptor->GifFileIn->SColorMap->BitsPerPixel)) {
         GifFreeMapObject(descriptor->GifFileIn->SColorMap);
         descriptor->GifFileIn->SColorMap = defaultCmap;
     }
@@ -99,7 +103,8 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     if (gifInfoHandleCtorMID == NULL)
         return NULL;
     info->eventFd = -1;
+    info->surfaceBackupPtr = NULL;
     return (*env)->NewObject(env, gifInfoHandleClass, gifInfoHandleCtorMID,
-            (jlong) (intptr_t) info, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
-            info->gifFilePtr->ImageCount);
+                             (jlong) (intptr_t) info, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
+                             info->gifFilePtr->ImageCount);
 }

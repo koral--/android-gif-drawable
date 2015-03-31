@@ -51,7 +51,7 @@ final class GifInfoHandle {
 
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
-    private static native boolean bindSurface(long gifInfoPtr, Surface surface, int startPosition);
+    private static native void bindSurface(long gifInfoPtr, Surface surface, int startPosition);
 
     private static native void free(long gifFileInPtr);
 
@@ -114,8 +114,8 @@ final class GifInfoHandle {
         return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    boolean bindSurface(Surface surface, int startPosition) {
-        return bindSurface(gifInfoPtr, surface, startPosition);
+    void bindSurface(Surface surface, int startPosition) {
+        bindSurface(gifInfoPtr, surface, startPosition);
     }
 
     synchronized void recycle() {
