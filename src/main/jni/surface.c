@@ -68,15 +68,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         if (firstLoop) {
             bufferSize = buffer.stride * buffer.height * sizeof(argb);
             info->stride = buffer.stride;
-//            if (info->backupPtr != NULL) {
-//                void *tmpBackupPtr = realloc(info->backupPtr, bufferSize);
-//                if (tmpBackupPtr == NULL) {
-//                    ANativeWindow_unlockAndPost(window);
-//                    throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-//                    break;
-//                }
-//                info->backupPtr = tmpBackupPtr;
-//            }
             if (info->surfaceBackupPtr) {
                 memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
             }
@@ -99,9 +90,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         ANativeWindow_unlockAndPost(window);
 
         int invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime);
-        if (invalidationDelayMillis < 0) {
-            break;
-        }
 
         if (info->lastFrameRemainder > 0) {
             invalidationDelayMillis = (int) info->lastFrameRemainder;
