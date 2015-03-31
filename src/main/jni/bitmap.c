@@ -75,11 +75,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     if (needRedraw) {
         void *pixels;
         if (lockPixels(env, jbitmap, info, &pixels) != 0) {
+            info->currentIndex--; //#122, #140 workaround
             return PACK_RENDER_FRAME_RESULT(0, false);
         }
         getBitmap((argb *) pixels, info);
         unlockPixels(env, jbitmap);
-        invalidationDelay = calculateInvalidationDelay(info, rt, env);
+        invalidationDelay = calculateInvalidationDelay(info, rt);
     }
     else {
         time_t delay = info->nextStartTime - rt;

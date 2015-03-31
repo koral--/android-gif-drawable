@@ -55,7 +55,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
     }
 
+    size_t bufferSize = 0;
     time_t renderingStartTime;
+    bool firstLoop = true;
     while (1) {
         renderingStartTime = getRealTime();
         oldBufferBits = buffer.bits;
@@ -63,40 +65,40 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Window lock failed");
             break;
         }
-        if (oldBufferBits != NULL)
-            memcpy(buffer.bits, oldBufferBits, buffer.stride * buffer.height * sizeof(argb));
-
-        if (buffer.stride != info->stride) {
-            if (info->backupPtr != NULL) {
-                void *tmpBackupPtr = realloc(info->backupPtr, info->stride * info->gifFilePtr->SHeight * sizeof(argb));
-                if (tmpBackupPtr == NULL) {
-                    ANativeWindow_unlockAndPost(window);
-                    throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
-                    break;
-                }
-                info->backupPtr = tmpBackupPtr;
-            }
+        if (firstLoop) {
+            bufferSize = buffer.stride * buffer.height * sizeof(argb);
             info->stride = buffer.stride;
-        }
-        if (framesToSkip > 0) {
-            if (info->surfaceBackupPtr) { //TODO handle buffer size changes
-                memcpy(buffer.bits, info->surfaceBackupPtr, buffer.stride * buffer.height * sizeof(argb));
-                framesToSkip = 0;
-                info->currentIndex++;
+//            if (info->backupPtr != NULL) {
+//                void *tmpBackupPtr = realloc(info->backupPtr, bufferSize);
+//                if (tmpBackupPtr == NULL) {
+//                    ANativeWindow_unlockAndPost(window);
+//                    throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+//                    break;
+//                }
+//                info->backupPtr = tmpBackupPtr;
+//            }
+            if (info->surfaceBackupPtr) {
+                memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
             }
-            else
-                while (--framesToSkip >= 0) {
-                    getBitmap(buffer.bits, info);
-                    info->currentIndex++;
-                }
-        } else {
-            if (++info->currentIndex >= info->gifFilePtr->ImageCount)
-                info->currentIndex = 0;
+            else {
+                    while (framesToSkip-- >= 0) {
+                        info->currentIndex++;
+                        getBitmap(buffer.bits, info);
+                    }
+            }
+            firstLoop = false;
         }
+        else {
+            memcpy(buffer.bits, oldBufferBits, bufferSize);
+        }
+
+        if (++info->currentIndex >= info->gifFilePtr->ImageCount)
+            info->currentIndex = 0;
 
         getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);
-        int invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, env);
+
+        int invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime);
         if (invalidationDelayMillis < 0) {
             break;
         }
@@ -111,9 +113,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             break;
         }
         else if (pollResult > 0) {
-            info->surfaceBackupPtr = realloc(info->surfaceBackupPtr,
-                                             buffer.stride * buffer.height * sizeof(argb)); //TODO nullcheck
-            memcpy(info->surfaceBackupPtr, buffer.bits, buffer.stride * buffer.height * sizeof(argb));
+            if (info->surfaceBackupPtr == NULL) {
+                info->surfaceBackupPtr = malloc(bufferSize);
+                if (info->surfaceBackupPtr == NULL) {
+                    throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+                    break;
+                }
+            }
+            memcpy(info->surfaceBackupPtr, buffer.bits, bufferSize);
             if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
                 throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd read failed");
             }

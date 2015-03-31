@@ -1,11 +1,6 @@
 #include "gif.h"
 
-/**
-* Global VM reference, initialized in JNI_OnLoad
-*/
-static JavaVM *g_jvm;
-
-static inline JNIEnv *getEnv(void) {
+inline JNIEnv *getEnv(void) {
     JNIEnv *env;
     if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
         return env;
@@ -137,7 +132,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
     }
     ByteArrayContainer *container = malloc(sizeof(ByteArrayContainer));
     if (container == NULL) {
-        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
     container->buffer = (*env)->NewGlobalRef(env, bytes);
@@ -171,7 +166,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env,
     }
     DirectByteBufferContainer *container = malloc(sizeof(DirectByteBufferContainer));
     if (container == NULL) {
-        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
     container->bytes = bytes;
@@ -209,7 +204,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
     StreamContainer *container = malloc(sizeof(StreamContainer));
     if (container == NULL) {
-        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
     container->readMID = readMID;

@@ -52,11 +52,11 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
 // return true if area of 'target' is completely covers area of 'covered'
 static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
     if (target->ImageDesc.Left <= covered->ImageDesc.Left
-            && covered->ImageDesc.Left + covered->ImageDesc.Width
-            <= target->ImageDesc.Left + target->ImageDesc.Width
-            && target->ImageDesc.Top <= covered->ImageDesc.Top
-            && covered->ImageDesc.Top + covered->ImageDesc.Height
-            <= target->ImageDesc.Top + target->ImageDesc.Height) {
+        && covered->ImageDesc.Left + covered->ImageDesc.Width
+           <= target->ImageDesc.Left + target->ImageDesc.Width
+        && target->ImageDesc.Top <= covered->ImageDesc.Top
+        && covered->ImageDesc.Top + covered->ImageDesc.Height
+           <= target->ImageDesc.Top + target->ImageDesc.Height) {
         return true;
     }
     return false;
@@ -64,14 +64,6 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
 
 static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
     GifFileType *fGif = info->gifFilePtr;
-    if (info->backupPtr == NULL) {
-        info->backupPtr = malloc(info->stride * fGif->SHeight * sizeof(argb));
-        if (!info->backupPtr) {
-            info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-            return;
-        }
-    }
-    argb *backup = info->backupPtr;
     SavedImage *cur = &fGif->SavedImages[idx - 1];
     SavedImage *next = &fGif->SavedImages[idx];
     // We can skip disposal process if next frame is not transparent
@@ -79,6 +71,20 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
     unsigned char curDisposal = info->infos[idx - 1].disposalMethod;
     bool nextTrans = info->infos[idx].transpIndex != NO_TRANSPARENT_COLOR;
     unsigned char nextDisposal = info->infos[idx].disposalMethod;
+
+    if ((curDisposal == DISPOSE_PREVIOUS || nextDisposal == DISPOSE_PREVIOUS) && info->backupPtr == NULL) {
+        info->backupPtr = malloc(info->stride * fGif->SHeight * sizeof(argb));
+        if (!info->backupPtr) {
+            JNIEnv *env = getEnv();
+            if (!env) {
+                abort();
+            }
+            throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+            info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+            return;
+        }
+    }
+    argb *backup = info->backupPtr;
     if (nextTrans || !checkIfCover(next, cur)) {
         if (curDisposal == DISPOSE_BACKGROUND) {// restore to background (under this image) color
             uint32_t *dst = (uint32_t *) GET_ADDR(bm, info->stride, cur->ImageDesc.Left, cur->ImageDesc.Top);

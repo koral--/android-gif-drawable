@@ -42,7 +42,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     GifInfo *info = malloc(sizeof(GifInfo));
     if (info == NULL) {
         DGifCloseFile(descriptor->GifFileIn);
-        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
     info->gifFilePtr = descriptor->GifFileIn;
@@ -63,10 +63,12 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->infos = malloc(sizeof(FrameInfo));
     info->backupPtr = NULL;
     info->rewindFunction = descriptor->rewindFunc;
+    info->eventFd = -1;
+    info->surfaceBackupPtr = NULL;
 
     if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL) {
         cleanUp(info);
-        throwGifIOException(D_GIF_ERR_NOT_ENOUGH_MEM, env);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
     info->infos->duration = 0;
@@ -78,12 +80,16 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         descriptor->GifFileIn->SColorMap = defaultCmap;
     }
 
+    if (DDGifSlurp(descriptor->GifFileIn, info, false) == GIF_ERROR) {
+        if (descriptor->GifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
+            cleanUp(info);
+            throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+            return NULL;
+        }
 #if defined(STRICT_FORMAT_89A)
-	if (DDGifSlurp(descriptor->GifFileIn, info, false) == GIF_descriptor->Error)
-		descriptor->Error = descriptor->GifFileIn->descriptor->Error;
-#else
-    DDGifSlurp(descriptor->GifFileIn, info, false);
+        descriptor->Error = descriptor->GifFileIn->Error;
 #endif
+    }
 
     if (descriptor->GifFileIn->ImageCount < 1) {
         descriptor->Error = D_GIF_ERR_NO_FRAMES;
@@ -97,13 +103,15 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         return NULL;
     }
     jclass gifInfoHandleClass = (*env)->FindClass(env, "pl/droidsonroids/gif/GifInfoHandle");
-    if (gifInfoHandleClass == NULL)
+    if (gifInfoHandleClass == NULL) {
+        cleanUp(info);
         return NULL;
+    }
     jmethodID gifInfoHandleCtorMID = (*env)->GetMethodID(env, gifInfoHandleClass, "<init>", "(JIII)V");
-    if (gifInfoHandleCtorMID == NULL)
+    if (gifInfoHandleCtorMID == NULL) {
+        cleanUp(info);
         return NULL;
-    info->eventFd = -1;
-    info->surfaceBackupPtr = NULL;
+    }
     return (*env)->NewObject(env, gifInfoHandleClass, gifInfoHandleCtorMID,
                              (jlong) (intptr_t) info, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
                              info->gifFilePtr->ImageCount);

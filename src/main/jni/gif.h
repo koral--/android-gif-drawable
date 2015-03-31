@@ -57,6 +57,8 @@
 #define PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted) (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L))
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
 
+#define OOME_MESSAGE "Failed to allocate native memory"
+
 enum Exception {
     ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION };
 
@@ -132,6 +134,11 @@ typedef struct {
 static ColorMapObject *defaultCmap;
 
 /**
+* Global VM reference, initialized in JNI_OnLoad
+*/
+static JavaVM *g_jvm;
+
+/**
 * Generates default color map, used when there is no color map defined in GIF file.
 * Upon successful allocation in JNI_OnLoad it is stored for further use.
 *
@@ -154,7 +161,7 @@ bool isSourceNull(void *ptr, JNIEnv *env);
 
 static int fileRead(GifFileType *gif, GifByteType *bytes, int size);
 
-static JNIEnv *getEnv(void);
+inline JNIEnv *getEnv(void);
 
 static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int size);
 
@@ -196,10 +203,8 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, JNIEnv *env);
+int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime);
 
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
 
 jint getCurrentPosition(GifInfo *info);
-
-inline void timespec_subtract(struct timespec *begin, struct timespec *end, struct timespec *result);

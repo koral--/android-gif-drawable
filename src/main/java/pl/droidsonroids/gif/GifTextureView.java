@@ -186,9 +186,8 @@ public class GifTextureView extends TextureView {
                     continue;
                 }
                 final Surface surface = new Surface(surfaceTexture);
-                //mGifInfoHandle.reset();
                 try {
-                    Log.e("libgif", "binding");
+                    Log.e("libgif", "binding "+mStartPosition);
                     mGifInfoHandle.bindSurface(surface, mStartPosition);
                 } finally {
                     surface.release();
