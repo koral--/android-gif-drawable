@@ -73,7 +73,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     }
     info->infos->duration = 0;
     info->infos->disposalMethod = DISPOSAL_UNSPECIFIED;
-    info->infos->transpIndex = NO_TRANSPARENT_COLOR;
+    info->infos->transpIndex = (uint16_t) NO_TRANSPARENT_COLOR;
     if (descriptor->GifFileIn->SColorMap != NULL &&
         descriptor->GifFileIn->SColorMap->ColorCount != (1 << descriptor->GifFileIn->SColorMap->BitsPerPixel)) {
         GifFreeMapObject(descriptor->GifFileIn->SColorMap);

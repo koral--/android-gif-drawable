@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.TypedArray;
 import android.graphics.Matrix;
 import android.graphics.RectF;

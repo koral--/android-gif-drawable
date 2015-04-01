@@ -38,14 +38,13 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                             for (j = InterlacedOffset[i]; j < GifFile->Image.Height;
                                  j += InterlacedJumps[i]) {
                                 if (DGifGetLine(GifFile,
-                                        info->rasterBits + j * GifFile->Image.Width,
+                                                info->rasterBits + j * GifFile->Image.Width,
                                                 GifFile->Image.Width) == GIF_ERROR)
                                     return GIF_ERROR;
                             }
                     }
                     else {
-                        if (DGifGetLine(GifFile, info->rasterBits,
-                                ImageSize) == GIF_ERROR)
+                        if (DGifGetLine(GifFile, info->rasterBits, ImageSize) == GIF_ERROR)
                             return GIF_ERROR;
                     }
                     if (info->currentIndex >= GifFile->ImageCount - 1) {
@@ -73,7 +72,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                     return GIF_ERROR;
                 if (!shouldDecode) {
                     FrameInfo *tmpInfos = realloc(info->infos,
-                            (GifFile->ImageCount + 1) * sizeof(FrameInfo));
+                                                  (GifFile->ImageCount + 1) * sizeof(FrameInfo));
                     if (tmpInfos == NULL)
                         return GIF_ERROR;
                     info->infos = tmpInfos;
@@ -82,7 +81,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                 }
                 while (ExtData != NULL) {
                     if (DGifGetExtensionNext(GifFile, &ExtData,
-                            &ExtFunction) == GIF_ERROR)
+                                             &ExtFunction) == GIF_ERROR)
                         return GIF_ERROR;
                     if (!shouldDecode) {
                         if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
@@ -98,7 +97,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                 break;
         }
     } while (RecordType != TERMINATE_RECORD_TYPE);
-    
+
     if (shouldDecode) {
         if (info->rewindFunction(info) != 0) {
             info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
@@ -118,8 +117,8 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
 
         FrameInfo *fi = &info->infos[info->gifFilePtr->ImageCount];
         fi->disposalMethod = (unsigned char) GCB.DisposalMode;
-        fi->duration = GCB.DelayTime > 1 ? (unsigned int) GCB.DelayTime * 10 : 100;
-        fi->transpIndex = GCB.TransparentColor;
+        fi->duration = (uint16_t) (GCB.DelayTime > 1 ? GCB.DelayTime * 10 : 100);
+        fi->transpIndex = (uint16_t) GCB.TransparentColor;
     }
     else if (ExtFunction == COMMENT_EXT_FUNC_CODE) {
         if (getComment(ExtData, &info->comment) == GIF_ERROR) {
@@ -130,14 +129,14 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
     else if (ExtFunction == APPLICATION_EXT_FUNC_CODE) {
         char const *string = (char const *) (ExtData + 1);
         if (strncmp("NETSCAPE2.0", string, ExtData[0]) == 0
-                || strncmp("ANIMEXTS1.0", string, ExtData[0]) == 0) {
+            || strncmp("ANIMEXTS1.0", string, ExtData[0]) == 0) {
             if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
-                    &ExtFunction) == GIF_ERROR)
+                                     &ExtFunction) == GIF_ERROR)
                 return GIF_ERROR;
             if (ExtData[0] == 3
-                    && ExtData[1] == 1) {
-                info->loopCount = (unsigned short) (ExtData[2]
-                        + (ExtData[3] << 8));
+                && ExtData[1] == 1) {
+                info->loopCount = (uint8_t) (ExtData[2]
+                                             + (ExtData[3] << 8));
             }
         }
     }

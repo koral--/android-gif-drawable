@@ -60,19 +60,18 @@
 #define OOME_MESSAGE "Failed to allocate native memory"
 
 enum Exception {
-    ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION };
+    ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
+};
 
-typedef struct {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
+typedef struct{
+    GifColorType rgb;
     uint8_t alpha;
 } argb;
 
 typedef struct {
-    unsigned int duration;
-    int transpIndex;
-    unsigned char disposalMethod;
+    uint16_t duration;
+    uint16_t transpIndex;
+    uint8_t disposalMethod;
 } FrameInfo;
 
 typedef struct GifInfo GifInfo;
@@ -90,14 +89,14 @@ struct GifInfo {
     long startPos;
     unsigned char *rasterBits;
     char *comment;
-    unsigned short loopCount;
-    int currentLoop;
+    uint8_t loopCount;
+    uint8_t currentLoop;
     RewindFunc rewindFunction;
     jfloat speedFactor;
     int32_t stride;
     jlong sourceLength;
     int eventFd;
-    void* surfaceBackupPtr;
+    void *surfaceBackupPtr;
 };
 
 typedef struct {

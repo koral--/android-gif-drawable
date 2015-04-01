@@ -14,24 +14,23 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
     if (frame->ImageDesc.Top + copyHeight > height) {
         copyHeight = height - frame->ImageDesc.Top;
     }
+    time_t st = getRealTime();
 
     int x;
-    int colorIndex;
-    argb *copyDst;
+    register char srcColorIndex;
     for (; copyHeight > 0; copyHeight--) {
-        copyDst = dst;
-        for (x = copyWidth; x > 0; x--, src++, copyDst++) {
-            if (*src != info->infos[info->currentIndex].transpIndex) {
-                colorIndex = (*src >= cmap->ColorCount) ? 0 : *src;
-                GifColorType *col = &cmap->Colors[colorIndex];
-                copyDst->alpha = 0xFF;
-                copyDst->red = col->Red;
-                copyDst->green = col->Green;
-                copyDst->blue = col->Blue;
+        for (x = copyWidth; x > 0; x--, src++, dst++) {
+            srcColorIndex = *src;
+            if (srcColorIndex != info->infos[info->currentIndex].transpIndex) {
+                if (srcColorIndex >= cmap->ColorCount)
+                    srcColorIndex = 0;
+                dst->rgb = cmap->Colors[srcColorIndex];
+                dst->alpha = 0xFF;
             }
         }
-        dst += info->stride;
+        dst += info->stride - copyWidth;
     }
+    LOGE("copyTime %ld", getRealTime() - st);
 }
 
 static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
@@ -133,14 +132,11 @@ void getBitmap(argb *bm, GifInfo *info) {
             argb *dst = bm;
             int x, y;
             for (y = 0; y < fGIF->SHeight; y++) {
-                argb *copyDst = dst;
-                for (x = 0; x < fGIF->SWidth; x++, copyDst++) {
-                    copyDst->alpha = 0xFF;
-                    copyDst->red = bgColor.Red;
-                    copyDst->green = bgColor.Green;
-                    copyDst->blue = bgColor.Blue;
+                for (x = 0; x < fGIF->SWidth; x++, dst++) {
+                    dst->rgb = bgColor;
+                    dst->alpha = 0xFF;
                 }
-                dst += info->stride;
+                dst += info->stride - fGIF->SWidth;
             }
         }
         else
