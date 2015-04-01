@@ -54,7 +54,7 @@ class GifViewSavedState extends View.BaseSavedState {
     };
 
     void setPosition(Drawable drawable, int i) {
-        if (drawable instanceof GifDrawable && mPositions[i] >= 0) {
+        if (drawable instanceof GifDrawable && mPositions[i] > 0) {
             ((GifDrawable) drawable).seekTo(mPositions[i]);
         }
     }

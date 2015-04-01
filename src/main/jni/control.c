@@ -62,7 +62,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         if (lockPixels(env, jbitmap, info, &pixels) != 0) {
             return;
         }
-        while (info->currentIndex++ <= desiredIndex && info->currentIndex < info->gifFilePtr->ImageCount) {
+        while (info->currentIndex < desiredIndex) {
+            info->currentIndex++;
             getBitmap((argb *) pixels, info);
         }
         unlockPixels(env, jbitmap);
@@ -99,7 +100,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     if (lockPixels(env, jbitmap, info, &pixels) != 0) {
         return;
     }
-    while (info->currentIndex++ < desiredIndex && info->currentIndex < info->gifFilePtr->ImageCount) {
+    while (info->currentIndex < desiredIndex) {
+        info->currentIndex++;
         getBitmap((argb *) pixels, info);
     }
     unlockPixels(env, jbitmap);

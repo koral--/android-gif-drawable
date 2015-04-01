@@ -16,6 +16,7 @@ int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime) {
             invalidationDelay = 0;
         return invalidationDelay;
     }
+    info->lastFrameRemainder =0;
     return -1;
 }
 
