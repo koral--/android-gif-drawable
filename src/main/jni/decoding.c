@@ -13,7 +13,7 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
 
                 if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
                     return GIF_ERROR;
-                const GifWord width = GifFile->Image.Width, height = GifFile->Image.Height;
+                const uint_fast16_t width = GifFile->Image.Width, height = GifFile->Image.Height;
                 const int ImageSize = width * height;
 
                 if ((width < 1) || (height < 1) || ImageSize > (SIZE_MAX / sizeof(GifPixelType))) {
@@ -26,13 +26,13 @@ int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                 }
                 if (shouldDecode) {
                     if (GifFile->Image.Interlace) {
-                        int i, j;
+                        uint_fast16_t i, j;
                         /*
                          * The way an interlaced image should be read -
                          * offsets and jumps...
                          */
-                        int InterlacedOffset[] = {0, 4, 2, 1};
-                        int InterlacedJumps[] = {8, 8, 4, 2};
+                        uint_fast8_t InterlacedOffset[] = {0, 4, 2, 1};
+                        uint_fast8_t InterlacedJumps[] = {8, 8, 4, 2};
                         /* Need to perform 4 passes on the image */
                         for (i = 0; i < 4; i++)
                             for (j = InterlacedOffset[i]; j < GifFile->Image.Height;
@@ -117,8 +117,8 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
 
         FrameInfo *fi = &info->infos[info->gifFilePtr->ImageCount];
         fi->disposalMethod = (unsigned char) GCB.DisposalMode;
-        fi->duration = (uint16_t) (GCB.DelayTime > 1 ? GCB.DelayTime * 10 : 100);
-        fi->transpIndex = (uint16_t) GCB.TransparentColor;
+        fi->duration = (uint_fast16_t) (GCB.DelayTime > 1 ? GCB.DelayTime * 10 : 100);
+        fi->transpIndex = (uint_fast16_t) GCB.TransparentColor;
     }
     else if (ExtFunction == COMMENT_EXT_FUNC_CODE) {
         if (getComment(ExtData, &info->comment) == GIF_ERROR) {

@@ -1,34 +1,30 @@
 #include "gif.h"
 
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
-    const GifWord width = info->gifFilePtr->SWidth;
-    const GifWord height = info->gifFilePtr->SHeight;
+    const uint_fast16_t width = info->gifFilePtr->SWidth;
+    const uint_fast16_t height = info->gifFilePtr->SHeight;
     unsigned char *src = info->rasterBits;
     argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
-    GifWord copyWidth = frame->ImageDesc.Width;
+    uint_fast16_t copyWidth = frame->ImageDesc.Width;
     if (frame->ImageDesc.Left + copyWidth > width) {
         copyWidth = width - frame->ImageDesc.Left;
     }
 
-    GifWord copyHeight = frame->ImageDesc.Height;
+    uint_fast16_t copyHeight = frame->ImageDesc.Height;
     if (frame->ImageDesc.Top + copyHeight > height) {
         copyHeight = height - frame->ImageDesc.Top;
     }
-    //time_t st = getRealTime();
 
-    int x;
+    uint_fast16_t x;
     for (; copyHeight > 0; copyHeight--) {
         for (x = copyWidth; x > 0; x--, src++, dst++) {
             if (*src != info->infos[info->currentIndex].transpIndex) {
-                if (*src >= cmap->ColorCount)
-                    *src = 0;
                 dst->rgb = cmap->Colors[*src];
                 dst->alpha = 0xFF;
             }
         }
         dst += info->stride - copyWidth;
     }
-    //LOGE("copyTime %ld", getRealTime() - st);
 }
 
 static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
@@ -37,8 +33,6 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
     if (frame->ImageDesc.ColorMap != NULL) {
         // use local color table
         cmap = frame->ImageDesc.ColorMap;
-        if (cmap->ColorCount != (1 << cmap->BitsPerPixel))
-            cmap = defaultCmap;
     }
     else if (cmap == NULL)
         cmap = defaultCmap;
@@ -85,12 +79,12 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
     if (nextTrans || !checkIfCover(next, cur)) {
         if (curDisposal == DISPOSE_BACKGROUND) {// restore to background (under this image) color
             uint32_t *dst = (uint32_t *) GET_ADDR(bm, info->stride, cur->ImageDesc.Left, cur->ImageDesc.Top);
-            int copyWidth = cur->ImageDesc.Width;
+            uint_fast16_t copyWidth = cur->ImageDesc.Width;
             if (cur->ImageDesc.Left + copyWidth > fGif->SWidth) {
                 copyWidth = fGif->SWidth - cur->ImageDesc.Left;
             }
 
-            int copyHeight = cur->ImageDesc.Height;
+            uint_fast16_t copyHeight = cur->ImageDesc.Height;
             if (cur->ImageDesc.Top + copyHeight > fGif->SHeight) {
                 copyHeight = fGif->SHeight - cur->ImageDesc.Top;
             }
@@ -112,6 +106,8 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
 }
 
 void getBitmap(argb *bm, GifInfo *info) {
+    time_t st = getRealTime();
+
     GifFileType *fGIF = info->gifFilePtr;
     if (fGIF->Error == D_GIF_ERR_REWIND_FAILED)
         return;
@@ -125,15 +121,15 @@ void getBitmap(argb *bm, GifInfo *info) {
         return;
     }
     if (info->currentIndex == 0) {
-        if (info->gifFilePtr->SColorMap && info->infos[0].disposalMethod == DISPOSAL_UNSPECIFIED) {
+        if (info->gifFilePtr->SColorMap && info->infos[0].transpIndex == NO_TRANSPARENT_COLOR) {
             const GifColorType bgColor = info->gifFilePtr->SColorMap->Colors[fGIF->SBackGroundColor];
+            memset(bm, INT_MAX, info->stride * fGIF->SHeight * sizeof(argb));
+
             argb *dst = bm;
-            int x, y;
+            uint_fast16_t x, y;
             for (y = 0; y < fGIF->SHeight; y++) {
-                for (x = 0; x < fGIF->SWidth; x++, dst++) {
+                for (x = 0; x < fGIF->SWidth; x++, dst++)
                     dst->rgb = bgColor;
-                    dst->alpha = 0xFF;
-                }
                 dst += info->stride - fGIF->SWidth;
             }
         }
@@ -144,12 +140,13 @@ void getBitmap(argb *bm, GifInfo *info) {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
     }
     drawFrame(bm, info, &fGIF->SavedImages[info->currentIndex]);
+    LOGE("renderTime %ld", getRealTime() - st);
 }
 
 ColorMapObject *genDefColorMap(void) {
-    ColorMapObject *cmap = GifMakeMapObject(256, NULL);
+    ColorMapObject *cmap = GifMakeMapObject(8, NULL);
     if (cmap != NULL) {
-        int iColor;
+        uint_fast16_t iColor;
         for (iColor = 0; iColor < 256; iColor++) {
             cmap->Colors[iColor].Red = (GifByteType) iColor;
             cmap->Colors[iColor].Green = (GifByteType) iColor;

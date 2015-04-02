@@ -72,10 +72,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
                 memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
             }
             else {
-                    while (framesToSkip-- >= 0) {
-                        info->currentIndex++;
-                        getBitmap(buffer.bits, info);
-                    }
+                while (framesToSkip-- >= 0) {
+                    info->currentIndex++;
+                    getBitmap(buffer.bits, info);
+                }
             }
             firstLoop = false;
         }

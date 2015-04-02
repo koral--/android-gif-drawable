@@ -20,22 +20,23 @@ gif_lib.h - service library for decoding and encoding GIF images
 typedef unsigned char GifPixelType;
 typedef unsigned char GifByteType;
 typedef unsigned int GifPrefixType;
-typedef int GifWord;
+typedef uint_fast32_t GifWord;
 
 typedef struct GifColorType {
     GifByteType Red, Green, Blue;
 } GifColorType;
 
 typedef struct ColorMapObject {
-    int ColorCount;
-    int BitsPerPixel;
+    uint_fast16_t ColorCount;
+    uint_fast8_t BitsPerPixel;
 //    bool SortFlag;
     GifColorType *Colors;    /* on malloc(3) heap */
 } ColorMapObject;
 
 typedef struct GifImageDesc {
-    GifWord Left, Top, Width, Height;   /* Current image dimensions. */
-    bool Interlace;                     /* Sequential/Interlaced lines. */
+    uint_fast16_t Left, Top, Width, Height;   /* Current image dimensions. */
+    bool Interlace;
+    /* Sequential/Interlaced lines. */
     ColorMapObject *ColorMap;           /* The local color map */
 } GifImageDesc;
 
@@ -58,33 +59,38 @@ typedef struct SavedImage {
 } SavedImage;
 
 typedef struct GifFileType {
-    GifWord SWidth, SHeight;         /* Size of virtual canvas */
+    uint_fast16_t SWidth, SHeight;         /* Size of virtual canvas */
 //    GifWord SColorResolution;        /* How many colors can we generate? */
     GifWord SBackGroundColor;        /* Background color for virtual canvas */
 //    GifByteType AspectByte;	     /* Used to compute pixel aspect ratio */
-    ColorMapObject *SColorMap;       /* Global colormap, NULL if nonexistent. */
-    int ImageCount;                  /* Number of current image (both APIs) */
-    GifImageDesc Image;              /* Current image (low-level API) */
+    ColorMapObject *SColorMap;
+    /* Global colormap, NULL if nonexistent. */
+    int ImageCount;
+    /* Number of current image (both APIs) */
+    GifImageDesc Image;
+    /* Current image (low-level API) */
     SavedImage *SavedImages;         /* Image sequence (high-level API) */
 //    int ExtensionBlockCount;         /* Count extensions past last image */
 //    ExtensionBlock *ExtensionBlocks; /* Extensions past last image */
-    int Error;			     /* Last error condition reported */
-    void *UserData;                  /* hook to attach user data (TVT) */
+    int Error;
+    /* Last error condition reported */
+    void *UserData;
+    /* hook to attach user data (TVT) */
     void *Private;                   /* Don't mess with this! */
 } GifFileType;
 
-#define GIF_ASPECT_RATIO(n)	((n)+15.0/64.0)
+#define GIF_ASPECT_RATIO(n)    ((n)+15.0/64.0)
 
 typedef enum {
     UNDEFINED_RECORD_TYPE,
     SCREEN_DESC_RECORD_TYPE,
     IMAGE_DESC_RECORD_TYPE, /* Begin with ',' */
-    EXTENSION_RECORD_TYPE,  /* Begin with '!' */
-    TERMINATE_RECORD_TYPE   /* Begin with ';' */
+            EXTENSION_RECORD_TYPE, /* Begin with '!' */
+            TERMINATE_RECORD_TYPE   /* Begin with ';' */
 } GifRecordType;
 
 /* func type to read gif data from arbitrary sources (TVT) */
-typedef int (*InputFunc) (GifFileType *, GifByteType *, int);
+typedef int (*InputFunc)(GifFileType *, GifByteType *, int);
 
 /******************************************************************************
  GIF89 structures
@@ -97,9 +103,10 @@ typedef struct GraphicsControlBlock {
 #define DISPOSE_BACKGROUND        2       /* Set area too background color */
 #define DISPOSE_PREVIOUS          3       /* Restore to previous content */
 //    bool UserInputFlag;      /* User confirmation required before disposal */
-    int DelayTime;           /* pre-display delay in 0.01sec units */
+    int DelayTime;
+    /* pre-display delay in 0.01sec units */
     int TransparentColor;    /* Palette index for transparency, -1 if none */
-#define NO_TRANSPARENT_COLOR	-1
+#define NO_TRANSPARENT_COLOR    -1
 } GraphicsControlBlock;
 
 /******************************************************************************
@@ -107,8 +114,10 @@ typedef struct GraphicsControlBlock {
 ******************************************************************************/
 
 /* Main entry points */
-GifFileType *DGifOpen(void *userPtr, InputFunc readFunc, int *Error);    /* new one (TVT) */
-int DGifCloseFile(GifFileType * GifFile);
+GifFileType *DGifOpen(void *userPtr, InputFunc readFunc, int *Error);
+
+/* new one (TVT) */
+int DGifCloseFile(GifFileType *GifFile);
 
 #define D_GIF_ERR_OPEN_FAILED    101    /* And DGif possible errors. */
 #define D_GIF_ERR_READ_FAILED    102
@@ -126,14 +135,21 @@ int DGifCloseFile(GifFileType * GifFile);
 
 /* These are legacy.  You probably do not want to call them directly */
 int DGifGetScreenDesc(GifFileType *GifFile);
+
 int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
+
 int DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount);
+
 int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, int GifLineLen);
+
 int DGifGetExtension(GifFileType *GifFile, int *GifExtCode,
                      GifByteType **GifExtension);
-int DGifGetExtensionNext(GifFileType *GifFile, GifByteType **GifExtension,int* ExtCode);
+
+int DGifGetExtensionNext(GifFileType *GifFile, GifByteType **GifExtension, int *ExtCode);
+
 int DGifGetCode(GifFileType *GifFile, int *GifCodeSize,
                 GifByteType **GifCodeBlock);
+
 int DGifGetCodeNext(GifFileType *GifFile, GifByteType **GifCodeBlock);
 /*****************************************************************************
  Everything below this point is new after version 1.2, supporting `slurp
@@ -144,10 +160,11 @@ int DGifGetCodeNext(GifFileType *GifFile, GifByteType **GifCodeBlock);
  Color map handling from gif_alloc.c
 ******************************************************************************/
 
-extern ColorMapObject *GifMakeMapObject(int ColorCount,
-                                     const GifColorType *ColorMap);
+extern ColorMapObject *GifMakeMapObject(uint_fast8_t BitsPerPixel,
+                                        const GifColorType *ColorMap);
+
 extern void GifFreeMapObject(ColorMapObject *Object);
-extern int GifBitSize(int n);
+//extern int GifBitSize(int n);
 
 /******************************************************************************
  Support for the in-core structures allocation (slurp mode).              
@@ -162,8 +179,8 @@ extern void GifFreeSavedImages(GifFileType *GifFile);
 ******************************************************************************/
 
 int DGifExtensionToGCB(const size_t GifExtensionLength,
-		       const GifByteType *GifExtension,
-		       GraphicsControlBlock *GCB);
+                       const GifByteType *GifExtension,
+                       GraphicsControlBlock *GCB);
 
 #endif /* _GIF_LIB_H */
 

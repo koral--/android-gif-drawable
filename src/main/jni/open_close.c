@@ -32,8 +32,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         throwGifIOException(descriptor->Error, env);
         return NULL;
     }
-    int width = descriptor->GifFileIn->SWidth, height = descriptor->GifFileIn->SHeight;
-    int wxh = width * height;
+    uint_fast32_t wxh = descriptor->GifFileIn->SWidth * descriptor->GifFileIn->SHeight;
     if (wxh < 1 || wxh > INT_MAX) {
         DGifCloseFile(descriptor->GifFileIn);
         throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env);
@@ -73,12 +72,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     }
     info->infos->duration = 0;
     info->infos->disposalMethod = DISPOSAL_UNSPECIFIED;
-    info->infos->transpIndex = (uint16_t) NO_TRANSPARENT_COLOR;
-    if (descriptor->GifFileIn->SColorMap != NULL &&
-        descriptor->GifFileIn->SColorMap->ColorCount != (1 << descriptor->GifFileIn->SColorMap->BitsPerPixel)) {
-        GifFreeMapObject(descriptor->GifFileIn->SColorMap);
-        descriptor->GifFileIn->SColorMap = defaultCmap;
-    }
+    info->infos->transpIndex = NO_TRANSPARENT_COLOR;
 
     if (DDGifSlurp(descriptor->GifFileIn, info, false) == GIF_ERROR) {
         if (descriptor->GifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {

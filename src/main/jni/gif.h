@@ -63,15 +63,15 @@ enum Exception {
     ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
 };
 
-typedef struct{
+typedef struct {
     GifColorType rgb;
     uint8_t alpha;
 } argb;
 
 typedef struct {
-    uint16_t duration;
-    uint16_t transpIndex;
-    uint8_t disposalMethod;
+    uint_fast16_t duration;
+    int_fast16_t transpIndex;
+    uint_fast8_t disposalMethod;
 } FrameInfo;
 
 typedef struct GifInfo GifInfo;
@@ -89,8 +89,8 @@ struct GifInfo {
     long startPos;
     unsigned char *rasterBits;
     char *comment;
-    uint8_t loopCount;
-    uint8_t currentLoop;
+    uint_fast8_t loopCount;
+    uint_fast8_t currentLoop;
     RewindFunc rewindFunction;
     jfloat speedFactor;
     int32_t stride;

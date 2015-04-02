@@ -103,7 +103,7 @@ static int directByteBufferRewindFun(GifInfo *info) {
 
 __unused JNIEXPORT jobject JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused class,
-        jstring jfname, jboolean justDecodeMetaData) {
+                                                 jstring jfname, jboolean justDecodeMetaData) {
     if (isSourceNull(jfname, env)) {
         return NULL;
     }
@@ -126,7 +126,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 
 __unused JNIEXPORT jobject JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unused class,
-        jbyteArray bytes, jboolean justDecodeMetaData) {
+                                                      jbyteArray bytes, jboolean justDecodeMetaData) {
     if (isSourceNull(bytes, env)) {
         return NULL;
     }
@@ -156,7 +156,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 
 __unused JNIEXPORT jobject JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env,
-        jclass __unused class, jobject buffer, jboolean justDecodeMetaData) {
+                                                             jclass __unused class, jobject buffer,
+                                                             jboolean justDecodeMetaData) {
     jbyte *bytes = (*env)->GetDirectBufferAddress(env, buffer);
     jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
     if (bytes == NULL || capacity <= 0) {
@@ -189,9 +190,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env,
 
 __unused JNIEXPORT jobject JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class,
-        jobject stream, jboolean justDecodeMetaData) {
+                                                   jobject stream, jboolean justDecodeMetaData) {
     jclass streamCls = (*env)->NewGlobalRef(env,
-            (*env)->GetObjectClass(env, stream));
+                                            (*env)->GetObjectClass(env, stream));
     jmethodID mid = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
     jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
     jmethodID resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
@@ -233,7 +234,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 __unused JNIEXPORT jobject JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused handleClass,
-        jobject jfd, jlong offset, jboolean justDecodeMetaData) {
+                                               jobject jfd, jlong offset, jboolean justDecodeMetaData) {
     if (isSourceNull(jfd, env)) {
         return NULL;
     }
@@ -260,7 +261,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handleClass,  jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
