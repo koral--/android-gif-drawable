@@ -2,7 +2,6 @@ package pl.droidsonroids.gif;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.content.res.TypedArray;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -12,17 +11,12 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.ImageView.ScaleType;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * <p>{@link TextureView} which can display animated GIFs. Available on API level 14
@@ -176,7 +170,6 @@ public class GifTextureView extends TextureView {
             mGifInfoHandle.setSpeedFactor(mSpeedFactor);
 
             while (!isInterrupted()) {
-                Log.e("libgif", "thr main loop");
                 try {
                     isSurfaceValid.block();
                 } catch (InterruptedException e) {
@@ -188,19 +181,16 @@ public class GifTextureView extends TextureView {
                 }
                 final Surface surface = new Surface(surfaceTexture);
                 try {
-                    Log.e("libgif", "binding "+mStartPosition);
                     mGifInfoHandle.bindSurface(surface, mStartPosition);
                 } finally {
                     surface.release();
                 }
             }
-            Log.e("libgif", "thr end");
             mGifInfoHandle.recycle();
         }
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            Log.e("libgif", "avail");
             updateTextureViewSize(mGifInfoHandle);
             isSurfaceValid.open();
         }
@@ -212,7 +202,6 @@ public class GifTextureView extends TextureView {
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            Log.e("ligbif", "destroyed");
             isSurfaceValid.close();
             mGifInfoHandle.postUnbindSurface();
             return false;
@@ -244,7 +233,6 @@ public class GifTextureView extends TextureView {
 
     @Override
     protected void onDetachedFromWindow() {
-        Log.e("ligbif", "detached");
         mRenderThread.dispose();
         super.onDetachedFromWindow();
         final SurfaceTexture surfaceTexture = getSurfaceTexture();
@@ -403,7 +391,6 @@ public class GifTextureView extends TextureView {
 
     @Override
     public Parcelable onSaveInstanceState() {
-        Log.e("libgif", "saving");
         mRenderThread.mStartPosition = mRenderThread.mGifInfoHandle.getCurrentPosition();
 
         return new GifViewSavedState(super.onSaveInstanceState(), mFreezesAnimation ? mRenderThread.mStartPosition : 0);
@@ -411,7 +398,6 @@ public class GifTextureView extends TextureView {
 
     @Override
     public void onRestoreInstanceState(Parcelable state) {
-        Log.e("libgif", "restoring");
         GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
         mRenderThread.mStartPosition = ss.mPositions[0];

@@ -3,7 +3,7 @@
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
     const GifWord width = info->gifFilePtr->SWidth;
     const GifWord height = info->gifFilePtr->SHeight;
-    const unsigned char *src = info->rasterBits;
+    unsigned char *src = info->rasterBits;
     argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
     GifWord copyWidth = frame->ImageDesc.Width;
     if (frame->ImageDesc.Left + copyWidth > width) {
@@ -14,23 +14,21 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
     if (frame->ImageDesc.Top + copyHeight > height) {
         copyHeight = height - frame->ImageDesc.Top;
     }
-    time_t st = getRealTime();
+    //time_t st = getRealTime();
 
     int x;
-    register char srcColorIndex;
     for (; copyHeight > 0; copyHeight--) {
         for (x = copyWidth; x > 0; x--, src++, dst++) {
-            srcColorIndex = *src;
-            if (srcColorIndex != info->infos[info->currentIndex].transpIndex) {
-                if (srcColorIndex >= cmap->ColorCount)
-                    srcColorIndex = 0;
-                dst->rgb = cmap->Colors[srcColorIndex];
+            if (*src != info->infos[info->currentIndex].transpIndex) {
+                if (*src >= cmap->ColorCount)
+                    *src = 0;
+                dst->rgb = cmap->Colors[*src];
                 dst->alpha = 0xFF;
             }
         }
         dst += info->stride - copyWidth;
     }
-    LOGE("copyTime %ld", getRealTime() - st);
+    //LOGE("copyTime %ld", getRealTime() - st);
 }
 
 static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
