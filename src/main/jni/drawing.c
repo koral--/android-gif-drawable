@@ -1,5 +1,11 @@
 #include "gif.h"
-
+#ifdef __arm__
+    extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
+    extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
+    #define MEMSET_ARGB(dst, value, count) arm_memset32(dst, value, (int) count)
+#else
+    #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
+#endif
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
     unsigned char *src = info->rasterBits;
     argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
@@ -17,7 +23,7 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
     const int_fast16_t transpIndex = info->infos[info->currentIndex].transpIndex;
     if (transpIndex == NO_TRANSPARENT_COLOR) {
         for (; copyHeight > 0; copyHeight--) {
-            memset(dst, UINT32_MAX, copyWidth * sizeof(argb));
+            MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, (int) (copyWidth /** sizeof(argb)*/));
             for (x = copyWidth; x > 0; x--, src++, dst++)
                 dst->rgb = cmap->Colors[*src];
             dst += info->stride - copyWidth;
@@ -98,7 +104,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
                 copyHeight = fGif->SHeight - cur->ImageDesc.Top;
             }
             for (; copyHeight > 0; copyHeight--) {
-                memset(dst, 0, copyWidth * sizeof(argb));
+                MEMSET_ARGB(dst, 0, (int) (copyWidth/* * sizeof(argb)*/));
                 dst += info->stride;
             }
         }
@@ -136,7 +142,7 @@ void getBitmap(argb *bm, GifInfo *info) {
     if (info->currentIndex == 0) {
         if (info->gifFilePtr->SColorMap && info->infos[0].transpIndex == NO_TRANSPARENT_COLOR) {
             const GifColorType bgColor = info->gifFilePtr->SColorMap->Colors[fGIF->SBackGroundColor];
-            memset(bm, INT_MAX, info->stride * fGIF->SHeight * sizeof(argb));
+            MEMSET_ARGB(bm, UINT32_MAX, info->stride * fGIF->SHeight);
 
             argb *dst = bm;
             uint_fast16_t x, y;
@@ -147,7 +153,7 @@ void getBitmap(argb *bm, GifInfo *info) {
             }
         }
         else
-            memset(bm, 0, info->stride * fGIF->SHeight * sizeof(argb));
+            MEMSET_ARGB((uint32_t *) bm, 0, (int) (info->stride * fGIF->SHeight/* * sizeof(argb)*/));
     }
     else {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
