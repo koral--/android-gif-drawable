@@ -9,6 +9,7 @@ buildscript {
 }
 
 apply plugin: 'com.android.library'
+apply from: 'gradle-mvn-push.gradle'
 
 android {
     compileSdkVersion 22
@@ -22,11 +23,11 @@ android {
         targetSdkVersion 22
 
         ndk {
-            if (Boolean.valueOf(JNI_DEBUG)) {
+            if (isDebugBuild()) {
                 moduleName 'gif'
                 abiFilter 'all'
                 ldLibs 'jnigraphics', 'android', 'log'
-                cFlags '-DDEBUG'
+                cFlags '-Ofast -DDEBUG'
             } else {
                 moduleName 'gif'
                 ldLibs 'jnigraphics', 'android'
@@ -35,17 +36,9 @@ android {
             }
         }
     }
-    buildTypes.debug.jniDebuggable Boolean.valueOf(JNI_DEBUG)
+    buildTypes.debug.jniDebuggable isDebugBuild()
 
-    def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
-    boolean applyFlavors = false
-    gradle.startParameter.taskNames.each() {
-        String normalizedTaskName = it.toLowerCase(Locale.US)
-        flavors.each() {
-            applyFlavors |= normalizedTaskName.contains(it)
-        }
-    }
-    if (applyFlavors) {
+    if (shouldApplyFlavors()) {
         productFlavors {
             flavors.each() {
                 String flavor = it
@@ -60,7 +53,6 @@ android {
     }
 }
 
-
 allprojects {
     version = VERSION_NAME
     group = GROUP
@@ -72,12 +64,26 @@ allprojects {
     }
 }
 
-apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
-
 afterEvaluate { project ->
     android.libraryVariants.all { variant ->
         tasks.androidJavadocs.doFirst {
             classpath += files(variant.javaCompile.classpath.files)
         }
     }
+}
+
+def shouldApplyFlavors(){
+    def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
+    boolean applyFlavors = false
+    gradle.startParameter.taskNames.each() {
+        String normalizedTaskName = it.toLowerCase(Locale.US)
+        flavors.each() {
+            applyFlavors |= normalizedTaskName.contains(it)
+        }
+    }
+    applyFlavors
+}
+
+def isDebugBuild() {
+    !gradle.startParameter.taskNames.contains("uploadArchives") &&  VERSION_NAME.contains("SNAPSHOT")
 }

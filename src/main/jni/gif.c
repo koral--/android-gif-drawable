@@ -35,10 +35,8 @@ static int byteArrayReadFun(GifFileType *gif, GifByteType *bytes, int size) {
 static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size) {
     StreamContainer *sc = gif->UserData;
     JNIEnv *env = getEnv();
-    if (env == NULL)
+    if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0)
         return 0;
-
-    (*env)->MonitorEnter(env, sc->stream);
 
     if (sc->buffer == NULL) {
         jbyteArray buffer = (*env)->NewByteArray(env, size < 256 ? 256 : size);
@@ -63,8 +61,8 @@ static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size) {
     else if (len > 0) {
         (*env)->GetByteArrayRegion(env, sc->buffer, 0, len, (jbyte *) bytes);
     }
-
-    (*env)->MonitorExit(env, sc->stream);
+    if ((*env)->MonitorExit(env, sc->stream) != 0)
+        len = 0;
 
     return len >= 0 ? len : 0;
 }
@@ -88,15 +86,13 @@ static int streamRewind(GifInfo *info) {
 }
 
 static int byteArrayRewind(GifInfo *info) {
-    GifFileType *gif = info->gifFilePtr;
-    ByteArrayContainer *bac = gif->UserData;
+    ByteArrayContainer *bac = info->gifFilePtr->UserData;
     bac->pos = info->startPos;
     return 0;
 }
 
 static int directByteBufferRewindFun(GifInfo *info) {
-    GifFileType *gif = info->gifFilePtr;
-    DirectByteBufferContainer *dbbc = gif->UserData;
+    DirectByteBufferContainer *dbbc = info->gifFilePtr->UserData;
     dbbc->pos = info->startPos;
     return 0;
 }

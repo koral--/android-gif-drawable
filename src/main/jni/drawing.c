@@ -106,13 +106,17 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
 }
 
 void getBitmap(argb *bm, GifInfo *info) {
-    time_t st = getRealTime();
+
+#ifdef DEBUG
+    time_t start = getRealTime();
+#endif
 
     GifFileType *fGIF = info->gifFilePtr;
     if (fGIF->Error == D_GIF_ERR_REWIND_FAILED)
         return;
 
     if (DDGifSlurp(fGIF, info, true) == GIF_ERROR) {
+
 #ifdef DEBUG
         LOGE("slurp error %d", fGIF->Error);
 #endif
@@ -140,7 +144,9 @@ void getBitmap(argb *bm, GifInfo *info) {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
     }
     drawFrame(bm, info, &fGIF->SavedImages[info->currentIndex]);
-    LOGE("renderTime %ld", getRealTime() - st);
+#ifdef DEBUG
+    LOGE("renderTime %ld", getRealTime() - start);
+#endif
 }
 
 ColorMapObject *genDefColorMap(void) {
