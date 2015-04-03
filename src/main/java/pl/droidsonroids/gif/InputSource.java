@@ -148,7 +148,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mAssetManager.openNonAssetFd(mAssetName), false);
+            return GifInfoHandle.openAssetFileDescriptor(mAssetManager.openFd(mAssetName), false);
         }
     }
 

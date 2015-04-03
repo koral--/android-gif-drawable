@@ -17,9 +17,9 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
     const int_fast16_t transpIndex = info->infos[info->currentIndex].transpIndex;
     if (transpIndex == NO_TRANSPARENT_COLOR) {
         for (; copyHeight > 0; copyHeight--) {
-            memset(dst,UINT32_MAX,copyWidth*sizeof(argb));
+            memset(dst, UINT32_MAX, copyWidth * sizeof(argb));
             for (x = copyWidth; x > 0; x--, src++, dst++)
-                    dst->rgb = cmap->Colors[*src];
+                dst->rgb = cmap->Colors[*src];
             dst += info->stride - copyWidth;
         }
     }
