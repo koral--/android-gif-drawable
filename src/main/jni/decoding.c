@@ -116,9 +116,9 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
             return GIF_ERROR;
 
         FrameInfo *fi = &info->infos[info->gifFilePtr->ImageCount];
-        fi->disposalMethod = (unsigned char) GCB.DisposalMode;
-        fi->duration = (uint_fast16_t) (GCB.DelayTime > 1 ? GCB.DelayTime * 10 : 100);
-        fi->transpIndex = (uint_fast16_t) GCB.TransparentColor;
+        fi->disposalMethod = GCB.DisposalMode;
+        fi->duration = GCB.DelayTime > 1 ? GCB.DelayTime * 10 : 100;
+        fi->transpIndex = GCB.TransparentColor;
     }
     else if (ExtFunction == COMMENT_EXT_FUNC_CODE) {
         if (getComment(ExtData, &info->comment) == GIF_ERROR) {

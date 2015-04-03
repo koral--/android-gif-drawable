@@ -34,13 +34,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
-    const int imgCount = info->gifFilePtr->ImageCount;
-    if (imgCount <= 1)
+    if (info->gifFilePtr->ImageCount <= 1)
         return;
 
     unsigned long sum = 0;
     int desiredIndex;
-    for (desiredIndex = 0; desiredIndex < imgCount; desiredIndex++) {
+    for (desiredIndex = 0; desiredIndex < info->gifFilePtr->ImageCount; desiredIndex++) {
         unsigned long newSum = sum + info->infos[desiredIndex].duration;
         if (newSum >= desiredPos)
             break;
@@ -55,7 +54,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     }
 
     info->lastFrameRemainder = desiredPos - sum;
-    if (desiredIndex == imgCount - 1 && info->lastFrameRemainder > info->infos[desiredIndex].duration)
+    if (desiredIndex == info->gifFilePtr->ImageCount - 1 && info->lastFrameRemainder > info->infos[desiredIndex].duration)
         info->lastFrameRemainder = info->infos[desiredIndex].duration;
     if (desiredIndex > info->currentIndex) {
         void *pixels;
@@ -82,8 +81,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     if (info == NULL)
         return;
 
-    const int imgCount = info->gifFilePtr->ImageCount;
-    if (imgCount <= 1)
+    if (info->gifFilePtr->ImageCount <= 1)
         return;
     if (desiredIndex <= info->currentIndex) {
         if (!reset(info)) {
@@ -93,8 +91,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     }
 
     info->lastFrameRemainder = 0;
-    if (desiredIndex >= imgCount)
-        desiredIndex = imgCount - 1;
+    if (desiredIndex >= info->gifFilePtr->ImageCount)
+        desiredIndex = info->gifFilePtr->ImageCount - 1;
 
     void *pixels;
     if (lockPixels(env, jbitmap, info, &pixels) != 0) {

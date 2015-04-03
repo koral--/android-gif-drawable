@@ -135,13 +135,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
 }
 
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
-    const int imgCount = info->gifFilePtr->ImageCount;
-    if (imgCount <= 1)
+    if (info->gifFilePtr->ImageCount <= 1)
         return 0;
 
     unsigned long sum = 0;
     int i;
-    for (i = 0; i < imgCount; i++) {
+    for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
         unsigned long newSum = sum + info->infos[i].duration;
         if (newSum >= desiredPos)
             break;
@@ -149,7 +148,7 @@ static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
     }
 
     time_t lastFrameRemainder = desiredPos - sum;
-    if (i == imgCount - 1 && lastFrameRemainder > info->infos[i].duration)
+    if (i == info->gifFilePtr->ImageCount - 1 && lastFrameRemainder > info->infos[i].duration)
         lastFrameRemainder = info->infos[i].duration;
 
     info->lastFrameRemainder = lastFrameRemainder;

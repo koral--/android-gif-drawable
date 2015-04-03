@@ -1,29 +1,38 @@
 #include "gif.h"
 
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
-    const uint_fast16_t width = info->gifFilePtr->SWidth;
-    const uint_fast16_t height = info->gifFilePtr->SHeight;
     unsigned char *src = info->rasterBits;
     argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
     uint_fast16_t copyWidth = frame->ImageDesc.Width;
-    if (frame->ImageDesc.Left + copyWidth > width) {
-        copyWidth = width - frame->ImageDesc.Left;
+    if (frame->ImageDesc.Left + copyWidth > info->gifFilePtr->SWidth) {
+        copyWidth = info->gifFilePtr->SWidth - frame->ImageDesc.Left;
     }
 
     uint_fast16_t copyHeight = frame->ImageDesc.Height;
-    if (frame->ImageDesc.Top + copyHeight > height) {
-        copyHeight = height - frame->ImageDesc.Top;
+    if (frame->ImageDesc.Top + copyHeight > info->gifFilePtr->SHeight) {
+        copyHeight = info->gifFilePtr->SHeight - frame->ImageDesc.Top;
     }
 
     uint_fast16_t x;
-    for (; copyHeight > 0; copyHeight--) {
-        for (x = copyWidth; x > 0; x--, src++, dst++) {
-            if (*src != info->infos[info->currentIndex].transpIndex) {
-                dst->rgb = cmap->Colors[*src];
-                dst->alpha = 0xFF;
-            }
+    const int_fast16_t transpIndex = info->infos[info->currentIndex].transpIndex;
+    if (transpIndex == NO_TRANSPARENT_COLOR) {
+        for (; copyHeight > 0; copyHeight--) {
+            memset(dst,UINT32_MAX,copyWidth*sizeof(argb));
+            for (x = copyWidth; x > 0; x--, src++, dst++)
+                    dst->rgb = cmap->Colors[*src];
+            dst += info->stride - copyWidth;
         }
-        dst += info->stride - copyWidth;
+    }
+    else {
+        for (; copyHeight > 0; copyHeight--) {
+            for (x = copyWidth; x > 0; x--, src++, dst++) {
+                if (*src != transpIndex) {
+                    dst->rgb = cmap->Colors[*src];
+                    dst->alpha = 0xFF;
+                }
+            }
+            dst += info->stride - copyWidth;
+        }
     }
 }
 

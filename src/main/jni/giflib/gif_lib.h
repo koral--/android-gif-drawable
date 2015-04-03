@@ -65,7 +65,7 @@ typedef struct GifFileType {
 //    GifByteType AspectByte;	     /* Used to compute pixel aspect ratio */
     ColorMapObject *SColorMap;
     /* Global colormap, NULL if nonexistent. */
-    int ImageCount;
+    uint_fast32_t ImageCount;
     /* Number of current image (both APIs) */
     GifImageDesc Image;
     /* Current image (low-level API) */
@@ -97,15 +97,15 @@ typedef int (*InputFunc)(GifFileType *, GifByteType *, int);
 ******************************************************************************/
 
 typedef struct GraphicsControlBlock {
-    int DisposalMode;
+    uint_fast8_t DisposalMode;
 #define DISPOSAL_UNSPECIFIED      0       /* No disposal specified. */
 #define DISPOSE_DO_NOT            1       /* Leave image in place */
 #define DISPOSE_BACKGROUND        2       /* Set area too background color */
 #define DISPOSE_PREVIOUS          3       /* Restore to previous content */
 //    bool UserInputFlag;      /* User confirmation required before disposal */
-    int DelayTime;
+    uint_fast16_t DelayTime;
     /* pre-display delay in 0.01sec units */
-    int TransparentColor;    /* Palette index for transparency, -1 if none */
+    int_fast16_t TransparentColor;    /* Palette index for transparency, -1 if none */
 #define NO_TRANSPARENT_COLOR    -1
 } GraphicsControlBlock;
 

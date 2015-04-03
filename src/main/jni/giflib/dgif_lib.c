@@ -407,11 +407,11 @@ int DGifExtensionToGCB(const size_t GifExtensionLength,
         return GIF_ERROR;
     }
 
-    GCB->DisposalMode = (GifExtension[0] >> 2) & 0x07;
+    GCB->DisposalMode = (uint_fast8_t) ((GifExtension[0] >> 2) & 0x07);
 //    GCB->UserInputFlag = (GifExtension[0] & 0x02) != 0;
     GCB->DelayTime = UNSIGNED_LITTLE_ENDIAN(GifExtension[1], GifExtension[2]);
     if (GifExtension[0] & 0x01)
-        GCB->TransparentColor = (int) GifExtension[3];
+        GCB->TransparentColor = (int_fast16_t) GifExtension[3];
     else
         GCB->TransparentColor = NO_TRANSPARENT_COLOR;
 

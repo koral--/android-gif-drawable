@@ -10,10 +10,10 @@ int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime) {
             else if (scaledDuration > INT_MAX)
                 scaledDuration = INT_MAX;
         }
-        info->nextStartTime = renderStartTime + scaledDuration;
         int invalidationDelay = (int) (scaledDuration - (getRealTime() - renderStartTime));
         if (invalidationDelay < 0)
             invalidationDelay = 0;
+        info->nextStartTime = renderStartTime + invalidationDelay;
         return invalidationDelay;
     }
     info->lastFrameRemainder = 0;
