@@ -44,14 +44,14 @@ DGifOpen(void *userData, InputFunc readFunc, int *Error) {
     GifFileType *GifFile;
     GifFilePrivateType *Private;
 
-    GifFile = (GifFileType *) malloc(sizeof(GifFileType));
+    GifFile = (GifFileType *) calloc(1, sizeof(GifFileType));
     if (GifFile == NULL) {
         if (Error != NULL)
             *Error = D_GIF_ERR_NOT_ENOUGH_MEM;
         return NULL;
     }
 
-    memset(GifFile, '\0', sizeof(GifFileType));
+    //memset(GifFile, '\0', sizeof(GifFileType));
 
     /* Belt and suspenders, in case the null pointer isn't zero */
     GifFile->SavedImages = NULL;

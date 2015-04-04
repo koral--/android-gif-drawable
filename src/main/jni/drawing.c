@@ -2,7 +2,7 @@
 #ifdef __arm__
     extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
     extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
-    #define MEMSET_ARGB(dst, value, count) arm_memset32(dst, value, (int) count)
+    #define MEMSET_ARGB(dst, value, count) memset32_neon(dst, value, (int) count)
 #else
     #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
 #endif
@@ -23,7 +23,7 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
     const int_fast16_t transpIndex = info->infos[info->currentIndex].transpIndex;
     if (transpIndex == NO_TRANSPARENT_COLOR) {
         for (; copyHeight > 0; copyHeight--) {
-            MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, (int) (copyWidth /** sizeof(argb)*/));
+            MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, copyWidth);
             for (x = copyWidth; x > 0; x--, src++, dst++)
                 dst->rgb = cmap->Colors[*src];
             dst += info->stride - copyWidth;
@@ -104,7 +104,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
                 copyHeight = fGif->SHeight - cur->ImageDesc.Top;
             }
             for (; copyHeight > 0; copyHeight--) {
-                MEMSET_ARGB(dst, 0, (int) (copyWidth/* * sizeof(argb)*/));
+                MEMSET_ARGB(dst, 0, copyWidth);
                 dst += info->stride;
             }
         }
@@ -141,19 +141,14 @@ void getBitmap(argb *bm, GifInfo *info) {
     }
     if (info->currentIndex == 0) {
         if (info->gifFilePtr->SColorMap && info->infos[0].transpIndex == NO_TRANSPARENT_COLOR) {
-            const GifColorType bgColor = info->gifFilePtr->SColorMap->Colors[fGIF->SBackGroundColor];
-            MEMSET_ARGB(bm, UINT32_MAX, info->stride * fGIF->SHeight);
-
-            argb *dst = bm;
-            uint_fast16_t x, y;
-            for (y = 0; y < fGIF->SHeight; y++) {
-                for (x = 0; x < fGIF->SWidth; x++, dst++)
-                    dst->rgb = bgColor;
-                dst += info->stride - fGIF->SWidth;
-            }
+            argb bgColArgb;
+            bgColArgb.rgb= info->gifFilePtr->SColorMap->Colors[fGIF->SBackGroundColor];
+            bgColArgb.alpha=0xFF;
+            MEMSET_ARGB((uint32_t *)bm, *(uint32_t*)&bgColArgb, info->stride * fGIF->SHeight);
         }
-        else
-            MEMSET_ARGB((uint32_t *) bm, 0, (int) (info->stride * fGIF->SHeight/* * sizeof(argb)*/));
+        else {
+            MEMSET_ARGB((uint32_t *) bm, 0, info->stride * fGIF->SHeight);
+        }
     }
     else {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
