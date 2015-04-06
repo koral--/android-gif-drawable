@@ -141,15 +141,15 @@ static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
     unsigned long sum = 0;
     int i;
     for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
-        unsigned long newSum = sum + info->infos[i].duration;
+        unsigned long newSum = sum + info->infos[i].DelayTime;
         if (newSum >= desiredPos)
             break;
         sum = newSum;
     }
 
     time_t lastFrameRemainder = desiredPos - sum;
-    if (i == info->gifFilePtr->ImageCount - 1 && lastFrameRemainder > info->infos[i].duration)
-        lastFrameRemainder = info->infos[i].duration;
+    if (i == info->gifFilePtr->ImageCount - 1 && lastFrameRemainder > info->infos[i].DelayTime)
+        lastFrameRemainder = info->infos[i].DelayTime;
 
     info->lastFrameRemainder = lastFrameRemainder;
 

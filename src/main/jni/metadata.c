@@ -27,7 +27,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclas
     int i;
     jint sum = 0;
     for (i = 0; i < info->gifFilePtr->ImageCount; i++)
-        sum += info->infos[i].duration;
+        sum += info->infos[i].DelayTime;
     return sum;
 }
 
@@ -47,7 +47,7 @@ jint getCurrentPosition(GifInfo *info) {
     int i;
     unsigned int sum = 0;
     for (i = 0; i < idx; i++)
-        sum += info->infos[i].duration;
+        sum += info->infos[i].DelayTime;
     time_t remainder;
     if (info->lastFrameRemainder == ULONG_MAX) {
         remainder = info->nextStartTime - getRealTime();

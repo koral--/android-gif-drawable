@@ -26,7 +26,7 @@ static int DGifGetWord(GifFileType *GifFile, uint_fast16_t *Word);
 static int DGifSetupDecompress(GifFileType *GifFile);
 
 static int DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line,
-                              int LineLen);
+                              uint_fast32_t LineLen);
 
 static int DGifGetPrefixChar(GifPrefixType *Prefix, int Code, int ClearCode);
 
@@ -67,7 +67,7 @@ DGifOpen(void *userData, InputFunc readFunc, int *Error) {
 
     GifFile->Private = (void *) Private;
 //    Private->FileHandle = 0;
-    Private->File = NULL;
+//    Private->File = NULL;
 //    Private->FileState = FILE_STATE_READ;
 
     Private->Read = readFunc;    /* TVT */
@@ -115,7 +115,6 @@ this routine is called automatically from DGif file open routines.
 ******************************************************************************/
 int
 DGifGetScreenDesc(GifFileType *GifFile) {
-    uint_fast8_t BitsPerPixel;
 //    bool SortFlag;
     GifByteType Buf[3];
 //    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
@@ -139,11 +138,11 @@ DGifGetScreenDesc(GifFileType *GifFile) {
     }
 //    GifFile->SColorResolution = (((Buf[0] & 0x70) + 1) >> 4) + 1;
 //    SortFlag = (Buf[0] & 0x08) != 0;
-    BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
     GifFile->SBackGroundColor = Buf[1];
 //    GifFile->AspectByte = Buf[2];
     if (Buf[0] & 0x80) {    /* Do we have global color map? */
         uint_fast16_t i;
+        uint_fast8_t BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
 
         GifFile->SColorMap = GifMakeMapObject(BitsPerPixel, NULL);
         if (GifFile->SColorMap == NULL) {
@@ -215,7 +214,6 @@ Note it is assumed the Image desc. header has been read.
 ******************************************************************************/
 int
 DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
-    uint_fast8_t BitsPerPixel;
     GifByteType Buf[3];
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
@@ -236,23 +234,23 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
         GifFile->Image.ColorMap = NULL;
         return GIF_ERROR;
     }
-    BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
+    uint_fast8_t BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
     GifFile->Image.Interlace = (Buf[0] & 0x40) ? true : false;
 
     /* Setup the colormap */
     if (GifFile->Image.ColorMap) {
-        GifFreeMapObject(GifFile->Image.ColorMap);
+        GifFreeMapObject(GifFile->Image.ColorMap); //TODO reuse old one?
         GifFile->Image.ColorMap = NULL;
     }
     /* Does this image have local color map? */
     if (Buf[0] & 0x80) {
-        uint_fast16_t i;
         GifFile->Image.ColorMap = GifMakeMapObject(BitsPerPixel, NULL);
         if (GifFile->Image.ColorMap == NULL) {
             GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
             return GIF_ERROR;
         }
 
+        uint_fast16_t i;
         /* Get the image local color map: */
         for (i = 0; i < GifFile->Image.ColorMap->ColorCount; i++) {
             if (((GifFilePrivateType *) GifFile->Private)->Read(GifFile, Buf, 3) != 3) {
@@ -266,6 +264,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
             GifFile->Image.ColorMap->Colors[i].Blue = Buf[2];
         }
     }
+
     if (changeImageCount) {
         SavedImage *new_saved_images = (SavedImage *) realloc(GifFile->SavedImages,
                                                               sizeof(SavedImage) * (GifFile->ImageCount + 1));
@@ -304,7 +303,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 Get one full scanned line (Line) of length LineLen from GIF file.
 ******************************************************************************/
 int
-DGifGetLine(GifFileType *GifFile, GifPixelType *Line, int LineLen) {
+DGifGetLine(GifFileType *GifFile, GifPixelType *Line, uint_fast32_t LineLen) {
     GifByteType *Dummy;
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
@@ -453,10 +452,10 @@ DGifCloseFile(GifFileType *GifFile) {
 //        return GIF_ERROR;
 //    }
 
-    if (Private->File && (fclose(Private->File) != 0)) {
-        GifFile->Error = D_GIF_ERR_CLOSE_FAILED;
-        return GIF_ERROR;
-    }
+//    if (Private->File && (fclose(Private->File) != 0)) {
+//        GifFile->Error = D_GIF_ERR_CLOSE_FAILED;
+//        return GIF_ERROR;
+//    }
 
     free((char *) GifFile->Private);
 
@@ -582,7 +581,7 @@ This routine can be called few times (one per scan line, for example), in
 order the complete the whole image.
 ******************************************************************************/
 static int
-DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, int LineLen) {
+DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, uint_fast32_t LineLen) {
     int i = 0;
     int j, CrntCode, EOFCode, ClearCode, CrntPrefix, LastCode, StackPtr;
     GifByteType *Stack, *Suffix;

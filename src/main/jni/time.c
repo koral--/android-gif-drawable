@@ -2,13 +2,13 @@
 
 int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime) {
     if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
-        unsigned int scaledDuration = info->infos[info->currentIndex].duration;
+        uint_fast16_t scaledDuration = info->infos[info->currentIndex].DelayTime;
         if (info->speedFactor != 1.0) {
             scaledDuration /= info->speedFactor;
             if (scaledDuration <= 0)
                 scaledDuration = 1;
-            else if (scaledDuration > INT_MAX)
-                scaledDuration = INT_MAX;
+            else if (scaledDuration > UINT16_MAX)
+                scaledDuration = UINT16_MAX;
         }
         int invalidationDelay = (int) (scaledDuration - (getRealTime() - renderStartTime));
         if (invalidationDelay < 0)

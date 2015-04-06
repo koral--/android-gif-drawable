@@ -59,36 +59,32 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     else
         info->rasterBits = malloc(
                 descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
-    info->infos = malloc(sizeof(FrameInfo));
+    info->infos = NULL;
     info->backupPtr = NULL;
     info->rewindFunction = descriptor->rewindFunc;
     info->eventFd = -1;
     info->surfaceBackupPtr = NULL;
 
-    if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE) || info->infos == NULL) {
+    if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE)) {
         cleanUp(info);
         throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
-    info->infos->duration = 0;
-    info->infos->disposalMethod = DISPOSAL_UNSPECIFIED;
-    info->infos->transpIndex = NO_TRANSPARENT_COLOR;
 
-    if (DDGifSlurp(descriptor->GifFileIn, info, false) == GIF_ERROR) {
-        if (descriptor->GifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
-            cleanUp(info);
-            throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-            return NULL;
-        }
+    DDGifSlurp(descriptor->GifFileIn, info, false);
+    if (descriptor->GifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
+        cleanUp(info);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+        return NULL;
+    }
 #if defined(STRICT_FORMAT_89A)
         descriptor->Error = descriptor->GifFileIn->Error;
 #endif
-    }
 
     if (descriptor->GifFileIn->ImageCount < 1) {
         descriptor->Error = D_GIF_ERR_NO_FRAMES;
     }
-    else if (info->rewindFunction(info) != 0) {
+    else if (descriptor->GifFileIn->Error == D_GIF_ERR_REWIND_FAILED) {
         descriptor->Error = D_GIF_ERR_REWIND_FAILED;
     }
     if (descriptor->Error != 0) {

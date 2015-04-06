@@ -23,7 +23,7 @@ typedef unsigned int GifPrefixType;
 typedef uint_fast32_t GifWord;
 
 typedef struct GifColorType {
-    uint8_t Red, Green, Blue;
+    uint8_t __unused Red, Green, Blue;
 } GifColorType;
 
 typedef struct ColorMapObject {
@@ -79,7 +79,7 @@ typedef struct GifFileType {
     void *Private;                   /* Don't mess with this! */
 } GifFileType;
 
-#define GIF_ASPECT_RATIO(n)    ((n)+15.0/64.0)
+//#define GIF_ASPECT_RATIO(n)    ((n)+15.0/64.0)
 
 typedef enum {
     UNDEFINED_RECORD_TYPE,
@@ -90,7 +90,7 @@ typedef enum {
 } GifRecordType;
 
 /* func type to read gif data from arbitrary sources (TVT) */
-typedef int (*InputFunc)(GifFileType *, GifByteType *, int);
+typedef uint_fast32_t (*InputFunc)(GifFileType *, GifByteType *, uint_fast32_t);
 
 /******************************************************************************
  GIF89 structures
@@ -140,7 +140,7 @@ int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
 
 int DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount);
 
-int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, int GifLineLen);
+int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, uint_fast32_t GifLineLen);
 
 int DGifGetExtension(GifFileType *GifFile, int *GifExtCode,
                      GifByteType **GifExtension);

@@ -4,15 +4,15 @@ inline JNIEnv *getEnv(void) {
     JNIEnv *env;
     if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
         return env;
-    return NULL;
+    return NULL; //TODO abort instead?
 }
 
-static int fileRead(GifFileType *gif, GifByteType *bytes, int size) {
+static uint_fast32_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
     FILE *file = (FILE *) gif->UserData;
-    return (int) fread(bytes, 1, (size_t) size, file);
+    return (uint_fast32_t) fread(bytes, 1, size, file);
 }
 
-static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int size) {
+static uint_fast32_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
     DirectByteBufferContainer *dbbc = gif->UserData;
     if (dbbc->pos + size > dbbc->capacity)
         size -= dbbc->pos + size - dbbc->capacity;
@@ -21,7 +21,7 @@ static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int siz
     return size;
 }
 
-static int byteArrayReadFun(GifFileType *gif, GifByteType *bytes, int size) {
+static uint_fast32_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
     ByteArrayContainer *bac = gif->UserData;
     JNIEnv *env;
     (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
@@ -32,7 +32,7 @@ static int byteArrayReadFun(GifFileType *gif, GifByteType *bytes, int size) {
     return size;
 }
 
-static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size) {
+static uint_fast32_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
     StreamContainer *sc = gif->UserData;
     JNIEnv *env = getEnv();
     if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0)
@@ -53,7 +53,7 @@ static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size) {
         }
     }
 
-    int len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0, size);
+    jint len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0, size);
     if ((*env)->ExceptionCheck(env)) {
         (*env)->ExceptionClear(env);
         len = 0;
@@ -64,22 +64,28 @@ static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size) {
     if ((*env)->MonitorExit(env, sc->stream) != 0)
         len = 0;
 
-    return len >= 0 ? len : 0;
+    return (uint_fast32_t) (len >= 0 ? len : 0);
 }
 
 static int fileRewind(GifInfo *info) {
-    return fseek(info->gifFilePtr->UserData, info->startPos, SEEK_SET);
+    if (fseek(info->gifFilePtr->UserData, info->startPos, SEEK_SET) == 0)
+        return 0;
+    info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+    return -1;
 }
 
 static int streamRewind(GifInfo *info) {
     GifFileType *gif = info->gifFilePtr;
     StreamContainer *sc = gif->UserData;
     JNIEnv *env = getEnv();
-    if (env == NULL)
+    if (env == NULL) {
+        info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
         return -1;
+    }
     (*env)->CallVoidMethod(env, sc->stream, sc->resetMID);
     if ((*env)->ExceptionOccurred(env)) {
         (*env)->ExceptionClear(env);
+        info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
         return -1;
     }
     return 0;

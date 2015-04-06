@@ -44,7 +44,7 @@ typedef struct GifFilePrivateType {
     /* For bytes decomposition into codes. */
     unsigned long PixelCount;
     /* Number of pixels in image. */
-    FILE *File;
+//    FILE *File;
     /* File as stream. */
     InputFunc Read;     /* function to read gif input (TVT) */
 //    OutputFunc Write;   /* function to write gif output (MRB) */

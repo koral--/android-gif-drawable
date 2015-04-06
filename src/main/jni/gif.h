@@ -68,12 +68,6 @@ typedef struct {
     uint8_t alpha;
 } argb;
 
-typedef struct {
-    uint_fast16_t duration;
-    int_fast16_t transpIndex;
-    uint_fast8_t disposalMethod;
-} FrameInfo;
-
 typedef struct GifInfo GifInfo;
 
 typedef int
@@ -84,7 +78,7 @@ struct GifInfo {
     time_t lastFrameRemainder;
     time_t nextStartTime;
     int currentIndex;
-    FrameInfo *infos;
+    GraphicsControlBlock *infos;
     argb *backupPtr;
     long startPos;
     unsigned char *rasterBits;
@@ -158,15 +152,15 @@ void throwException(JNIEnv *env, enum Exception exception, char *message);
 
 bool isSourceNull(void *ptr, JNIEnv *env);
 
-static int fileRead(GifFileType *gif, GifByteType *bytes, int size);
+static uint_fast32_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
 
 inline JNIEnv *getEnv(void);
 
-static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int size);
+static uint_fast32_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
 
-static int byteArrayReadFun(GifFileType *gif, GifByteType *bytes, int size);
+static uint_fast32_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
 
-static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size);
+static uint_fast32_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
 
 static int fileRewind(GifInfo *info);
 
@@ -176,11 +170,11 @@ static int byteArrayRewind(GifInfo *info);
 
 static int directByteBufferRewindFun(GifInfo *info);
 
-static int getComment(GifByteType *Bytes, char **cmt);
+static int getComment(GifByteType *Bytes, GifInfo*);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
-int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
+void DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
