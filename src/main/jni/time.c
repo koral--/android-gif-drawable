@@ -1,7 +1,7 @@
 #include "gif.h"
 
 int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime) {
-    if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
+    if (info->gifFilePtr->ImageCount > 1 && (info->loopCount == 0 || info->currentLoop < info->loopCount)) {
         uint_fast16_t scaledDuration = info->infos[info->currentIndex].DelayTime;
         if (info->speedFactor != 1.0) {
             scaledDuration /= info->speedFactor;

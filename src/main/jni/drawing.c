@@ -151,7 +151,7 @@ void getBitmap(argb *bm, GifInfo *info) {
             info->rewindFunction(info);
         }
     }
-    drawFrame(bm, info, &fGIF->SavedImages[info->currentIndex]);
+    drawFrame(bm, info, fGIF->SavedImages+info->currentIndex);
 #ifdef DEBUG
     LOGE("renderTime %ld", getRealTime() - start);
 #endif

@@ -42,7 +42,7 @@ typedef struct GifFilePrivateType {
     /* Number of bits in CrntShiftDWord. */
     unsigned long CrntShiftDWord;
     /* For bytes decomposition into codes. */
-    unsigned long PixelCount;
+    uint_fast32_t PixelCount;
     /* Number of pixels in image. */
 //    FILE *File;
     /* File as stream. */

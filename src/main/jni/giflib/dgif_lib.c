@@ -290,8 +290,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 //        sp->ExtensionBlocks = (ExtensionBlock *) NULL;
         GifFile->ImageCount++;
     }
-    Private->PixelCount = (unsigned long) GifFile->Image.Width *
-                          (unsigned long) GifFile->Image.Height;
+    Private->PixelCount = GifFile->Image.Width * GifFile->Image.Height;
 
     /* Reset decompress algorithm parameters. */
     (void) DGifSetupDecompress(GifFile);
@@ -582,8 +581,8 @@ order the complete the whole image.
 ******************************************************************************/
 static int
 DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, uint_fast32_t LineLen) {
-    int i = 0;
-    int j, CrntCode, EOFCode, ClearCode, CrntPrefix, LastCode, StackPtr;
+    uint_fast32_t i = 0, j;
+    int CrntCode, EOFCode, ClearCode, CrntPrefix, LastCode, StackPtr;
     GifByteType *Stack, *Suffix;
     GifPrefixType *Prefix;
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;

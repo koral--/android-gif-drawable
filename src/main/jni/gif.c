@@ -4,7 +4,7 @@ inline JNIEnv *getEnv(void) {
     JNIEnv *env;
     if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
         return env;
-    return NULL; //TODO abort instead?
+    return NULL;
 }
 
 static uint_fast32_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
