@@ -1,43 +1,36 @@
 #include "gif.h"
+
 #ifdef __arm__
     extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
     extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
     #define MEMSET_ARGB(dst, value, count) memset32_neon(dst, value, (int) count)
 #else
-    #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
+#define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
 #endif
+
 static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
     unsigned char *src = info->rasterBits;
     argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
-    uint_fast16_t copyWidth = frame->ImageDesc.Width;
-    if (frame->ImageDesc.Left + copyWidth > info->gifFilePtr->SWidth) {
-        copyWidth = info->gifFilePtr->SWidth - frame->ImageDesc.Left;
-    }
 
-    uint_fast16_t copyHeight = frame->ImageDesc.Height;
-    if (frame->ImageDesc.Top + copyHeight > info->gifFilePtr->SHeight) {
-        copyHeight = info->gifFilePtr->SHeight - frame->ImageDesc.Top;
-    }
-
-    uint_fast16_t x;
+    uint_fast16_t x, y = frame->ImageDesc.Height;
     const int_fast16_t transpIndex = info->infos[info->currentIndex].TransparentColor;
     if (transpIndex == NO_TRANSPARENT_COLOR) { //TODO check previous ?
-        for (; copyHeight > 0; copyHeight--) {
-            MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, copyWidth);
-            for (x = copyWidth; x > 0; x--, src++, dst++)
+        for (; y > 0; y--) {
+            MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frame->ImageDesc.Width);
+            for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++)
                 dst->rgb = cmap->Colors[*src];
-            dst += info->stride - copyWidth;
+            dst += info->stride - frame->ImageDesc.Width;
         }
     }
     else {
-        for (; copyHeight > 0; copyHeight--) {
-            for (x = copyWidth; x > 0; x--, src++, dst++) {
+        for (; y > 0; y--) {
+            for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
                 if (*src != transpIndex) {
                     dst->rgb = cmap->Colors[*src];
                     dst->alpha = 0xFF;
                 }
             }
-            dst += info->stride - copyWidth;
+            dst += info->stride - frame->ImageDesc.Width;
         }
     }
 }
@@ -128,18 +121,15 @@ void getBitmap(argb *bm, GifInfo *info) {
 
     GifFileType *fGIF = info->gifFilePtr;
     DDGifSlurp(fGIF, info, true);
-#ifdef DEBUG
-    LOGE("slurpTime %ld %d", getRealTime() - start, info->currentIndex);
-#endif
+
     if (info->currentIndex == 0) {
         if (fGIF->SColorMap && info->infos[0].TransparentColor == NO_TRANSPARENT_COLOR) {
             argb bgColArgb;
-            bgColArgb.rgb= fGIF->SColorMap->Colors[fGIF->SBackGroundColor];
-            bgColArgb.alpha=0xFF;
-            MEMSET_ARGB((uint32_t *)bm, *(uint32_t*)&bgColArgb, info->stride * fGIF->SHeight);
+            bgColArgb.rgb = fGIF->SColorMap->Colors[fGIF->SBackGroundColor];
+            bgColArgb.alpha = 0xFF;
+            MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * fGIF->SHeight);
         }
-        else
-        {
+        else {
             MEMSET_ARGB((uint32_t *) bm, 0, info->stride * fGIF->SHeight);
         }
     }
@@ -151,7 +141,7 @@ void getBitmap(argb *bm, GifInfo *info) {
             info->rewindFunction(info);
         }
     }
-    drawFrame(bm, info, fGIF->SavedImages+info->currentIndex);
+    drawFrame(bm, info, fGIF->SavedImages + info->currentIndex);
 #ifdef DEBUG
     LOGE("renderTime %ld", getRealTime() - start);
 #endif

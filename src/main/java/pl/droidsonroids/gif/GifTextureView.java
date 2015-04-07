@@ -126,7 +126,7 @@ public class GifTextureView extends TextureView {
 
     private static InputSource findSource(final TypedArray textureViewAttributes) {
         final TypedValue value = new TypedValue();
-        if (!textureViewAttributes.getValue(R.styleable.GifTextureView_src, value)) {
+        if (!textureViewAttributes.getValue(R.styleable.GifTextureView_gifSource, value)) {
             return null;
         }
 

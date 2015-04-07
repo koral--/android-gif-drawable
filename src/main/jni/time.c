@@ -22,7 +22,6 @@ int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime) {
 
 inline time_t getRealTime() {
     struct timespec ts;
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
-        return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-    abort(); //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts); //result not checked since CLOCK_MONOTONIC_RAW availability is checked in JNI_ONLoad
+    return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }

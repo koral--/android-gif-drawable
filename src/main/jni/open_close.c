@@ -32,12 +32,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         throwGifIOException(descriptor->Error, env);
         return NULL;
     }
-    uint_fast32_t wxh = descriptor->GifFileIn->SWidth * descriptor->GifFileIn->SHeight;
-    if (wxh < 1 || wxh > INT_MAX) {
-        DGifCloseFile(descriptor->GifFileIn);
-        throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env);
-        return NULL;
-    }
+
     GifInfo *info = malloc(sizeof(GifInfo));
     if (info == NULL) {
         DGifCloseFile(descriptor->GifFileIn);
@@ -54,24 +49,29 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->currentLoop = 0;
     info->speedFactor = 1.0;
     info->sourceLength = descriptor->sourceLength;
-    if (justDecodeMetaData == JNI_TRUE)
-        info->rasterBits = NULL;
-    else
-        info->rasterBits = malloc(
-                descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
+
     info->infos = NULL;
     info->backupPtr = NULL;
     info->rewindFunction = descriptor->rewindFunc;
     info->eventFd = -1;
     info->surfaceBackupPtr = NULL;
 
-    if ((info->rasterBits == NULL && justDecodeMetaData != JNI_TRUE)) {
-        cleanUp(info);
-        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-        return NULL;
+    DDGifSlurp(descriptor->GifFileIn, info, false);
+    if (justDecodeMetaData == JNI_TRUE)
+        info->rasterBits = NULL;
+    else {
+        info->rasterBits = malloc(
+                descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
+        if (info->rasterBits == NULL) {
+            descriptor->GifFileIn->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+        }
     }
 
-    DDGifSlurp(descriptor->GifFileIn, info, false);
+    if (descriptor->GifFileIn->SWidth <1 || descriptor->GifFileIn->SHeight <1) {
+        DGifCloseFile(descriptor->GifFileIn);
+        throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env);
+        return NULL;
+    }
     if (descriptor->GifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
         cleanUp(info);
         throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);

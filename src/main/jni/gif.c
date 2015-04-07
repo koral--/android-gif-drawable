@@ -311,6 +311,9 @@ JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
     defaultCmap = genDefColorMap();
     if (defaultCmap == NULL)
         return -1;
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) //sanity check here instead of on each clock_gettime() call
+        return -1;
     return JNI_VERSION_1_6;
 }
 

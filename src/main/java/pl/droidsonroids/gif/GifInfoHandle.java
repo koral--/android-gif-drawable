@@ -36,7 +36,7 @@ final class GifInfoHandle {
     static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 0, 0, 0);
 
     static {
-        System.loadLibrary("gif");
+        System.loadLibrary(BuildConfig.NATIVE_LIBRARY_NAME);
     }
 
     static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;

@@ -21,15 +21,15 @@ android {
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 22
-
+        buildConfigField 'String', 'NATIVE_LIBRARY_NAME', '"' + NATIVE_LIBRARY_NAME + '"'
         ndk {
             if (isDebugBuild()) {
-                moduleName 'gif'
+                moduleName NATIVE_LIBRARY_NAME
                 abiFilter 'all'
                 ldLibs 'jnigraphics', 'android', 'log'
                 cFlags '-Ofast -DDEBUG'
             } else {
-                moduleName 'gif'
+                moduleName NATIVE_LIBRARY_NAME
                 ldLibs 'jnigraphics', 'android'
                 abiFilter 'all'
                 cFlags '-fvisibility=hidden -Ofast'
@@ -72,7 +72,7 @@ afterEvaluate { project ->
     }
 }
 
-def shouldApplyFlavors(){
+def shouldApplyFlavors() {
     def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
     boolean applyFlavors = false
     gradle.startParameter.taskNames.each() {
@@ -85,5 +85,5 @@ def shouldApplyFlavors(){
 }
 
 def isDebugBuild() {
-    !gradle.startParameter.taskNames.contains("uploadArchives") &&  VERSION_NAME.contains("SNAPSHOT")
+    !gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
 }

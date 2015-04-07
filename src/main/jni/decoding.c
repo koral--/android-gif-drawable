@@ -13,12 +13,15 @@ void DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
 
                 if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
                     return;
-                const uint_fast16_t width = GifFile->Image.Width, height = GifFile->Image.Height;
 
-                if (width > GifFile->SWidth || height > GifFile->SHeight) {
-                    GifFile->Error = D_GIF_ERR_IMG_NOT_CONFINED; //TODO shrink or shift image
-                    return;
+                if (GifFile->Image.Left + GifFile->Image.Width > info->gifFilePtr->SWidth) {
+                    GifFile->Image.Width = info->gifFilePtr->SWidth - GifFile->Image.Left;
                 }
+
+                if (GifFile->Image.Top + GifFile->Image.Height > info->gifFilePtr->SHeight) {
+                    GifFile->Image.Height = info->gifFilePtr->SHeight - GifFile->Image.Top;
+                }
+
                 if (shouldDecode) {
                     if (GifFile->Image.Interlace) {
                         uint_fast16_t i, j;
@@ -31,12 +34,13 @@ void DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                         /* Need to perform 4 passes on the image */
                         for (i = 0; i < 4; i++)
                             for (j = InterlacedOffset[i]; j < GifFile->Image.Height; j += InterlacedJumps[i]) {
-                                if (DGifGetLine(GifFile, info->rasterBits + j * width, width) == GIF_ERROR)
+                                if (DGifGetLine(GifFile, info->rasterBits + j * GifFile->Image.Width,
+                                                GifFile->Image.Width) == GIF_ERROR)
                                     return;
                             }
                     }
                     else {
-                        if (DGifGetLine(GifFile, info->rasterBits, width * height) == GIF_ERROR)
+                        if (DGifGetLine(GifFile, info->rasterBits, GifFile->Image.Width * GifFile->Image.Height) == GIF_ERROR)
                             return;
                     }
                     return;
