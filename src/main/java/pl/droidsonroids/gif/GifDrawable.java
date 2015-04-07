@@ -68,6 +68,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     final InvalidationHandler mInvalidationHandler;
 
     private final Runnable mRenderTask = new RenderTask(this);
+    private OnGifUpdatedListener mUpdatedListener;
 
     /**
      * Creates drawable from resource.
@@ -237,6 +238,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mIsRunning = false;
         mInvalidationHandler.removeMessages(0);
         mNativeInfoHandle.recycle();
+    }
+
+    @Override
+    public void invalidateSelf() {
+        super.invalidateSelf();
+        if (mUpdatedListener != null) {
+            mUpdatedListener.OnGifUpdated();
+        }
+    }
+
+    public void setUpdateListener(OnGifUpdatedListener listener) {
+        mUpdatedListener = listener;
+    }
+
+    public interface OnGifUpdatedListener {
+        void OnGifUpdated();
     }
 
     /**
