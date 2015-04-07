@@ -57,37 +57,22 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
                                                     jlong gifInfo, jobject jbitmap) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
-        return PACK_RENDER_FRAME_RESULT(-1, false);
-    bool needRedraw = false;
-    time_t rt = getRealTime();
-    bool isAnimationCompleted;
-    if (rt >= info->nextStartTime) {
-        if (++info->currentIndex >= info->gifFilePtr->ImageCount)
-            info->currentIndex = 0;
-        needRedraw = true;
-        isAnimationCompleted =
-                info->currentIndex >= info->gifFilePtr->ImageCount - 1 && info->currentLoop >= info->loopCount;
-    }
-    else
-        isAnimationCompleted = false;
+        return -1;
 
-    time_t invalidationDelay;
-    if (needRedraw) {
+    time_t invalidationDelay, renderStartTime = getRealTime();
+    if (renderStartTime >= info->nextStartTime) {
         void *pixels;
         if (lockPixels(env, jbitmap, info, &pixels) != 0) {
-            info->currentIndex--; //#122, #140 workaround
-            return PACK_RENDER_FRAME_RESULT(0, false);
+            return 0;
         }
-        getBitmap((argb *) pixels, info);
+        const uint_fast16_t frameDuration = getBitmap((argb *) pixels, info);
         unlockPixels(env, jbitmap);
-        invalidationDelay = calculateInvalidationDelay(info, rt);
+        invalidationDelay = calculateInvalidationDelay(info, renderStartTime, frameDuration);
     }
     else {
-        time_t delay = info->nextStartTime - rt;
-        if (delay < 0)
+        invalidationDelay = info->nextStartTime - renderStartTime;
+        if (invalidationDelay < 0)
             invalidationDelay = -1;
-        else //no need to check upper bound since info->nextStartTime<=rt+LONG_MAX always
-            invalidationDelay = (int) delay;
     }
-    return PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted);
+    return invalidationDelay;
 }

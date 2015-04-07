@@ -5,7 +5,7 @@ bool reset(GifInfo *info) {
         return false;
     info->nextStartTime = 0;
     info->currentLoop = 0;
-    info->currentIndex = -1;
+    info->currentIndex = 0;
     info->lastFrameRemainder = ULONG_MAX;
     return true;
 }
@@ -34,7 +34,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL)
         return;
-    if (info->gifFilePtr->ImageCount <= 1)
+    if (info->gifFilePtr->ImageCount == 1)
         return;
 
     unsigned long sum = 0;
@@ -46,22 +46,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         sum = newSum;
     }
 
-    if (desiredIndex < info->currentIndex) {
-        if (!reset(info)) {
-            return;
-        }
+    if (desiredIndex < info->currentIndex && !reset(info)) {
+        info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+        return;
     }
 
     info->lastFrameRemainder = desiredPos - sum;
     if (desiredIndex == info->gifFilePtr->ImageCount - 1 && info->lastFrameRemainder > info->infos[desiredIndex].DelayTime)
         info->lastFrameRemainder = info->infos[desiredIndex].DelayTime;
-    if (desiredIndex > info->currentIndex) {
+    if (info->currentIndex < desiredIndex) {
         void *pixels;
         if (lockPixels(env, jbitmap, info, &pixels) != 0) {
             return;
         }
         while (info->currentIndex < desiredIndex) {
-            info->currentIndex++;
             getBitmap((argb *) pixels, info);
         }
         unlockPixels(env, jbitmap);
@@ -77,36 +75,34 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused handleClass,
                                                     jlong gifInfo, jint desiredIndex, jobject jbitmap) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (info == NULL)
+    if (info == NULL || info->gifFilePtr->ImageCount == 1)
         return;
 
-    if (info->gifFilePtr->ImageCount <= 1)
+    if (desiredIndex < info->currentIndex && !reset(info)) {
+        info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
         return;
-    if (desiredIndex <= info->currentIndex) {
-        if (!reset(info)) {
-            info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
-            return;
-        }
     }
 
     info->lastFrameRemainder = 0;
     if (desiredIndex >= info->gifFilePtr->ImageCount)
         desiredIndex = info->gifFilePtr->ImageCount - 1;
 
-    void *pixels;
-    if (lockPixels(env, jbitmap, info, &pixels) != 0) {
-        return;
+    uint_fast16_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
+    if (info->currentIndex < desiredIndex) {
+        void *pixels;
+        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
+            return;
+        }
+        while (info->currentIndex < desiredIndex) {
+            lastFrameDuration = getBitmap((argb *) pixels, info);
+        }
+        unlockPixels(env, jbitmap);
     }
-    while (info->currentIndex < desiredIndex) {
-        info->currentIndex++;
-        getBitmap((argb *) pixels, info);
-    }
-    unlockPixels(env, jbitmap);
 
     if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime() + info->infos[info->currentIndex].DelayTime;
+        info->nextStartTime = getRealTime() + lastFrameDuration;
     else
-        info->nextStartTime = getRealTime() + (time_t) (info->infos[info->currentIndex].DelayTime * info->speedFactor);
+        info->nextStartTime = getRealTime() + (time_t) (lastFrameDuration * info->speedFactor);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -122,7 +118,7 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
                                                          jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (info == NULL || info->lastFrameRemainder == ULONG_MAX || info->gifFilePtr->ImageCount <= 1)
+    if (info == NULL || info->lastFrameRemainder == ULONG_MAX || info->gifFilePtr->ImageCount == 1)
         return;
     info->nextStartTime = getRealTime() + info->lastFrameRemainder;
     info->lastFrameRemainder = ULONG_MAX;

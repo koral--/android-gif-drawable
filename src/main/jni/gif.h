@@ -54,7 +54,6 @@
 */
 #define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
 
-#define PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted) (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L))
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
 
 #define OOME_MESSAGE "Failed to allocate native memory"
@@ -77,7 +76,7 @@ struct GifInfo {
     GifFileType *gifFilePtr;
     time_t lastFrameRemainder;
     time_t nextStartTime;
-    int currentIndex;
+    uint_fast32_t currentIndex;
     GraphicsControlBlock *infos;
     argb *backupPtr;
     long startPos;
@@ -188,7 +187,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
 static void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx);
 
-void getBitmap(argb *bm, GifInfo *info);
+uint_fast16_t const getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
@@ -196,7 +195,7 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-int calculateInvalidationDelay(GifInfo *info, time_t renderStartTime);
+time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast16_t frameDuration);
 
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
 

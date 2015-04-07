@@ -9,6 +9,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused 
     return (*env)->NewStringUTF(env, ((GifInfo *) (intptr_t) gifInfo)->comment);
 }
 
+__unused JNIEXPORT jboolean JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass,
+                                                             jlong gifInfo) {
+    if (gifInfo == 0) {
+        return NULL;
+    }
+    GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
+    if (info->currentIndex == info->gifFilePtr->ImageCount) //TODO handle better
+        return JNI_TRUE;
+    else
+        return JNI_FALSE;
+}
+
 __unused JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_getLoopCount(JNIEnv __unused *env, jclass __unused handleClass,
                                                      jlong gifInfo) {
@@ -41,8 +54,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jc
 }
 
 jint getCurrentPosition(GifInfo *info) {
-    const int idx = info->currentIndex;
-    if (idx < 0 || info->gifFilePtr->ImageCount <= 1)
+    const uint_fast32_t idx = info->currentIndex;
+    if (info->gifFilePtr->ImageCount == 1)
         return 0;
     int i;
     unsigned int sum = 0;
@@ -75,7 +88,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused 
         return 0;
     }
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    uint_fast32_t pxCount = info->gifFilePtr->SWidth + info->gifFilePtr->SHeight;
+    GifWord pxCount = info->gifFilePtr->SWidth + info->gifFilePtr->SHeight;
     size_t sum = pxCount * sizeof(char);
     if (info->backupPtr != NULL)
         sum += pxCount * sizeof(argb);

@@ -14,7 +14,7 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
 
     uint_fast16_t x, y = frame->ImageDesc.Height;
     const int_fast16_t transpIndex = info->infos[info->currentIndex].TransparentColor;
-    if (transpIndex == NO_TRANSPARENT_COLOR) { //TODO check previous ?
+    if (transpIndex == NO_TRANSPARENT_COLOR) {
         for (; y > 0; y--) {
             MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frame->ImageDesc.Width);
             for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++)
@@ -113,8 +113,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
         memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
 }
 
-void getBitmap(argb *bm, GifInfo *info) {
-
+uint_fast16_t const getBitmap(argb *bm, GifInfo *info) {
 #ifdef DEBUG
     time_t start = getRealTime();
 #endif
@@ -135,16 +134,26 @@ void getBitmap(argb *bm, GifInfo *info) {
     }
     else {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
-        if (info->currentIndex >= fGIF->ImageCount - 1) { //TODO move increment here?
-            if (info->loopCount > 0)
-                info->currentLoop++;
-            info->rewindFunction(info);
-        }
     }
     drawFrame(bm, info, fGIF->SavedImages + info->currentIndex);
+    uint_fast16_t frameDuration = info->infos[info->currentIndex].DelayTime;
+
+    if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
+        if (info->loopCount == 0 || info->currentLoop + 1 < info->loopCount) {
+            if (info->rewindFunction(info) != 0)
+                return 0;
+            else if (info->loopCount > 0)
+                info->currentLoop++;
+            info->currentIndex = 0;
+        }
+        else {
+            frameDuration = 0;
+        }
+    }
 #ifdef DEBUG
     LOGE("renderTime %ld", getRealTime() - start);
 #endif
+    return frameDuration;
 }
 
 ColorMapObject *genDefColorMap(void) {

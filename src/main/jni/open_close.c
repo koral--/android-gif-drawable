@@ -41,7 +41,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     }
     info->gifFilePtr = descriptor->GifFileIn;
     info->startPos = descriptor->startPos;
-    info->currentIndex = -1;
+    info->currentIndex = 0;
     info->nextStartTime = 0;
     info->lastFrameRemainder = ULONG_MAX;
     info->comment = NULL;
@@ -67,7 +67,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         }
     }
 
-    if (descriptor->GifFileIn->SWidth <1 || descriptor->GifFileIn->SHeight <1) {
+    if (descriptor->GifFileIn->SWidth < 1 || descriptor->GifFileIn->SHeight < 1) {
         DGifCloseFile(descriptor->GifFileIn);
         throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env);
         return NULL;
@@ -81,7 +81,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         descriptor->Error = descriptor->GifFileIn->Error;
 #endif
 
-    if (descriptor->GifFileIn->ImageCount < 1) {
+    if (descriptor->GifFileIn->ImageCount == 0) {
         descriptor->Error = D_GIF_ERR_NO_FRAMES;
     }
     else if (descriptor->GifFileIn->Error == D_GIF_ERR_REWIND_FAILED) {

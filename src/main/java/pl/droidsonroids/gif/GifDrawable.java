@@ -789,10 +789,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     * Returns zero-based index of recently rendered frame in given loop or -1 when no frames were
-     * rendered yet or drawable is recycled.
+     * Returns zero-based index of recently rendered frame in given loop or -1 when drawable is recycled.
+     * Zero is also returned when
      *
-     * @return index of recently rendered frame or -1 when no frames were rendered yet or drawable is recycled
+     * @return index of recently rendered frame or -1 when drawable is recycled
      */
     public int getCurrentFrameIndex() {
         return mNativeInfoHandle.getCurrentFrameIndex();
@@ -806,5 +806,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public int getCurrentLoop() {
         return mNativeInfoHandle.getCurrentLoop();
+    }
+
+    public boolean isAnimationCompleted() {
+        return mNativeInfoHandle.isAnimationCompleted();
     }
 }

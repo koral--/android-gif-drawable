@@ -87,6 +87,8 @@ final class GifInfoHandle {
 
     private static native int postUnbindSurface(long gifFileInPtr);
 
+    private static native boolean isAnimationCompleted(long gifInfoPtr);
+
     static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported()) {
             throw new IllegalArgumentException("InputStream does not support marking");
@@ -201,5 +203,9 @@ final class GifInfoHandle {
 
     synchronized int postUnbindSurface() {
         return postUnbindSurface(gifInfoPtr);
+    }
+
+    boolean isAnimationCompleted() {
+        return isAnimationCompleted(gifInfoPtr);
     }
 }
