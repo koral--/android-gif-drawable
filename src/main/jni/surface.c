@@ -32,7 +32,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     struct ANativeWindow_Buffer buffer = {.bits =NULL};
     void *oldBufferBits;
 
-    struct pollfd eventPollFd = {.fd=-info->eventFd, .events = POLL_IN};
+    struct pollfd eventPollFd = {.fd=info->eventFd, .events = POLL_IN};
 
     POLL_TYPE eftd_ctr;
     int pollResult;
