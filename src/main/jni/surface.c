@@ -99,10 +99,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 
         time_t invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
 
-        if (info->lastFrameRemainder > 0) { //TODO switch
-            invalidationDelayMillis = info->lastFrameRemainder;
-            info->lastFrameRemainder = 0;
-        }
+//        if (info->lastFrameRemainder > 0) { //TODO switch
+//            invalidationDelayMillis = info->lastFrameRemainder;
+//            info->lastFrameRemainder = 0;
+//        }
         pollResult = poll(&eventPollFd, 1, (int) invalidationDelayMillis);
         if (pollResult < 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
@@ -136,10 +136,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
     if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd write failed");
     }
-    info->lastFrameRemainder = info->nextStartTime - getRealTime();
-    if (info->lastFrameRemainder < 0)
-        info->lastFrameRemainder = 0;
-    return getCurrentPosition(info);
+    return 0;
+//    info->lastFrameRemainder = info->nextStartTime - getRealTime();
+//    if (info->lastFrameRemainder < 0) //TODO switch
+//        info->lastFrameRemainder = 0;
+//    return getCurrentPosition(info);
 }
 
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
@@ -155,15 +156,15 @@ static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
         sum = newSum;
     }
 
-    time_t lastFrameRemainder = desiredPos - sum;
-    if (i == info->gifFilePtr->ImageCount - 1 && lastFrameRemainder > info->infos[i].DelayTime)
-        lastFrameRemainder = info->infos[i].DelayTime;
-
-    info->lastFrameRemainder = lastFrameRemainder;
-
-    if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime() + lastFrameRemainder;
-    else
-        info->nextStartTime = getRealTime() + (time_t) (lastFrameRemainder * info->speedFactor);
+//    time_t lastFrameRemainder = desiredPos - sum; TODO switch
+//    if (i == info->gifFilePtr->ImageCount - 1 && lastFrameRemainder > info->infos[i].DelayTime)
+//        lastFrameRemainder = info->infos[i].DelayTime;
+//
+//    info->lastFrameRemainder = lastFrameRemainder;
+//
+//    if (info->speedFactor == 1.0)
+//        info->nextStartTime = getRealTime() + lastFrameRemainder;
+//    else
+//        info->nextStartTime = getRealTime() + (time_t) (lastFrameRemainder * info->speedFactor);
     return i;
 }

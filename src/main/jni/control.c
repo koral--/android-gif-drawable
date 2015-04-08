@@ -52,7 +52,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     }
 
     info->lastFrameRemainder = desiredPos - sum;
-    if (desiredIndex == info->gifFilePtr->ImageCount - 1 && info->lastFrameRemainder > info->infos[desiredIndex].DelayTime)
+    if (desiredIndex == info->gifFilePtr->ImageCount - 1 &&
+        info->lastFrameRemainder > info->infos[desiredIndex].DelayTime)
         info->lastFrameRemainder = info->infos[desiredIndex].DelayTime;
     if (info->currentIndex < desiredIndex) {
         void *pixels;
@@ -66,10 +67,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         unlockPixels(env, jbitmap);
     }
 
-    if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime() + info->lastFrameRemainder;
-    else
-        info->nextStartTime = getRealTime() + (time_t) (info->lastFrameRemainder * info->speedFactor);
+    info->nextStartTime = getRealTime() + (time_t) (info->lastFrameRemainder * info->speedFactor);
+    if (info->lastFrameRemainder != ULONG_MAX)
+        info->lastFrameRemainder = 0; //TODO
 }
 
 __unused JNIEXPORT void JNICALL
@@ -101,19 +101,21 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
         unlockPixels(env, jbitmap);
     }
 
-    if (info->speedFactor == 1.0)
-        info->nextStartTime = getRealTime() + lastFrameDuration;
-    else
-        info->nextStartTime = getRealTime() + (time_t) (lastFrameDuration * info->speedFactor);
+    info->nextStartTime = getRealTime() + (time_t) (lastFrameDuration * info->speedFactor);
+    if (info->lastFrameRemainder != ULONG_MAX)
+        info->lastFrameRemainder = 0;
 }
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jclass __unused handleClass,
                                                       jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (info == NULL)
+    if (info == NULL || info->lastFrameRemainder != ULONG_MAX ||
+        info->gifFilePtr->ImageCount == 1) //TODO verify if all checks for ImageCount == 1 are needed
         return;
     info->lastFrameRemainder = info->nextStartTime - getRealTime();
+    if (info->lastFrameRemainder < 0)
+        info->lastFrameRemainder = 0;
 }
 
 __unused JNIEXPORT void JNICALL
