@@ -56,7 +56,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->eventFd = -1;
     info->surfaceBackupPtr = NULL;
 
-    DDGifSlurp(descriptor->GifFileIn, info, false);
+    DDGifSlurp(info, false);
     if (justDecodeMetaData == JNI_TRUE)
         info->rasterBits = NULL;
     else {

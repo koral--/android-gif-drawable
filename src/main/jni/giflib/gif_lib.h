@@ -23,7 +23,7 @@ typedef unsigned int GifPrefixType;
 typedef uint_fast32_t GifWord;
 
 typedef struct GifColorType {
-    uint8_t __unused Red, Green, Blue;
+    uint8_t Red, Green, Blue;
 } GifColorType;
 
 typedef struct ColorMapObject {
@@ -90,7 +90,7 @@ typedef enum {
 } GifRecordType;
 
 /* func type to read gif data from arbitrary sources (TVT) */
-typedef uint_fast32_t (*InputFunc)(GifFileType *, GifByteType *, uint_fast32_t);
+typedef uint_fast8_t (*InputFunc)(GifFileType *, GifByteType *, uint_fast8_t);
 
 /******************************************************************************
  GIF89 structures

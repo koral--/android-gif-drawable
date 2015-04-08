@@ -7,12 +7,12 @@ inline JNIEnv *getEnv(void) {
     return NULL;
 }
 
-static uint_fast32_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
+static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
     FILE *file = (FILE *) gif->UserData;
-    return (uint_fast32_t) fread(bytes, 1, size, file);
+    return (uint_fast8_t) fread(bytes, 1, size, file);
 }
 
-static uint_fast32_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
+static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
     DirectByteBufferContainer *dbbc = gif->UserData;
     if (dbbc->pos + size > dbbc->capacity)
         size -= dbbc->pos + size - dbbc->capacity;
@@ -21,7 +21,7 @@ static uint_fast32_t directByteBufferReadFun(GifFileType *gif, GifByteType *byte
     return size;
 }
 
-static uint_fast32_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
+static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
     ByteArrayContainer *bac = gif->UserData;
     JNIEnv *env;
     (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
@@ -32,7 +32,7 @@ static uint_fast32_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint
     return size;
 }
 
-static uint_fast32_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size) {
+static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
     StreamContainer *sc = gif->UserData;
     JNIEnv *env = getEnv();
     if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0)
@@ -64,7 +64,7 @@ static uint_fast32_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fa
     if ((*env)->MonitorExit(env, sc->stream) != 0)
         len = 0;
 
-    return (uint_fast32_t) (len >= 0 ? len : 0);
+    return (uint_fast8_t) (len >= 0 ? len : 0);
 }
 
 static int fileRewind(GifInfo *info) {
@@ -93,7 +93,7 @@ static int streamRewind(GifInfo *info) {
 
 static int byteArrayRewind(GifInfo *info) {
     ByteArrayContainer *bac = info->gifFilePtr->UserData;
-    bac->pos = info->startPos;
+    bac->pos = (uint_fast32_t) info->startPos;
     return 0;
 }
 

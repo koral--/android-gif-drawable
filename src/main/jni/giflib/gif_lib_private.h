@@ -20,10 +20,10 @@ gif_lib_private.h - internal giflib routines and structures
 #define FIRST_CODE          4097    /* Impossible code, to signal first. */
 #define NO_SUCH_CODE        4098    /* Impossible code, to signal empty. */
 
-#define FILE_STATE_WRITE    0x01
-#define FILE_STATE_SCREEN   0x02
-#define FILE_STATE_IMAGE    0x04
-#define FILE_STATE_READ     0x08
+//#define FILE_STATE_WRITE    0x01
+//#define FILE_STATE_SCREEN   0x02
+//#define FILE_STATE_IMAGE    0x04
+//#define FILE_STATE_READ     0x08
 
 //#define IS_READABLE(Private)    (Private->FileState & FILE_STATE_READ)
 

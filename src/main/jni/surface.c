@@ -52,31 +52,47 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         }
     }
 
-    size_t bufferSize = 0;
-    time_t renderingStartTime;
-    bool firstLoop = true;
+    if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
+        ANativeWindow_release(window);
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Window lock failed");
+        return;
+    }
+    const size_t bufferSize = buffer.stride * buffer.height * sizeof(argb);
+
+    info->stride = buffer.stride;
+    if (info->surfaceBackupPtr) {
+        memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
+    }
+    else {
+        while (framesToSkip-- > 0) {
+            DDGifSlurp(info, true);
+            getBitmap(buffer.bits, info);
+        }
+    }
+    ANativeWindow_unlockAndPost(window);
+
+    ARect rect;
     while (1) {
-        renderingStartTime = getRealTime();
+        time_t renderingStartTime = getRealTime();
+        DDGifSlurp(info, true);
+
+        rect.left = info->gifFilePtr->Image.Left;
+        rect.right = info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width;
+        rect.top = info->gifFilePtr->Image.Top;
+        rect.bottom = info->gifFilePtr->Image.Top + info->gifFilePtr->Image.Height;
         oldBufferBits = buffer.bits;
-        if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
+        if (ANativeWindow_lock(window, &buffer, &rect) != 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Window lock failed");
             break;
         }
-        if (firstLoop) {
-            bufferSize = buffer.stride * buffer.height * sizeof(argb);
-            info->stride = buffer.stride;
-            if (info->surfaceBackupPtr) {
-                memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
+        if (info->currentIndex > 0) {
+            if (rect.left == 0 && rect.right == buffer.width && info->gifFilePtr->Image.Height < info->gifFilePtr->SHeight) {
+                memcpy(buffer.bits, oldBufferBits, buffer.stride * rect.top * sizeof(argb));
+                size_t offset = buffer.stride * rect.bottom * sizeof(argb);
+                memcpy(buffer.bits + offset, oldBufferBits + offset, bufferSize - offset);
             }
-            else {
-                while (framesToSkip-- > 0) {
-                    getBitmap(buffer.bits, info);
-                }
-            }
-            firstLoop = false;
-        }
-        else {
-            memcpy(buffer.bits, oldBufferBits, bufferSize);
+            else
+                memcpy(buffer.bits, oldBufferBits, bufferSize);
         }
         const uint_fast16_t frameDuration = getBitmap(buffer.bits, info);
         ANativeWindow_unlockAndPost(window);

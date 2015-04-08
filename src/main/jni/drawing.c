@@ -1,7 +1,9 @@
 #include "gif.h"
 
-#ifdef __arm__
+#if defined (__arm__)
     extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
+    #define MEMSET_ARGB(dst, value, count) arm_memset32(dst, value, (int) count)
+#elif defined (__ARM_ARCH_7A__)
     extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
     #define MEMSET_ARGB(dst, value, count) memset32_neon(dst, value, (int) count)
 #else
@@ -114,28 +116,21 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
 }
 
 uint_fast16_t const getBitmap(argb *bm, GifInfo *info) {
-#ifdef DEBUG
-    time_t start = getRealTime();
-#endif
-
-    GifFileType *fGIF = info->gifFilePtr;
-    DDGifSlurp(fGIF, info, true);
-
     if (info->currentIndex == 0) {
-        if (fGIF->SColorMap && info->infos[0].TransparentColor == NO_TRANSPARENT_COLOR) {
+        if (info->gifFilePtr->SColorMap && info->infos[0].TransparentColor == NO_TRANSPARENT_COLOR) {
             argb bgColArgb;
-            bgColArgb.rgb = fGIF->SColorMap->Colors[fGIF->SBackGroundColor];
+            bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];
             bgColArgb.alpha = 0xFF;
-            MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * fGIF->SHeight);
+            MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * info->gifFilePtr->SHeight);
         }
         else {
-            MEMSET_ARGB((uint32_t *) bm, 0, info->stride * fGIF->SHeight);
+            MEMSET_ARGB((uint32_t *) bm, 0, info->stride * info->gifFilePtr->SHeight);
         }
     }
     else {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
     }
-    drawFrame(bm, info, fGIF->SavedImages + info->currentIndex);
+    drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
     uint_fast16_t frameDuration = info->infos[info->currentIndex].DelayTime;
 
     if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
@@ -150,9 +145,6 @@ uint_fast16_t const getBitmap(argb *bm, GifInfo *info) {
             frameDuration = 0;
         }
     }
-#ifdef DEBUG
-    LOGE("renderTime %ld", getRealTime() - start);
-#endif
     return frameDuration;
 }
 

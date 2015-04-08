@@ -13,7 +13,7 @@ __unused JNIEXPORT jboolean JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass,
                                                              jlong gifInfo) {
     if (gifInfo == 0) {
-        return NULL;
+        return JNI_FALSE;
     }
     GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
     if (info->currentIndex == info->gifFilePtr->ImageCount) //TODO handle better

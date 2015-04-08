@@ -1,29 +1,29 @@
 #include "gif.h"
 
-void DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
+void DDGifSlurp(GifInfo *info, bool shouldDecode) {
     GifRecordType RecordType;
     GifByteType *ExtData;
     int codeSize;
     int ExtFunction;
     do {
-        if (DGifGetRecordType(GifFile, &RecordType) == GIF_ERROR)
+        if (DGifGetRecordType(info->gifFilePtr, &RecordType) == GIF_ERROR)
             return;
         switch (RecordType) {
             case IMAGE_DESC_RECORD_TYPE:
 
-                if (DGifGetImageDesc(GifFile, !shouldDecode) == GIF_ERROR)
+                if (DGifGetImageDesc(info->gifFilePtr, !shouldDecode) == GIF_ERROR)
                     return;
 
-                if (GifFile->Image.Left + GifFile->Image.Width > info->gifFilePtr->SWidth) {
-                    GifFile->Image.Width = info->gifFilePtr->SWidth - GifFile->Image.Left;
+                if (info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width > info->gifFilePtr->SWidth) {
+                    info->gifFilePtr->Image.Width = info->gifFilePtr->SWidth - info->gifFilePtr->Image.Left;
                 }
 
-                if (GifFile->Image.Top + GifFile->Image.Height > info->gifFilePtr->SHeight) {
-                    GifFile->Image.Height = info->gifFilePtr->SHeight - GifFile->Image.Top;
+                if (info->gifFilePtr->Image.Top + info->gifFilePtr->Image.Height > info->gifFilePtr->SHeight) {
+                    info->gifFilePtr->Image.Height = info->gifFilePtr->SHeight - info->gifFilePtr->Image.Top;
                 }
 
                 if (shouldDecode) {
-                    if (GifFile->Image.Interlace) {
+                    if (info->gifFilePtr->Image.Interlace) {
                         uint_fast16_t i, j;
                         /*
                          * The way an interlaced image should be read -
@@ -33,36 +33,37 @@ void DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                         uint_fast8_t InterlacedJumps[] = {8, 8, 4, 2};
                         /* Need to perform 4 passes on the image */
                         for (i = 0; i < 4; i++)
-                            for (j = InterlacedOffset[i]; j < GifFile->Image.Height; j += InterlacedJumps[i]) {
-                                if (DGifGetLine(GifFile, info->rasterBits + j * GifFile->Image.Width,
-                                                GifFile->Image.Width) == GIF_ERROR)
+                            for (j = InterlacedOffset[i]; j < info->gifFilePtr->Image.Height; j += InterlacedJumps[i]) {
+                                if (DGifGetLine(info->gifFilePtr, info->rasterBits + j * info->gifFilePtr->Image.Width,
+                                                info->gifFilePtr->Image.Width) == GIF_ERROR)
                                     return;
                             }
                     }
                     else {
-                        if (DGifGetLine(GifFile, info->rasterBits, GifFile->Image.Width * GifFile->Image.Height) == GIF_ERROR)
+                        if (DGifGetLine(
+                                info->gifFilePtr, info->rasterBits, info->gifFilePtr->Image.Width * info->gifFilePtr->Image.Height) == GIF_ERROR)
                             return;
                     }
                     return;
                 }
                 else {
-                    if (DGifGetCode(GifFile, &codeSize, &ExtData) == GIF_ERROR)
+                    if (DGifGetCode(info->gifFilePtr, &codeSize, &ExtData) == GIF_ERROR)
                         return;
                     while (ExtData != NULL) {
-                        if (DGifGetCodeNext(GifFile, &ExtData) == GIF_ERROR)
+                        if (DGifGetCodeNext(info->gifFilePtr, &ExtData) == GIF_ERROR)
                             return;
                     }
                 }
                 break;
 
             case EXTENSION_RECORD_TYPE:
-                if (DGifGetExtension(GifFile, &ExtFunction, &ExtData) == GIF_ERROR)
+                if (DGifGetExtension(info->gifFilePtr, &ExtFunction, &ExtData) == GIF_ERROR)
                     return;
                 if (!shouldDecode) {
                     GraphicsControlBlock *tmpInfos = realloc(info->infos,
-                                                             (GifFile->ImageCount + 1) * sizeof(GraphicsControlBlock));
+                                                             (info->gifFilePtr->ImageCount + 1) * sizeof(GraphicsControlBlock));
                     if (tmpInfos == NULL) {
-                        GifFile->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+                        info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
                         return;
                     }
                     info->infos = tmpInfos;
@@ -70,7 +71,7 @@ void DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode) {
                         return;
                 }
                 while (ExtData != NULL) {
-                    if (DGifGetExtensionNext(GifFile, &ExtData,
+                    if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
                                              &ExtFunction) == GIF_ERROR)
                         return;
                     if (!shouldDecode) {

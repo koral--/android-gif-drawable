@@ -101,13 +101,13 @@ typedef struct {
 } StreamContainer;
 
 typedef struct {
-    long pos;
+    uint_fast32_t pos;
     jbyteArray buffer;
     jsize arrLen;
 } ByteArrayContainer;
 
 typedef struct {
-    long pos;
+    jlong pos;
     jbyte *bytes;
     jlong capacity;
 } DirectByteBufferContainer;
@@ -151,15 +151,15 @@ void throwException(JNIEnv *env, enum Exception exception, char *message);
 
 bool isSourceNull(void *ptr, JNIEnv *env);
 
-static uint_fast32_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
+static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
 inline JNIEnv *getEnv(void);
 
-static uint_fast32_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
+static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static uint_fast32_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
+static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static uint_fast32_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast32_t size);
+static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
 static int fileRewind(GifInfo *info);
 
@@ -173,7 +173,7 @@ static int getComment(GifByteType *Bytes, GifInfo*);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
-void DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
+void DDGifSlurp(GifInfo *info, bool shouldDecode);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 

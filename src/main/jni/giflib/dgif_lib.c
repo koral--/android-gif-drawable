@@ -421,7 +421,7 @@ This routine should be called last, to close the GIF file.
 ******************************************************************************/
 int
 DGifCloseFile(GifFileType *GifFile) {
-    GifFilePrivateType *Private;
+//    GifFilePrivateType *Private;
 
     if (GifFile == NULL || GifFile->Private == NULL)
         return GIF_ERROR;
@@ -443,7 +443,7 @@ DGifCloseFile(GifFileType *GifFile) {
 
 //    GifFreeExtensions(&GifFile->ExtensionBlockCount, &GifFile->ExtensionBlocks);
 
-    Private = (GifFilePrivateType *) GifFile->Private;
+//    Private = (GifFilePrivateType *) GifFile->Private;
 
 //    if (!IS_READABLE(Private)) {
 //        /* This file was NOT open for reading: */
@@ -782,14 +782,6 @@ DGifBufferedInput(GifFileType *GifFile, GifByteType *Buf, GifByteType *NextByte)
         /* Needs to read the next buffer - this one is empty: */
         if (((GifFilePrivateType *) GifFile->Private)->Read(GifFile, Buf, 1) != 1) {
             GifFile->Error = D_GIF_ERR_READ_FAILED;
-            return GIF_ERROR;
-        }
-        /* There shouldn't be any empty data blocks here as the LZW spec
-         * says the LZW termination code should come first.  Therefore we
-         * shouldn't be inside this routine at that point.
-         */
-        if (Buf[0] == 0) {
-            GifFile->Error = D_GIF_ERR_IMAGE_DEFECT;
             return GIF_ERROR;
         }
         /* There shouldn't be any empty data blocks here as the LZW spec
