@@ -10,7 +10,6 @@ time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fa
         invalidationDelay -= renderingTime;
         if (invalidationDelay < 0)
             invalidationDelay = 0;
-        }
         info->nextStartTime = renderStartTime + invalidationDelay;
         return invalidationDelay;
     }
