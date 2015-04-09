@@ -649,8 +649,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
 
         if (mIsRenderingTriggeredOnDraw && mIsRunning) {
-            long invalidationDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime());
-            mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
+            long invalidationDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime()); //TODO take from native level
+            mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS); //TODO remove exisiting pending task?
         }
     }
 
@@ -790,7 +790,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Returns zero-based index of recently rendered frame in given loop or -1 when drawable is recycled.
-     * Zero is also returned when
      *
      * @return index of recently rendered frame or -1 when drawable is recycled
      */
