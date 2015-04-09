@@ -1,15 +1,16 @@
 #include "gif.h"
 
-time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast16_t frameDuration) {
+time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast32_t frameDuration) {
     if (frameDuration) {
         time_t invalidationDelay = frameDuration;
         if (info->speedFactor != 1.0) {
-            invalidationDelay /= info->speedFactor; //TODO handle overflow
+            invalidationDelay /= info->speedFactor;
         }
         const time_t renderingTime = getRealTime() - renderStartTime;
         invalidationDelay -= renderingTime;
         if (invalidationDelay < 0)
             invalidationDelay = 0;
+        }
         info->nextStartTime = renderStartTime + invalidationDelay;
         return invalidationDelay;
     }

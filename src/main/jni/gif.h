@@ -187,7 +187,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
 static void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx);
 
-uint_fast16_t const getBitmap(argb *bm, GifInfo *info);
+uint_fast32_t const getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
@@ -195,8 +195,6 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast16_t frameDuration);
+time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast32_t frameDuration);
 
 static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
-
-jint getCurrentPosition(GifInfo *info);

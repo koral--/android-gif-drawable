@@ -86,15 +86,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             break;
         }
         if (info->currentIndex > 0) {
-            if (rect.left == 0 && rect.right == buffer.width && info->gifFilePtr->Image.Height < info->gifFilePtr->SHeight) {
-                memcpy(buffer.bits, oldBufferBits, buffer.stride * rect.top * sizeof(argb));
-                size_t offset = buffer.stride * rect.bottom * sizeof(argb);
-                memcpy(buffer.bits + offset, oldBufferBits + offset, bufferSize - offset);
-            }
-            else
-                memcpy(buffer.bits, oldBufferBits, bufferSize);
+            memcpy(buffer.bits, oldBufferBits, bufferSize);
         }
         const uint_fast16_t frameDuration = getBitmap(buffer.bits, info);
+
         ANativeWindow_unlockAndPost(window);
 
         time_t invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
@@ -147,10 +142,10 @@ static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
     if (info->gifFilePtr->ImageCount == 1)
         return 0;
 
-    unsigned long sum = 0;
+    jint sum = 0;
     int i;
     for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
-        unsigned long newSum = sum + info->infos[i].DelayTime;
+        jint newSum = sum + info->infos[i].DelayTime;
         if (newSum >= desiredPos)
             break;
         sum = newSum;

@@ -32,9 +32,9 @@ class RenderTask extends SafeRunnable {
                 }
             }
         } else {
-            mGifDrawable.mNextFrameRenderTime = Long.MAX_VALUE;
+            mGifDrawable.mNextFrameRenderTime = Long.MIN_VALUE;
             mGifDrawable.mIsRunning = false;
-            if (mGifDrawable.isAnimationCompleted() && !mGifDrawable.mListeners.isEmpty()) {
+            if (!mGifDrawable.mListeners.isEmpty()) {
                 mGifDrawable.scheduleSelf(mNotifyListenersTask, 0L);
             }
         }

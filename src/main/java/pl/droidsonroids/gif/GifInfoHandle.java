@@ -25,7 +25,7 @@ final class GifInfoHandle {
     final int frameCount;
 
     @SuppressWarnings("SameParameterValue")
-        //invoked from native code
+    //invoked from native code
     private GifInfoHandle(long gifInfoPtr, int width, int height, int frameCount) {
         this.gifInfoPtr = gifInfoPtr;
         this.width = width;
@@ -75,7 +75,7 @@ final class GifInfoHandle {
 
     private static native void saveRemainder(long gifFileInPtr);
 
-    private static native void restoreRemainder(long gifFileInPtr);
+    private static native long restoreRemainder(long gifFileInPtr);
 
     private static native long getAllocationByteCount(long gifFileInPtr);
 
@@ -125,8 +125,8 @@ final class GifInfoHandle {
         gifInfoPtr = 0L;
     }
 
-    synchronized void restoreRemainder() {
-        restoreRemainder(gifInfoPtr);
+    synchronized long restoreRemainder() {
+        return restoreRemainder(gifInfoPtr);
     }
 
     synchronized void reset() {
@@ -157,6 +157,8 @@ final class GifInfoHandle {
         if (factor <= 0f || Float.isNaN(factor)) {
             throw new IllegalArgumentException("Speed factor is not positive");
         }
+        if (factor < 1 / Integer.MAX_VALUE) //TODO prevent overflows
+            factor = 1 / Integer.MAX_VALUE;
         setSpeedFactor(gifInfoPtr, factor);
     }
 
@@ -205,7 +207,7 @@ final class GifInfoHandle {
         return postUnbindSurface(gifInfoPtr);
     }
 
-    boolean isAnimationCompleted() {
+    synchronized boolean isAnimationCompleted() {
         return isAnimationCompleted(gifInfoPtr);
     }
 }

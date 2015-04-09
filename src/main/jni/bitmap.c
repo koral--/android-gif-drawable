@@ -59,21 +59,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     if (info == NULL)
         return -1;
 
-    time_t invalidationDelay, renderStartTime = getRealTime();
-    if (renderStartTime >= info->nextStartTime) { //TODO don't call renderFrame otherwise
-        void *pixels;
-        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
-            return 0;
-        }
-        DDGifSlurp(info, true);
-        const uint_fast16_t frameDuration = getBitmap((argb *) pixels, info);
-        unlockPixels(env, jbitmap);
-        invalidationDelay = calculateInvalidationDelay(info, renderStartTime, frameDuration);
+    time_t renderStartTime = getRealTime();
+    void *pixels;
+    if (lockPixels(env, jbitmap, info, &pixels) != 0) {
+        return 0;
     }
-    else {
-        invalidationDelay = info->nextStartTime - renderStartTime;
-        if (invalidationDelay < 0)
-            invalidationDelay = -1;
-    }
-    return invalidationDelay;
+    DDGifSlurp(info, true);
+    const uint_fast16_t frameDuration = getBitmap((argb *) pixels, info);
+    unlockPixels(env, jbitmap);
+    return calculateInvalidationDelay(info, renderStartTime, frameDuration);
 }

@@ -103,7 +103,7 @@ typedef struct GraphicsControlBlock {
 #define DISPOSE_BACKGROUND        2       /* Set area too background color */
 #define DISPOSE_PREVIOUS          3       /* Restore to previous content */
 //    bool UserInputFlag;      /* User confirmation required before disposal */
-    uint_fast16_t DelayTime;
+    uint_fast32_t DelayTime;
     /* pre-display delay in 0.01sec units */
     int_fast16_t TransparentColor;    /* Palette index for transparency, -1 if none */
 #define NO_TRANSPARENT_COLOR    -1

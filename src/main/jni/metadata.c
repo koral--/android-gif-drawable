@@ -53,25 +53,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jc
     return ((GifInfo *) (intptr_t) gifInfo)->sourceLength;
 }
 
-jint getCurrentPosition(GifInfo *info) {
-    const uint_fast32_t idx = info->currentIndex;
-    if (info->gifFilePtr->ImageCount == 1)
-        return 0;
-    int i;
-    unsigned int sum = 0;
-    for (i = 0; i < idx; i++)
-        sum += info->infos[i].DelayTime;
-    time_t remainder;
-    if (info->lastFrameRemainder == ULONG_MAX) {
-        remainder = info->nextStartTime - getRealTime();
-        if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed
-            remainder = 0;
-    }
-    else
-        remainder = info->lastFrameRemainder;
-    return (jint) (sum + remainder); //2^31-1[ms]>596[h] so jint is enough
-}
-
 __unused JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
                                                            jclass __unused handleClass, jlong gifInfo) {
@@ -83,7 +64,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
     if (info->gifFilePtr->ImageCount == 1)
         return 0;
     int i;
-    unsigned int sum = 0;
+    uint32_t sum = 0;
     for (i = 0; i < idx; i++)
         sum += info->infos[i].DelayTime;
 

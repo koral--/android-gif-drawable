@@ -131,7 +131,7 @@ uint_fast16_t const getBitmap(argb *bm, GifInfo *info) {
         disposeFrameIfNeeded(bm, info, info->currentIndex);
     }
     drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
-    uint_fast16_t frameDuration = info->infos[info->currentIndex].DelayTime;
+    uint_fast32_t frameDuration = info->infos[info->currentIndex].DelayTime;
 
     if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
         if (info->loopCount == 0 || info->currentLoop + 1 < info->loopCount) {

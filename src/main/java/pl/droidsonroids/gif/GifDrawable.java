@@ -48,7 +48,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     final ScheduledThreadPoolExecutor mExecutor;
 
     volatile boolean mIsRunning = true;
-    long mNextFrameRenderTime = SystemClock.elapsedRealtime();
+    long mNextFrameRenderTime = Long.MIN_VALUE;
 
     private final Rect mDstRect = new Rect();
     /**
@@ -286,9 +286,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
-                mNativeInfoHandle.restoreRemainder();
                 mIsRunning = true;
-                mRenderTask.run();
+                mNextFrameRenderTime = Long.MIN_VALUE;
+                mExecutor.schedule(mRenderTask, mNativeInfoHandle.restoreRemainder(), TimeUnit.MILLISECONDS);
             }
         });
     }
@@ -648,9 +648,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mPaint.setColorFilter(null);
         }
 
-        if (mIsRenderingTriggeredOnDraw && mIsRunning) {
-            long invalidationDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime()); //TODO take from native level
-            mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS); //TODO remove exisiting pending task?
+        if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) {
+            final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime());
+            mNextFrameRenderTime = Long.MIN_VALUE;
+            mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
         }
     }
 
