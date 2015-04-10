@@ -6,6 +6,8 @@
 #define NULL_POINTER_EXCEPTION_CLASS_NAME "java/lang/NullPointerException"
 
 inline void throwException(JNIEnv *env, enum Exception exception, char *message) {
+    if ((*env)->ExceptionCheck(env) == JNI_TRUE)
+        return;
     if (errno == ENOMEM)
         exception = OUT_OF_MEMORY_ERROR;
 
@@ -41,6 +43,8 @@ inline bool isSourceNull(void *ptr, JNIEnv *env) {
 
 void throwGifIOException(int errorCode, JNIEnv *env) {
 //nullchecks just to prevent segfaults, LinkageError will be thrown if GifIOException cannot be instantiated
+    if ((*env)->ExceptionCheck(env) == JNI_TRUE)
+        return;
     jclass exClass = (*env)->FindClass(env, "pl/droidsonroids/gif/GifIOException");
     if (exClass == NULL)
         return;
