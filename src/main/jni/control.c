@@ -113,7 +113,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jcl
                                                       jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL || info->lastFrameRemainder != -1 || info->currentIndex == info->gifFilePtr->ImageCount ||
-        info->gifFilePtr->ImageCount == 1) //TODO verify if all checks for ImageCount == 1 are needed
+        info->gifFilePtr->ImageCount == 1)
         return;
     info->lastFrameRemainder = info->nextStartTime - getRealTime();
     if (info->lastFrameRemainder < 0)

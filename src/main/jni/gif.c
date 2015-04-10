@@ -224,6 +224,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
     descriptor.sourceLength = -1;
 
     (*env)->CallVoidMethod(env, stream, mid, INT64_MAX);
+    if ((*env)->ExceptionCheck(env)){
+        (*env)->DeleteGlobalRef(env, streamCls);
+        (*env)->DeleteGlobalRef(env, container->stream);
+        free(container);
+        return NULL;
+    }
 
     jobject gifInfoHandle = createGifHandle(&descriptor, env, justDecodeMetaData);
     if (gifInfoHandle == NULL) {
