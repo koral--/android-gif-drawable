@@ -143,9 +143,9 @@ public class GifTextureView extends TextureView {
 
     private class RenderThread extends Thread implements SurfaceTextureListener {
         final ConditionVariable isSurfaceValid = new ConditionVariable(false);
-        private int mStartPosition;
         private GifInfoHandle mGifInfoHandle = GifInfoHandle.NULL_INFO;
         private IOException mIOException;
+        long[] mSavedState;
 
         @Override
         public void run() {
@@ -181,7 +181,7 @@ public class GifTextureView extends TextureView {
                 }
                 final Surface surface = new Surface(surfaceTexture);
                 try {
-                    mGifInfoHandle.bindSurface(surface, mStartPosition);
+                    mGifInfoHandle.bindSurface(surface, mSavedState);
                 } finally {
                     surface.release();
                 }
@@ -391,16 +391,15 @@ public class GifTextureView extends TextureView {
 
     @Override
     public Parcelable onSaveInstanceState() {
-        mRenderThread.mStartPosition = mRenderThread.mGifInfoHandle.getCurrentPosition();
-
-        return new GifViewSavedState(super.onSaveInstanceState(), mFreezesAnimation ? mRenderThread.mStartPosition : 0);
+        mRenderThread.mSavedState = mRenderThread.mGifInfoHandle.getSavedState();
+        return new GifViewSavedState(super.onSaveInstanceState(), mFreezesAnimation ? mRenderThread.mSavedState : null);
     }
 
     @Override
     public void onRestoreInstanceState(Parcelable state) {
         GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
-        mRenderThread.mStartPosition = ss.mPositions[0];
+        mRenderThread.mSavedState = ss.mStates[0];
     }
 
     /**

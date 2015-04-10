@@ -13,7 +13,6 @@ time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fa
         info->nextStartTime = renderStartTime + invalidationDelay;
         return invalidationDelay;
     }
-    info->lastFrameRemainder = 0; //TODO check
     return -1;
 }
 

@@ -219,7 +219,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
         mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
         mInvalidationHandler = new InvalidationHandler(this);
-        mExecutor.execute(mRenderTask);
+        if (mIsRenderingTriggeredOnDraw) {
+            mNextFrameRenderTime = 0;
+        } else {
+            mExecutor.execute(mRenderTask);
+        }
     }
 
     /**
@@ -283,14 +287,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void start() {
-        mExecutor.execute(new SafeRunnable(this) {
-            @Override
-            public void doWork() {
-                mIsRunning = true;
-                mNextFrameRenderTime = Long.MIN_VALUE;
-                mExecutor.schedule(mRenderTask, mNativeInfoHandle.restoreRemainder(), TimeUnit.MILLISECONDS);
+        mIsRunning = true;
+        final long lastFrameRemainder = mNativeInfoHandle.restoreRemainder();
+        startAnimation(lastFrameRemainder);
+    }
+
+    void startAnimation(long lastFrameRemainder) {
+        if (lastFrameRemainder >= 0) {
+            if (mIsRenderingTriggeredOnDraw) {
+                mNextFrameRenderTime = 0;
+                mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+            } else {
+                //noinspection StatementWithEmptyBody
+                while (mExecutor.getQueue().remove(mRenderTask));
+                mExecutor.schedule(mRenderTask, lastFrameRemainder, TimeUnit.MILLISECONDS);
             }
-        });
+        }
     }
 
     /**
@@ -303,9 +315,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
-                mNativeInfoHandle.reset();
-                mIsRunning = true;
-                mRenderTask.run();
+                if (mNativeInfoHandle.reset())
+                    start();
             }
         });
     }
@@ -318,12 +329,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     public void stop() {
         mIsRunning = false;
         mInvalidationHandler.removeMessages(0);
-        mExecutor.execute(new SafeRunnable(this) {
-            @Override
-            public void doWork() {
-                mNativeInfoHandle.saveRemainder();
-            }
-        });
+        //noinspection StatementWithEmptyBody
+        while (mExecutor.getQueue().remove(mRenderTask));
+        mNativeInfoHandle.saveRemainder();
     }
 
     @Override

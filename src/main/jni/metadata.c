@@ -16,7 +16,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *en
         return JNI_FALSE;
     }
     GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
-    if (info->currentIndex == info->gifFilePtr->ImageCount) //TODO handle better
+    if (info->currentLoop == info->loopCount)
         return JNI_TRUE;
     else
         return JNI_FALSE;
@@ -69,7 +69,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
         sum += info->infos[i].DelayTime;
 
     time_t remainder;
-    if (info->lastFrameRemainder == ULONG_MAX) {
+    if (info->lastFrameRemainder == -1) {
         remainder = info->nextStartTime - getRealTime();
         if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed
             remainder = 0;
@@ -115,4 +115,76 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentFrameIndex(JNIEnv __unused *en
     if (gifInfo == 0)
         return -1;
     return ((GifInfo *) (intptr_t) gifInfo)->currentIndex;
+}
+
+__unused JNIEXPORT jlongArray JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unused handleClass,
+                                                      jlong gifInfo) {
+    GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+    if (info == NULL)
+        return NULL;
+
+    const jlongArray state = (*env)->NewLongArray(env, 4);
+    if (state == NULL) {
+        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "Could not create state array");
+        return NULL;
+    }
+
+    jlong nativeState[4] = {info->currentIndex, info->currentLoop, info->lastFrameRemainder};
+    memcpy(nativeState + 3, &info->speedFactor, sizeof(info->speedFactor));
+    (*env)->SetLongArrayRegion(env, state, 0, 4, nativeState);
+    return state;
+}
+
+jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels) {
+    if (info->gifFilePtr->ImageCount == 1) {
+        return -1;
+    }
+
+    jlong nativeState[4];
+    (*env)->GetLongArrayRegion(env, state, 0, 4, nativeState);
+
+    const uint_fast8_t savedLoop = (uint_fast8_t) nativeState[1];
+    const uint_fast32_t savedIndex = (uint_fast32_t) nativeState[0];
+
+    if (savedIndex >= info->gifFilePtr->ImageCount || info->currentLoop > info->loopCount)
+        return -1;
+
+    if (savedIndex < info->currentIndex && !reset(info)) {
+        info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+        return -1;
+    }
+
+    uint_fast32_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
+    if (info->currentIndex < savedIndex) {
+
+        while (info->currentIndex < savedIndex) {
+            DDGifSlurp(info, true);
+            lastFrameDuration = getBitmap((argb *) pixels, info);
+        }
+    }
+
+    info->currentLoop = savedLoop;
+    info->lastFrameRemainder = nativeState[2];
+    memcpy(&info->speedFactor, nativeState + 3, sizeof(info->speedFactor));
+
+    if (info->lastFrameRemainder == -1) {
+        uint_fast32_t duration = (uint_fast32_t) (lastFrameDuration * info->speedFactor);
+        info->nextStartTime = getRealTime() + duration;
+        return duration;
+    }
+    return -1;
+}
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_restoreSavedState(JNIEnv *env, jclass __unused handleClass,
+                                                          jlong gifInfo, jlongArray state, jobject jbitmap) {
+    GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+    void *pixels;
+    if (info == NULL || lockPixels(env, jbitmap, info, &pixels) != 0) {
+        return -1;
+    }
+    const jint invalidationDelay = restoreSavedState(info, env, state, pixels);
+    unlockPixels(env, jbitmap);
+    return invalidationDelay;
 }

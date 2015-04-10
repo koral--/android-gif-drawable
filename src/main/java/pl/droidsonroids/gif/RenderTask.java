@@ -27,9 +27,6 @@ class RenderTask extends SafeRunnable {
                 if (mGifDrawable.mIsRunning && !mGifDrawable.mIsRenderingTriggeredOnDraw) {
                     mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
                 }
-                if (!mGifDrawable.mInvalidationHandler.hasMessages(0)) {
-                    mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
-                }
             }
         } else {
             mGifDrawable.mNextFrameRenderTime = Long.MIN_VALUE;
@@ -37,6 +34,9 @@ class RenderTask extends SafeRunnable {
             if (!mGifDrawable.mListeners.isEmpty()) {
                 mGifDrawable.scheduleSelf(mNotifyListenersTask, 0L);
             }
+        }
+        if (mGifDrawable.isVisible() && !mGifDrawable.mInvalidationHandler.hasMessages(0)) {
+            mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
         }
     }
 }

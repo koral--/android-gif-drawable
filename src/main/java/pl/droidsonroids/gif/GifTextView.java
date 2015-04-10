@@ -204,16 +204,16 @@ public class GifTextView extends TextView {
         super.onRestoreInstanceState(ss.getSuperState());
 
         Drawable[] compoundDrawables = getCompoundDrawables();
-        ss.setPosition(compoundDrawables[0], 0);
-        ss.setPosition(compoundDrawables[1], 1);
-        ss.setPosition(compoundDrawables[2], 2);
-        ss.setPosition(compoundDrawables[3], 3);
+        ss.restoreState(compoundDrawables[0], 0);
+        ss.restoreState(compoundDrawables[1], 1);
+        ss.restoreState(compoundDrawables[2], 2);
+        ss.restoreState(compoundDrawables[3], 3);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-            ss.setPosition(compoundDrawablesRelative[0], 4);
-            ss.setPosition(compoundDrawablesRelative[2], 5);
+            ss.restoreState(compoundDrawablesRelative[0], 4);
+            ss.restoreState(compoundDrawablesRelative[2], 5);
         }
-        ss.setPosition(getBackground(), 6);
+        ss.restoreState(getBackground(), 6);
     }
 
     /**

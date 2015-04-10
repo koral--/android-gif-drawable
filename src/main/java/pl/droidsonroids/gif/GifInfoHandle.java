@@ -51,11 +51,11 @@ final class GifInfoHandle {
 
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
-    private static native void bindSurface(long gifInfoPtr, Surface surface, int startPosition);
+    private static native void bindSurface(long gifInfoPtr, Surface surface, long[] savedState);
 
     private static native void free(long gifFileInPtr);
 
-    private static native void reset(long gifFileInPtr);
+    private static native boolean reset(long gifFileInPtr);
 
     private static native void setSpeedFactor(long gifFileInPtr, float factor);
 
@@ -85,7 +85,7 @@ final class GifInfoHandle {
 
     private static native int getCurrentLoop(long gifFileInPtr);
 
-    private static native int postUnbindSurface(long gifFileInPtr);
+    private static native void postUnbindSurface(long gifFileInPtr);
 
     private static native boolean isAnimationCompleted(long gifInfoPtr);
 
@@ -116,8 +116,8 @@ final class GifInfoHandle {
         return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    void bindSurface(Surface surface, int startPosition) {
-        bindSurface(gifInfoPtr, surface, startPosition);
+    void bindSurface(Surface surface, long[] savedState) {
+        bindSurface(gifInfoPtr, surface, savedState);
     }
 
     synchronized void recycle() {
@@ -129,8 +129,8 @@ final class GifInfoHandle {
         return restoreRemainder(gifInfoPtr);
     }
 
-    synchronized void reset() {
-        reset(gifInfoPtr);
+    synchronized boolean reset() {
+        return reset(gifInfoPtr);
     }
 
     synchronized void saveRemainder() {
@@ -157,7 +157,7 @@ final class GifInfoHandle {
         if (factor <= 0f || Float.isNaN(factor)) {
             throw new IllegalArgumentException("Speed factor is not positive");
         }
-        if (factor < 1 / Integer.MAX_VALUE) //TODO prevent overflows
+        if (factor < 1 / Integer.MAX_VALUE)
             factor = 1 / Integer.MAX_VALUE;
         setSpeedFactor(gifInfoPtr, factor);
     }
@@ -203,11 +203,22 @@ final class GifInfoHandle {
         }
     }
 
-    synchronized int postUnbindSurface() {
-        return postUnbindSurface(gifInfoPtr);
+    synchronized void postUnbindSurface() {
+        postUnbindSurface(gifInfoPtr);
     }
 
     synchronized boolean isAnimationCompleted() {
         return isAnimationCompleted(gifInfoPtr);
     }
+
+    synchronized long[] getSavedState(){
+        return getSavedState(gifInfoPtr);
+    }
+
+    synchronized int restoreSavedState(long[] savedState, Bitmap mBuffer){
+        return restoreSavedState(gifInfoPtr, savedState, mBuffer);
+    }
+
+    private static native long[] getSavedState(long gifInfoPtr);
+    private static native int restoreSavedState(long gifInfoPtr, long[] savedState, Bitmap mBuffer);
 }

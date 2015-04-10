@@ -142,6 +142,8 @@ uint_fast16_t const getBitmap(argb *bm, GifInfo *info) {
             info->currentIndex = 0;
         }
         else {
+            info->currentLoop++;
+            --info->currentIndex;
             frameDuration = 0;
         }
     }

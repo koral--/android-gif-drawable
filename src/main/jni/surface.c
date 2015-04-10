@@ -7,11 +7,9 @@ typedef uint64_t POLL_TYPE;
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
-                                                    jlong gifInfo, jobject jsurface, jint startPosition) {
+                                                    jlong gifInfo, jobject jsurface, jlongArray savedState) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (!info)
-        return;
 
     if (info->eventFd == -1) {
         info->eventFd = eventfd(0, 0);
@@ -28,7 +26,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         return;
     }
 
-    int framesToSkip = getSkippedFramesCount(info, startPosition);
     struct ANativeWindow_Buffer buffer = {.bits =NULL};
     void *oldBufferBits;
 
@@ -62,12 +59,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     info->stride = buffer.stride;
     if (info->surfaceBackupPtr) {
         memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
+        info->lastFrameRemainder = -1;
     }
     else {
-        while (framesToSkip-- > 0) {
-            DDGifSlurp(info, true);
-            getBitmap(buffer.bits, info);
-        }
+        if (savedState != NULL)
+            info->lastFrameRemainder = restoreSavedState(info, env, savedState, buffer.bits);
+        else
+            info->lastFrameRemainder = -1;
     }
     ANativeWindow_unlockAndPost(window);
 
@@ -94,10 +92,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 
         time_t invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
 
-//        if (info->lastFrameRemainder > 0) { //TODO switch
-//            invalidationDelayMillis = info->lastFrameRemainder;
-//            info->lastFrameRemainder = 0;
-//        }
+        if (info->lastFrameRemainder >= 0) {
+            invalidationDelayMillis = info->lastFrameRemainder;
+            info->lastFrameRemainder = -1;
+        }
+
         pollResult = poll(&eventPollFd, 1, (int) invalidationDelayMillis);
         if (pollResult < 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
@@ -121,45 +120,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     ANativeWindow_release(window);
 }
 
-__unused JNIEXPORT jint JNICALL
+__unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (!info || info->eventFd == -1) {
-        return 0;
+        return;
     }
     POLL_TYPE eftd_ctr;
     if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd write failed");
     }
-    return 0;
-//    info->lastFrameRemainder = info->nextStartTime - getRealTime();
-//    if (info->lastFrameRemainder < 0) //TODO switch
-//        info->lastFrameRemainder = 0;
-//    return getCurrentPosition(info);
-}
-
-static int getSkippedFramesCount(GifInfo *info, jint desiredPos) {
-    if (info->gifFilePtr->ImageCount == 1)
-        return 0;
-
-    jint sum = 0;
-    int i;
-    for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
-        jint newSum = sum + info->infos[i].DelayTime;
-        if (newSum >= desiredPos)
-            break;
-        sum = newSum;
-    }
-
-//    time_t lastFrameRemainder = desiredPos - sum; TODO switch
-//    if (i == info->gifFilePtr->ImageCount - 1 && lastFrameRemainder > info->infos[i].DelayTime)
-//        lastFrameRemainder = info->infos[i].DelayTime;
-//
-//    info->lastFrameRemainder = lastFrameRemainder;
-//
-//    if (info->speedFactor == 1.0)
-//        info->nextStartTime = getRealTime() + lastFrameRemainder;
-//    else
-//        info->nextStartTime = getRealTime() + (time_t) (lastFrameRemainder * info->speedFactor);
-    return i;
 }

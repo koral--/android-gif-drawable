@@ -43,7 +43,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->startPos = descriptor->startPos;
     info->currentIndex = 0;
     info->nextStartTime = 0;
-    info->lastFrameRemainder = ULONG_MAX;
+    info->lastFrameRemainder = -1;
     info->comment = NULL;
     info->loopCount = 1;
     info->currentLoop = 0;

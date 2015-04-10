@@ -121,8 +121,8 @@ public class GifImageButton extends ImageButton {
     public void onRestoreInstanceState(Parcelable state) {
         GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
-        ss.setPosition(getDrawable(), 0);
-        ss.setPosition(getBackground(), 1);
+        ss.restoreState(getDrawable(), 0);
+        ss.restoreState(getBackground(), 1);
     }
 
     /**

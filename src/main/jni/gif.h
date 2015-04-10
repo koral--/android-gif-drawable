@@ -197,4 +197,4 @@ void unlockPixels(JNIEnv *env, jobject jbitmap);
 
 time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast32_t frameDuration);
 
-static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
+jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
