@@ -157,7 +157,6 @@ public abstract class InputSource {
      */
     public static final class FileDescriptorSource extends InputSource {
         private final FileDescriptor mFd;
-        private final long startOffset;
 
         /**
          * Constructs new source.
@@ -166,12 +165,11 @@ public abstract class InputSource {
          */
         public FileDescriptorSource(@NonNull FileDescriptor fileDescriptor) {
             mFd = fileDescriptor;
-            startOffset = 0;
         }
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openFd(mFd, startOffset, false);
+            return GifInfoHandle.openFd(mFd, 0, false);
         }
     }
 

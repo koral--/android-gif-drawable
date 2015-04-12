@@ -199,6 +199,9 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.1.3
+`src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflict with other libraries
+
 ##Upgrading from 1.0.x
 ####Proguard configuration update
 Proguard configuration has changed. See [Proguard configuration](#proguard) section.

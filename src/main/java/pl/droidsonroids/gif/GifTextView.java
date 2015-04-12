@@ -125,8 +125,8 @@ public class GifTextView extends TextView {
     }
 
     @Override
-    public void setBackgroundResource(int resid) {
-        setBackgroundInternal(getGifOrDefaultDrawable(resid));
+    public void setBackgroundResource(int resId) {
+        setBackgroundInternal(getGifOrDefaultDrawable(resId));
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP) //Resources#getDrawable(int, Theme)

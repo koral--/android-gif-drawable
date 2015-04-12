@@ -816,6 +816,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         return mNativeInfoHandle.getCurrentLoop();
     }
 
+    /**
+     *
+     * @return true if all animation loops has ended
+     */
     public boolean isAnimationCompleted() {
         return mNativeInfoHandle.isAnimationCompleted();
     }

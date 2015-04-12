@@ -28,7 +28,7 @@ import java.io.IOException;
  *          xmlns:app="http://schemas.android.com/apk/res-auto"
  *          android:id="@+id/gif_texture_view"
  *          android:scaleType="fitEnd"
- *          app:src="@drawable/animation"
+ *          app:gifSource="@drawable/animation"
  *          android:layout_width="match_parent"
  *          android:layout_height="match_parent" /&gt;
  * </pre>
@@ -142,7 +142,7 @@ public class GifTextureView extends TextureView {
     }
 
     private class RenderThread extends Thread implements SurfaceTextureListener {
-        final ConditionVariable isSurfaceValid = new ConditionVariable(false);
+        final ConditionVariable isSurfaceValid = new ConditionVariable();
         private GifInfoHandle mGifInfoHandle = GifInfoHandle.NULL_INFO;
         private IOException mIOException;
         long[] mSavedState;

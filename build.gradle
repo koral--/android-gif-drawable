@@ -32,7 +32,7 @@ android {
                 moduleName NATIVE_LIBRARY_NAME
                 ldLibs 'jnigraphics', 'android'
                 abiFilter 'all'
-                cFlags '-fvisibility=hidden -Ofast'
+                cFlags '-fvisibility=hidden -Ofast -finline-functions'
             }
         }
     }

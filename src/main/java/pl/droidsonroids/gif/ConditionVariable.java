@@ -20,11 +20,6 @@ class ConditionVariable
 {
     private volatile boolean mCondition;
 
-    ConditionVariable(boolean state)
-    {
-        mCondition = state;
-    }
-
     synchronized void set(boolean state){
         if (state)
             open();
