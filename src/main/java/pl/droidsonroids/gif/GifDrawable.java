@@ -817,7 +817,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     *
+     * Returns whether all animation loops has ended. If drawable is recycled false is returned.
      * @return true if all animation loops has ended
      */
     public boolean isAnimationCompleted() {
