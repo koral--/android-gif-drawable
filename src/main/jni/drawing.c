@@ -83,7 +83,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
     return false;
 }
 
-static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
+static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, uint_fast32_t idx) {
     GifFileType *fGif = info->gifFilePtr;
     SavedImage *cur = &fGif->SavedImages[idx - 1];
     SavedImage *next = &fGif->SavedImages[idx];

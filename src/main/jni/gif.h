@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <sys/cdefs.h>
 #include <sys/stat.h>
+#include <pthread.h>
 #include "giflib/gif_lib.h"
 
 #ifdef DEBUG
@@ -88,9 +89,16 @@ struct GifInfo {
     jfloat speedFactor;
     int32_t stride;
     jlong sourceLength;
+    jboolean isOpaque;
+
     int eventFd;
     void *surfaceBackupPtr;
-    jboolean isOpaque;
+    int slurpHelper;
+    pthread_mutex_t*slurpMutex;
+    pthread_cond_t*slurpCond;
+    int renderHelper;
+    pthread_mutex_t*renderMutex;
+    pthread_cond_t*renderCond;
 };
 
 typedef struct {
@@ -186,7 +194,7 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
 
 static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
-static void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx);
+static void disposeFrameIfNeeded(argb *bm, GifInfo *info, uint_fast32_t idx);
 
 uint_fast32_t const getBitmap(argb *bm, GifInfo *info);
 

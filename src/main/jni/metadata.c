@@ -114,7 +114,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentFrameIndex(JNIEnv __unused *en
                                                              jlong gifInfo) {
     if (gifInfo == 0)
         return -1;
-    return ((GifInfo *) (intptr_t) gifInfo)->currentIndex;
+    return (jint) ((GifInfo *) (intptr_t) gifInfo)->currentIndex;
 }
 
 __unused JNIEXPORT jlongArray JNICALL
@@ -130,7 +130,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unus
         return NULL;
     }
 
-    jlong nativeState[4] = {info->currentIndex, info->currentLoop, info->lastFrameRemainder};
+    jlong nativeState[4] = {(jlong) info->currentIndex, info->currentLoop, info->lastFrameRemainder};
     memcpy(nativeState + 3, &info->speedFactor, sizeof(info->speedFactor));
     (*env)->SetLongArrayRegion(env, state, 0, 4, nativeState);
     return state;
@@ -171,7 +171,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
     if (info->lastFrameRemainder == -1) {
         uint_fast32_t duration = (uint_fast32_t) (lastFrameDuration * info->speedFactor);
         info->nextStartTime = getRealTime() + duration;
-        return duration;
+        return (jint) duration;
     }
     return -1;
 }

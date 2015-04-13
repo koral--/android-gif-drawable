@@ -88,7 +88,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     }
 
     if (desiredIndex >= info->gifFilePtr->ImageCount)
-        desiredIndex = info->gifFilePtr->ImageCount - 1;
+        desiredIndex = (jint) (info->gifFilePtr->ImageCount - 1);
 
     uint_fast32_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
     if (info->currentIndex < desiredIndex) {

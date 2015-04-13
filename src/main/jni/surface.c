@@ -5,6 +5,23 @@
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
+static void *slurp(void *pVoidInfo) {
+    GifInfo *info = pVoidInfo;
+    while(1){ //TODO exit from loop
+    pthread_mutex_lock(info->slurpMutex);
+    while (info->slurpHelper == 0)
+        pthread_cond_wait(info->slurpCond, info->slurpMutex);
+    info->slurpHelper = 0;
+    pthread_mutex_unlock(info->slurpMutex);
+    DDGifSlurp(info, true);
+    pthread_mutex_lock(info->renderMutex);
+    info->renderHelper = 1;
+    pthread_cond_signal(info->renderCond);
+    pthread_mutex_unlock(info->renderMutex);
+    }
+    return NULL;
+}
+
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
                                                     jlong gifInfo, jobject jsurface, jlongArray savedState,
@@ -19,10 +36,26 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             return;
         }
     }
+
+    info->slurpHelper = 0; //TODO handle init results, release resources
+    info->slurpCond = malloc(sizeof(pthread_cond_t));
+    pthread_cond_init(info->slurpCond, NULL);
+    info->slurpMutex = malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(info->slurpMutex, NULL);
+    info->renderHelper = 0;
+    info->renderCond = malloc(sizeof(pthread_cond_t));
+    pthread_cond_init(info->renderCond, NULL);
+    info->renderMutex = malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(info->renderMutex, NULL);
+
+    pthread_t thread;
+    pthread_create(&thread, NULL, slurp, info);
+
     info->isOpaque = isOpaque;
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     const int32_t windowFormat = isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
-    if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
+    if (ANativeWindow_setBuffersGeometry(window, (int32_t) info->gifFilePtr->SWidth,
+                                         (int32_t) info->gifFilePtr->SHeight,
                                          windowFormat) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Buffers geometry setting failed");
@@ -81,12 +114,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     ARect rect;
     while (1) {
         time_t renderingStartTime = getRealTime();
-        DDGifSlurp(info, true);
+        pthread_mutex_lock(info->slurpMutex);
+        info->slurpHelper = 1;
+        pthread_cond_broadcast(info->slurpCond);
+        pthread_mutex_unlock(info->slurpMutex);
 
-        rect.left = info->gifFilePtr->Image.Left;
-        rect.right = info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width;
-        rect.top = info->gifFilePtr->Image.Top;
-        rect.bottom = info->gifFilePtr->Image.Top + info->gifFilePtr->Image.Height;
+        rect.left = (int32_t) info->gifFilePtr->Image.Left;
+        rect.right = (int32_t) (info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width);
+        rect.top = (int32_t) info->gifFilePtr->Image.Top;
+        rect.bottom = (int32_t) (info->gifFilePtr->Image.Top + info->gifFilePtr->Image.Height);
         oldBufferBits = buffer.bits;
         if (ANativeWindow_lock(window, &buffer, &rect) != 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Window lock failed");
@@ -95,6 +131,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         if (info->currentIndex > 0) {
             memcpy(buffer.bits, oldBufferBits, bufferSize);
         }
+        pthread_mutex_lock(info->renderMutex);
+        while (info->renderHelper == 0)
+            pthread_cond_wait(info->renderCond, info->renderMutex);
+        info->renderHelper = 0;
+        pthread_mutex_unlock(info->renderMutex);
+
         const uint_fast32_t frameDuration = getBitmap(buffer.bits, info);
 
         ANativeWindow_unlockAndPost(window);
