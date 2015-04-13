@@ -90,6 +90,7 @@ struct GifInfo {
     jlong sourceLength;
     int eventFd;
     void *surfaceBackupPtr;
+    jboolean isOpaque;
 };
 
 typedef struct {

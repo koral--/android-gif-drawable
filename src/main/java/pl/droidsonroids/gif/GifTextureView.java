@@ -49,6 +49,7 @@ public class GifTextureView extends TextureView {
 
     private RenderThread mRenderThread;
     private float mSpeedFactor = 1f;
+    private boolean mWasOpaque;
 
     public GifTextureView(Context context) {
         super(context);
@@ -80,7 +81,8 @@ public class GifTextureView extends TextureView {
             }
             final TypedArray textureViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
             mInputSource = findSource(textureViewAttributes);
-            setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, false));
+            mWasOpaque = textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, false);
+            setOpaque(mWasOpaque);
             textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
             mRenderThread = new RenderThread();
@@ -181,7 +183,7 @@ public class GifTextureView extends TextureView {
                 }
                 final Surface surface = new Surface(surfaceTexture);
                 try {
-                    mGifInfoHandle.bindSurface(surface, mSavedState);
+                    mGifInfoHandle.bindSurface(surface, mSavedState, isOpaque(), mWasOpaque);
                 } finally {
                     surface.release();
                 }
@@ -231,6 +233,24 @@ public class GifTextureView extends TextureView {
         }
     }
 
+    /**
+     * Indicates whether the content of this GifTextureView is opaque. The
+     * content is assumed to be <b>non-opaque</b> by default (unlike {@link TextureView}.
+     * View that is known to be opaque can take a faster drawing case than non-opaque one.<br>
+     * If opacity is changed from true to false then pending animation will be restarted.
+     *
+     * @param opaque True if the content of this GifTextureView is opaque,
+     *               false otherwise
+     */
+    @Override
+    public void setOpaque(final boolean opaque) {
+        mWasOpaque = isOpaque();
+        if (mWasOpaque != opaque) {
+            super.setOpaque(opaque);
+            mRenderThread.mGifInfoHandle.postUnbindSurface();
+        }
+    }
+
     @Override
     protected void onDetachedFromWindow() {
         mRenderThread.dispose();
@@ -251,6 +271,7 @@ public class GifTextureView extends TextureView {
         mInputSource = inputSource;
         mRenderThread = new RenderThread();
         if (inputSource != null) {
+            setOpaque(inputSource.isOpaque());
             mRenderThread.start();
         }
     }

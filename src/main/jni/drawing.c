@@ -16,23 +16,43 @@ static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObjec
 
     uint_fast16_t x, y = frame->ImageDesc.Height;
     const int_fast16_t transpIndex = info->infos[info->currentIndex].TransparentColor;
-    if (transpIndex == NO_TRANSPARENT_COLOR) {
-        for (; y > 0; y--) {
-            MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frame->ImageDesc.Width);
-            for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++)
-                dst->rgb = cmap->Colors[*src];
-            dst += info->stride - frame->ImageDesc.Width;
+    if (info->isOpaque == JNI_TRUE) {
+        if (transpIndex == NO_TRANSPARENT_COLOR) {
+            for (; y > 0; y--) {
+                for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++)
+                    dst->rgb = cmap->Colors[*src];
+                dst += info->stride - frame->ImageDesc.Width;
+            }
+        }
+        else {
+            for (; y > 0; y--) {
+                for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
+                    if (*src != transpIndex)
+                        dst->rgb = cmap->Colors[*src];
+                }
+                dst += info->stride - frame->ImageDesc.Width;
+            }
         }
     }
     else {
-        for (; y > 0; y--) {
-            for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
-                if (*src != transpIndex) {
+        if (transpIndex == NO_TRANSPARENT_COLOR) {
+            for (; y > 0; y--) {
+                MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frame->ImageDesc.Width);
+                for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++)
                     dst->rgb = cmap->Colors[*src];
-                    dst->alpha = 0xFF;
-                }
+                dst += info->stride - frame->ImageDesc.Width;
             }
-            dst += info->stride - frame->ImageDesc.Width;
+        }
+        else {
+            for (; y > 0; y--) {
+                for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
+                    if (*src != transpIndex) {
+                        dst->rgb = cmap->Colors[*src];
+                        dst->alpha = 0xFF;
+                    }
+                }
+                dst += info->stride - frame->ImageDesc.Width;
+            }
         }
     }
 }
@@ -115,7 +135,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx) {
         memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
 }
 
-uint_fast16_t const getBitmap(argb *bm, GifInfo *info) {
+uint_fast32_t const getBitmap(argb *bm, GifInfo *info) {
     if (info->currentIndex == 0) {
         if (info->gifFilePtr->SColorMap && info->infos[0].TransparentColor == NO_TRANSPARENT_COLOR) {
             argb bgColArgb;

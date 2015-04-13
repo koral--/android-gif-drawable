@@ -7,7 +7,8 @@ typedef uint64_t POLL_TYPE;
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
-                                                    jlong gifInfo, jobject jsurface, jlongArray savedState) {
+                                                    jlong gifInfo, jobject jsurface, jlongArray savedState,
+                                                    jboolean isOpaque, jboolean wasOpaque) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 
@@ -18,9 +19,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             return;
         }
     }
+    info->isOpaque = isOpaque;
     struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
+    const int32_t windowFormat = isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
     if (ANativeWindow_setBuffersGeometry(window, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
-                                         WINDOW_FORMAT_RGBA_8888) != 0) {
+                                         windowFormat) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Buffers geometry setting failed");
         return;
@@ -57,7 +60,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     const size_t bufferSize = buffer.stride * buffer.height * sizeof(argb);
 
     info->stride = buffer.stride;
-    if (info->surfaceBackupPtr) {
+    if (isOpaque == JNI_FALSE && wasOpaque == JNI_TRUE) {
+        if (!reset(info)) {
+            ANativeWindow_release(window);
+            return;
+        }
+    }
+    else if (info->surfaceBackupPtr) {
         memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
         info->lastFrameRemainder = -1;
     }
@@ -86,7 +95,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         if (info->currentIndex > 0) {
             memcpy(buffer.bits, oldBufferBits, bufferSize);
         }
-        const uint_fast16_t frameDuration = getBitmap(buffer.bits, info);
+        const uint_fast32_t frameDuration = getBitmap(buffer.bits, info);
 
         ANativeWindow_unlockAndPost(window);
 

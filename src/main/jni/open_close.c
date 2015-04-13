@@ -55,6 +55,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->rewindFunction = descriptor->rewindFunc;
     info->eventFd = -1;
     info->surfaceBackupPtr = NULL;
+    info->isOpaque = JNI_FALSE;
 
     DDGifSlurp(info, false);
     if (justDecodeMetaData == JNI_TRUE)

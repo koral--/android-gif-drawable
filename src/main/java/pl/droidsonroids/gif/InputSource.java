@@ -21,6 +21,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  * Abstract class for all input sources, to be used with {@link GifTextureView}
  */
 public abstract class InputSource {
+    private boolean mIsOpaque;
+
     InputSource() {
     }
 
@@ -28,6 +30,23 @@ public abstract class InputSource {
 
     final GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
         return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
+    }
+
+    final boolean isOpaque() {
+        return mIsOpaque;
+    }
+
+    /**
+     * Indicates whether the content of this source is opaque. GIF that is known to be opaque can
+     * take a faster drawing case than non-opaque one. See {@link GifTextureView#setOpaque(boolean)}
+     * for more information.<br>
+     * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}
+     * @param isOpaque whether the content of this source is opaque
+     * @return this InputSource
+     */
+    public final InputSource setOpaque(boolean isOpaque) {
+        mIsOpaque = isOpaque;
+        return this;
     }
 
     /**

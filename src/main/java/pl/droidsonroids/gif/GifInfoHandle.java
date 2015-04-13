@@ -45,7 +45,7 @@ final class GifInfoHandle {
     static native GifInfoHandle openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
     static native GifInfoHandle openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
-    private static native void bindSurface(long gifInfoPtr, Surface surface, long[] savedState);
+    private static native void bindSurface(long gifInfoPtr, Surface surface, long[] savedState, boolean isOpaque, boolean wasOpaque);
     private static native void free(long gifFileInPtr);
     private static native boolean reset(long gifFileInPtr);
     private static native void setSpeedFactor(long gifFileInPtr, float factor);
@@ -94,8 +94,8 @@ final class GifInfoHandle {
         return renderFrame(gifInfoPtr, frameBuffer);
     }
 
-    void bindSurface(Surface surface, long[] savedState) {
-        bindSurface(gifInfoPtr, surface, savedState);
+    void bindSurface(Surface surface, long[] savedState, boolean isOpaque, boolean wasOpaque) {
+        bindSurface(gifInfoPtr, surface, savedState, isOpaque, wasOpaque);
     }
 
     synchronized void recycle() {
