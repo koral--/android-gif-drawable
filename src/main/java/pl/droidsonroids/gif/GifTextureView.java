@@ -82,7 +82,7 @@ public class GifTextureView extends TextureView {
             final TypedArray textureViewAttributes = getContext().obtainStyledAttributes(attrs, R.styleable.GifTextureView, defStyleAttr, defStyleRes);
             mInputSource = findSource(textureViewAttributes);
             mWasOpaque = textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, false);
-            setOpaque(mWasOpaque);
+            super.setOpaque(mWasOpaque);
             textureViewAttributes.recycle();
             mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
             mRenderThread = new RenderThread();
@@ -90,7 +90,7 @@ public class GifTextureView extends TextureView {
                 mRenderThread.start();
             }
         } else {
-            setOpaque(false);
+            super.setOpaque(false);
         }
     }
 

@@ -1,25 +1,59 @@
 #include "gif.h"
 #include <sys/eventfd.h>
-#include <poll.h>
 
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
 static void *slurp(void *pVoidInfo) {
-    GifInfo *info = pVoidInfo;
-    while(1){ //TODO exit from loop
-    pthread_mutex_lock(info->slurpMutex);
-    while (info->slurpHelper == 0)
-        pthread_cond_wait(info->slurpCond, info->slurpMutex);
-    info->slurpHelper = 0;
-    pthread_mutex_unlock(info->slurpMutex);
-    DDGifSlurp(info, true);
-    pthread_mutex_lock(info->renderMutex);
-    info->renderHelper = 1;
-    pthread_cond_signal(info->renderCond);
-    pthread_mutex_unlock(info->renderMutex);
+    GifInfo *info = pVoidInfo; //TODO handle finite animations
+    while (1) {
+        pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
+        while (info->surfaceDescriptor->slurpHelper == 0)
+            pthread_cond_wait(&info->surfaceDescriptor->slurpCond, &info->surfaceDescriptor->slurpMutex);
+        if (info->surfaceDescriptor->slurpHelper == -1) {
+            pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
+            return NULL;
+        }
+        info->surfaceDescriptor->slurpHelper = 0;
+        pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
+        DDGifSlurp(info, true);
+        pthread_mutex_lock(&info->surfaceDescriptor->renderMutex);
+        info->surfaceDescriptor->renderHelper = 1;
+        pthread_cond_signal(&info->surfaceDescriptor->renderCond);
+        pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
     }
     return NULL;
+}
+
+static inline bool initSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *env) {
+    surfaceDescriptor->eventPollFd.events = POLL_IN;
+    surfaceDescriptor->eventPollFd.fd = eventfd(0, 0);
+    if (surfaceDescriptor->eventPollFd.fd == -1) {
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Could not create eventfd");
+        return false;
+    }
+    const pthread_cond_t condInitializer = PTHREAD_COND_INITIALIZER;
+    surfaceDescriptor->slurpCond = condInitializer;
+    surfaceDescriptor->renderCond = condInitializer;
+    const pthread_mutex_t mutexInitializer = PTHREAD_MUTEX_INITIALIZER;
+    surfaceDescriptor->slurpMutex = mutexInitializer;
+    surfaceDescriptor->renderMutex = mutexInitializer;
+
+    surfaceDescriptor->surfaceBackupPtr = NULL;
+    return true;
+}
+
+
+void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor) {
+    if (surfaceDescriptor == NULL)
+        return;
+    close(surfaceDescriptor->eventPollFd.fd);
+    pthread_mutex_destroy(&surfaceDescriptor->slurpMutex); //TODO handle errors
+    pthread_mutex_destroy(&surfaceDescriptor->renderMutex);
+    pthread_cond_destroy(&surfaceDescriptor->slurpCond);
+    pthread_cond_destroy(&surfaceDescriptor->renderCond);
+    free(surfaceDescriptor->surfaceBackupPtr);
+    surfaceDescriptor->surfaceBackupPtr = NULL;
 }
 
 __unused JNIEXPORT void JNICALL
@@ -28,32 +62,21 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
                                                     jboolean isOpaque, jboolean wasOpaque) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-
-    if (info->eventFd == -1) {
-        info->eventFd = eventfd(0, 0);
-        if (info->eventFd == -1) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Could not create eventfd");
+    if (info->surfaceDescriptor == NULL) {
+        info->surfaceDescriptor = malloc(sizeof(SurfaceDescriptor));
+        if (!initSurfaceDescriptor(info->surfaceDescriptor, env)) {
+            free(info->surfaceDescriptor);
+            info->surfaceDescriptor = NULL;
             return;
         }
     }
+    info->surfaceDescriptor->renderHelper = 0;
+    info->surfaceDescriptor->slurpHelper = 0;
 
-    info->slurpHelper = 0; //TODO handle init results, release resources
-    info->slurpCond = malloc(sizeof(pthread_cond_t));
-    pthread_cond_init(info->slurpCond, NULL);
-    info->slurpMutex = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(info->slurpMutex, NULL);
-    info->renderHelper = 0;
-    info->renderCond = malloc(sizeof(pthread_cond_t));
-    pthread_cond_init(info->renderCond, NULL);
-    info->renderMutex = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(info->renderMutex, NULL);
-
-    pthread_t thread;
-    pthread_create(&thread, NULL, slurp, info);
-
-    info->isOpaque = isOpaque;
-    struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     const int32_t windowFormat = isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
+    info->isOpaque = isOpaque;
+
+    struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
     if (ANativeWindow_setBuffersGeometry(window, (int32_t) info->gifFilePtr->SWidth,
                                          (int32_t) info->gifFilePtr->SHeight,
                                          windowFormat) != 0) {
@@ -62,19 +85,23 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         return;
     }
 
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, slurp, info) != 0) {
+        ANativeWindow_release(window);
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "pthread_create failed");
+    }
+
     struct ANativeWindow_Buffer buffer = {.bits =NULL};
     void *oldBufferBits;
-
-    struct pollfd eventPollFd = {.fd=info->eventFd, .events = POLL_IN};
-
     POLL_TYPE eftd_ctr;
     int pollResult;
+
     while (1) {
-        pollResult = poll(&eventPollFd, 1, 0);
+        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, 0);
         if (pollResult == 0)
             break;
         else if (pollResult > 0) {
-            if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+            if (read(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
                 throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Read on flushing failed");
                 return;
             }
@@ -99,8 +126,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             return;
         }
     }
-    else if (info->surfaceBackupPtr) {
-        memcpy(buffer.bits, info->surfaceBackupPtr, bufferSize);
+    else if (info->surfaceDescriptor->surfaceBackupPtr) {
+        memcpy(buffer.bits, info->surfaceDescriptor->surfaceBackupPtr, bufferSize);
         info->lastFrameRemainder = -1;
     }
     else {
@@ -114,10 +141,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     ARect rect;
     while (1) {
         time_t renderingStartTime = getRealTime();
-        pthread_mutex_lock(info->slurpMutex);
-        info->slurpHelper = 1;
-        pthread_cond_broadcast(info->slurpCond);
-        pthread_mutex_unlock(info->slurpMutex);
+
+        pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex); //TODO check lock, signal, unlock, wait results
+        info->surfaceDescriptor->slurpHelper = 1;
+        pthread_cond_signal(&info->surfaceDescriptor->slurpCond);
+        pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
 
         rect.left = (int32_t) info->gifFilePtr->Image.Left;
         rect.right = (int32_t) (info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width);
@@ -131,11 +159,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         if (info->currentIndex > 0) {
             memcpy(buffer.bits, oldBufferBits, bufferSize);
         }
-        pthread_mutex_lock(info->renderMutex);
-        while (info->renderHelper == 0)
-            pthread_cond_wait(info->renderCond, info->renderMutex);
-        info->renderHelper = 0;
-        pthread_mutex_unlock(info->renderMutex);
+        pthread_mutex_lock(&info->surfaceDescriptor->renderMutex);
+        while (info->surfaceDescriptor->renderHelper == 0)
+            pthread_cond_wait(&info->surfaceDescriptor->renderCond, &info->surfaceDescriptor->renderMutex);
+        info->surfaceDescriptor->renderHelper = 0;
+        pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
 
         const uint_fast32_t frameDuration = getBitmap(buffer.bits, info);
 
@@ -148,37 +176,43 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             info->lastFrameRemainder = -1;
         }
 
-        pollResult = poll(&eventPollFd, 1, (int) invalidationDelayMillis);
+        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
         if (pollResult < 0) {
             throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
             break;
         }
         else if (pollResult > 0) {
-            if (info->surfaceBackupPtr == NULL) {
-                info->surfaceBackupPtr = malloc(bufferSize);
-                if (info->surfaceBackupPtr == NULL) {
+            if (info->surfaceDescriptor->surfaceBackupPtr == NULL) {
+                info->surfaceDescriptor->surfaceBackupPtr = malloc(bufferSize);
+                if (info->surfaceDescriptor->surfaceBackupPtr == NULL) {
                     throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
                     break;
                 }
             }
-            memcpy(info->surfaceBackupPtr, buffer.bits, bufferSize);
-            if (read(eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+            memcpy(info->surfaceDescriptor->surfaceBackupPtr, buffer.bits, bufferSize);
+            if (read(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
                 throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd read failed");
             }
             break;
         }
     }
+
     ANativeWindow_release(window);
+    pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
+    info->surfaceDescriptor->slurpHelper = -1; //TODO verify and optimize
+    pthread_cond_signal(&info->surfaceDescriptor->slurpCond);
+    pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
+    pthread_join(thread, NULL); //TODO check result
 }
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (!info || info->eventFd == -1) {
+    if (!info || info->surfaceDescriptor == NULL) {
         return;
     }
     POLL_TYPE eftd_ctr;
-    if (write(info->eventFd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+    if (write(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd write failed");
     }
 }

@@ -15,6 +15,7 @@
 #include <sys/cdefs.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <poll.h>
 #include "giflib/gif_lib.h"
 
 #ifdef DEBUG
@@ -73,6 +74,17 @@ typedef struct GifInfo GifInfo;
 typedef int
 (*RewindFunc)(GifInfo *);
 
+typedef struct {
+    struct pollfd eventPollFd;
+    void *surfaceBackupPtr;
+    int slurpHelper;
+    pthread_mutex_t slurpMutex;
+    pthread_cond_t slurpCond;
+    int renderHelper;
+    pthread_mutex_t renderMutex;
+    pthread_cond_t renderCond;
+} SurfaceDescriptor;
+
 struct GifInfo {
     GifFileType *gifFilePtr;
     time_t lastFrameRemainder;
@@ -90,15 +102,7 @@ struct GifInfo {
     int32_t stride;
     jlong sourceLength;
     jboolean isOpaque;
-
-    int eventFd;
-    void *surfaceBackupPtr;
-    int slurpHelper;
-    pthread_mutex_t*slurpMutex;
-    pthread_cond_t*slurpCond;
-    int renderHelper;
-    pthread_mutex_t*renderMutex;
-    pthread_cond_t*renderCond;
+    SurfaceDescriptor* surfaceDescriptor;
 };
 
 typedef struct {
@@ -207,3 +211,5 @@ void unlockPixels(JNIEnv *env, jobject jbitmap);
 time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast32_t frameDuration);
 
 jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
+
+void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor);

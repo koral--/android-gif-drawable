@@ -1,11 +1,8 @@
 #include "gif.h"
 
 void cleanUp(GifInfo *info) {
-    if (info->eventFd != -1)
-        close(info->eventFd);
-    info->eventFd = -1;
-    free(info->surfaceBackupPtr);
-    info->surfaceBackupPtr = NULL;
+    releaseSurfaceDescriptor(info->surfaceDescriptor);
+    info->surfaceDescriptor = NULL;
     free(info->backupPtr);
     info->backupPtr = NULL;
     free(info->infos);
@@ -53,8 +50,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->infos = NULL;
     info->backupPtr = NULL;
     info->rewindFunction = descriptor->rewindFunc;
-    info->eventFd = -1;
-    info->surfaceBackupPtr = NULL;
+    info->surfaceDescriptor = NULL;
     info->isOpaque = JNI_FALSE;
 
     DDGifSlurp(info, false);
