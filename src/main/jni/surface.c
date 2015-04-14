@@ -4,23 +4,28 @@
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
+#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message)
+#define THROW_AND_BREAK_ON_NONZERO_RESULT(fun, message) if (fun !=0) {throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message); break;}
+#define RETURN_ERRNO_ON_NONZERO_RESULT(fun) if (fun !=0) return (void *) errno;
+
 static void *slurp(void *pVoidInfo) {
-    GifInfo *info = pVoidInfo; //TODO handle finite animations
+    GifInfo *info = pVoidInfo;
     while (1) {
-        pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
+        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex));
         while (info->surfaceDescriptor->slurpHelper == 0)
-            pthread_cond_wait(&info->surfaceDescriptor->slurpCond, &info->surfaceDescriptor->slurpMutex);
-        if (info->surfaceDescriptor->slurpHelper == -1) {
-            pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
+            RETURN_ERRNO_ON_NONZERO_RESULT(
+                    pthread_cond_wait(&info->surfaceDescriptor->slurpCond, &info->surfaceDescriptor->slurpMutex));
+        if (info->surfaceDescriptor->slurpHelper == 2) {
+            RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex));
             return NULL;
         }
         info->surfaceDescriptor->slurpHelper = 0;
-        pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
+        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex));
         DDGifSlurp(info, true);
-        pthread_mutex_lock(&info->surfaceDescriptor->renderMutex);
+        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->renderMutex));
         info->surfaceDescriptor->renderHelper = 1;
-        pthread_cond_signal(&info->surfaceDescriptor->renderCond);
-        pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
+        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_cond_signal(&info->surfaceDescriptor->renderCond));
+        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex));
     }
     return NULL;
 }
@@ -43,17 +48,16 @@ static inline bool initSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, J
     return true;
 }
 
-
-void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor) {
+void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *env) {
     if (surfaceDescriptor == NULL)
         return;
-    close(surfaceDescriptor->eventPollFd.fd);
-    pthread_mutex_destroy(&surfaceDescriptor->slurpMutex); //TODO handle errors
-    pthread_mutex_destroy(&surfaceDescriptor->renderMutex);
-    pthread_cond_destroy(&surfaceDescriptor->slurpCond);
-    pthread_cond_destroy(&surfaceDescriptor->renderCond);
     free(surfaceDescriptor->surfaceBackupPtr);
     surfaceDescriptor->surfaceBackupPtr = NULL;
+    THROW_ON_NONZERO_RESULT(close(surfaceDescriptor->eventPollFd.fd), "eventfd close failed");
+    THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&surfaceDescriptor->slurpMutex), "slurp mutex destroy failed");
+    THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&surfaceDescriptor->renderMutex), "render mutex destroy failed");
+    THROW_ON_NONZERO_RESULT(pthread_cond_destroy(&surfaceDescriptor->slurpCond), "slurp cond destroy failed");
+    THROW_ON_NONZERO_RESULT(pthread_cond_destroy(&surfaceDescriptor->renderCond), "render cond  destroy failed");
 }
 
 __unused JNIEXPORT void JNICALL
@@ -142,10 +146,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     while (1) {
         time_t renderingStartTime = getRealTime();
 
-        pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex); //TODO check lock, signal, unlock, wait results
+        THROW_AND_BREAK_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex),
+                                          "slurp mutex_lock on render start failed")
         info->surfaceDescriptor->slurpHelper = 1;
-        pthread_cond_signal(&info->surfaceDescriptor->slurpCond);
-        pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
+        THROW_AND_BREAK_ON_NONZERO_RESULT(pthread_cond_signal(&info->surfaceDescriptor->slurpCond),
+                                          "slurp cond_signal on render start failed")
+        THROW_AND_BREAK_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex),
+                                          "slurp mutex_unlock on render start failed")
 
         rect.left = (int32_t) info->gifFilePtr->Image.Left;
         rect.right = (int32_t) (info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width);
@@ -159,11 +166,25 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         if (info->currentIndex > 0) {
             memcpy(buffer.bits, oldBufferBits, bufferSize);
         }
-        pthread_mutex_lock(&info->surfaceDescriptor->renderMutex);
-        while (info->surfaceDescriptor->renderHelper == 0)
-            pthread_cond_wait(&info->surfaceDescriptor->renderCond, &info->surfaceDescriptor->renderMutex);
+
+        if (pthread_mutex_lock(&info->surfaceDescriptor->renderMutex) != 0) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "render mutex_lock after cpy failed");
+            ANativeWindow_unlockAndPost(window);
+            break;
+        }
+        while (info->surfaceDescriptor->renderHelper == 0) {
+            if (pthread_cond_wait(&info->surfaceDescriptor->renderCond, &info->surfaceDescriptor->renderMutex) != 0) {
+                throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "render cond_wait after cpy failed");
+                ANativeWindow_unlockAndPost(window);
+                break;
+            }
+        }
         info->surfaceDescriptor->renderHelper = 0;
-        pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
+        if (pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex) != 0) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "render mutex_unlock after cpy failed");
+            ANativeWindow_unlockAndPost(window);
+            break;
+        }
 
         const uint_fast32_t frameDuration = getBitmap(buffer.bits, info);
 
@@ -198,11 +219,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     }
 
     ANativeWindow_release(window);
-    pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
-    info->surfaceDescriptor->slurpHelper = -1; //TODO verify and optimize
-    pthread_cond_signal(&info->surfaceDescriptor->slurpCond);
-    pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
-    pthread_join(thread, NULL); //TODO check result
+    THROW_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex), "mutex_lock on exit failed");
+    info->surfaceDescriptor->slurpHelper = 2;
+    THROW_ON_NONZERO_RESULT(pthread_cond_signal(&info->surfaceDescriptor->slurpCond), "cond_signal on exit failed");
+    THROW_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex), "mutex_unlock on exit failed");
+    void *slurpResult = NULL;
+    THROW_ON_NONZERO_RESULT(pthread_join(thread, &slurpResult), "join failed");
+    if (slurpResult != NULL) {
+        errno = (int) slurpResult;
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Slurp thread finished with error");
+    }
 }
 
 __unused JNIEXPORT void JNICALL

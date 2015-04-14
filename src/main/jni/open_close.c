@@ -1,7 +1,6 @@
 #include "gif.h"
 
 void cleanUp(GifInfo *info) {
-    releaseSurfaceDescriptor(info->surfaceDescriptor);
     info->surfaceDescriptor = NULL;
     free(info->backupPtr);
     info->backupPtr = NULL;

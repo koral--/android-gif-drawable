@@ -77,10 +77,10 @@ typedef int
 typedef struct {
     struct pollfd eventPollFd;
     void *surfaceBackupPtr;
-    int slurpHelper;
+    uint8_t slurpHelper;
     pthread_mutex_t slurpMutex;
     pthread_cond_t slurpCond;
-    int renderHelper;
+    uint8_t renderHelper;
     pthread_mutex_t renderMutex;
     pthread_cond_t renderCond;
 } SurfaceDescriptor;
@@ -212,4 +212,4 @@ time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fa
 
 jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 
-void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor);
+void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
