@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <poll.h>
+#include <errno.h>
 #include "giflib/gif_lib.h"
 
 #ifdef DEBUG
