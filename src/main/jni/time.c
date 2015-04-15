@@ -7,9 +7,10 @@ long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32
             invalidationDelay /= info->speedFactor;
         }
         const long renderingTime = getRealTime() - renderStartTime;
-        invalidationDelay -= renderingTime;
-        if (invalidationDelay < 0)
+        if (renderingTime >= invalidationDelay)
             invalidationDelay = 0;
+        else
+            invalidationDelay -= renderingTime;
         info->nextStartTime = renderStartTime + invalidationDelay;
         return invalidationDelay;
     }

@@ -10,7 +10,7 @@
 #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
 #endif
 
-static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
+static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
     unsigned char *src = info->rasterBits;
     argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
 
@@ -135,21 +135,22 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
         memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
 }
 
-uint_fast32_t const getBitmap(argb *bm, GifInfo *info) {
-    if (info->currentIndex == 0) {
-        if (info->gifFilePtr->SColorMap && info->infos[0].TransparentColor == NO_TRANSPARENT_COLOR) {
-            argb bgColArgb;
-            bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];
-            bgColArgb.alpha = 0xFF;
-            MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * info->gifFilePtr->SHeight);
-        }
-        else {
-            MEMSET_ARGB((uint32_t *) bm, 0, info->stride * info->gifFilePtr->SHeight);
-        }
+inline void prepareCanvas(argb *bm, GifInfo *info){
+    if (info->gifFilePtr->SColorMap && info->infos->TransparentColor == NO_TRANSPARENT_COLOR) {
+        argb bgColArgb;
+        bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];
+        bgColArgb.alpha = 0xFF;
+        MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * info->gifFilePtr->SHeight);
     }
     else {
-        disposeFrameIfNeeded(bm, info);
+        MEMSET_ARGB((uint32_t *) bm, 0, info->stride * info->gifFilePtr->SHeight);
     }
+}
+
+uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
+    if (info->currentIndex > 0)
+        disposeFrameIfNeeded(bm, info);
+
     drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
     uint_fast32_t frameDuration = info->infos[info->currentIndex].DelayTime;
 

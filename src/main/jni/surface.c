@@ -160,9 +160,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         oldBufferBits = buffer.bits;
         THROW_AND_BREAK_ON_NONZERO_RESULT(ANativeWindow_lock(window, &buffer, NULL), "Window lock failed");
 
-        if (info->currentIndex > 0) {
+        if (info->currentIndex == 0)
+            prepareCanvas(buffer.bits, info);
+        else
             memcpy(buffer.bits, oldBufferBits, bufferSize);
-        }
 
         pthread_mutex_lock(&info->surfaceDescriptor->renderMutex);
         while (info->surfaceDescriptor->renderHelper == 0) {

@@ -50,7 +50,7 @@ static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fas
             (*env)->DeleteGlobalRef(env, sc->buffer);
 
             jbyteArray buffer = (*env)->NewByteArray(env, size);
-            if (buffer == NULL){
+            if (buffer == NULL) {
                 sc->buffer = NULL;
                 return 0;
             }
@@ -117,7 +117,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
         return NULL;
     }
 
-    const char *const filename = (*env)->GetStringUTFChars(env, jfname, 0);
+    const char *const filename = (*env)->GetStringUTFChars(env, jfname, NULL);
     if (filename == NULL) {
         throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "GetStringUTFChars failed");
         return NULL;
@@ -360,7 +360,7 @@ JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
     defaultCmap = GifMakeMapObject(8, NULL);
     if (defaultCmap != NULL) {
         uint_fast16_t iColor;
-        for (iColor = 0; iColor < 256; iColor++) {
+        for (iColor = 1; iColor < 256; iColor++) {
             defaultCmap->Colors[iColor].Red = (GifByteType) iColor;
             defaultCmap->Colors[iColor].Green = (GifByteType) iColor;
             defaultCmap->Colors[iColor].Blue = (GifByteType) iColor;

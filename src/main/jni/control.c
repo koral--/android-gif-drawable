@@ -31,6 +31,24 @@ Java_pl_droidsonroids_gif_GifInfoHandle_setSpeedFactor(JNIEnv __unused *env, jcl
     info->speedFactor = factor;
 }
 
+static uint_fast32_t seek(GifInfo *info, JNIEnv *env, jint desiredIndex, jobject jbitmap) {
+    uint_fast32_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
+    if (info->currentIndex < desiredIndex) {
+        void *pixels;
+        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
+            return 0;
+        }
+        if (info->currentIndex == 0)
+            prepareCanvas(pixels, info);
+        while (info->currentIndex < desiredIndex) {
+            DDGifSlurp(info, true);
+            lastFrameDuration = getBitmap((argb *) pixels, info);
+        }
+        unlockPixels(env, jbitmap);
+    }
+    return lastFrameDuration;
+}
+
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused handleClass,
                                                    jlong gifInfo, jint desiredPos, jobject jbitmap) {
@@ -60,17 +78,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
             info->lastFrameRemainder > info->infos[desiredIndex].DelayTime)
             info->lastFrameRemainder = info->infos[desiredIndex].DelayTime;
     }
-    if (info->currentIndex < desiredIndex) {
-        void *pixels;
-        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
-            return;
-        }
-        while (info->currentIndex < desiredIndex) {
-            DDGifSlurp(info, true);
-            getBitmap((argb *) pixels, info);
-        }
-        unlockPixels(env, jbitmap);
-    }
+    seek(info, env, desiredIndex, jbitmap);
 
     info->nextStartTime = getRealTime() + (long) (info->lastFrameRemainder / info->speedFactor);
 }
@@ -90,18 +98,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
     if (desiredIndex >= info->gifFilePtr->ImageCount)
         desiredIndex = (jint) (info->gifFilePtr->ImageCount - 1);
 
-    uint_fast32_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
-    if (info->currentIndex < desiredIndex) {
-        void *pixels;
-        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
-            return;
-        }
-        while (info->currentIndex < desiredIndex) {
-            DDGifSlurp(info, true);
-            lastFrameDuration = getBitmap((argb *) pixels, info);
-        }
-        unlockPixels(env, jbitmap);
-    }
+    uint_fast32_t lastFrameDuration = seek(info, env, desiredIndex, jbitmap);
 
     info->nextStartTime = getRealTime() + (long) (lastFrameDuration / info->speedFactor);
     if (info->lastFrameRemainder != -1)

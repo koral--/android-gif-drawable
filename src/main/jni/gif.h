@@ -186,7 +186,7 @@ void throwGifIOException(int errorCode, JNIEnv *env);
 
 jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData);
 
-static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
+static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
 
 static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
 
@@ -194,7 +194,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
 static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
 
-uint_fast32_t const getBitmap(argb *bm, GifInfo *info);
+uint_fast32_t getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
@@ -207,3 +207,5 @@ long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32
 jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 
 void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
+
+inline void prepareCanvas(argb *bm, GifInfo *info);
