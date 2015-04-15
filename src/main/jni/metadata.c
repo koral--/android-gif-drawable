@@ -16,7 +16,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *en
         return JNI_FALSE;
     }
     GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
-    if (info->currentLoop == info->loopCount)
+    if (info->loopCount != 0 && info->currentLoop == info->loopCount)
         return JNI_TRUE;
     else
         return JNI_FALSE;
@@ -68,7 +68,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
     for (i = 0; i < idx; i++)
         sum += info->infos[i].DelayTime;
 
-    time_t remainder;
+    long remainder;
     if (info->lastFrameRemainder == -1) {
         remainder = info->nextStartTime - getRealTime();
         if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed

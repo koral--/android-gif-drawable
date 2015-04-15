@@ -59,7 +59,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
     if (info == NULL)
         return -1;
 
-    time_t renderStartTime = getRealTime();
+    long renderStartTime = getRealTime();
     void *pixels;
     if (lockPixels(env, jbitmap, info, &pixels) != 0) {
         return 0;

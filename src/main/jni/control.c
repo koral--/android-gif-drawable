@@ -72,7 +72,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
         unlockPixels(env, jbitmap);
     }
 
-    info->nextStartTime = getRealTime() + (time_t) (info->lastFrameRemainder / info->speedFactor);
+    info->nextStartTime = getRealTime() + (long) (info->lastFrameRemainder / info->speedFactor);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -103,7 +103,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
         unlockPixels(env, jbitmap);
     }
 
-    info->nextStartTime = getRealTime() + (time_t) (lastFrameDuration / info->speedFactor);
+    info->nextStartTime = getRealTime() + (long) (lastFrameDuration / info->speedFactor);
     if (info->lastFrameRemainder != -1)
         info->lastFrameRemainder = 0;
 }
@@ -128,7 +128,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
         info->currentLoop == info->loopCount)
         return -1;
     info->nextStartTime = getRealTime() + info->lastFrameRemainder;
-    const time_t remainder = info->lastFrameRemainder;
+    const long remainder = info->lastFrameRemainder;
     info->lastFrameRemainder = -1;
     return remainder;
 }

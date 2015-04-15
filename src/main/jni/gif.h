@@ -88,8 +88,8 @@ typedef struct {
 
 struct GifInfo {
     GifFileType *gifFilePtr;
-    time_t lastFrameRemainder;
-    time_t nextStartTime;
+    long lastFrameRemainder;
+    long nextStartTime;
     uint_fast32_t currentIndex;
     GraphicsControlBlock *infos;
     argb *backupPtr;
@@ -154,7 +154,7 @@ ColorMapObject *genDefColorMap(void);
 /**
 * @return the real time, in ms
 */
-inline time_t getRealTime();
+inline long getRealTime();
 
 /**
 * Frees dynamically allocated memory
@@ -209,7 +209,7 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-time_t calculateInvalidationDelay(GifInfo *info, time_t renderStartTime, uint_fast32_t frameDuration);
+long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
 
 jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 

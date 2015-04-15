@@ -6,26 +6,25 @@ typedef uint64_t POLL_TYPE;
 
 #define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message)
 #define THROW_AND_BREAK_ON_NONZERO_RESULT(fun, message) if (fun !=0) {throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message); break;}
-#define RETURN_ERRNO_ON_NONZERO_RESULT(fun) if (fun !=0) return (void *) errno;
 
 static void *slurp(void *pVoidInfo) {
     GifInfo *info = pVoidInfo;
     while (1) {
-        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex));
+        pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
         while (info->surfaceDescriptor->slurpHelper == 0)
-            RETURN_ERRNO_ON_NONZERO_RESULT(
-                    pthread_cond_wait(&info->surfaceDescriptor->slurpCond, &info->surfaceDescriptor->slurpMutex));
+
+            pthread_cond_wait(&info->surfaceDescriptor->slurpCond, &info->surfaceDescriptor->slurpMutex);
         if (info->surfaceDescriptor->slurpHelper == 2) {
-            RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex));
+            pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
             return NULL;
         }
         info->surfaceDescriptor->slurpHelper = 0;
-        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex));
+        pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
         DDGifSlurp(info, true);
-        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->renderMutex));
+        pthread_mutex_lock(&info->surfaceDescriptor->renderMutex);
         info->surfaceDescriptor->renderHelper = 1;
-        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_cond_signal(&info->surfaceDescriptor->renderCond));
-        RETURN_ERRNO_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex));
+        pthread_cond_signal(&info->surfaceDescriptor->renderCond);
+        pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
     }
     return NULL;
 }
@@ -74,29 +73,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             return;
         }
     }
-    info->surfaceDescriptor->renderHelper = 0;
-    info->surfaceDescriptor->slurpHelper = 0;
 
-    const int32_t windowFormat = isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
-    info->isOpaque = isOpaque;
-
-    struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
-    if (ANativeWindow_setBuffersGeometry(window, (int32_t) info->gifFilePtr->SWidth,
-                                         (int32_t) info->gifFilePtr->SHeight,
-                                         windowFormat) != 0) {
-        ANativeWindow_release(window);
-        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Buffers geometry setting failed");
-        return;
-    }
-
-    pthread_t thread;
-    if (pthread_create(&thread, NULL, slurp, info) != 0) {
-        ANativeWindow_release(window);
-        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "pthread_create failed");
-    }
-
-    struct ANativeWindow_Buffer buffer = {.bits =NULL};
-    void *oldBufferBits;
     POLL_TYPE eftd_ctr;
     int pollResult;
 
@@ -115,6 +92,21 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             return;
         }
     }
+
+    const int32_t windowFormat = isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
+    info->isOpaque = isOpaque;
+
+    struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
+    if (ANativeWindow_setBuffersGeometry(window, (int32_t) info->gifFilePtr->SWidth,
+                                         (int32_t) info->gifFilePtr->SHeight,
+                                         windowFormat) != 0) {
+        ANativeWindow_release(window);
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Buffers geometry setting failed");
+        return;
+    }
+
+    struct ANativeWindow_Buffer buffer = {.bits =NULL};
+    void *oldBufferBits;
 
     if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
         ANativeWindow_release(window);
@@ -141,56 +133,47 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             info->lastFrameRemainder = -1;
     }
     ANativeWindow_unlockAndPost(window);
+    if (info->loopCount != 0 && info->currentLoop == info->loopCount) {
+        ANativeWindow_release(window);
+        return;
+    }
 
-    ARect rect;
+    info->surfaceDescriptor->renderHelper = 0;
+    info->surfaceDescriptor->slurpHelper = 1;
+
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, slurp, info) != 0) {
+        ANativeWindow_release(window);
+        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "pthread_create failed");
+    }
+    
     while (1) {
-        time_t renderingStartTime = getRealTime();
+        long renderingStartTime = getRealTime();
 
-        THROW_AND_BREAK_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex),
-                                          "slurp mutex_lock on render start failed")
-        info->surfaceDescriptor->slurpHelper = 1;
-        THROW_AND_BREAK_ON_NONZERO_RESULT(pthread_cond_signal(&info->surfaceDescriptor->slurpCond),
-                                          "slurp cond_signal on render start failed")
-        THROW_AND_BREAK_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex),
-                                          "slurp mutex_unlock on render start failed")
-
-        rect.left = (int32_t) info->gifFilePtr->Image.Left;
-        rect.right = (int32_t) (info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width);
-        rect.top = (int32_t) info->gifFilePtr->Image.Top;
-        rect.bottom = (int32_t) (info->gifFilePtr->Image.Top + info->gifFilePtr->Image.Height);
         oldBufferBits = buffer.bits;
-        if (ANativeWindow_lock(window, &buffer, &rect) != 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Window lock failed");
-            break;
-        }
+        THROW_AND_BREAK_ON_NONZERO_RESULT(ANativeWindow_lock(window, &buffer, NULL), "Window lock failed");
+
         if (info->currentIndex > 0) {
             memcpy(buffer.bits, oldBufferBits, bufferSize);
         }
 
-        if (pthread_mutex_lock(&info->surfaceDescriptor->renderMutex) != 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "render mutex_lock after cpy failed");
-            ANativeWindow_unlockAndPost(window);
-            break;
-        }
+        pthread_mutex_lock(&info->surfaceDescriptor->renderMutex);
         while (info->surfaceDescriptor->renderHelper == 0) {
-            if (pthread_cond_wait(&info->surfaceDescriptor->renderCond, &info->surfaceDescriptor->renderMutex) != 0) {
-                throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "render cond_wait after cpy failed");
-                ANativeWindow_unlockAndPost(window);
-                break;
-            }
+            pthread_cond_wait(&info->surfaceDescriptor->renderCond, &info->surfaceDescriptor->renderMutex);
         }
         info->surfaceDescriptor->renderHelper = 0;
-        if (pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex) != 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "render mutex_unlock after cpy failed");
-            ANativeWindow_unlockAndPost(window);
-            break;
-        }
+        pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
 
         const uint_fast32_t frameDuration = getBitmap(buffer.bits, info);
 
+        pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
+        info->surfaceDescriptor->slurpHelper = 1;
+        pthread_cond_signal(&info->surfaceDescriptor->slurpCond);
+        pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
+
         ANativeWindow_unlockAndPost(window);
 
-        time_t invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
+        long invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
 
         if (info->lastFrameRemainder >= 0) {
             invalidationDelayMillis = info->lastFrameRemainder;
@@ -211,22 +194,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
                 }
             }
             memcpy(info->surfaceDescriptor->surfaceBackupPtr, buffer.bits, bufferSize);
-            if (read(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
-                throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Eventfd read failed");
-            }
             break;
         }
     }
 
     ANativeWindow_release(window);
-    THROW_ON_NONZERO_RESULT(pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex), "mutex_lock on exit failed");
+    pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
     info->surfaceDescriptor->slurpHelper = 2;
-    THROW_ON_NONZERO_RESULT(pthread_cond_signal(&info->surfaceDescriptor->slurpCond), "cond_signal on exit failed");
-    THROW_ON_NONZERO_RESULT(pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex), "mutex_unlock on exit failed");
+    pthread_cond_signal(&info->surfaceDescriptor->slurpCond);
+    pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
     void *slurpResult = NULL;
     THROW_ON_NONZERO_RESULT(pthread_join(thread, &slurpResult), "join failed");
     if (slurpResult != NULL) {
-        errno = (int) slurpResult;
+        errno = (int) (intptr_t) slurpResult;
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Slurp thread finished with error");
     }
 }
@@ -234,7 +214,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    if (!info || info->surfaceDescriptor == NULL) {
+    if (info == NULL || info->surfaceDescriptor == NULL) {
         return;
     }
     POLL_TYPE eftd_ctr;
