@@ -145,13 +145,6 @@ static ColorMapObject *defaultCmap;
 static JavaVM *g_jvm;
 
 /**
-* Generates default color map, used when there is no color map defined in GIF file.
-* Upon successful allocation in JNI_OnLoad it is stored for further use.
-*
-*/
-ColorMapObject *genDefColorMap(void);
-
-/**
 * @return the real time, in ms
 */
 inline long getRealTime();
@@ -199,7 +192,7 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
 
 static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
-static void disposeFrameIfNeeded(argb *bm, GifInfo *info, uint_fast32_t idx);
+static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
 
 uint_fast32_t const getBitmap(argb *bm, GifInfo *info);
 

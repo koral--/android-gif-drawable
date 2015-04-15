@@ -12,8 +12,8 @@ static void *slurp(void *pVoidInfo) {
     while (1) {
         pthread_mutex_lock(&info->surfaceDescriptor->slurpMutex);
         while (info->surfaceDescriptor->slurpHelper == 0)
-
             pthread_cond_wait(&info->surfaceDescriptor->slurpCond, &info->surfaceDescriptor->slurpMutex);
+
         if (info->surfaceDescriptor->slurpHelper == 2) {
             pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
             return NULL;
@@ -125,28 +125,35 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     else if (info->surfaceDescriptor->surfaceBackupPtr) {
         memcpy(buffer.bits, info->surfaceDescriptor->surfaceBackupPtr, bufferSize);
         info->lastFrameRemainder = -1;
+        info->surfaceDescriptor->renderHelper = 1;
+        info->surfaceDescriptor->slurpHelper = 0;
     }
     else {
         if (savedState != NULL)
             info->lastFrameRemainder = restoreSavedState(info, env, savedState, buffer.bits);
         else
             info->lastFrameRemainder = -1;
+        info->surfaceDescriptor->renderHelper = 0;
+        info->surfaceDescriptor->slurpHelper = 1;
     }
     ANativeWindow_unlockAndPost(window);
+
     if (info->loopCount != 0 && info->currentLoop == info->loopCount) {
         ANativeWindow_release(window);
+        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, -1);
+        if (pollResult < 0) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
+        }
         return;
     }
-
-    info->surfaceDescriptor->renderHelper = 0;
-    info->surfaceDescriptor->slurpHelper = 1;
 
     pthread_t thread;
     if (pthread_create(&thread, NULL, slurp, info) != 0) {
         ANativeWindow_release(window);
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "pthread_create failed");
+        return;
     }
-    
+
     while (1) {
         long renderingStartTime = getRealTime();
 

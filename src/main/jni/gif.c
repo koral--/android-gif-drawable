@@ -356,10 +356,19 @@ JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
         return -1;
     }
     g_jvm = vm;
-    defaultCmap = genDefColorMap();
-    if (defaultCmap == NULL) {
-        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+
+    defaultCmap = GifMakeMapObject(8, NULL);
+    if (defaultCmap != NULL) {
+        uint_fast16_t iColor;
+        for (iColor = 0; iColor < 256; iColor++) {
+            defaultCmap->Colors[iColor].Red = (GifByteType) iColor;
+            defaultCmap->Colors[iColor].Green = (GifByteType) iColor;
+            defaultCmap->Colors[iColor].Blue = (GifByteType) iColor;
+        }
     }
+    else
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+
     struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {
         //sanity check here instead of on each clock_gettime() call

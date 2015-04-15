@@ -83,15 +83,15 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
     return false;
 }
 
-static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, uint_fast32_t idx) {
+static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
     GifFileType *fGif = info->gifFilePtr;
-    SavedImage *cur = &fGif->SavedImages[idx - 1];
-    SavedImage *next = &fGif->SavedImages[idx];
+    SavedImage *cur = &fGif->SavedImages[info->currentIndex - 1];
+    SavedImage *next = &fGif->SavedImages[info->currentIndex];
     // We can skip disposal process if next frame is not transparent
     // and completely covers current area
-    uint_fast8_t curDisposal = info->infos[idx - 1].DisposalMode;
-    bool nextTrans = info->infos[idx].TransparentColor != NO_TRANSPARENT_COLOR;
-    unsigned char nextDisposal = info->infos[idx].DisposalMode;
+    uint_fast8_t curDisposal = info->infos[info->currentIndex - 1].DisposalMode;
+    bool nextTrans = info->infos[info->currentIndex].TransparentColor != NO_TRANSPARENT_COLOR;
+    unsigned char nextDisposal = info->infos[info->currentIndex].DisposalMode;
 
     if ((curDisposal == DISPOSE_PREVIOUS || nextDisposal == DISPOSE_PREVIOUS) && info->backupPtr == NULL) {
         info->backupPtr = malloc(info->stride * fGif->SHeight * sizeof(argb));
@@ -148,7 +148,7 @@ uint_fast32_t const getBitmap(argb *bm, GifInfo *info) {
         }
     }
     else {
-        disposeFrameIfNeeded(bm, info, info->currentIndex);
+        disposeFrameIfNeeded(bm, info);
     }
     drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
     uint_fast32_t frameDuration = info->infos[info->currentIndex].DelayTime;
@@ -170,15 +170,3 @@ uint_fast32_t const getBitmap(argb *bm, GifInfo *info) {
     return frameDuration;
 }
 
-ColorMapObject *genDefColorMap(void) {
-    ColorMapObject *cmap = GifMakeMapObject(8, NULL);
-    if (cmap != NULL) {
-        uint_fast16_t iColor;
-        for (iColor = 0; iColor < 256; iColor++) {
-            cmap->Colors[iColor].Red = (GifByteType) iColor;
-            cmap->Colors[iColor].Green = (GifByteType) iColor;
-            cmap->Colors[iColor].Blue = (GifByteType) iColor;
-        }
-    }
-    return cmap;
-}

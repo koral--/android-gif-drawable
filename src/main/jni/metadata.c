@@ -129,7 +129,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unus
         throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "Could not create state array");
         return NULL;
     }
-
     jlong nativeState[4] = {(jlong) info->currentIndex, info->currentLoop, info->lastFrameRemainder};
     memcpy(nativeState + 3, &info->speedFactor, sizeof(info->speedFactor));
     (*env)->SetLongArrayRegion(env, state, 0, 4, nativeState);
@@ -144,8 +143,8 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
     jlong nativeState[4];
     (*env)->GetLongArrayRegion(env, state, 0, 4, nativeState);
 
-    const uint_fast8_t savedLoop = (uint_fast8_t) nativeState[1];
     const uint_fast32_t savedIndex = (uint_fast32_t) nativeState[0];
+    const uint_fast8_t savedLoop = (uint_fast8_t) nativeState[1];
 
     if (savedIndex >= info->gifFilePtr->ImageCount || info->currentLoop > info->loopCount)
         return -1;
@@ -157,7 +156,6 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 
     uint_fast32_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
     if (info->currentIndex < savedIndex) {
-
         while (info->currentIndex < savedIndex) {
             DDGifSlurp(info, true);
             lastFrameDuration = getBitmap((argb *) pixels, info);
