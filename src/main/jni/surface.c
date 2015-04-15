@@ -60,9 +60,8 @@ void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *env)
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass,
-                                                    jlong gifInfo, jobject jsurface, jlongArray savedState,
-                                                    jboolean isOpaque, jboolean wasOpaque) {
+Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
+                                                         jobject jsurface, jlongArray savedState, jboolean isOpaque) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info->surfaceDescriptor == NULL) {
@@ -116,13 +115,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     const size_t bufferSize = buffer.stride * buffer.height * sizeof(argb);
 
     info->stride = buffer.stride;
-    if (isOpaque == JNI_FALSE && wasOpaque == JNI_TRUE) {
-        if (!reset(info)) {
-            ANativeWindow_release(window);
-            return;
-        }
-    }
-    else if (info->surfaceDescriptor->surfaceBackupPtr) {
+
+    if (info->surfaceDescriptor->surfaceBackupPtr) {
         memcpy(buffer.bits, info->surfaceDescriptor->surfaceBackupPtr, bufferSize);
         info->lastFrameRemainder = -1;
         info->surfaceDescriptor->renderHelper = 1;
