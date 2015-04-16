@@ -59,13 +59,12 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
 
 static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
     ColorMapObject *cmap;
-
     if (frame->ImageDesc.ColorMap != NULL)
         cmap = frame->ImageDesc.ColorMap;// use local color table
     else if (info->gifFilePtr->SColorMap != NULL)
         cmap = info->gifFilePtr->SColorMap;
     else
-        cmap = defaultCmap;
+        cmap = getDefColorMap();
 
     blitNormal(bm, info, frame, cmap);
 }
@@ -130,7 +129,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
         memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
 }
 
-inline void prepareCanvas(argb *bm, GifInfo *info){
+inline void prepareCanvas(argb *bm, GifInfo *info) {
     if (info->gifFilePtr->SColorMap && info->infos->TransparentColor == NO_TRANSPARENT_COLOR) {
         argb bgColArgb;
         bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];

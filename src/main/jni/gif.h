@@ -84,7 +84,6 @@ typedef struct {
     uint8_t renderHelper;
     pthread_mutex_t renderMutex;
     pthread_cond_t renderCond;
-    JavaVM * jvm;
 } SurfaceDescriptor;
 
 struct GifInfo {
@@ -113,14 +112,12 @@ typedef struct {
     jmethodID readMID;
     jmethodID resetMID;
     jbyteArray buffer;
-    JavaVM * jvm;
 } StreamContainer;
 
 typedef struct {
     uint_fast32_t pos;
     jbyteArray buffer;
     jsize arrLen;
-    JavaVM * jvm;
 } ByteArrayContainer;
 
 typedef struct {
@@ -137,15 +134,9 @@ typedef struct {
     jlong sourceLength;
 } GifSourceDescriptor;
 
-/**
-* Global default color map, initialized by genDefColorMap(void)
-*/
-static ColorMapObject *defaultCmap;
+inline void DetachCurrentThread();
 
-/**
-* Global VM reference, initialized in JNI_OnLoad
-*/
-//static JavaVM *g_jvm;
+inline ColorMapObject* getDefColorMap();
 
 /**
 * @return the real time, in ms
@@ -163,7 +154,7 @@ bool isSourceNull(void *ptr, JNIEnv *env);
 
 static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-inline JNIEnv *getEnv(JavaVM* jvm);
+inline JNIEnv *getEnv();
 
 static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 

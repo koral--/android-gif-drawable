@@ -27,7 +27,7 @@ static void *slurp(void *pVoidInfo) {
         pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
     }
 
-    (*info->surfaceDescriptor->jvm)->DetachCurrentThread(info->surfaceDescriptor->jvm);
+    DetachCurrentThread();
     return NULL;
 }
 
@@ -36,10 +36,6 @@ static inline bool initSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, J
     surfaceDescriptor->eventPollFd.fd = eventfd(0, 0);
     if (surfaceDescriptor->eventPollFd.fd == -1) {
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Could not create eventfd");
-        return false;
-    }
-    if ((*env)->GetJavaVM(env, &surfaceDescriptor->jvm) != 0) {
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "GetJavaVM failed");
         return false;
     }
     const pthread_cond_t condInitializer = PTHREAD_COND_INITIALIZER;
@@ -142,7 +138,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         ANativeWindow_release(window);
         pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, -1);
         if (pollResult < 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "animation end poll failed");
         }
         return;
     }
@@ -180,7 +176,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
 
         ANativeWindow_unlockAndPost(window);
-
+//        if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM)
+//            break;
         long invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
 
         if (info->lastFrameRemainder >= 0) {

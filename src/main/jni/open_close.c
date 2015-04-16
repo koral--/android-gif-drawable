@@ -12,9 +12,6 @@ void cleanUp(GifInfo *info) {
     info->comment = NULL;
 
     GifFileType *GifFile = info->gifFilePtr;
-    if (GifFile->SColorMap == defaultCmap)
-        GifFile->SColorMap = NULL;
-
     DGifCloseFile(GifFile);
     free(info);
 }
