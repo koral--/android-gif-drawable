@@ -16,7 +16,7 @@ static void *slurp(void *pVoidInfo) {
 
         if (info->surfaceDescriptor->slurpHelper == 2) {
             pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
-            return NULL;
+            break;
         }
         info->surfaceDescriptor->slurpHelper = 0;
         pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
@@ -26,6 +26,8 @@ static void *slurp(void *pVoidInfo) {
         pthread_cond_signal(&info->surfaceDescriptor->renderCond);
         pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
     }
+
+    (*info->surfaceDescriptor->jvm)->DetachCurrentThread(info->surfaceDescriptor->jvm);
     return NULL;
 }
 
@@ -34,6 +36,10 @@ static inline bool initSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, J
     surfaceDescriptor->eventPollFd.fd = eventfd(0, 0);
     if (surfaceDescriptor->eventPollFd.fd == -1) {
         throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Could not create eventfd");
+        return false;
+    }
+    if ((*env)->GetJavaVM(env, &surfaceDescriptor->jvm) != 0) {
+        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "GetJavaVM failed");
         return false;
     }
     const pthread_cond_t condInitializer = PTHREAD_COND_INITIALIZER;
@@ -61,7 +67,7 @@ void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *env)
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
-                                                         jobject jsurface, jlongArray savedState, jboolean isOpaque) {
+                                                    jobject jsurface, jlongArray savedState, jboolean isOpaque) {
 
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info->surfaceDescriptor == NULL) {
@@ -205,12 +211,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     info->surfaceDescriptor->slurpHelper = 2;
     pthread_cond_signal(&info->surfaceDescriptor->slurpCond);
     pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
-    void *slurpResult = NULL;
-    THROW_ON_NONZERO_RESULT(pthread_join(thread, &slurpResult), "join failed");
-    if (slurpResult != NULL) {
-        errno = (int) (intptr_t) slurpResult;
-        throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Slurp thread finished with error");
-    }
+    THROW_ON_NONZERO_RESULT(pthread_join(thread, NULL), "join failed");
 }
 
 __unused JNIEXPORT void JNICALL

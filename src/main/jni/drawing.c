@@ -96,12 +96,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
     if ((curDisposal == DISPOSE_PREVIOUS || nextDisposal == DISPOSE_PREVIOUS) && info->backupPtr == NULL) {
         info->backupPtr = malloc(info->stride * fGif->SHeight * sizeof(argb));
         if (!info->backupPtr) {
-            JNIEnv *env = getEnv();
-            if (!env) {
-                abort();
-            }
-            throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-            info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+            info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM; //TODO throw OOME
             return;
         }
     }

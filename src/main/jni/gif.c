@@ -1,8 +1,8 @@
 #include "gif.h"
 
-inline JNIEnv *getEnv(void) {
+inline JNIEnv *getEnv(JavaVM *jvm) {
     JNIEnv *env;
-    if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
+    if ((*jvm)->AttachCurrentThread(jvm, &env, NULL) == JNI_OK)
         return env;
     return NULL;
 }
@@ -23,8 +23,9 @@ static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes
 
 static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
     ByteArrayContainer *bac = gif->UserData;
-    JNIEnv *env;
-    (*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL);
+    JNIEnv *env = getEnv(bac->jvm);
+    if (!env)
+        return 0;
     if (bac->pos + size > bac->arrLen)
         size -= bac->pos + size - bac->arrLen;
     (*env)->GetByteArrayRegion(env, bac->buffer, (jsize) bac->pos, size, (jbyte *) bytes);
@@ -34,7 +35,7 @@ static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_
 
 static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
     StreamContainer *sc = gif->UserData;
-    JNIEnv *env = getEnv();
+    JNIEnv *env = getEnv(sc->jvm);
     if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0)
         return 0;
 
@@ -84,7 +85,7 @@ static int fileRewind(GifInfo *info) {
 static int streamRewind(GifInfo *info) {
     GifFileType *gif = info->gifFilePtr;
     StreamContainer *sc = gif->UserData;
-    JNIEnv *env = getEnv();
+    JNIEnv *env = getEnv(sc->jvm);
     if (env == NULL) {
         info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
         return -1;
@@ -154,12 +155,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
     }
     container->buffer = (*env)->NewGlobalRef(env, bytes);
     if (container->buffer == NULL) {
+        free(container);
         throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "NewGlobalRef failed");
         return NULL;
     }
     container->arrLen = (*env)->GetArrayLength(env, container->buffer);
     container->pos = 0;
-
+    if ((*env)->GetJavaVM(env, &container->jvm)!=0) {
+        free(container);
+        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "GetJavaVM failed");
+        return NULL;
+    }
     GifSourceDescriptor descriptor;
     descriptor.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error);
     descriptor.rewindFunc = byteArrayRewind;
@@ -234,7 +240,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
     }
     container->readMID = readMID;
     container->resetMID = resetMID;
-
+    if ((*env)->GetJavaVM(env, &container->jvm)!=0) {
+        (*env)->DeleteGlobalRef(env, streamCls);
+        free(container);
+        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "GetJavaVM failed");
+        return NULL;
+    }
     container->stream = (*env)->NewGlobalRef(env, stream);
     if (container->stream == NULL) {
         free(container);
@@ -355,7 +366,6 @@ JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
     if ((*vm)->GetEnv(vm, (void **) (&env), JNI_VERSION_1_6) != JNI_OK) {
         return -1;
     }
-    g_jvm = vm;
 
     defaultCmap = GifMakeMapObject(8, NULL);
     if (defaultCmap != NULL) {
