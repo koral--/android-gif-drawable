@@ -117,21 +117,26 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     const size_t bufferSize = buffer.stride * buffer.height * sizeof(argb);
 
     info->stride = buffer.stride;
-
+    long invalidationDelayMillis;
     if (info->surfaceDescriptor->surfaceBackupPtr) {
         memcpy(buffer.bits, info->surfaceDescriptor->surfaceBackupPtr, bufferSize);
-        info->lastFrameRemainder = -1;
+        invalidationDelayMillis = 0;
         info->surfaceDescriptor->renderHelper = 1;
         info->surfaceDescriptor->slurpHelper = 0;
     }
     else {
-        if (savedState != NULL)
-            info->lastFrameRemainder = restoreSavedState(info, env, savedState, buffer.bits);
+        if (savedState != NULL){
+            invalidationDelayMillis = restoreSavedState(info, env, savedState, buffer.bits);
+            if (invalidationDelayMillis <0)
+                invalidationDelayMillis =0;
+        }
         else
-            info->lastFrameRemainder = -1;
+            invalidationDelayMillis = 0;
         info->surfaceDescriptor->renderHelper = 0;
         info->surfaceDescriptor->slurpHelper = 1;
     }
+
+    info->lastFrameRemainder = -1;
     ANativeWindow_unlockAndPost(window);
 
     if (info->loopCount != 0 && info->currentLoop == info->loopCount) {
@@ -151,8 +156,24 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     }
 
     while (1) {
+        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
         long renderingStartTime = getRealTime();
 
+        if (pollResult < 0) {
+            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
+            break;
+        }
+        else if (pollResult > 0) {
+            if (info->surfaceDescriptor->surfaceBackupPtr == NULL) {
+                info->surfaceDescriptor->surfaceBackupPtr = malloc(bufferSize);
+                if (info->surfaceDescriptor->surfaceBackupPtr == NULL) {
+                    throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+                    break;
+                }
+            }
+            memcpy(info->surfaceDescriptor->surfaceBackupPtr, buffer.bits, bufferSize);
+            break;
+        }
         oldBufferBits = buffer.bits;
         THROW_AND_BREAK_ON_NONZERO_RESULT(ANativeWindow_lock(window, &buffer, NULL), "Window lock failed");
 
@@ -176,30 +197,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
 
         ANativeWindow_unlockAndPost(window);
-//        if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM)
-//            break;
-        long invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
+
+        invalidationDelayMillis = calculateInvalidationDelay(info, renderingStartTime, frameDuration);
 
         if (info->lastFrameRemainder >= 0) {
             invalidationDelayMillis = info->lastFrameRemainder;
             info->lastFrameRemainder = -1;
-        }
-
-        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
-        if (pollResult < 0) {
-            throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, "Poll failed");
-            break;
-        }
-        else if (pollResult > 0) {
-            if (info->surfaceDescriptor->surfaceBackupPtr == NULL) {
-                info->surfaceDescriptor->surfaceBackupPtr = malloc(bufferSize);
-                if (info->surfaceDescriptor->surfaceBackupPtr == NULL) {
-                    throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-                    break;
-                }
-            }
-            memcpy(info->surfaceDescriptor->surfaceBackupPtr, buffer.bits, bufferSize);
-            break;
         }
     }
 

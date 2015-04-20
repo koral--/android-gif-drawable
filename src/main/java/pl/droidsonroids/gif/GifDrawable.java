@@ -454,6 +454,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * It may take a lot of time if number of such frames is large.
      * Method is thread-safe. Decoding is performed in background thread and drawable is invalidated automatically
      * afterwards.
+     * If position exceeds animation duration, seek stops at the end, no exception is thrown.
      *
      * @param position position to seek to in milliseconds
      * @throws IllegalArgumentException if position&lt;0
@@ -473,15 +474,15 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     * Like {@link #seekTo(int)}
-     * but uses index of the frame instead of time.
+     * Like {@link #seekTo(int)} but uses index of the frame instead of time.
+     * If frameIndex exceeds number of frames, seek stops at the end, no exception is thrown.
      *
      * @param frameIndex index of the frame to seek to (zero based)
-     * @throws IllegalArgumentException if frameIndex&lt;0
+     * @throws IndexOutOfBoundsException if frameIndex&lt;0
      */
     public void seekToFrame(final int frameIndex) {
         if (frameIndex < 0) {
-            throw new IllegalArgumentException("frameIndex is not positive");
+            throw new IndexOutOfBoundsException("Frame index is not positive");
         }
         mExecutor.execute(new SafeRunnable(this) {
             @Override
@@ -492,9 +493,16 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         });
     }
 
-    public Bitmap goToFrame(final int frameIndex) {
+    /**
+     * Like {@link #seekToFrame(int)} but performs operation synchronously and returns that frame.
+     *
+     * @param frameIndex index of the frame to seek to (zero based)
+     * @return frame at desired index
+     * @throws IndexOutOfBoundsException if frameIndex&lt;0
+     */
+    public Bitmap seekToFrameAndGet(final int frameIndex) {
         if (frameIndex < 0) {
-            throw new IllegalArgumentException("frameIndex is not positive");
+            throw new IndexOutOfBoundsException("Frame index is not positive");
         }
         final Bitmap bitmap;
         synchronized (mNativeInfoHandle) {
@@ -505,7 +513,14 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         return bitmap;
     }
 
-    public Bitmap goToPosition(final int position) {
+    /**
+     * Like {@link #seekTo(int)} but performs operation synchronously and returns that frame.
+     *
+     * @param position position to seek to in milliseconds
+     * @return frame at desired position
+     * @throws IndexOutOfBoundsException if position&lt;0
+     */
+    public Bitmap seekToPositionAndGet(final int position) {
         if (position < 0) {
             throw new IllegalArgumentException("Position is not positive");
         }

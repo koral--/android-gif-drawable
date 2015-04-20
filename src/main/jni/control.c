@@ -59,9 +59,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 
     unsigned long sum = 0;
     int desiredIndex;
-    for (desiredIndex = 0; desiredIndex < info->gifFilePtr->ImageCount; desiredIndex++) {
+    for (desiredIndex = 0; desiredIndex < info->gifFilePtr->ImageCount-1; desiredIndex++) {
         unsigned long newSum = sum + info->controlBlock[desiredIndex].DelayTime;
-        if (newSum >= desiredPos)
+        if (newSum > desiredPos)
             break;
         sum = newSum;
     }
