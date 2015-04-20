@@ -4,8 +4,8 @@ void cleanUp(GifInfo *info) {
     info->surfaceDescriptor = NULL;
     free(info->backupPtr);
     info->backupPtr = NULL;
-    free(info->infos);
-    info->infos = NULL;
+    free(info->controlBlock);
+    info->controlBlock = NULL;
     free(info->rasterBits);
     info->rasterBits = NULL;
     free(info->comment);
@@ -32,6 +32,12 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
+    info->controlBlock = calloc(sizeof(GraphicsControlBlock), 1);
+    if (info->controlBlock == NULL) {
+        DGifCloseFile(descriptor->GifFileIn);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+        return NULL;
+    }
     info->gifFilePtr = descriptor->GifFileIn;
     info->startPos = descriptor->startPos;
     info->currentIndex = 0;
@@ -43,7 +49,6 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->speedFactor = 1.0;
     info->sourceLength = descriptor->sourceLength;
 
-    info->infos = NULL;
     info->backupPtr = NULL;
     info->rewindFunction = descriptor->rewindFunc;
     info->surfaceDescriptor = NULL;

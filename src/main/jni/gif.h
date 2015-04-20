@@ -91,7 +91,7 @@ struct GifInfo {
     long lastFrameRemainder;
     long nextStartTime;
     uint_fast32_t currentIndex;
-    GraphicsControlBlock *infos;
+    GraphicsControlBlock *controlBlock;
     argb *backupPtr;
     long startPos;
     unsigned char *rasterBits;
@@ -203,3 +203,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
 
 inline void prepareCanvas(argb *bm, GifInfo *info);
+
+void drawNextBitmap(argb *bm, GifInfo *info);
+
+uint_fast32_t getFrameDuration(GifInfo *info);

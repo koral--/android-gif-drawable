@@ -40,7 +40,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclas
     int i;
     jint sum = 0;
     for (i = 0; i < info->gifFilePtr->ImageCount; i++)
-        sum += info->infos[i].DelayTime;
+        sum += info->controlBlock[i].DelayTime;
     return sum;
 }
 
@@ -66,7 +66,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
     int i;
     uint32_t sum = 0;
     for (i = 0; i < idx; i++)
-        sum += info->infos[i].DelayTime;
+        sum += info->controlBlock[i].DelayTime;
 
     long remainder;
     if (info->lastFrameRemainder == -1) {
@@ -154,7 +154,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
         return -1;
     }
 
-    uint_fast32_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
+    uint_fast32_t lastFrameDuration = info->controlBlock[info->currentIndex].DelayTime;
     if (info->currentIndex < savedIndex) {
         if (info->currentIndex == 0)
             prepareCanvas(pixels, info);
@@ -187,4 +187,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreSavedState(JNIEnv *env, jclass __
     const jint invalidationDelay = restoreSavedState(info, env, state, pixels);
     unlockPixels(env, jbitmap);
     return invalidationDelay;
+}
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getFrameDuration(__unused JNIEnv *env, jclass __unused handleClass,
+                                                          jlong gifInfo, jint index) {
+    GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+    return info == NULL ? 0 : (jint) info->controlBlock[index].DelayTime;
 }

@@ -40,32 +40,60 @@ final class GifInfoHandle {
     }
 
     static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
+
     static native GifInfoHandle openByteArray(byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
+
     static native GifInfoHandle openDirectByteBuffer(ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
+
     static native GifInfoHandle openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
+
     static native GifInfoHandle openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
+
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
+
     private static native void bindSurface(long gifInfoPtr, Surface surface, long[] savedState, boolean isOpaque);
+
     private static native void free(long gifFileInPtr);
+
     private static native boolean reset(long gifFileInPtr);
+
     private static native void setSpeedFactor(long gifFileInPtr, float factor);
+
     private static native String getComment(long gifFileInPtr);
+
     private static native int getLoopCount(long gifFileInPtr);
+
     private static native long getSourceLength(long gifFileInPtr);
+
     private static native int getDuration(long gifFileInPtr);
+
     private static native int getCurrentPosition(long gifFileInPtr);
+
     private static native void seekToTime(long gifFileInPtr, int pos, Bitmap buffer);
+
     private static native void seekToFrame(long gifFileInPtr, int frameNr, Bitmap buffer);
+
     private static native void saveRemainder(long gifFileInPtr);
+
     private static native long restoreRemainder(long gifFileInPtr);
+
     private static native long getAllocationByteCount(long gifFileInPtr);
+
     private static native int getNativeErrorCode(long gifFileInPtr);
+
     private static native int getCurrentFrameIndex(long gifFileInPtr);
+
     private static native int getCurrentLoop(long gifFileInPtr);
+
     private static native void postUnbindSurface(long gifFileInPtr);
+
     private static native boolean isAnimationCompleted(long gifInfoPtr);
+
     private static native long[] getSavedState(long gifInfoPtr);
+
     private static native int restoreSavedState(long gifInfoPtr, long[] savedState, Bitmap mBuffer);
+
+    private static native int getFrameDuration(long gifInfoPtr, int index);
 
     static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported()) {
@@ -135,8 +163,9 @@ final class GifInfoHandle {
         if (factor <= 0f || Float.isNaN(factor)) {
             throw new IllegalArgumentException("Speed factor is not positive");
         }
-        if (factor < 1 / Integer.MAX_VALUE)
+        if (factor < 1 / Integer.MAX_VALUE) {
             factor = 1 / Integer.MAX_VALUE;
+        }
         setSpeedFactor(gifInfoPtr, factor);
     }
 
@@ -189,11 +218,18 @@ final class GifInfoHandle {
         return isAnimationCompleted(gifInfoPtr);
     }
 
-    synchronized long[] getSavedState(){
+    synchronized long[] getSavedState() {
         return getSavedState(gifInfoPtr);
     }
 
-    synchronized int restoreSavedState(long[] savedState, Bitmap mBuffer){
+    synchronized int restoreSavedState(long[] savedState, Bitmap mBuffer) {
         return restoreSavedState(gifInfoPtr, savedState, mBuffer);
+    }
+
+    synchronized int getFrameDuration(final int index) {
+        if (index < 0 || index >= frameCount) {
+            throw new IndexOutOfBoundsException("Frame index is out of bounds");
+        }
+        return getFrameDuration(gifInfoPtr, index);
     }
 }

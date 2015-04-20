@@ -201,8 +201,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (oldDrawable != null) {
             synchronized (oldDrawable.mNativeInfoHandle) {
                 if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
-                    if (oldDrawable.mNativeInfoHandle.height >= mNativeInfoHandle.height &&
-                            oldDrawable.mNativeInfoHandle.width >= mNativeInfoHandle.width) {
+                    if (oldDrawable.mNativeInfoHandle.height >= mNativeInfoHandle.height && oldDrawable.mNativeInfoHandle.width >= mNativeInfoHandle.width) {
                         oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
                         oldBitmap.eraseColor(Color.TRANSPARENT);
@@ -299,7 +298,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                 mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
             } else {
                 //noinspection StatementWithEmptyBody
-                while (mExecutor.getQueue().remove(mRenderTask));
+                while (mExecutor.getQueue().remove(mRenderTask)) ;
                 mExecutor.schedule(mRenderTask, lastFrameRemainder, TimeUnit.MILLISECONDS);
             }
         }
@@ -307,7 +306,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Causes the animation to start over.
-     * If animation is stopped any effects will occur after restart.<br>
      * If rewinding input source fails then state is not affected.
      * This method is thread-safe.
      */
@@ -315,8 +313,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
-                if (mNativeInfoHandle.reset())
+                if (mNativeInfoHandle.reset()) {
                     start();
+                }
             }
         });
     }
@@ -330,7 +329,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mIsRunning = false;
         mInvalidationHandler.removeMessages(0);
         //noinspection StatementWithEmptyBody
-        while (mExecutor.getQueue().remove(mRenderTask));
+        while (mExecutor.getQueue().remove(mRenderTask)) ;
         mNativeInfoHandle.saveRemainder();
     }
 
@@ -488,9 +487,35 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
-                mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+                mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
             }
         });
+    }
+
+    public Bitmap goToFrame(final int frameIndex) {
+        if (frameIndex < 0) {
+            throw new IllegalArgumentException("frameIndex is not positive");
+        }
+        final Bitmap bitmap;
+        synchronized (mNativeInfoHandle) {
+            mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
+            bitmap = getCurrentFrame();
+        }
+        mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+        return bitmap;
+    }
+
+    public Bitmap goToPosition(final int position) {
+        if (position < 0) {
+            throw new IllegalArgumentException("Position is not positive");
+        }
+        final Bitmap bitmap;
+        synchronized (mNativeInfoHandle) {
+            mNativeInfoHandle.seekToTime(position, mBuffer);
+            bitmap = getCurrentFrame();
+        }
+        mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+        return bitmap;
     }
 
     /**
@@ -818,9 +843,22 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Returns whether all animation loops has ended. If drawable is recycled false is returned.
+     *
      * @return true if all animation loops has ended
      */
     public boolean isAnimationCompleted() {
         return mNativeInfoHandle.isAnimationCompleted();
+    }
+
+    /**
+     * Returns duration of the given frame (in milliseconds). If there is no data (no Graphics
+     * Control Extension blocks or drawable is recycled) 0 is returned.
+     *
+     * @param index index of the frame
+     * @return duration of the given frame in milliseconds
+     * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
+     */
+    public int getFrameDuration(int index) {
+        return mNativeInfoHandle.getFrameDuration(index);
     }
 }

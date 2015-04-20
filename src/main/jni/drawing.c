@@ -15,7 +15,7 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
     argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
 
     uint_fast16_t x, y = frame->ImageDesc.Height;
-    const int_fast16_t transpIndex = info->infos[info->currentIndex].TransparentColor;
+    const int_fast16_t transpIndex = info->controlBlock[info->currentIndex].TransparentColor;
     if (info->isOpaque == JNI_TRUE) {
         if (transpIndex == NO_TRANSPARENT_COLOR) {
             for (; y > 0; y--) {
@@ -88,9 +88,9 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
     SavedImage *next = &fGif->SavedImages[info->currentIndex];
     // We can skip disposal process if next frame is not transparent
     // and completely covers current area
-    uint_fast8_t curDisposal = info->infos[info->currentIndex - 1].DisposalMode;
-    bool nextTrans = info->infos[info->currentIndex].TransparentColor != NO_TRANSPARENT_COLOR;
-    unsigned char nextDisposal = info->infos[info->currentIndex].DisposalMode;
+    uint_fast8_t curDisposal = info->controlBlock[info->currentIndex - 1].DisposalMode;
+    bool nextTrans = info->controlBlock[info->currentIndex].TransparentColor != NO_TRANSPARENT_COLOR;
+    unsigned char nextDisposal = info->controlBlock[info->currentIndex].DisposalMode;
 
     if ((curDisposal == DISPOSE_PREVIOUS || nextDisposal == DISPOSE_PREVIOUS) && info->backupPtr == NULL) {
         info->backupPtr = malloc(info->stride * fGif->SHeight * sizeof(argb));
@@ -130,7 +130,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 }
 
 inline void prepareCanvas(argb *bm, GifInfo *info) {
-    if (info->gifFilePtr->SColorMap && info->infos->TransparentColor == NO_TRANSPARENT_COLOR) {
+    if (info->gifFilePtr->SColorMap && info->controlBlock->TransparentColor == NO_TRANSPARENT_COLOR) {
         argb bgColArgb;
         bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];
         bgColArgb.alpha = 0xFF;
@@ -141,13 +141,14 @@ inline void prepareCanvas(argb *bm, GifInfo *info) {
     }
 }
 
-uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
+void drawNextBitmap(argb *bm, GifInfo *info){
     if (info->currentIndex > 0)
         disposeFrameIfNeeded(bm, info);
-
     drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
-    uint_fast32_t frameDuration = info->infos[info->currentIndex].DelayTime;
+}
 
+uint_fast32_t getFrameDuration(GifInfo *info) {
+    uint_fast32_t frameDuration = info->controlBlock[info->currentIndex].DelayTime;
     if (++info->currentIndex >= info->gifFilePtr->ImageCount) {
         if (info->loopCount == 0 || info->currentLoop + 1 < info->loopCount) {
             if (info->rewindFunction(info) != 0)
@@ -163,5 +164,10 @@ uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
         }
     }
     return frameDuration;
+}
+
+uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
+    drawNextBitmap(bm, info);
+    return getFrameDuration(info);
 }
 

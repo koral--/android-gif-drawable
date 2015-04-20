@@ -60,13 +60,13 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                 if (DGifGetExtension(info->gifFilePtr, &ExtFunction, &ExtData) == GIF_ERROR)
                     return;
                 if (!shouldDecode) {
-                    GraphicsControlBlock *tmpInfos = realloc(info->infos,
+                    GraphicsControlBlock *tmpInfos = realloc(info->controlBlock,
                                                              (info->gifFilePtr->ImageCount + 1) * sizeof(GraphicsControlBlock));
                     if (tmpInfos == NULL) {
                         info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
                         return;
                     }
-                    info->infos = tmpInfos;
+                    info->controlBlock = tmpInfos;
                     if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
                         return;
                 }
@@ -96,7 +96,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
     if (ExtData == NULL)
         return GIF_OK;
     if (ExtFunction == GRAPHICS_EXT_FUNC_CODE) {
-        GraphicsControlBlock *GCB = &info->infos[info->gifFilePtr->ImageCount];
+        GraphicsControlBlock *GCB = &info->controlBlock[info->gifFilePtr->ImageCount];
         if (DGifExtensionToGCB(ExtData[0], ExtData + 1, GCB) == GIF_ERROR)
             return GIF_ERROR;
 

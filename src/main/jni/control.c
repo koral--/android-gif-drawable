@@ -32,21 +32,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_setSpeedFactor(JNIEnv __unused *env, jcl
 }
 
 static uint_fast32_t seek(GifInfo *info, JNIEnv *env, jint desiredIndex, jobject jbitmap) {
-    uint_fast32_t lastFrameDuration = info->infos[info->currentIndex].DelayTime;
-    if (info->currentIndex < desiredIndex) {
-        void *pixels;
-        if (lockPixels(env, jbitmap, info, &pixels) != 0) {
-            return 0;
-        }
-        if (info->currentIndex == 0)
-            prepareCanvas(pixels, info);
-        while (info->currentIndex < desiredIndex) {
-            DDGifSlurp(info, true);
-            lastFrameDuration = getBitmap((argb *) pixels, info);
-        }
-        unlockPixels(env, jbitmap);
+
+    void *pixels;
+    if (lockPixels(env, jbitmap, info, &pixels) != 0) {
+        return 0;
     }
-    return lastFrameDuration;
+    if (info->currentIndex == 0)
+        prepareCanvas(pixels, info);
+    do {
+        DDGifSlurp(info, true);
+        drawNextBitmap((argb *) pixels, info);
+    } while (info->currentIndex++ < desiredIndex);
+    unlockPixels(env, jbitmap);
+    --info->currentIndex;
+    return getFrameDuration(info);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -61,7 +60,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     unsigned long sum = 0;
     int desiredIndex;
     for (desiredIndex = 0; desiredIndex < info->gifFilePtr->ImageCount; desiredIndex++) {
-        unsigned long newSum = sum + info->infos[desiredIndex].DelayTime;
+        unsigned long newSum = sum + info->controlBlock[desiredIndex].DelayTime;
         if (newSum >= desiredPos)
             break;
         sum = newSum;
@@ -75,8 +74,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
     if (info->lastFrameRemainder != -1) {
         info->lastFrameRemainder = desiredPos - sum;
         if (desiredIndex == info->gifFilePtr->ImageCount - 1 &&
-            info->lastFrameRemainder > info->infos[desiredIndex].DelayTime)
-            info->lastFrameRemainder = info->infos[desiredIndex].DelayTime;
+            info->lastFrameRemainder > info->controlBlock[desiredIndex].DelayTime)
+            info->lastFrameRemainder = info->controlBlock[desiredIndex].DelayTime;
     }
     seek(info, env, desiredIndex, jbitmap);
 
