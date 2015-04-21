@@ -59,7 +59,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 
     unsigned long sum = 0;
     int desiredIndex;
-    for (desiredIndex = 0; desiredIndex < info->gifFilePtr->ImageCount-1; desiredIndex++) {
+    for (desiredIndex = 0; desiredIndex < info->gifFilePtr->ImageCount - 1; desiredIndex++) {
         unsigned long newSum = sum + info->controlBlock[desiredIndex].DelayTime;
         if (newSum > desiredPos)
             break;
@@ -121,7 +121,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
                                                          jclass __unused handleClass, jlong gifInfo) {
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
     if (info == NULL || info->lastFrameRemainder == -1 || info->gifFilePtr->ImageCount == 1 ||
-        info->currentLoop == info->loopCount)
+        (info->loopCount > 0 && info->currentLoop == info->loopCount))
         return -1;
     info->nextStartTime = getRealTime() + info->lastFrameRemainder;
     const long remainder = info->lastFrameRemainder;

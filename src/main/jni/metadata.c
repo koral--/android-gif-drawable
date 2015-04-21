@@ -12,11 +12,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused 
 __unused JNIEXPORT jboolean JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass,
                                                              jlong gifInfo) {
-    if (gifInfo == 0) {
-        return JNI_FALSE;
-    }
     GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
-    if (info->loopCount != 0 && info->currentLoop == info->loopCount)
+    if (info != NULL && info->loopCount != 0 && info->currentLoop == info->loopCount)
         return JNI_TRUE;
     else
         return JNI_FALSE;
@@ -191,7 +188,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreSavedState(JNIEnv *env, jclass __
 
 __unused JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_getFrameDuration(__unused JNIEnv *env, jclass __unused handleClass,
-                                                          jlong gifInfo, jint index) {
+                                                         jlong gifInfo, jint index) {
     GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
     return info == NULL ? 0 : (jint) info->controlBlock[index].DelayTime;
 }
