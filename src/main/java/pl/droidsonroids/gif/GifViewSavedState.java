@@ -12,7 +12,7 @@ class GifViewSavedState extends View.BaseSavedState {
 
     GifViewSavedState(Parcelable superState, Drawable... drawables) {
         super(superState);
-        mStates = new long[drawables.length][4];
+        mStates = new long[drawables.length][];
         for (int i = 0; i < drawables.length; i++) {
             Drawable drawable = drawables[i];
             if (drawable instanceof GifDrawable) {
@@ -25,14 +25,14 @@ class GifViewSavedState extends View.BaseSavedState {
 
     private GifViewSavedState(Parcel in) {
         super(in);
-        mStates = new long[in.readInt()][4];
-        for (long[] mState : mStates)
-            in.readLongArray(mState);
+        mStates = new long[in.readInt()][];
+        for (int i=0;i<mStates.length;i++)
+            mStates[i]=in.createLongArray();
     }
 
     public GifViewSavedState(Parcelable superState, long[] savedState) {
         super(superState);
-        mStates = new long[1][3];
+        mStates = new long[1][];
         mStates[0] = savedState;
     }
 
