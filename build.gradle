@@ -87,3 +87,7 @@ def shouldApplyFlavors() {
 def isDebugBuild() {
     !gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
