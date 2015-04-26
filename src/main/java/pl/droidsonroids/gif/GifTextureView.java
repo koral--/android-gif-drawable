@@ -147,6 +147,10 @@ public class GifTextureView extends TextureView {
         private IOException mIOException;
         long[] mSavedState;
 
+        RenderThread() {
+            super("GifRenderThread");
+        }
+
         @Override
         public void run() {
             try {

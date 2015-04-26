@@ -7,9 +7,12 @@ static ColorMapObject *defaultCmap;
 */
 static JavaVM *g_jvm;
 
+static struct JavaVMAttachArgs attachArgs = {.version=JNI_VERSION_1_6, .group=NULL, .name="GifIOThread"};
+
 inline JNIEnv *getEnv() {
     JNIEnv *env;
-    if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, NULL) == JNI_OK)
+
+    if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, &attachArgs) == JNI_OK)
         return env;
     return NULL;
 }
