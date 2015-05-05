@@ -52,6 +52,7 @@ public class GifTextureView extends TextureView {
 
     public GifTextureView(Context context) {
         super(context);
+        init(null, 0, 0);
     }
 
     public GifTextureView(Context context, AttributeSet attrs) {
@@ -282,6 +283,7 @@ public class GifTextureView extends TextureView {
      * @param inputSource new animation source, may be null
      */
     public synchronized void setInputSource(@Nullable InputSource inputSource) {
+        mRenderThread.dispose();
         mInputSource = inputSource;
         mRenderThread = new RenderThread();
         if (inputSource != null) {
