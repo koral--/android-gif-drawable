@@ -350,12 +350,20 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Returns loop count previously read from GIF's application extension block.
-     * Defaults to 0 (infinite loop) if there is no such extension.
+     * Defaults to 1 if there is no such extension.
      *
      * @return loop count, 0 means that animation is infinite
      */
     public int getLoopCount() {
         return mNativeInfoHandle.getLoopCount();
+    }
+
+    /**
+     * Sets loop count of the animation. Loop count must be in range &lt;0 ,65535&gt;
+     * @param loopCount loop count, 0 means infinity
+     */
+    public void setLoopCount(final int loopCount) {
+        mNativeInfoHandle.setLoopCount(loopCount);
     }
 
     /**

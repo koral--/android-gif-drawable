@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
  * Native library wrapper
  */
 final class GifInfoHandle {
+
     /**
      * Pointer to native structure. Access must be synchronized, heap corruption may occur otherwise
      * when {@link #recycle()} is called during another operation.
@@ -39,11 +40,13 @@ final class GifInfoHandle {
         System.loadLibrary(BuildConfig.NATIVE_LIBRARY_NAME);
     }
 
-    static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
+    static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws
+            GifIOException;
 
     static native GifInfoHandle openByteArray(byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
 
-    static native GifInfoHandle openDirectByteBuffer(ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
+    static native GifInfoHandle openDirectByteBuffer(ByteBuffer buffer, boolean justDecodeMetaData) throws
+            GifIOException;
 
     static native GifInfoHandle openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
 
@@ -62,6 +65,8 @@ final class GifInfoHandle {
     private static native String getComment(long gifFileInPtr);
 
     private static native int getLoopCount(long gifFileInPtr);
+
+    private static native int setLoopCount(long gifFileInPtr, int loopCount);
 
     private static native long getSourceLength(long gifFileInPtr);
 
@@ -102,7 +107,8 @@ final class GifInfoHandle {
         return openStream(stream, justDecodeMetaData);
     }
 
-    static GifInfoHandle openAssetFileDescriptor(AssetFileDescriptor afd, boolean justDecodeMetaData) throws IOException {
+    static GifInfoHandle openAssetFileDescriptor(AssetFileDescriptor afd, boolean justDecodeMetaData) throws
+            IOException {
         try {
             return openFd(afd.getFileDescriptor(), afd.getStartOffset(), justDecodeMetaData);
         } finally {
@@ -151,6 +157,15 @@ final class GifInfoHandle {
         return getLoopCount(gifInfoPtr);
     }
 
+    void setLoopCount(final int loopCount) {
+        if (loopCount < 0 || loopCount > 0xFFFF) {
+            throw new IllegalArgumentException("Loop count of range <0, 65535>");
+        }
+        synchronized (this) {
+            setLoopCount(gifInfoPtr, loopCount);
+        }
+    }
+
     synchronized long getSourceLength() {
         return getSourceLength(gifInfoPtr);
     }
@@ -159,14 +174,16 @@ final class GifInfoHandle {
         return getNativeErrorCode(gifInfoPtr);
     }
 
-    synchronized void setSpeedFactor(float factor) {
+    void setSpeedFactor(float factor) {
         if (factor <= 0f || Float.isNaN(factor)) {
             throw new IllegalArgumentException("Speed factor is not positive");
         }
         if (factor < 1 / Integer.MAX_VALUE) {
             factor = 1 / Integer.MAX_VALUE;
         }
-        setSpeedFactor(gifInfoPtr, factor);
+        synchronized (this) {
+            setSpeedFactor(gifInfoPtr, factor);
+        }
     }
 
     synchronized int getDuration() {

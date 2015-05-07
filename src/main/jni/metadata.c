@@ -24,7 +24,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getLoopCount(JNIEnv __unused *env, jclas
                                                      jlong gifInfo) {
     if (gifInfo == 0)
         return 0;
-    return ((GifInfo *) (intptr_t) gifInfo)->loopCount;
+    return (jint) ((GifInfo *) (intptr_t) gifInfo)->loopCount;
+}
+
+__unused JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_setLoopCount(JNIEnv __unused *env, jclass __unused handleClass,
+                                                     jlong gifInfo, jint loopCount) {
+    if (gifInfo != 0)
+    ((GifInfo *) (intptr_t) gifInfo)->loopCount = (uint_fast16_t) loopCount;
 }
 
 __unused JNIEXPORT jint JNICALL
@@ -103,7 +110,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentLoop(JNIEnv __unused *env, jcl
                                                        jlong gifInfo) {
     if (gifInfo == 0)
         return 0;
-    return ((GifInfo *) (intptr_t) gifInfo)->currentLoop;
+    return (jint) ((GifInfo *) (intptr_t) gifInfo)->currentLoop;
 }
 
 __unused JNIEXPORT jint JNICALL
@@ -126,7 +133,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unus
         throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "Could not create state array");
         return NULL;
     }
-    jlong nativeState[4] = {(jlong) info->currentIndex, info->currentLoop, info->lastFrameRemainder};
+    jlong nativeState[4] = {(jlong) info->currentIndex, (jlong) info->currentLoop, info->lastFrameRemainder};
     memcpy(nativeState + 3, &info->speedFactor, sizeof(info->speedFactor));
     (*env)->SetLongArrayRegion(env, state, 0, 4, nativeState);
     return state;

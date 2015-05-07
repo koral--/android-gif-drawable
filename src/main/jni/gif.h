@@ -96,8 +96,8 @@ struct GifInfo {
     long startPos;
     unsigned char *rasterBits;
     char *comment;
-    uint_fast8_t loopCount;
-    uint_fast8_t currentLoop;
+    uint_fast16_t loopCount;
+    uint_fast16_t currentLoop;
     RewindFunc rewindFunction;
     jfloat speedFactor;
     int32_t stride;

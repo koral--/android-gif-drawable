@@ -116,7 +116,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
                                      &ExtFunction) == GIF_ERROR)
                 return GIF_ERROR;
             if (ExtData[0] == 3 && ExtData[1] == 1) {
-                info->loopCount = (uint8_t) (ExtData[2] + (ExtData[3] << 8));
+                info->loopCount = (uint_fast16_t) (ExtData[2] + (ExtData[3] << 8));
             }
         }
     }
