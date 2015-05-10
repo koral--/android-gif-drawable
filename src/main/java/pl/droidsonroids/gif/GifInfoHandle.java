@@ -66,7 +66,7 @@ final class GifInfoHandle {
 
     private static native int getLoopCount(long gifFileInPtr);
 
-    private static native int setLoopCount(long gifFileInPtr, int loopCount);
+    private static native void setLoopCount(long gifFileInPtr, int loopCount);
 
     private static native long getSourceLength(long gifFileInPtr);
 

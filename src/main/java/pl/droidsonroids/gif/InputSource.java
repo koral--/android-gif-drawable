@@ -21,7 +21,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  * Abstract class for all input sources, to be used with {@link GifTextureView}
  */
 public abstract class InputSource {
-    private boolean mIsOpaque;
+    private boolean mIsOpaque; //TODO propagate
 
     InputSource() {
     }
@@ -44,7 +44,7 @@ public abstract class InputSource {
      * @param isOpaque whether the content of this source is opaque
      * @return this InputSource
      */
-    public final InputSource setOpaque(boolean isOpaque) {
+    final InputSource setOpaque(boolean isOpaque) {
         mIsOpaque = isOpaque;
         return this;
     }
