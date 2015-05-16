@@ -1,6 +1,6 @@
-#branches:
-#  except:
-#    - dev
+env:
+  global:
+    - NDK_VERSION=r10e
 sudo: false
 language:
   - android
@@ -13,10 +13,10 @@ android:
     - extra-android-m2repository
 
 before_install:
-  - wget http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin
-  - chmod +x android-ndk-r10d-linux-x86_64.bin
-  - ./android-ndk-r10e-linux-x86_64.bin | egrep -v ^Extracting
-  - export ANDROID_NDK_HOME=`pwd`/android-ndk-r10e
+  - wget http://dl.google.com/android/ndk/android-ndk-$NDK_VERSION-linux-x86_64.bin
+  - chmod +x android-ndk-$NDK_VERSION-linux-x86_64.bin
+  - ./android-ndk-$NDK_VERSION-linux-x86_64.bin | egrep -v ^Extracting
+  - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:
