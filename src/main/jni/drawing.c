@@ -93,7 +93,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
     unsigned char nextDisposal = info->controlBlock[info->currentIndex].DisposalMode;
 
     if ((curDisposal == DISPOSE_PREVIOUS || nextDisposal == DISPOSE_PREVIOUS) && info->backupPtr == NULL) {
-        info->backupPtr = malloc(info->stride * fGif->SHeight * sizeof(argb));
+        info->backupPtr = calloc(info->stride * fGif->SHeight, sizeof(argb));
         if (!info->backupPtr) {
             info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM; //TODO throw OOME
             return;
