@@ -3,3 +3,5 @@
 - Support annotations version updated to 22.1.1
 - Android gradle plugin updated to 1.2.3
 - fixed NPE when `GifTextureView` is constructed without attributes
+- fixed background artifacts - #167
+- single drawable assigned to multiple views support added (`MultiCallback`)
