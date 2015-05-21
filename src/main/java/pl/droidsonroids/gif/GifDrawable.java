@@ -360,6 +360,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Sets loop count of the animation. Loop count must be in range &lt;0 ,65535&gt;
+     *
      * @param loopCount loop count, 0 means infinity
      */
     public void setLoopCount(final int loopCount) {
@@ -705,7 +706,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         }
 
         if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) {
-            final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime());
+            final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.uptimeMillis());
             mNextFrameRenderTime = Long.MIN_VALUE;
             mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
         }

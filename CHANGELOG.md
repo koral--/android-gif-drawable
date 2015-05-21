@@ -1,7 +1,11 @@
 ### 1.1.7
-- Fixed warning about attaching nameless thread on ART
-- Support annotations version updated to 22.1.1
+- fixed warning about attaching nameless thread on ART
+- support annotations version updated to 22.1.1
 - Android gradle plugin updated to 1.2.3
 - fixed NPE when `GifTextureView` is constructed without attributes
 - fixed background artifacts - #167
 - single drawable assigned to multiple views support added (`MultiCallback`)
+- NDK version updated to r10e
+- `GifDrawable#setLoopCount()` added
+- fixed firing `AnimationListener#onAnimationCompleted()`
+- gradle wrapper version updated to 2.4

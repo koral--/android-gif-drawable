@@ -3,7 +3,9 @@ package pl.droidsonroids.gif;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Drawable.Callback;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -25,7 +27,7 @@ public class MultiCallback implements Callback {
             final ViewWeakReference reference = mViewList.get(i);
             final View view = reference.get();
             if (view != null) {
-                view.invalidate();
+                view.invalidateDrawable(who);
             } else {
                 // Always remove null references to reduce Set size
                 mViewList.remove(reference);
