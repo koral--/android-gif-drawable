@@ -60,7 +60,7 @@ allprojects {
         mavenCentral()
     }
     dependencies {
-        provided 'com.android.support:support-annotations:22.1.1'
+        provided 'com.android.support:support-annotations:22.2.0'
     }
 }
 
