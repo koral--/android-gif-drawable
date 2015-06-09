@@ -18,6 +18,26 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
     }
+    sourceSets.main {
+        jniLibs.srcDir 'src/main/libs' //set .so files location to libs
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
+
+    task buildNative(type: Exec) {
+        def ndkDir = android.ndkDirectory
+        commandLine "$ndkDir/ndk-build",
+                '-C', file('src/main/jni').absolutePath,
+                '-j', Runtime.runtime.availableProcessors(),
+                'all',
+                'NDK_DEBUG=1'
+    }
+
+    task cleanNative(type: Exec) {
+        def ndkDir = android.ndkDirectory
+        commandLine "$ndkDir/ndk-build",
+                '-C', file('src/main/jni').absolutePath,
+                'clean'
+    }
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 22
@@ -36,21 +56,26 @@ android {
             }
         }
     }
-    buildTypes.debug.jniDebuggable isDebugBuild()
+//    buildTypes.debug.jniDebuggable isDebugBuild()
+//
+//    if (shouldApplyFlavors()) {
+//        productFlavors {
+//            flavors.each() {
+//                String flavor = it
+//                "${it}" {
+//                    ndk {
+//                        abiFilter flavor
+//                    }
+//                }
+//            }
+//            fat
+//        }
+//    }
+}
+clean.dependsOn cleanNative
 
-    if (shouldApplyFlavors()) {
-        productFlavors {
-            flavors.each() {
-                String flavor = it
-                "${it}" {
-                    ndk {
-                        abiFilter flavor
-                    }
-                }
-            }
-            fat
-        }
-    }
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn buildNative
 }
 
 allprojects {
