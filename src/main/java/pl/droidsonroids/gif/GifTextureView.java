@@ -8,6 +8,7 @@ import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Parcelable;
+import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -298,7 +299,7 @@ public class GifTextureView extends TextureView {
      * @throws IllegalArgumentException if factor&lt;=0
      * @see GifDrawable#setSpeed(float)
      */
-    public void setSpeed(float factor) {
+    public void setSpeed(@FloatRange(from = 0, fromInclusive = false) float factor) {
         mSpeedFactor = factor;
         mRenderThread.mGifInfoHandle.setSpeedFactor(factor);
     }

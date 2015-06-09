@@ -23,6 +23,8 @@ import android.os.Build;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
@@ -261,7 +263,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     @Override
-    public void setAlpha(int alpha) {
+    public void setAlpha(@IntRange(from = 0, to = 255) int alpha) {
         mPaint.setAlpha(alpha);
     }
 
@@ -363,7 +365,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      *
      * @param loopCount loop count, 0 means infinity
      */
-    public void setLoopCount(final int loopCount) {
+    public void setLoopCount(@IntRange(from = 0, to = 65535) final int loopCount) {
         mNativeInfoHandle.setLoopCount(loopCount);
     }
 
@@ -418,7 +420,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
      * @throws IllegalArgumentException if factor&lt;=0
      */
-    public void setSpeed(float factor) {
+    public void setSpeed(@FloatRange(from = 0, fromInclusive = false) float factor) {
         mNativeInfoHandle.setSpeedFactor(factor);
     }
 
@@ -469,7 +471,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @throws IllegalArgumentException if position&lt;0
      */
     @Override
-    public void seekTo(final int position) {
+    public void seekTo(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position) {
         if (position < 0) {
             throw new IllegalArgumentException("Position is not positive");
         }
@@ -489,7 +491,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param frameIndex index of the frame to seek to (zero based)
      * @throws IndexOutOfBoundsException if frameIndex&lt;0
      */
-    public void seekToFrame(final int frameIndex) {
+    public void seekToFrame(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex) {
         if (frameIndex < 0) {
             throw new IndexOutOfBoundsException("Frame index is not positive");
         }
@@ -509,7 +511,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return frame at desired index
      * @throws IndexOutOfBoundsException if frameIndex&lt;0
      */
-    public Bitmap seekToFrameAndGet(final int frameIndex) {
+    public Bitmap seekToFrameAndGet(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex) {
         if (frameIndex < 0) {
             throw new IndexOutOfBoundsException("Frame index is not positive");
         }
@@ -529,7 +531,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return frame at desired position
      * @throws IndexOutOfBoundsException if position&lt;0
      */
-    public Bitmap seekToPositionAndGet(final int position) {
+    public Bitmap seekToPositionAndGet(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position) {
         if (position < 0) {
             throw new IllegalArgumentException("Position is not positive");
         }
