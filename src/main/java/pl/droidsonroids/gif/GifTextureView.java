@@ -42,6 +42,9 @@ import java.io.IOException;
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
+    static {
+        System.loadLibrary("pl_droidsonroids_gif_surface");
+    }
 
     private ScaleType mScaleType = ScaleType.FIT_CENTER;
     private final Matrix mTransform = new Matrix();

@@ -17,7 +17,7 @@ inline JNIEnv *getEnv() {
     return NULL;
 }
 
-inline void DetachCurrentThread() {
+void DetachCurrentThread() {
     (*g_jvm)->DetachCurrentThread(g_jvm);
 }
 
@@ -395,6 +395,6 @@ __unused JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *__unused vm, void *__unused
     GifFreeMapObject(defaultCmap);
 }
 
-inline ColorMapObject *getDefColorMap() {
+ColorMapObject *getDefColorMap() {
     return defaultCmap;
 }

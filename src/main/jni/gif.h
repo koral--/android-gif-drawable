@@ -1,3 +1,6 @@
+#ifndef _GIF
+#define _GIF
+
 #include <unistd.h>
 #include <jni.h>
 #include <android/native_window_jni.h>
@@ -18,6 +21,8 @@
 #include <poll.h>
 #include <errno.h>
 #include "giflib/gif_lib.h"
+
+#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message)
 
 #ifdef DEBUG
 #include <android/log.h>
@@ -134,14 +139,14 @@ typedef struct {
     jlong sourceLength;
 } GifSourceDescriptor;
 
-inline void DetachCurrentThread();
+void DetachCurrentThread();
 
-inline ColorMapObject* getDefColorMap();
+ColorMapObject* getDefColorMap();
 
 /**
 * @return the real time, in ms
 */
-inline long getRealTime();
+long getRealTime();
 
 /**
 * Frees dynamically allocated memory
@@ -202,8 +207,10 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 
 void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
 
-inline void prepareCanvas(argb *bm, GifInfo *info);
+void prepareCanvas(argb *bm, GifInfo *info);
 
 void drawNextBitmap(argb *bm, GifInfo *info);
 
 uint_fast32_t getFrameDuration(GifInfo *info);
+
+#endif

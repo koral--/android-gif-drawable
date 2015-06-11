@@ -129,7 +129,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
         memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
 }
 
-inline void prepareCanvas(argb *bm, GifInfo *info) {
+void prepareCanvas(argb *bm, GifInfo *info) {
     if (info->gifFilePtr->SColorMap && info->controlBlock->TransparentColor == NO_TRANSPARENT_COLOR) {
         argb bgColArgb;
         bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];

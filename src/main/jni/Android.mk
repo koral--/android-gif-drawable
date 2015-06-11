@@ -2,7 +2,8 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := pl_droidsonroids_gif
-LOCAL_CFLAGS := -Ofast -DDEBUG
+LOCAL_CFLAGS := -Ofast
+#-DDEBUG
 LOCAL_LDLIBS := \
 	-ljnigraphics \
 	-llog \
@@ -16,6 +17,7 @@ LOCAL_SRC_FILES := \
 	open_close.c \
 	decoding.c \
 	exception.c \
+	surface_common.c \
 	time.c \
 	control.c \
 	memset.arm.S \
@@ -28,12 +30,13 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := pl_droidsonroids_gif_surface
-LOCAL_CFLAGS := -Ofast -DDEBUG
+LOCAL_CFLAGS := -Ofast
+#-DDEBUG
 LOCAL_LDLIBS := \
-	-landroid \
-	-llog \
+	-landroid
 
 LOCAL_SRC_FILES := \
 	surface.c \
 
+LOCAL_SHARED_LIBRARIES := pl_droidsonroids_gif
 include $(BUILD_SHARED_LIBRARY)

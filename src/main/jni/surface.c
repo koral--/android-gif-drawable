@@ -4,7 +4,6 @@
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
-#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message)
 #define THROW_AND_BREAK_ON_NONZERO_RESULT(fun, message) if (fun !=0) {throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message); break;}
 
 static void *slurp(void *pVoidInfo) {
@@ -47,18 +46,6 @@ static inline bool initSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, J
 
     surfaceDescriptor->surfaceBackupPtr = NULL;
     return true;
-}
-
-void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *env) {
-    if (surfaceDescriptor == NULL)
-        return;
-    free(surfaceDescriptor->surfaceBackupPtr);
-    surfaceDescriptor->surfaceBackupPtr = NULL;
-    THROW_ON_NONZERO_RESULT(close(surfaceDescriptor->eventPollFd.fd), "eventfd close failed");
-    THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&surfaceDescriptor->slurpMutex), "slurp mutex destroy failed");
-    THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&surfaceDescriptor->renderMutex), "render mutex destroy failed");
-    THROW_ON_NONZERO_RESULT(pthread_cond_destroy(&surfaceDescriptor->slurpCond), "slurp cond destroy failed");
-    THROW_ON_NONZERO_RESULT(pthread_cond_destroy(&surfaceDescriptor->renderCond), "render cond  destroy failed");
 }
 
 __unused JNIEXPORT void JNICALL
