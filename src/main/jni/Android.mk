@@ -1,9 +1,16 @@
+cflags:=
+
+ifeq ($(NDK_DEBUG),1)
+	cflags+= -DDEBUG
+else
+#	cflags+= -fvisibility=hidden
+endif
+
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := pl_droidsonroids_gif
-LOCAL_CFLAGS := -Ofast
-#-DDEBUG
+LOCAL_CFLAGS := $(cflags)
 LOCAL_LDLIBS := \
 	-ljnigraphics \
 	-llog \
@@ -24,14 +31,12 @@ LOCAL_SRC_FILES := \
 	giflib/dgif_lib.c \
 	giflib/gifalloc.c \
 
-
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := pl_droidsonroids_gif_surface
-LOCAL_CFLAGS := -Ofast
-#-DDEBUG
+LOCAL_CFLAGS := $(cflags)
 LOCAL_LDLIBS := \
 	-landroid
 

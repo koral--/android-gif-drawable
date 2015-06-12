@@ -1,6 +1,9 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
     }
 
     dependencies {
@@ -10,6 +13,8 @@ buildscript {
 
 apply plugin: 'com.android.library'
 apply from: 'gradle-mvn-push.gradle'
+
+String ndkDebug = isDebugBuild() ? "NDK_DEBUG=1" : "NDK_DEBUG=0"
 
 android {
     compileSdkVersion 22
@@ -24,17 +29,15 @@ android {
     }
 
     task buildNative(type: Exec) {
-        def ndkDir = android.ndkDirectory
-        commandLine "$ndkDir/ndk-build",
+        commandLine getNdkBuildCommand(),
                 '-C', file('src/main/jni').absolutePath,
                 '-j', Runtime.runtime.availableProcessors(),
                 'all',
-                'NDK_DEBUG=1'
+                ndkDebug
     }
 
     task cleanNative(type: Exec) {
-        def ndkDir = android.ndkDirectory
-        commandLine "$ndkDir/ndk-build",
+        commandLine getNdkBuildCommand(),
                 '-C', file('src/main/jni').absolutePath,
                 'clean'
     }
@@ -42,35 +45,22 @@ android {
         minSdkVersion 8
         targetSdkVersion 22
         buildConfigField 'String', 'NATIVE_LIBRARY_NAME', '"' + NATIVE_LIBRARY_NAME + '"'
-        ndk {
-            if (isDebugBuild()) {
-                moduleName NATIVE_LIBRARY_NAME
-                abiFilter 'all'
-                ldLibs 'jnigraphics', 'android', 'log'
-                cFlags '-Ofast -DDEBUG'
-            } else {
-                moduleName NATIVE_LIBRARY_NAME
-                ldLibs 'jnigraphics', 'android'
-                abiFilter 'all'
-                cFlags '-fvisibility=hidden -Ofast -finline-functions'
+    }
+    buildTypes.debug.jniDebuggable isDebugBuild()
+
+    if (shouldApplyFlavors()) {
+        productFlavors {
+            flavors.each() {
+                String flavor = it
+                "${it}" {
+                    ndk {
+                        abiFilter flavor
+                    }
+                }
             }
+            fat
         }
     }
-//    buildTypes.debug.jniDebuggable isDebugBuild()
-//
-//    if (shouldApplyFlavors()) {
-//        productFlavors {
-//            flavors.each() {
-//                String flavor = it
-//                "${it}" {
-//                    ndk {
-//                        abiFilter flavor
-//                    }
-//                }
-//            }
-//            fat
-//        }
-//    }
 }
 clean.dependsOn cleanNative
 
@@ -111,6 +101,15 @@ def shouldApplyFlavors() {
 
 def isDebugBuild() {
     !gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+}
+
+def getNdkBuildCommand() {
+    def ndkDir = android.ndkDirectory
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        return "$ndkDir/ndk-build.cmd"
+    } else {
+        return "$ndkDir/ndk-build"
+    }
 }
 
 task wrapper(type: Wrapper) {
