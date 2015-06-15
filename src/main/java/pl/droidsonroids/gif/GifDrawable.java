@@ -37,6 +37,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -71,6 +73,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     private final Runnable mRenderTask = new RenderTask(this);
     private final Rect mSrcRect;
+    private ScheduledFuture<?> mSchedule;
 
     /**
      * Creates drawable from resource.
@@ -332,6 +335,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mInvalidationHandler.removeMessages(0);
         //noinspection StatementWithEmptyBody
         while (mExecutor.getQueue().remove(mRenderTask)) ;
+        if (mSchedule != null) {
+            try {
+                mSchedule.get(); //TODO create in all cases
+            } catch (InterruptedException | ExecutionException ignored) {
+                //no-op
+            }
+        }
         mNativeInfoHandle.saveRemainder();
     }
 
@@ -707,10 +717,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mPaint.setColorFilter(null);
         }
 
-        if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) {
+        if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) { //TODO handle initially paused drawables
             final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.uptimeMillis());
             mNextFrameRenderTime = Long.MIN_VALUE;
-            mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
+            mSchedule = mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
         }
     }
 
