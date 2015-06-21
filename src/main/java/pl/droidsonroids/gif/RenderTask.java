@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import android.os.SystemClock;
 
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 class RenderTask extends SafeRunnable {
@@ -25,7 +26,8 @@ class RenderTask extends SafeRunnable {
             mGifDrawable.mNextFrameRenderTime = SystemClock.uptimeMillis() + invalidationDelay;
             if (mGifDrawable.isVisible()) {
                 if (mGifDrawable.mIsRunning && !mGifDrawable.mIsRenderingTriggeredOnDraw) {
-                    mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
+                    mGifDrawable.mExecutor.remove(this);
+                    mGifDrawable.mSchedule = mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
                 }
             }
             if (!mGifDrawable.mListeners.isEmpty() && mGifDrawable.getCurrentFrameIndex() == mGifDrawable.mNativeInfoHandle.frameCount - 1) {

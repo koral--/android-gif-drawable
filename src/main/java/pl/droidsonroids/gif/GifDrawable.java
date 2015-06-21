@@ -71,9 +71,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     final boolean mIsRenderingTriggeredOnDraw;
     final InvalidationHandler mInvalidationHandler;
 
-    private final Runnable mRenderTask = new RenderTask(this);
+    private final RenderTask mRenderTask = new RenderTask(this);
     private final Rect mSrcRect;
-    private ScheduledFuture<?> mSchedule;
+    ScheduledFuture<?> mSchedule;
 
     /**
      * Creates drawable from resource.
@@ -223,11 +223,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
         mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
         mInvalidationHandler = new InvalidationHandler(this);
-        if (mIsRenderingTriggeredOnDraw) {
-            mNextFrameRenderTime = 0;
-        } else {
-            mExecutor.execute(mRenderTask);
-        }
+        mRenderTask.doWork();
     }
 
     /**
@@ -302,9 +298,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
                 mNextFrameRenderTime = 0;
                 mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
             } else {
-                //noinspection StatementWithEmptyBody
-                while (mExecutor.getQueue().remove(mRenderTask)) ;
-                mExecutor.schedule(mRenderTask, lastFrameRemainder, TimeUnit.MILLISECONDS);
+                waitForPendingRenderTask();
+                mSchedule = mExecutor.schedule(mRenderTask, lastFrameRemainder, TimeUnit.MILLISECONDS);
             }
         }
     }
@@ -332,17 +327,20 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void stop() {
         mIsRunning = false;
-        mInvalidationHandler.removeMessages(0);
-        //noinspection StatementWithEmptyBody
-        while (mExecutor.getQueue().remove(mRenderTask)) ;
+        waitForPendingRenderTask();
+        mNativeInfoHandle.saveRemainder();
+    }
+
+    private void waitForPendingRenderTask() {
+        mExecutor.remove(mRenderTask);
         if (mSchedule != null) {
             try {
-                mSchedule.get(); //TODO create in all cases
+                mSchedule.get();
             } catch (InterruptedException | ExecutionException ignored) {
                 //no-op
             }
         }
-        mNativeInfoHandle.saveRemainder();
+        mInvalidationHandler.removeMessages(0);
     }
 
     @Override
@@ -717,9 +715,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mPaint.setColorFilter(null);
         }
 
-        if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) { //TODO handle initially paused drawables
+        if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) {
             final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.uptimeMillis());
             mNextFrameRenderTime = Long.MIN_VALUE;
+            mExecutor.remove(mRenderTask);
             mSchedule = mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
         }
     }
