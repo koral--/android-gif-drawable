@@ -53,28 +53,6 @@ static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fas
     if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0)
         return 0;
 
-    if (sc->buffer == NULL) {
-        jbyteArray buffer = (*env)->NewByteArray(env, size < 256 ? 256 : size);
-        if (buffer == NULL)
-            return 0;
-        sc->buffer = (*env)->NewGlobalRef(env, buffer);
-    }
-    else {
-        jsize bufLen = (*env)->GetArrayLength(env, sc->buffer);
-        if (bufLen < size) {
-            (*env)->DeleteGlobalRef(env, sc->buffer);
-
-            jbyteArray buffer = (*env)->NewByteArray(env, size);
-            if (buffer == NULL) {
-                sc->buffer = NULL;
-                return 0;
-            }
-            sc->buffer = (*env)->NewGlobalRef(env, buffer);
-        }
-    }
-    if (sc->buffer == NULL)
-        return 0;
-
     jint len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0, size);
     if ((*env)->ExceptionCheck(env)) {
         (*env)->ExceptionClear(env);
@@ -247,6 +225,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
         throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
         return NULL;
     }
+
+    container->buffer = (*env)->NewByteArray(env, 256);
+    if (container->buffer == NULL) {
+        (*env)->DeleteGlobalRef(env, streamCls);
+        throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+        return NULL;
+    }
+    container->buffer = (*env)->NewGlobalRef(env, container->buffer);
+    if (container->buffer == NULL) {
+        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "NewGlobalRef failed");
+        return NULL;
+    }
+
     container->readMID = readMID;
     container->resetMID = resetMID;
     container->stream = (*env)->NewGlobalRef(env, stream);
@@ -257,7 +248,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
         return NULL;
     }
     container->streamCls = streamCls;
-    container->buffer = NULL;
 
     GifSourceDescriptor descriptor;
     descriptor.GifFileIn = DGifOpen(container, &streamReadFun, &descriptor.Error);
@@ -276,8 +266,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
     if (gifInfoHandle == NULL) {
         (*env)->DeleteGlobalRef(env, streamCls);
         (*env)->DeleteGlobalRef(env, container->stream);
-        if (container->buffer != NULL)
-            (*env)->DeleteGlobalRef(env, container->buffer);
+        (*env)->DeleteGlobalRef(env, container->buffer);
         free(container);
     }
     return gifInfoHandle;

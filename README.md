@@ -193,6 +193,22 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `getInputSourceByteCount()` - returns length (in bytes) of the backing input data
 + `toString()` - returns human readable information about image size and number of frames (intended for debugging purpose)
 
+####Associating single `GifDrawable` instance with multiple `View`s
+
+Normally single `GifDrawable` instance associated with multiple `View`s will animate only on the last one.
+To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, eg.:
+```java
+	MultiCallback multiCallback = new MultiCallback();
+
+    imageView.setImageDrawable(gifDrawable);
+    multiCallback.addView(imageView);
+
+    anotherImageView.setImageDrawable(gifDrawable);
+    multiCallback.addView(anotherImageView);
+
+    gifDrawable.setCallback(multiCallback);
+```
+
 ####Advanced
  
 + `recycle()` - provided to speed up freeing memory (like in `android.graphics.Bitmap`)
