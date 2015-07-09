@@ -15,5 +15,6 @@
 - `InputStream` source reading optimization
 - fixed support for API level 8 - [#173](https://github.com/koral--/android-gif-drawable/issues/173)
 - fixed seeking in paused state - [#180](https://github.com/koral--/android-gif-drawable/issues/180)
+- gradle version updated to 2.5
 
 Also contains documentation updates, typofixes, and trivial code clean-ups.
