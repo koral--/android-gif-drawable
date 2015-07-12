@@ -33,6 +33,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         return NULL;
     }
     info->controlBlock = calloc(sizeof(GraphicsControlBlock), 1);
+    info->controlBlock->DelayTime = DEFAULT_FRAME_DURATION_MS;
     if (info->controlBlock == NULL) {
         DGifCloseFile(descriptor->GifFileIn);
         throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);

@@ -67,6 +67,7 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                         return;
                     }
                     info->controlBlock = tmpInfos;
+                    info->controlBlock[info->gifFilePtr->ImageCount].DelayTime = DEFAULT_FRAME_DURATION_MS;
                     if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
                         return;
                 }
@@ -100,7 +101,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
         if (DGifExtensionToGCB(ExtData[0], ExtData + 1, GCB) == GIF_ERROR)
             return GIF_ERROR;
 
-        GCB->DelayTime = GCB->DelayTime > 1 ? GCB->DelayTime * 10 : 100;
+        GCB->DelayTime = GCB->DelayTime > 1 ? GCB->DelayTime * 10 : DEFAULT_FRAME_DURATION_MS;
     }
     else if (ExtFunction == COMMENT_EXT_FUNC_CODE) {
         if (getComment(ExtData, info) == GIF_ERROR) {

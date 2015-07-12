@@ -63,8 +63,8 @@
 #define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
 
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
-
 #define OOME_MESSAGE "Failed to allocate native memory"
+#define DEFAULT_FRAME_DURATION_MS 100
 
 enum Exception {
     ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
