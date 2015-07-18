@@ -75,7 +75,7 @@ allprojects {
         mavenCentral()
     }
     dependencies {
-        provided 'com.android.support:support-annotations:22.2.0'
+        provided 'com.android.support:support-annotations:22.2.1'
     }
 }
 
@@ -110,8 +110,4 @@ def getNdkBuildCommand() {
     } else {
         return "$ndkDir/ndk-build"
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.4'
 }
