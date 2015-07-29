@@ -52,13 +52,6 @@ allprojects {
 
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
-####<a name="proguard"></a> Proguard configuration
-Add following line to proguard configuration file (usually `proguard-rules.txt` or `proguard-project.txt`):
-```
--keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}
--keep class pl.droidsonroids.gif.GifInfoHandle{<init>(long,int,int,int);}
-```
-
 ###Requirements
 + Android 2.2+ (API level 8+)
 + for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
@@ -220,7 +213,7 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 
 ##Upgrading from 1.0.x
 ####Proguard configuration update
-Proguard configuration has changed. See [Proguard configuration](#proguard) section.
+Proguard configuration is now bundled with the library.
 
 ####Drawable recycling behavior change
 `GifDrawable` now uses `android.graphics.Bitmap` as frame buffer. Trying to access pixels (including drawing)
