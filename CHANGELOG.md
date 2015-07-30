@@ -1,4 +1,5 @@
 ### 1.1.9
+- proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)
 
 ### 1.1.8
 - toolchain changed to clang
