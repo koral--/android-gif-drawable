@@ -208,12 +208,20 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.1.8 (version 1.1.9 is not yet released)
+####Proguard configuration not needed
+Proguard configuration is now bundled with the library, you don't need to specify it yourself.
+
 ##Upgrading from 1.1.3
 `src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflict with other libraries
 
 ##Upgrading from 1.0.x
 ####Proguard configuration update
-Proguard configuration is now bundled with the library.
+Proguard configuration has changed to:
+```
+-keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}
+-keep class pl.droidsonroids.gif.GifInfoHandle{<init>(long,int,int,int);}
+```
 
 ####Drawable recycling behavior change
 `GifDrawable` now uses `android.graphics.Bitmap` as frame buffer. Trying to access pixels (including drawing)
