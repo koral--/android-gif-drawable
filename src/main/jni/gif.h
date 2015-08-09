@@ -159,8 +159,6 @@ bool isSourceNull(void *ptr, JNIEnv *env);
 
 static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-inline JNIEnv *getEnv();
-
 static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
 static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);

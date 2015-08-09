@@ -14,12 +14,23 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                 if (DGifGetImageDesc(info->gifFilePtr, !shouldDecode) == GIF_ERROR)
                     return;
 
-                if (info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width > info->gifFilePtr->SWidth) {
-                    info->gifFilePtr->Image.Width = info->gifFilePtr->SWidth - info->gifFilePtr->Image.Left;
-                }
+                const uint_fast16_t requiredScreenWidth = info->gifFilePtr->Image.Left + info->gifFilePtr->Image.Width;
+                const uint_fast16_t requiredScreenHeight = info->gifFilePtr->Image.Top + info->gifFilePtr->Image.Height;
 
-                if (info->gifFilePtr->Image.Top + info->gifFilePtr->Image.Height > info->gifFilePtr->SHeight) {
-                    info->gifFilePtr->Image.Height = info->gifFilePtr->SHeight - info->gifFilePtr->Image.Top;
+                if (requiredScreenWidth > info->gifFilePtr->SWidth || requiredScreenHeight > info->gifFilePtr->SHeight) {
+                    if (shouldDecode) {
+                        void *tmpRasterBits = realloc(info->rasterBits,
+                                                      requiredScreenWidth * requiredScreenHeight * sizeof(GifPixelType));
+                        if (tmpRasterBits == NULL) {
+                            info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+                            return;
+                        }
+                        info->rasterBits = tmpRasterBits;
+                    }
+                    else {
+                        info->gifFilePtr->SWidth = requiredScreenWidth;
+                        info->gifFilePtr->SHeight = requiredScreenHeight;
+                    }
                 }
 
                 if (shouldDecode) {
@@ -41,7 +52,8 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                     }
                     else {
                         if (DGifGetLine(
-                                info->gifFilePtr, info->rasterBits, info->gifFilePtr->Image.Width * info->gifFilePtr->Image.Height) == GIF_ERROR)
+                                info->gifFilePtr, info->rasterBits,
+                                info->gifFilePtr->Image.Width * info->gifFilePtr->Image.Height) == GIF_ERROR)
                             return;
                     }
                     return;
@@ -61,7 +73,8 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                     return;
                 if (!shouldDecode) {
                     GraphicsControlBlock *tmpInfos = realloc(info->controlBlock,
-                                                             (info->gifFilePtr->ImageCount + 1) * sizeof(GraphicsControlBlock));
+                                                             (info->gifFilePtr->ImageCount + 1) *
+                                                             sizeof(GraphicsControlBlock));
                     if (tmpInfos == NULL) {
                         info->gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
                         return;

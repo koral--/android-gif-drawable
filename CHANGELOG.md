@@ -1,5 +1,7 @@
 ### 1.1.9
 - proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)
+- Android gradle plugin updated to 1.3.0
+- fixed segfault when frame is not confined to canvas - [#196](https://github.com/koral--/android-gif-drawable/issues/196), [#194](https://github.com/koral--/android-gif-drawable/issues/194)
 
 ### 1.1.8
 - toolchain changed to clang
