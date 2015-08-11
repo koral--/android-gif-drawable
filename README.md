@@ -208,7 +208,7 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
-##Upgrading from 1.1.8 (version 1.1.9 is not yet released)
+##Upgrading from 1.1.8
 ####Proguard configuration not needed
 Proguard configuration is now bundled with the library, you don't need to specify it yourself.
 
