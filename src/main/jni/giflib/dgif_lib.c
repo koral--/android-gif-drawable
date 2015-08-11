@@ -706,7 +706,7 @@ the maximum possible if image O.k. - LZ_MAX_CODE times.
 ******************************************************************************/
 static int
 DGifGetPrefixChar(GifPrefixType *Prefix, int Code, int ClearCode) {
-    int i = 0;
+    uint_fast16_t i = 0;
 
     while (Code > ClearCode && i++ <= LZ_MAX_CODE) {
         if (Code > LZ_MAX_CODE) {

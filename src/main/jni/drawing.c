@@ -170,4 +170,3 @@ uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
     drawNextBitmap(bm, info);
     return getFrameDuration(info);
 }
-

@@ -41,7 +41,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclas
         return 0;
     }
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    int i;
+    uint_fast32_t i;
     jint sum = 0;
     for (i = 0; i < info->gifFilePtr->ImageCount; i++)
         sum += info->controlBlock[i].DelayTime;
@@ -67,7 +67,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
     const uint_fast32_t idx = info->currentIndex;
     if (info->gifFilePtr->ImageCount == 1)
         return 0;
-    int i;
+    uint_fast32_t i;
     uint32_t sum = 0;
     for (i = 0; i < idx; i++)
         sum += info->controlBlock[i].DelayTime;

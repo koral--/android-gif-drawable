@@ -1,4 +1,4 @@
-cflags:=
+cflags:= -Wpedantic
 
 ifeq ($(NDK_DEBUG),1)
 	cflags+= -DDEBUG
