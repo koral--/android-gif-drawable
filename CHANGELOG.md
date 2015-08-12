@@ -1,3 +1,6 @@
+### 1.1.10
+- gradle version updated to 2.6
+
 ### 1.1.9
 - proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)
 - Android gradle plugin updated to 1.3.0
