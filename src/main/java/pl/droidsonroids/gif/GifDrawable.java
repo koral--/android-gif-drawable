@@ -809,7 +809,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     @Override
-    public void setTintMode(PorterDuff.Mode tintMode) {
+    public void setTintMode(@NonNull PorterDuff.Mode tintMode) {
         mTintMode = tintMode;
         mTintFilter = updateTintFilter(mTint, tintMode);
         invalidateSelf();
