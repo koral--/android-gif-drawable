@@ -1,3 +1,6 @@
+#ifndef _GIF
+#define _GIF
+
 #include <unistd.h>
 #include <jni.h>
 #include <android/native_window_jni.h>
@@ -14,7 +17,12 @@
 #include <limits.h>
 #include <sys/cdefs.h>
 #include <sys/stat.h>
+#include <pthread.h>
+#include <poll.h>
+#include <errno.h>
 #include "giflib/gif_lib.h"
+
+#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message)
 
 #ifdef DEBUG
 #include <android/log.h>
@@ -54,48 +62,53 @@
 */
 #define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
 
-#define ILLEGAL_STATE_EXCEPTION "java/lang/IllegalStateException"
-#define OUT_OF_MEMORY_ERROR "java/lang/OutOfMemoryError"
-
-#define PACK_RENDER_FRAME_RESULT(invalidationDelay, isAnimationCompleted) (jlong) ((invalidationDelay << 1) | (isAnimationCompleted & 1L))
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
+#define OOME_MESSAGE "Failed to allocate native memory"
+#define DEFAULT_FRAME_DURATION_MS 100
+
+enum Exception {
+    ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
+};
 
 typedef struct {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
+    GifColorType rgb;
     uint8_t alpha;
 } argb;
-
-
-typedef struct {
-    unsigned int duration;
-    int transpIndex;
-    unsigned char disposalMethod;
-} FrameInfo;
 
 typedef struct GifInfo GifInfo;
 
 typedef int
 (*RewindFunc)(GifInfo *);
 
+typedef struct {
+    struct pollfd eventPollFd;
+    void *surfaceBackupPtr;
+    uint8_t slurpHelper;
+    pthread_mutex_t slurpMutex;
+    pthread_cond_t slurpCond;
+    uint8_t renderHelper;
+    pthread_mutex_t renderMutex;
+    pthread_cond_t renderCond;
+} SurfaceDescriptor;
+
 struct GifInfo {
     GifFileType *gifFilePtr;
-    time_t lastFrameRemainder;
-    time_t nextStartTime;
-    int currentIndex;
-    FrameInfo *infos;
+    long lastFrameRemainder;
+    long nextStartTime;
+    uint_fast32_t currentIndex;
+    GraphicsControlBlock *controlBlock;
     argb *backupPtr;
     long startPos;
     unsigned char *rasterBits;
     char *comment;
-    unsigned short loopCount;
-    int currentLoop;
+    uint_fast16_t loopCount;
+    uint_fast16_t currentLoop;
     RewindFunc rewindFunction;
     jfloat speedFactor;
     int32_t stride;
     jlong sourceLength;
-    int eventFd;
+    jboolean isOpaque;
+    SurfaceDescriptor* surfaceDescriptor;
 };
 
 typedef struct {
@@ -107,13 +120,13 @@ typedef struct {
 } StreamContainer;
 
 typedef struct {
-    long pos;
+    uint_fast32_t pos;
     jbyteArray buffer;
     jsize arrLen;
 } ByteArrayContainer;
 
 typedef struct {
-    long pos;
+    jlong pos;
     jbyte *bytes;
     jlong capacity;
 } DirectByteBufferContainer;
@@ -126,41 +139,31 @@ typedef struct {
     jlong sourceLength;
 } GifSourceDescriptor;
 
-/**
-* Global default color map, initialized by genDefColorMap(void)
-*/
-static ColorMapObject *defaultCmap;
+void DetachCurrentThread();
 
-/**
-* Generates default color map, used when there is no color map defined in GIF file.
-* Upon successful allocation in JNI_OnLoad it is stored for further use.
-*
-*/
-ColorMapObject *genDefColorMap(void);
+ColorMapObject* getDefColorMap();
 
 /**
 * @return the real time, in ms
 */
-time_t getRealTime();
+long getRealTime();
 
 /**
 * Frees dynamically allocated memory
 */
 void cleanUp(GifInfo *info);
 
-void throwException(JNIEnv *env, char *exceptionClass, char *message);
+void throwException(JNIEnv *env, enum Exception exception, char *message);
 
 bool isSourceNull(void *ptr, JNIEnv *env);
 
-static int fileRead(GifFileType *gif, GifByteType *bytes, int size);
+static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static JNIEnv *getEnv(void);
+static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static int directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, int size);
+static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static int byteArrayReadFun(GifFileType *gif, GifByteType *bytes, int size);
-
-static int streamReadFun(GifFileType *gif, GifByteType *bytes, int size);
+static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
 static int fileRewind(GifInfo *info);
 
@@ -170,34 +173,42 @@ static int byteArrayRewind(GifInfo *info);
 
 static int directByteBufferRewindFun(GifInfo *info);
 
-static int getComment(GifByteType *Bytes, char **cmt);
+static int getComment(GifByteType *Bytes, GifInfo*);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
-int DDGifSlurp(GifFileType *GifFile, GifInfo *info, bool shouldDecode);
+void DDGifSlurp(GifInfo *info, bool shouldDecode);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
 jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData);
 
-static void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
+static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
 
 static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
 
 static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
-static void disposeFrameIfNeeded(argb *bm, GifInfo *info, int idx);
+static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
 
-void getBitmap(argb *bm, GifInfo *info);
+uint_fast32_t getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
-bool lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
+int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env);
+long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
 
-static int getSkippedFramesCount(GifInfo *info, jint desiredPos);
+jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 
-jint getCurrentPosition(GifInfo *info);
+void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
+
+void prepareCanvas(argb *bm, GifInfo *info);
+
+void drawNextBitmap(argb *bm, GifInfo *info);
+
+uint_fast32_t getFrameDuration(GifInfo *info);
+
+#endif

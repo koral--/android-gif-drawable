@@ -1,14 +1,20 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.1.3'
+        classpath 'com.android.tools.build:gradle:1.3.0'
     }
 }
 
 apply plugin: 'com.android.library'
+apply from: 'gradle-mvn-push.gradle'
+
+String ndkDebug = isDebugBuild() ? "NDK_DEBUG=1" : "NDK_DEBUG=0"
 
 android {
     compileSdkVersion 22
@@ -17,35 +23,33 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
     }
+    sourceSets.main {
+        jniLibs.srcDir 'src/main/libs' //set .so files location to libs
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
+
+    task buildNative(type: Exec) {
+        commandLine getNdkBuildCommand(),
+                '-C', file('src/main/jni').absolutePath,
+                '-j', Runtime.runtime.availableProcessors(),
+                'all',
+                ndkDebug
+    }
+
+    task cleanNative(type: Exec) {
+        commandLine getNdkBuildCommand(),
+                '-C', file('src/main/jni').absolutePath,
+                'clean'
+    }
     defaultConfig {
         minSdkVersion 8
         targetSdkVersion 22
-
-        ndk {
-            if (Boolean.valueOf(JNI_DEBUG)) {
-                moduleName 'gif'
-                abiFilter 'armeabi-v7a'
-                ldLibs 'jnigraphics', 'android', 'log'
-                cFlags '-DDEBUG'
-            } else {
-                moduleName 'gif'
-                ldLibs 'jnigraphics', 'android'
-                abiFilter 'all'
-                cFlags '-fvisibility=hidden -Ofast'
-            }
-        }
+        consumerProguardFiles 'consumer-proguard-rules.pro'
+        buildConfigField 'String', 'NATIVE_LIBRARY_NAME', '"' + NATIVE_LIBRARY_NAME + '"'
     }
-    buildTypes.debug.jniDebuggable Boolean.valueOf(JNI_DEBUG)
+    buildTypes.debug.jniDebuggable isDebugBuild()
 
-    def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
-    boolean applyFlavors = false
-    gradle.startParameter.taskNames.each() {
-        String normalizedTaskName = it.toLowerCase(Locale.US)
-        flavors.each() {
-            applyFlavors |= normalizedTaskName.contains(it)
-        }
-    }
-    if (applyFlavors) {
+    if (shouldApplyFlavors()) {
         productFlavors {
             flavors.each() {
                 String flavor = it
@@ -59,7 +63,11 @@ android {
         }
     }
 }
+clean.dependsOn cleanNative
 
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn buildNative
+}
 
 allprojects {
     version = VERSION_NAME
@@ -68,16 +76,39 @@ allprojects {
         mavenCentral()
     }
     dependencies {
-        provided 'com.android.support:support-annotations:22.0.0'
+        provided 'com.android.support:support-annotations:22.2.1'
     }
 }
-
-apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
 
 afterEvaluate { project ->
     android.libraryVariants.all { variant ->
         tasks.androidJavadocs.doFirst {
             classpath += files(variant.javaCompile.classpath.files)
         }
+    }
+}
+
+def shouldApplyFlavors() {
+    def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
+    boolean applyFlavors = false
+    gradle.startParameter.taskNames.each() {
+        String normalizedTaskName = it.toLowerCase(Locale.US)
+        flavors.each() {
+            applyFlavors |= normalizedTaskName.contains(it)
+        }
+    }
+    applyFlavors
+}
+
+def isDebugBuild() {
+    !gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+}
+
+def getNdkBuildCommand() {
+    def ndkDir = android.ndkDirectory
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        return "$ndkDir/ndk-build.cmd"
+    } else {
+        return "$ndkDir/ndk-build"
     }
 }

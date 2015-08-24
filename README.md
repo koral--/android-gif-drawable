@@ -52,13 +52,6 @@ allprojects {
 
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
-####<a name="proguard"></a> Proguard configuration
-Add following line to proguard configuration file (usually `proguard-rules.txt` or `proguard-project.txt`):
-```
--keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}
--keep class pl.droidsonroids.gif.GifInfoHandle{<init>(long,int,int,int);}
-```
-
 ###Requirements
 + Android 2.2+ (API level 8+)
 + for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
@@ -193,15 +186,42 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `getInputSourceByteCount()` - returns length (in bytes) of the backing input data
 + `toString()` - returns human readable information about image size and number of frames (intended for debugging purpose)
 
+####Associating single `GifDrawable` instance with multiple `View`s
+
+Normally single `GifDrawable` instance associated with multiple `View`s will animate only on the last one.
+To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, eg.:
+```java
+	MultiCallback multiCallback = new MultiCallback();
+
+    imageView.setImageDrawable(gifDrawable);
+    multiCallback.addView(imageView);
+
+    anotherImageView.setImageDrawable(gifDrawable);
+    multiCallback.addView(anotherImageView);
+
+    gifDrawable.setCallback(multiCallback);
+```
+
 ####Advanced
  
 + `recycle()` - provided to speed up freeing memory (like in `android.graphics.Bitmap`)
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.1.8
+####Proguard configuration not needed
+Proguard configuration is now bundled with the library, you don't need to specify it yourself.
+
+##Upgrading from 1.1.3
+`src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflict with other libraries
+
 ##Upgrading from 1.0.x
 ####Proguard configuration update
-Proguard configuration has changed. See [Proguard configuration](#proguard) section.
+Proguard configuration has changed to:
+```
+-keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}
+-keep class pl.droidsonroids.gif.GifInfoHandle{<init>(long,int,int,int);}
+```
 
 ####Drawable recycling behavior change
 `GifDrawable` now uses `android.graphics.Bitmap` as frame buffer. Trying to access pixels (including drawing)

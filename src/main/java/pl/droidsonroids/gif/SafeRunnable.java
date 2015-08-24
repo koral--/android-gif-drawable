@@ -26,5 +26,5 @@ abstract class SafeRunnable implements Runnable {
         }
     }
 
-    protected abstract void doWork();
+    abstract void doWork();
 }

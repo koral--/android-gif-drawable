@@ -8,38 +8,40 @@ import android.view.View;
 
 class GifViewSavedState extends View.BaseSavedState {
 
-    final int[] mPositions;
+    final long[][] mStates;
 
     GifViewSavedState(Parcelable superState, Drawable... drawables) {
         super(superState);
-        mPositions = new int[drawables.length];
+        mStates = new long[drawables.length][];
         for (int i = 0; i < drawables.length; i++) {
             Drawable drawable = drawables[i];
             if (drawable instanceof GifDrawable) {
-                mPositions[i] = ((GifDrawable) drawable).getCurrentPosition();
+                mStates[i] = ((GifDrawable) drawable).mNativeInfoHandle.getSavedState();
             } else {
-                mPositions[i] = -1;
+                mStates[i] = null;
             }
         }
     }
 
     private GifViewSavedState(Parcel in) {
         super(in);
-        mPositions = new int[in.readInt()];
-        in.readIntArray(mPositions);
+        mStates = new long[in.readInt()][];
+        for (int i=0;i<mStates.length;i++)
+            mStates[i]=in.createLongArray();
     }
 
-    GifViewSavedState(Parcelable superState, int savedPosition) {
+    public GifViewSavedState(Parcelable superState, long[] savedState) {
         super(superState);
-        mPositions = new int[1];
-        mPositions[0] = savedPosition;
+        mStates = new long[1][];
+        mStates[0] = savedState;
     }
 
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
-        dest.writeInt(mPositions.length);
-        dest.writeIntArray(mPositions);
+        dest.writeInt(mStates.length);
+        for (long[] mState : mStates)
+            dest.writeLongArray(mState);
     }
 
     public static final Creator<GifViewSavedState> CREATOR = new Creator<GifViewSavedState>() {
@@ -53,9 +55,10 @@ class GifViewSavedState extends View.BaseSavedState {
         }
     };
 
-    void setPosition(Drawable drawable, int i) {
-        if (drawable instanceof GifDrawable && mPositions[i] >= 0) {
-            ((GifDrawable) drawable).seekTo(mPositions[i]);
+    void restoreState(Drawable drawable, int i) {
+        if (mStates[i] != null && drawable instanceof GifDrawable) {
+            final GifDrawable gifDrawable = (GifDrawable) drawable;
+            gifDrawable.startAnimation(gifDrawable.mNativeInfoHandle.restoreSavedState(mStates[i], gifDrawable.mBuffer));
         }
     }
 }

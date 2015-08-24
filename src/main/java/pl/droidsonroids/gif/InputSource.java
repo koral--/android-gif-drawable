@@ -21,6 +21,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  * Abstract class for all input sources, to be used with {@link GifTextureView}
  */
 public abstract class InputSource {
+    private boolean mIsOpaque; //TODO propagate
+
     InputSource() {
     }
 
@@ -28,6 +30,23 @@ public abstract class InputSource {
 
     final GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
         return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
+    }
+
+    final boolean isOpaque() {
+        return mIsOpaque;
+    }
+
+    /**
+     * Indicates whether the content of this source is opaque. GIF that is known to be opaque can
+     * take a faster drawing case than non-opaque one. See {@link GifTextureView#setOpaque(boolean)}
+     * for more information.<br>
+     * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}
+     * @param isOpaque whether the content of this source is opaque
+     * @return this InputSource
+     */
+    final InputSource setOpaque(boolean isOpaque) {
+        mIsOpaque = isOpaque;
+        return this;
     }
 
     /**
@@ -148,7 +167,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mAssetManager.openNonAssetFd(mAssetName), false);
+            return GifInfoHandle.openAssetFileDescriptor(mAssetManager.openFd(mAssetName), false);
         }
     }
 
@@ -157,7 +176,6 @@ public abstract class InputSource {
      */
     public static final class FileDescriptorSource extends InputSource {
         private final FileDescriptor mFd;
-        private final long startOffset;
 
         /**
          * Constructs new source.
@@ -166,12 +184,11 @@ public abstract class InputSource {
          */
         public FileDescriptorSource(@NonNull FileDescriptor fileDescriptor) {
             mFd = fileDescriptor;
-            startOffset = 0;
         }
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openFd(mFd, startOffset, false);
+            return GifInfoHandle.openFd(mFd, 0, false);
         }
     }
 

@@ -6,7 +6,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "gif_lib.h"
 
 //#define MAX(x, y)    (((x) > (y)) ? (x) : (y))
@@ -16,16 +15,16 @@
 ******************************************************************************/
 
 /* return smallest bitfield size n will fit in */
-int
-GifBitSize(int n)
-{
-    register int i;
-
-    for (i = 1; i <= 8; i++)
-        if ((1 << i) >= n)
-            break;
-    return (i);
-}
+//int
+//GifBitSize(int n)
+//{
+//    register int i;
+//
+//    for (i = 1; i <= 8; i++)
+//        if ((1 << i) >= n)
+//            break;
+//    return (i);
+//}
 
 /******************************************************************************
   Color map object functions                              
@@ -36,33 +35,32 @@ GifBitSize(int n)
  * ColorMap if that pointer is non-NULL.
  */
 ColorMapObject *
-GifMakeMapObject(int ColorCount, const GifColorType *ColorMap)
-{
+GifMakeMapObject(uint_fast8_t BitsPerPixel, const GifColorType *ColorMap) {
     ColorMapObject *Object;
 
-    /*** FIXME: Our ColorCount has to be a power of two.  Is it necessary to
+    /*** Our ColorCount has to be a power of two.  Is it necessary to
      * make the user know that or should we automatically round up instead? */
-    if (ColorCount != (1 << GifBitSize(ColorCount))) {
-        return ((ColorMapObject *) NULL);
-    }
-    
-    Object = (ColorMapObject *)malloc(sizeof(ColorMapObject));
+//    if (ColorCount != (1 << GifBitSize(ColorCount))) {
+//        return ((ColorMapObject *) NULL);
+//    }
+
+    Object = (ColorMapObject *) malloc(sizeof(ColorMapObject));
     if (Object == (ColorMapObject *) NULL) {
         return ((ColorMapObject *) NULL);
     }
 
-    Object->Colors = (GifColorType *)calloc((size_t) ColorCount, sizeof(GifColorType));
+    Object->Colors = (GifColorType *) calloc(256, sizeof(GifColorType));
     if (Object->Colors == (GifColorType *) NULL) {
-	    free(Object);
+        free(Object);
         return ((ColorMapObject *) NULL);
     }
 
-    Object->ColorCount = ColorCount;
-    Object->BitsPerPixel = GifBitSize(ColorCount);
+    Object->ColorCount = (uint_fast16_t) (1 << BitsPerPixel);
+    Object->BitsPerPixel = BitsPerPixel;
 
     if (ColorMap != NULL) {
-        memcpy((char *)Object->Colors,
-               (char *)ColorMap, ColorCount * sizeof(GifColorType));
+        memcpy((char *) Object->Colors,
+               (char *) ColorMap, Object->ColorCount * sizeof(GifColorType));
     }
 
     return (Object);
@@ -72,8 +70,7 @@ GifMakeMapObject(int ColorCount, const GifColorType *ColorMap)
 Free a color map object
 *******************************************************************************/
 void
-GifFreeMapObject(ColorMapObject *Object)
-{
+GifFreeMapObject(ColorMapObject *Object) {
     if (Object != NULL) {
         free(Object->Colors);
         free(Object);
@@ -85,8 +82,7 @@ GifFreeMapObject(ColorMapObject *Object)
 ******************************************************************************/
 
 void
-GifFreeSavedImages(GifFileType *GifFile)
-{
+GifFreeSavedImages(GifFileType *GifFile) {
     SavedImage *sp;
 
     if ((GifFile == NULL) || (GifFile->SavedImages == NULL)) {
@@ -104,7 +100,7 @@ GifFreeSavedImages(GifFileType *GifFile)
 //
 //	GifFreeExtensions(&sp->ExtensionBlockCount, &sp->ExtensionBlocks);
     }
-    free((char *)GifFile->SavedImages);
+    free((char *) GifFile->SavedImages);
     GifFile->SavedImages = NULL;
 }
 

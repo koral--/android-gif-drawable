@@ -1,31 +1,24 @@
 #include "gif.h"
 
-int calculateInvalidationDelay(GifInfo *info, time_t rt, JNIEnv *env) {
-    if (info->gifFilePtr->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
-        throwException(env, OUT_OF_MEMORY_ERROR, "Failed to allocate native memory");
-        return -1;
-    }
-    int invalidationDelay;
-    if (info->gifFilePtr->ImageCount > 1 && (info->currentLoop < info->loopCount || info->loopCount == 0)) {
-        unsigned int scaledDuration = info->infos[info->currentIndex].duration;
+long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration) {
+    if (frameDuration) {
+        long invalidationDelay = frameDuration;
         if (info->speedFactor != 1.0) {
-            scaledDuration /= info->speedFactor;
-            if (scaledDuration <= 0)
-                scaledDuration = 1;
-            else if (scaledDuration > INT_MAX)
-                scaledDuration = INT_MAX;
+            invalidationDelay /= info->speedFactor;
         }
-        info->nextStartTime = rt + scaledDuration;
-        invalidationDelay = scaledDuration;
+        const long renderingTime = getRealTime() - renderStartTime;
+        if (renderingTime >= invalidationDelay)
+            invalidationDelay = 0;
+        else
+            invalidationDelay -= renderingTime;
+        info->nextStartTime = renderStartTime + invalidationDelay;
+        return invalidationDelay;
     }
-    else
-        invalidationDelay = -1;
-    return invalidationDelay;
+    return -1;
 }
 
-inline time_t getRealTime() {
-    struct timespec ts;
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != -1)
-        return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-    abort(); //should not happen since ts is in addressable space and CLOCK_MONOTONIC_RAW should be present
+long getRealTime() {
+    struct timespec ts; //result not checked since CLOCK_MONOTONIC_RAW availability is checked in JNI_ONLoad
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return ts.tv_sec * 1000L + ts.tv_nsec / 1000000L;
 }

@@ -23,6 +23,8 @@ import android.os.Build;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
@@ -35,6 +37,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +52,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     final ScheduledThreadPoolExecutor mExecutor;
 
     volatile boolean mIsRunning = true;
-    long mNextFrameRenderTime = SystemClock.elapsedRealtime();
+    long mNextFrameRenderTime = Long.MIN_VALUE;
 
     private final Rect mDstRect = new Rect();
     /**
@@ -67,7 +71,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     final boolean mIsRenderingTriggeredOnDraw;
     final InvalidationHandler mInvalidationHandler;
 
-    private final Runnable mRenderTask = new RenderTask(this);
+    private final RenderTask mRenderTask = new RenderTask(this);
+    private final Rect mSrcRect;
+    ScheduledFuture<?> mSchedule;
+
     private OnGifUpdatedListener mUpdatedListener;
 
     /**
@@ -173,8 +180,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * Buffer can be larger than size of the GIF data. Bytes beyond GIF terminator are not accessed.
      *
      * @param buffer buffer containing GIF data
-     * @throws IOException              if buffer does not contain valid GIF data or is indirect
-     * @throws NullPointerException     if buffer is null
+     * @throws IOException          if buffer does not contain valid GIF data or is indirect
+     * @throws NullPointerException if buffer is null
      */
     public GifDrawable(@NonNull ByteBuffer buffer) throws IOException {
         this(GifInfoHandle.openDirectByteBuffer(buffer, false), null, null, true);
@@ -201,9 +208,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         if (oldDrawable != null) {
             synchronized (oldDrawable.mNativeInfoHandle) {
                 if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
-                    final int oldHeight = oldDrawable.mBuffer.getHeight();
-                    final int oldWidth = oldDrawable.mBuffer.getWidth();
-                    if (oldHeight >= mNativeInfoHandle.height && oldWidth >= mNativeInfoHandle.width) {
+                    if (oldDrawable.mNativeInfoHandle.height >= mNativeInfoHandle.height && oldDrawable.mNativeInfoHandle.width >= mNativeInfoHandle.width) {
                         oldDrawable.shutdown();
                         oldBitmap = oldDrawable.mBuffer;
                         oldBitmap.eraseColor(Color.TRANSPARENT);
@@ -218,8 +223,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mBuffer = oldBitmap;
         }
 
+        mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
         mInvalidationHandler = new InvalidationHandler(this);
-        mExecutor.execute(mRenderTask);
+        mRenderTask.doWork();
     }
 
     /**
@@ -274,7 +280,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     @Override
-    public void setAlpha(int alpha) {
+    public void setAlpha(@IntRange(from = 0, to = 255) int alpha) {
         mPaint.setAlpha(alpha);
     }
 
@@ -299,19 +305,25 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public void start() {
-        mExecutor.execute(new SafeRunnable(this) {
-            @Override
-            public void doWork() {
-                mNativeInfoHandle.restoreRemainder();
-                mIsRunning = true;
-                mRenderTask.run();
+        mIsRunning = true;
+        final long lastFrameRemainder = mNativeInfoHandle.restoreRemainder();
+        startAnimation(lastFrameRemainder);
+    }
+
+    void startAnimation(long lastFrameRemainder) {
+        if (lastFrameRemainder >= 0) {
+            if (mIsRenderingTriggeredOnDraw) {
+                mNextFrameRenderTime = 0;
+                mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+            } else {
+                waitForPendingRenderTask();
+                mSchedule = mExecutor.schedule(mRenderTask, lastFrameRemainder, TimeUnit.MILLISECONDS);
             }
-        });
+        }
     }
 
     /**
      * Causes the animation to start over.
-     * If animation is stopped any effects will occur after restart.<br>
      * If rewinding input source fails then state is not affected.
      * This method is thread-safe.
      */
@@ -319,9 +331,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
-                mNativeInfoHandle.reset();
-                mIsRunning = true;
-                mRenderTask.run();
+                if (mNativeInfoHandle.reset()) {
+                    start();
+                }
             }
         });
     }
@@ -333,13 +345,20 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Override
     public void stop() {
         mIsRunning = false;
-        mInvalidationHandler.removeMessages(0);
-        mExecutor.execute(new SafeRunnable(this) {
-            @Override
-            public void doWork() {
-                mNativeInfoHandle.saveRemainder();
+        waitForPendingRenderTask();
+        mNativeInfoHandle.saveRemainder();
+    }
+
+    private void waitForPendingRenderTask() {
+        mExecutor.remove(mRenderTask);
+        if (mSchedule != null) {
+            try {
+                mSchedule.get();
+            } catch (InterruptedException | ExecutionException ignored) {
+                //no-op
             }
-        });
+        }
+        mInvalidationHandler.removeMessages(0);
     }
 
     @Override
@@ -359,12 +378,21 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     /**
      * Returns loop count previously read from GIF's application extension block.
-     * Defaults to 0 (infinite loop) if there is no such extension.
+     * Defaults to 1 if there is no such extension.
      *
      * @return loop count, 0 means that animation is infinite
      */
     public int getLoopCount() {
         return mNativeInfoHandle.getLoopCount();
+    }
+
+    /**
+     * Sets loop count of the animation. Loop count must be in range &lt;0 ,65535&gt;
+     *
+     * @param loopCount loop count, 0 means infinity
+     */
+    public void setLoopCount(@IntRange(from = 0, to = 65535) final int loopCount) {
+        mNativeInfoHandle.setLoopCount(loopCount);
     }
 
     /**
@@ -418,7 +446,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
      * @throws IllegalArgumentException if factor&lt;=0
      */
-    public void setSpeed(float factor) {
+    public void setSpeed(@FloatRange(from = 0, fromInclusive = false) float factor) {
         mNativeInfoHandle.setSpeedFactor(factor);
     }
 
@@ -463,12 +491,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * It may take a lot of time if number of such frames is large.
      * Method is thread-safe. Decoding is performed in background thread and drawable is invalidated automatically
      * afterwards.
+     * If position exceeds animation duration, seek stops at the end, no exception is thrown.
      *
      * @param position position to seek to in milliseconds
      * @throws IllegalArgumentException if position&lt;0
      */
     @Override
-    public void seekTo(final int position) {
+    public void seekTo(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position) {
         if (position < 0) {
             throw new IllegalArgumentException("Position is not positive");
         }
@@ -482,23 +511,63 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     * Like {@link #seekTo(int)}
-     * but uses index of the frame instead of time.
+     * Like {@link #seekTo(int)} but uses index of the frame instead of time.
+     * If frameIndex exceeds number of frames, seek stops at the end, no exception is thrown.
      *
      * @param frameIndex index of the frame to seek to (zero based)
-     * @throws IllegalArgumentException if frameIndex&lt;0
+     * @throws IndexOutOfBoundsException if frameIndex&lt;0
      */
-    public void seekToFrame(final int frameIndex) {
+    public void seekToFrame(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex) {
         if (frameIndex < 0) {
-            throw new IllegalArgumentException("frameIndex is not positive");
+            throw new IndexOutOfBoundsException("Frame index is not positive");
         }
         mExecutor.execute(new SafeRunnable(this) {
             @Override
             public void doWork() {
                 mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
-                mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+                mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
             }
         });
+    }
+
+    /**
+     * Like {@link #seekToFrame(int)} but performs operation synchronously and returns that frame.
+     *
+     * @param frameIndex index of the frame to seek to (zero based)
+     * @return frame at desired index
+     * @throws IndexOutOfBoundsException if frameIndex&lt;0
+     */
+    public Bitmap seekToFrameAndGet(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex) {
+        if (frameIndex < 0) {
+            throw new IndexOutOfBoundsException("Frame index is not positive");
+        }
+        final Bitmap bitmap;
+        synchronized (mNativeInfoHandle) {
+            mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
+            bitmap = getCurrentFrame();
+        }
+        mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+        return bitmap;
+    }
+
+    /**
+     * Like {@link #seekTo(int)} but performs operation synchronously and returns that frame.
+     *
+     * @param position position to seek to in milliseconds
+     * @return frame at desired position
+     * @throws IndexOutOfBoundsException if position&lt;0
+     */
+    public Bitmap seekToPositionAndGet(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position) {
+        if (position < 0) {
+            throw new IllegalArgumentException("Position is not positive");
+        }
+        final Bitmap bitmap;
+        synchronized (mNativeInfoHandle) {
+            mNativeInfoHandle.seekToTime(position, mBuffer);
+            bitmap = getCurrentFrame();
+        }
+        mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+        return bitmap;
     }
 
     /**
@@ -656,7 +725,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             clearColorFilter = false;
         }
         if (mPaint.getShader() == null) {
-            canvas.drawBitmap(mBuffer, null, mDstRect, mPaint);
+            canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
         } else {
             canvas.drawRect(mDstRect, mPaint);
         }
@@ -664,9 +733,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
             mPaint.setColorFilter(null);
         }
 
-        if (mIsRenderingTriggeredOnDraw && mIsRunning) {
-            long invalidationDelay = Math.max(0, mNextFrameRenderTime - SystemClock.elapsedRealtime());
-            mExecutor.schedule(mRenderTask, invalidationDelay, TimeUnit.MILLISECONDS);
+        if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) {
+            final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.uptimeMillis());
+            mNextFrameRenderTime = Long.MIN_VALUE;
+            mExecutor.remove(mRenderTask);
+            mSchedule = mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -777,38 +848,41 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     /**
-     * Sets whether this drawable is visible.
-     * When the drawable becomes invisible, it will pause its animation. A
+     * Sets whether this drawable is visible. If rendering of next frame is scheduled on draw current one (the default) then this method
+     * only calls through to the super class's implementation.<br>
+     * Otherwise (if {@link GifDrawableBuilder#setRenderingTriggeredOnDraw(boolean)} was used with <code>true</code>)
+     * when the drawable becomes invisible, it will pause its animation. A
      * subsequent change to visible with <code>restart</code> set to true will
      * restart the animation from the first frame. If <code>restart</code> is
      * false, the animation will resume from the most recent frame.
      *
      * @param visible true if visible, false otherwise
-     * @param restart when visible, true to force the animation to restart
+     * @param restart when visible and rendering is triggered on draw, true to force the animation to restart
      *                from the first frame
      * @return true if the new visibility is different than its previous state
      */
     @Override
     public boolean setVisible(boolean visible, boolean restart) {
         final boolean changed = super.setVisible(visible, restart);
-        if (visible) {
-            if (restart) {
-                reset();
+        if (!mIsRenderingTriggeredOnDraw) {
+            if (visible) {
+                if (restart) {
+                    reset();
+                }
+                if (changed) {
+                    start();
+                }
+            } else if (changed) {
+                stop();
             }
-            if (changed) {
-                start();
-            }
-        } else if (changed) {
-            stop();
         }
         return changed;
     }
 
     /**
-     * Returns zero-based index of recently rendered frame in given loop or -1 when no frames were
-     * rendered yet or drawable is recycled.
+     * Returns zero-based index of recently rendered frame in given loop or -1 when drawable is recycled.
      *
-     * @return index of recently rendered frame or -1 when no frames were rendered yet or drawable is recycled
+     * @return index of recently rendered frame or -1 when drawable is recycled
      */
     public int getCurrentFrameIndex() {
         return mNativeInfoHandle.getCurrentFrameIndex();
@@ -822,5 +896,26 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public int getCurrentLoop() {
         return mNativeInfoHandle.getCurrentLoop();
+    }
+
+    /**
+     * Returns whether all animation loops has ended. If drawable is recycled false is returned.
+     *
+     * @return true if all animation loops has ended
+     */
+    public boolean isAnimationCompleted() {
+        return mNativeInfoHandle.isAnimationCompleted();
+    }
+
+    /**
+     * Returns duration of the given frame (in milliseconds). If there is no data (no Graphics
+     * Control Extension blocks or drawable is recycled) 0 is returned.
+     *
+     * @param index index of the frame
+     * @return duration of the given frame in milliseconds
+     * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
+     */
+    public int getFrameDuration(int index) {
+        return mNativeInfoHandle.getFrameDuration(index);
     }
 }

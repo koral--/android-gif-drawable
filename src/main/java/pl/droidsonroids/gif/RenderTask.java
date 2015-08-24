@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import android.os.SystemClock;
 
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 class RenderTask extends SafeRunnable {
@@ -20,23 +21,24 @@ class RenderTask extends SafeRunnable {
 
     @Override
     public void doWork() {
-        final long renderResult = mGifDrawable.mNativeInfoHandle.renderFrame(mGifDrawable.mBuffer);
-        final int invalidationDelay = (int) (renderResult >> 1);
-        mGifDrawable.mNextFrameRenderTime = SystemClock.elapsedRealtime() + invalidationDelay;
-        if ((int) (renderResult & 1L) == 1 && !mGifDrawable.mListeners.isEmpty()) {
-            mGifDrawable.scheduleSelf(mNotifyListenersTask, 0L);
-        }
+        final long invalidationDelay = mGifDrawable.mNativeInfoHandle.renderFrame(mGifDrawable.mBuffer);
         if (invalidationDelay >= 0) {
+            mGifDrawable.mNextFrameRenderTime = SystemClock.uptimeMillis() + invalidationDelay;
             if (mGifDrawable.isVisible()) {
                 if (mGifDrawable.mIsRunning && !mGifDrawable.mIsRenderingTriggeredOnDraw) {
-                    mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
-                }
-                if (!mGifDrawable.mInvalidationHandler.hasMessages(0)) {
-                    mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+                    mGifDrawable.mExecutor.remove(this);
+                    mGifDrawable.mSchedule = mGifDrawable.mExecutor.schedule(this, invalidationDelay, TimeUnit.MILLISECONDS);
                 }
             }
+            if (!mGifDrawable.mListeners.isEmpty() && mGifDrawable.getCurrentFrameIndex() == mGifDrawable.mNativeInfoHandle.frameCount - 1) {
+                mGifDrawable.scheduleSelf(mNotifyListenersTask, mGifDrawable.mNextFrameRenderTime);
+            }
         } else {
+            mGifDrawable.mNextFrameRenderTime = Long.MIN_VALUE;
             mGifDrawable.mIsRunning = false;
+        }
+        if (mGifDrawable.isVisible() && !mGifDrawable.mInvalidationHandler.hasMessages(0)) {
+            mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
         }
     }
 }
