@@ -18,7 +18,7 @@ String ndkDebug = isDebugBuild() ? "NDK_DEBUG=1" : "NDK_DEBUG=0"
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23'
+    buildToolsVersion '23.0.1'
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
@@ -76,7 +76,7 @@ allprojects {
         mavenCentral()
     }
     dependencies {
-        provided 'com.android.support:support-annotations:23.0.0'
+        provided 'com.android.support:support-annotations:23.0.1'
     }
 }
 
