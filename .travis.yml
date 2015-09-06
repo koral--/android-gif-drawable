@@ -8,12 +8,12 @@ jdk:
   - oraclejdk8
 android:
   components:
-    - build-tools-23
+    - build-tools-23.0.1
     - android-23
     - extra-android-m2repository
 
 before_install:
-  - echo y|android update sdk --all --no-ui --force --filter build-tools-23.0.0
+  - echo y|android update sdk --all --no-ui --force --filter build-tools-23.0.1
   - wget http://dl.google.com/android/ndk/android-ndk-$NDK_VERSION-linux-x86_64.bin
   - chmod +x android-ndk-$NDK_VERSION-linux-x86_64.bin
   - ./android-ndk-$NDK_VERSION-linux-x86_64.bin | egrep -v ^Extracting
