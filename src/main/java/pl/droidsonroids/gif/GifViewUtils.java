@@ -5,7 +5,12 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.RawRes;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -79,6 +84,26 @@ final class GifViewUtils {
             }
         }
         return false;
+    }
+
+    static float getDensityScale(@NonNull Resources res, @DrawableRes @RawRes int id) {
+        final TypedValue value = new TypedValue();
+        res.getValue(id, value, true);
+        final int resourceDensity = value.density;
+        final int density;
+        if (resourceDensity == TypedValue.DENSITY_DEFAULT) {
+            density = DisplayMetrics.DENSITY_DEFAULT;
+        } else if (resourceDensity != TypedValue.DENSITY_NONE) {
+            density = resourceDensity;
+        } else {
+            density = 0;
+        }
+        final int targetDensity = res.getDisplayMetrics().densityDpi;
+
+        if (density != 0 && targetDensity != 0) {
+            return (float) targetDensity / density;
+        }
+        return 1f;
     }
 
     static class InitResult {

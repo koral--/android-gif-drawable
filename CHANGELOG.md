@@ -4,6 +4,7 @@
 - Android gradle plugin updated to 1.3.1
 - Support library dependency version updated to 23.0.1
 - compileSdkVersion updated to 23
+- density is now taken into consideration when constructing `GifDrawable` from Resources - [#181](https://github.com/koral--/android-gif-drawable/issues/181)
 
 ### 1.1.9
 - proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)

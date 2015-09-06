@@ -74,6 +74,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     private final RenderTask mRenderTask = new RenderTask(this);
     private final Rect mSrcRect;
     ScheduledFuture<?> mSchedule;
+    int mScaledWidth, mScaledHeight;
 
     /**
      * Creates drawable from resource.
@@ -86,6 +87,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     public GifDrawable(@NonNull Resources res, @DrawableRes @RawRes int id) throws NotFoundException, IOException {
         this(res.openRawResourceFd(id));
+        final float densityScale = GifViewUtils.getDensityScale(res, id);
+        mScaledHeight = (int) (mNativeInfoHandle.height * densityScale);
+        mScaledWidth = (int) (mNativeInfoHandle.width * densityScale);
     }
 
     /**
@@ -224,6 +228,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
         mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
         mInvalidationHandler = new InvalidationHandler(this);
         mRenderTask.doWork();
+        mScaledWidth = mNativeInfoHandle.width;
+        mScaledHeight = mNativeInfoHandle.height;
     }
 
     /**
@@ -253,12 +259,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     @Override
     public int getIntrinsicHeight() {
-        return mNativeInfoHandle.height;
+        return mScaledHeight;
     }
 
     @Override
     public int getIntrinsicWidth() {
-        return mNativeInfoHandle.width;
+        return mScaledWidth;
     }
 
     @Override
@@ -743,19 +749,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     @Override
+    @Deprecated
     public void setDither(boolean dither) {
         mPaint.setDither(dither);
         invalidateSelf();
-    }
-
-    @Override
-    public int getMinimumHeight() {
-        return mNativeInfoHandle.height;
-    }
-
-    @Override
-    public int getMinimumWidth() {
-        return mNativeInfoHandle.width;
     }
 
     /**
