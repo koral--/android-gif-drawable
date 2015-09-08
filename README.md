@@ -47,6 +47,8 @@ allprojects {
 	<type>aar</type>
 </dependency>
 ```
+#### Eclipse
+See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-eclipse-sample) with setup instructions.
 
 #### Download
 
