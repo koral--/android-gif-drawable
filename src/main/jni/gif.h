@@ -3,8 +3,6 @@
 
 #include <unistd.h>
 #include <jni.h>
-#include <android/native_window_jni.h>
-#include <android/native_window.h>
 #include <time.h>
 #include <stdio.h>
 #include <limits.h>

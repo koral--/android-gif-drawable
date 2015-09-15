@@ -1,5 +1,7 @@
 #include "gif.h"
 #include <sys/eventfd.h>
+#include <android/native_window_jni.h>
+#include <android/native_window.h>
 
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)

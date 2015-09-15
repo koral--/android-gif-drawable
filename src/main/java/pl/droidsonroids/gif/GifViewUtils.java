@@ -100,7 +100,7 @@ final class GifViewUtils {
         }
         final int targetDensity = res.getDisplayMetrics().densityDpi;
 
-        if (density != 0 && targetDensity != 0) {
+        if (density > 0 && targetDensity > 0) {
             return (float) targetDensity / density;
         }
         return 1f;
