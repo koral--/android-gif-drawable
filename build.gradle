@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        mavenCentral()
         jcenter()
     }
 
@@ -14,7 +13,6 @@ apply from: 'gradle-mvn-push.gradle'
 apply from: 'ndk.gradle'
 
 repositories {
-    mavenCentral()
     jcenter()
 }
 

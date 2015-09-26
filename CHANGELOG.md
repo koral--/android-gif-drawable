@@ -1,5 +1,5 @@
 ### 1.1.10
-- Gradle wrapper version updated to 2.6
+- Gradle wrapper version updated to 2.7
 - build tools updated to 23.0.1
 - Android gradle plugin updated to 1.3.1
 - Support library dependency version updated to 23.0.1
