@@ -37,7 +37,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -299,14 +298,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     void startAnimation(long lastFrameRemainder) {
-        if (lastFrameRemainder >= 0) {
-            if (mIsRenderingTriggeredOnDraw) {
-                mNextFrameRenderTime = 0;
-                mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
-            } else {
-                waitForPendingRenderTask();
-                mSchedule = mExecutor.schedule(mRenderTask, lastFrameRemainder, TimeUnit.MILLISECONDS);
-            }
+        if (mIsRenderingTriggeredOnDraw) {
+            mNextFrameRenderTime = 0;
+            mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+        } else {
+            waitForPendingRenderTask();
+            mSchedule = mExecutor.schedule(mRenderTask, Math.max(lastFrameRemainder, 0), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -338,13 +335,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     }
 
     private void waitForPendingRenderTask() {
-        mExecutor.remove(mRenderTask);
         if (mSchedule != null) {
-            try {
-                mSchedule.get();
-            } catch (InterruptedException | ExecutionException ignored) {
-                //no-op
-            }
+            mSchedule.cancel(false);
         }
         mInvalidationHandler.removeMessages(0);
     }
@@ -874,7 +866,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      * @return index of currently played animation loop
      */
     public int getCurrentLoop() {
-        return mNativeInfoHandle.getCurrentLoop();
+        final int currentLoop = mNativeInfoHandle.getCurrentLoop();
+        if (currentLoop == 0 || currentLoop < mNativeInfoHandle.getLoopCount()) {
+            return currentLoop;
+        } else {
+            return currentLoop - 1;
+        }
     }
 
     /**
