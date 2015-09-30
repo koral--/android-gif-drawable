@@ -45,12 +45,14 @@ android {
         jni.srcDirs = [] //disable automatic ndk-build call
     }
 
+    def ndkDebug = isDebugBuild() ? '1' : '0'
+
     task buildNative(type: Exec) {
+        environment 'NDK_DEBUG', ndkDebug
         commandLine getNdkBuildCommand(),
                 '-C', file('src/main/jni').absolutePath,
-                '-j', Runtime.runtime.availableProcessors(),
                 'all',
-                isDebugBuild() ? "NDK_DEBUG=1" : "NDK_DEBUG=0"
+                "NDK_DEBUG=$ndkDebug"
     }
 
     task cleanNative(type: Exec) {
