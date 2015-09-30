@@ -6,6 +6,7 @@ package pl.droidsonroids.gif;
 public interface AnimationListener {
     /**
      * Called when a single loop of the animation is completed.
+     * @param loopNumber 0-based number of the completed loop, 0 for infinite animations
      */
-    void onAnimationCompleted();
+    void onAnimationCompleted(int loopNumber);
 }

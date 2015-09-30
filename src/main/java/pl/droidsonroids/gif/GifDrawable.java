@@ -41,6 +41,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static pl.droidsonroids.gif.InvalidationHandler.MSG_TYPE_INVALIDATION;
+
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
  * Basic GIF metadata can also be examined.
@@ -245,7 +247,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	private void shutdown() {
 		mIsRunning = false;
-		mInvalidationHandler.removeMessages(0);
+		mInvalidationHandler.removeMessages(MSG_TYPE_INVALIDATION);
 		mNativeInfoHandle.recycle();
 	}
 
@@ -305,7 +307,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	void startAnimation(long lastFrameRemainder) {
 		if (mIsRenderingTriggeredOnDraw) {
 			mNextFrameRenderTime = 0;
-			mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+			mInvalidationHandler.sendEmptyMessageAtTime(MSG_TYPE_INVALIDATION, 0);
 		} else {
 			waitForPendingRenderTask();
 			mSchedule = mExecutor.schedule(mRenderTask, Math.max(lastFrameRemainder, 0), TimeUnit.MILLISECONDS);
@@ -349,7 +351,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		if (mSchedule != null) {
 			mSchedule.cancel(false);
 		}
-		mInvalidationHandler.removeMessages(0);
+		mInvalidationHandler.removeMessages(MSG_TYPE_INVALIDATION);
 	}
 
 	@Override
@@ -496,7 +498,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			@Override
 			public void doWork() {
 				mNativeInfoHandle.seekToTime(position, mBuffer);
-				mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+				mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(MSG_TYPE_INVALIDATION, 0);
 			}
 		});
 	}
@@ -516,7 +518,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			@Override
 			public void doWork() {
 				mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
-				mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+				mInvalidationHandler.sendEmptyMessageAtTime(MSG_TYPE_INVALIDATION, 0);
 			}
 		});
 	}
@@ -537,7 +539,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			mNativeInfoHandle.seekToFrame(frameIndex, mBuffer);
 			bitmap = getCurrentFrame();
 		}
-		mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+		mInvalidationHandler.sendEmptyMessageAtTime(MSG_TYPE_INVALIDATION, 0);
 		return bitmap;
 	}
 
@@ -557,7 +559,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			mNativeInfoHandle.seekToTime(position, mBuffer);
 			bitmap = getCurrentFrame();
 		}
-		mInvalidationHandler.sendEmptyMessageAtTime(0, 0);
+		mInvalidationHandler.sendEmptyMessageAtTime(MSG_TYPE_INVALIDATION, 0);
 		return bitmap;
 	}
 

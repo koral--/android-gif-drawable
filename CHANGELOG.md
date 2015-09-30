@@ -7,7 +7,8 @@
 - density is now taken into consideration when constructing `GifDrawable` from Resources - [#181](https://github.com/koral--/android-gif-drawable/issues/181)
 - animation restarting fixed - [#208](https://github.com/koral--/android-gif-drawable/issues/208), [#209](https://github.com/koral--/android-gif-drawable/issues/209)
 - `GifTextureView` memory usage optimizations
-- native code size cleaning
+- native code cleaning
+- loopNumber parameter added to `AnimationListener#onAnimationCompleted()` - fixes [#204](https://github.com/koral--/android-gif-drawable/issues/204)
 
 ### 1.1.9
 - proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)
