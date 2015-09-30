@@ -292,10 +292,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	@Override
 	public void start() {
-		if (mIsRunning) {
-			return;
+		synchronized (this) {
+			if (mIsRunning) {
+				return;
+			}
+			mIsRunning = true;
 		}
-		mIsRunning = true;
 		final long lastFrameRemainder = mNativeInfoHandle.restoreRemainder();
 		startAnimation(lastFrameRemainder);
 	}
@@ -332,11 +334,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	@Override
 	public void stop() {
-		if (!mIsRunning) {
-			return;
+		synchronized (this) {
+			if (!mIsRunning) {
+				return;
+			}
+			mIsRunning = false;
 		}
 
-		mIsRunning = false;
 		waitForPendingRenderTask();
 		mNativeInfoHandle.saveRemainder();
 	}
