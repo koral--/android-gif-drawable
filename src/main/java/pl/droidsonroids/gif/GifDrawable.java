@@ -8,14 +8,18 @@ import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -75,7 +79,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private final RenderTask mRenderTask = new RenderTask(this);
 	private final Rect mSrcRect;
 	ScheduledFuture<?> mSchedule;
-	int mScaledWidth, mScaledHeight;
+	private int mScaledWidth, mScaledHeight;
+	private float mCornerRadius;
+	private final RectF mDstRectF = new RectF();
 
 	/**
 	 * Creates drawable from resource.
@@ -701,6 +707,18 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	@Override
 	protected void onBoundsChange(Rect bounds) {
 		mDstRect.set(bounds);
+		mDstRectF.set(mDstRect);
+
+		final Shader shader = mPaint.getShader();
+		if (shader != null) {
+			final Matrix shaderMatrix = new Matrix();
+			shaderMatrix.setTranslate(mDstRectF.left, mDstRectF.top);
+			shaderMatrix.preScale(
+					mDstRectF.width() / mBuffer.getWidth(),
+					mDstRectF.height() / mBuffer.getHeight());
+			shader.setLocalMatrix(shaderMatrix);
+			mPaint.setShader(shader);
+		}
 	}
 
 	/**
@@ -720,7 +738,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		if (mPaint.getShader() == null) {
 			canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
 		} else {
-			canvas.drawRect(mDstRect, mPaint);
+			canvas.drawRoundRect(mDstRectF, mCornerRadius, mCornerRadius, mPaint);
 		}
 		if (clearColorFilter) {
 			mPaint.setColorFilter(null);
@@ -906,5 +924,28 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public int getFrameDuration(int index) {
 		return mNativeInfoHandle.getFrameDuration(index);
+	}
+
+	/**
+	 * Sets the corner radius to be applied when drawing the bitmap.
+	 * Note that changing corner radius will cause replacing current {@link Paint} shader by {@link BitmapShader}.
+	 * @param cornerRadius corner radius or 0 to remove rounding
+	 */
+	public void setCornerRadius(@FloatRange(from = 0) final float cornerRadius) {
+		mCornerRadius = cornerRadius;
+		final Shader bitmapShader;
+		if (cornerRadius > 0) {
+			bitmapShader = new BitmapShader(mBuffer, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+		} else {
+			bitmapShader = null;
+		}
+		mPaint.setShader(bitmapShader);
+	}
+
+	/**
+	 * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
+	 */
+	public @FloatRange(from = 0) float getCornerRadius() {
+		return mCornerRadius;
 	}
 }

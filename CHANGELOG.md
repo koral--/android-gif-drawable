@@ -9,6 +9,7 @@
 - `GifTextureView` memory usage optimizations
 - native code cleaning
 - loopNumber parameter added to `AnimationListener#onAnimationCompleted()` - fixes [#204](https://github.com/koral--/android-gif-drawable/issues/204)
+- rounded corners support added - [#202](https://github.com/koral--/android-gif-drawable/issues/202)
 
 ### 1.1.9
 - proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)
