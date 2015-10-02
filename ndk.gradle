@@ -46,18 +46,19 @@ android {
     }
 
     def ndkDebug = isDebugBuild() ? '1' : '0'
+    def srcDir = file('src/main/jni').absolutePath
 
     task buildNative(type: Exec) {
         environment 'NDK_DEBUG', ndkDebug
         commandLine getNdkBuildCommand(),
-                '-C', file('src/main/jni').absolutePath,
+                '-C', srcDir,
                 'all',
                 "NDK_DEBUG=$ndkDebug"
     }
 
     task cleanNative(type: Exec) {
         commandLine getNdkBuildCommand(),
-                '-C', file('src/main/jni').absolutePath,
+                '-C', srcDir,
                 'clean'
     }
     buildTypes.debug.jniDebuggable isDebugBuild()
@@ -71,7 +72,4 @@ clean.dependsOn cleanNative
 
 tasks.withType(JavaCompile) {
     compileTask -> compileTask.dependsOn buildNative
-}
-tasks.withType(Test) {
-    systemProperty 'java.library.path', file('src/main/libs/x86_64').absolutePath
 }
