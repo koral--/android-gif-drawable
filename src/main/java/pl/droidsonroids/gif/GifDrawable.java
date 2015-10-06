@@ -82,6 +82,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private int mScaledWidth, mScaledHeight;
 	private float mCornerRadius;
 	private final RectF mDstRectF = new RectF();
+	private OnGifUpdatedListener mUpdatedListener;
 
 	/**
 	 * Creates drawable from resource.
@@ -399,7 +400,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	@Override
 	public String toString() {
-		return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width, mNativeInfoHandle.height, mNativeInfoHandle.frameCount, mNativeInfoHandle.getNativeErrorCode());
+		return String
+			.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width,
+					mNativeInfoHandle.height, mNativeInfoHandle.frameCount, mNativeInfoHandle.getNativeErrorCode());
 	}
 
 	/**
@@ -947,5 +950,21 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public @FloatRange(from = 0) float getCornerRadius() {
 		return mCornerRadius;
+	}
+
+	@Override
+	public void invalidateSelf() {
+		super.invalidateSelf();
+		if (mUpdatedListener != null) {
+			mUpdatedListener.OnGifUpdated();
+		}
+	}
+
+	public void setUpdateListener(OnGifUpdatedListener listener) {
+		mUpdatedListener = listener;
+	}
+
+	public interface OnGifUpdatedListener {
+		void OnGifUpdated();
 	}
 }
