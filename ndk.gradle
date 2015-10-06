@@ -1,0 +1,77 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+def isDebugBuild() {
+    !gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+}
+
+def shouldAddFlavors() {
+    def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
+    boolean applyFlavors = false
+    gradle.startParameter.taskNames.each() {
+        String normalizedTaskName = it.toLowerCase(Locale.US)
+        flavors.each() {
+            applyFlavors |= normalizedTaskName.contains(it)
+        }
+    }
+    applyFlavors
+}
+
+def addFlavors() {
+    android productFlavors {
+        flavors.each() {
+            String flavor = it
+            "${it}" {
+                ndk {
+                    abiFilter flavor
+                }
+            }
+        }
+        fat
+    }
+}
+
+def getNdkBuildCommand() {
+    def ndkDir = android.ndkDirectory
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        return "$ndkDir/ndk-build.cmd"
+    } else {
+        return "$ndkDir/ndk-build"
+    }
+}
+
+android {
+    sourceSets.main {
+        jniLibs.srcDir 'src/main/libs' //set .so files location to libs
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
+
+    def ndkDebug = isDebugBuild() ? '1' : '0'
+
+    task buildNative(type: Exec) {
+        environment 'NDK_DEBUG', ndkDebug
+        commandLine getNdkBuildCommand(),
+                '-C', file('src/main/jni').absolutePath,
+                'all',
+                "NDK_DEBUG=$ndkDebug"
+    }
+
+    task cleanNative(type: Exec) {
+        commandLine getNdkBuildCommand(),
+                '-C', file('src/main/jni').absolutePath,
+                'clean'
+    }
+    buildTypes.debug.jniDebuggable isDebugBuild()
+
+    if (shouldAddFlavors()) {
+        addFlavors()
+    }
+}
+
+clean.dependsOn cleanNative
+
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn buildNative
+}
+tasks.withType(Test) {
+    systemProperty 'java.library.path', file('src/main/libs/x86_64').absolutePath
+}

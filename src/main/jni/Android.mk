@@ -3,7 +3,7 @@ cflags:= -Wpedantic
 ifeq ($(NDK_DEBUG),1)
 	cflags+= -DDEBUG
 else
-#	cflags+= -fvisibility=hidden
+	cflags+= -fvisibility=hidden
 endif
 
 LOCAL_PATH := $(call my-dir)
@@ -37,11 +37,9 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := pl_droidsonroids_gif_surface
 LOCAL_CFLAGS := $(cflags)
-LOCAL_LDLIBS := \
-	-landroid
+LOCAL_LDLIBS := -landroid
 
-LOCAL_SRC_FILES := \
-	surface.c \
+LOCAL_SRC_FILES := surface.c
 
 LOCAL_SHARED_LIBRARIES := pl_droidsonroids_gif
 include $(BUILD_SHARED_LIBRARY)

@@ -3,8 +3,6 @@
 
 #include <unistd.h>
 #include <jni.h>
-#include <android/native_window_jni.h>
-#include <android/native_window.h>
 #include <time.h>
 #include <stdio.h>
 #include <limits.h>
@@ -139,21 +137,21 @@ typedef struct {
     jlong sourceLength;
 } GifSourceDescriptor;
 
-void DetachCurrentThread();
+__attribute__ ((visibility ("default"))) void DetachCurrentThread();
 
 ColorMapObject* getDefColorMap();
 
 /**
 * @return the real time, in ms
 */
-long getRealTime();
+__attribute__ ((visibility ("default"))) long getRealTime();
 
 /**
 * Frees dynamically allocated memory
 */
 void cleanUp(GifInfo *info);
 
-void throwException(JNIEnv *env, enum Exception exception, char *message);
+__attribute__ ((visibility ("default"))) void throwException(JNIEnv *env, enum Exception exception, char *message);
 
 bool isSourceNull(void *ptr, JNIEnv *env);
 
@@ -177,7 +175,7 @@ static int getComment(GifByteType *Bytes, GifInfo*);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
-void DDGifSlurp(GifInfo *info, bool shouldDecode);
+__attribute__ ((visibility ("default"))) void DDGifSlurp(GifInfo *info, bool shouldDecode);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
@@ -191,7 +189,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
 static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
 
-uint_fast32_t getBitmap(argb *bm, GifInfo *info);
+__attribute__ ((visibility ("default"))) uint_fast32_t getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
@@ -199,13 +197,13 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
+__attribute__ ((visibility ("default"))) long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
 
-jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
+__attribute__ ((visibility ("default"))) jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 
-void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
+__attribute__ ((visibility ("default"))) void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
 
-void prepareCanvas(argb *bm, GifInfo *info);
+__attribute__ ((visibility ("default"))) void prepareCanvas(argb *bm, GifInfo *info);
 
 void drawNextBitmap(argb *bm, GifInfo *info);
 
