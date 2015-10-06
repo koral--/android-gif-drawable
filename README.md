@@ -6,6 +6,7 @@ android-gif-drawable
 [![Android-Libs](https://img.shields.io/badge/Android--Libs-android--gif--drawable-orange.svg?style=flat)](http://android-libs.com/lib/android-gif-drawable)
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
 [![API](https://img.shields.io/badge/API-8%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=8)
+[![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](http://opensource.org/licenses/MIT)
 
 `View`s and `Drawable` for animated GIFs in Android.
 
@@ -47,6 +48,8 @@ allprojects {
 	<type>aar</type>
 </dependency>
 ```
+#### Eclipse
+See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-eclipse-sample) with setup instructions.
 
 #### Download
 
@@ -208,12 +211,15 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.1.9
+`int` parameter `loopNumber` has been added to `AnimationListener#onAnimationCompleted()`.
+
 ##Upgrading from 1.1.8
 ####Proguard configuration not needed
 Proguard configuration is now bundled with the library, you don't need to specify it yourself.
 
 ##Upgrading from 1.1.3
-`src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflict with other libraries
+`src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflicts with other libraries
 
 ##Upgrading from 1.0.x
 ####Proguard configuration update

@@ -3,9 +3,7 @@ package pl.droidsonroids.gif;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Drawable.Callback;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CopyOnWriteArrayList;
