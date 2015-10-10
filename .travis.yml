@@ -1,11 +1,21 @@
+cache:
+  directories:
+  - .gradle
+  - .autoconf
+  - $HOME/.m2
+  - $HOME/.gradle
+
 env:
   global:
     - NDK_VERSION=r10e
+
 sudo: false
+
 language:
   - android
 jdk:
   - oraclejdk8
+
 android:
   components:
     - build-tools-23.0.1
