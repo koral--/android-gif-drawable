@@ -1,7 +1,6 @@
 cache:
   directories:
   - .gradle
-  - .autoconf
   - $HOME/.m2
   - $HOME/.gradle
 
