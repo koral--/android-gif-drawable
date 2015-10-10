@@ -6,7 +6,7 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
     if (AndroidBitmap_getInfo(env, jbitmap, &bitmapInfo) == ANDROID_BITMAP_RESULT_SUCCESS)
         info->stride = bitmapInfo.width;
     else {
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "Could not get bitmap info");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "Could not get bitmap info");
         return -2;
     }
 
@@ -30,7 +30,7 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
         default:
             message = "Lock pixels error";
     }
-    throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, message);
+    throwException(env, RUNTIME_EXCEPTION_BARE, message);
     return -2;
 }
 
@@ -49,7 +49,7 @@ void unlockPixels(JNIEnv *env, jobject jbitmap) {
         default:
             message = "Unlock pixels error";
     }
-    throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, message);
+    throwException(env, RUNTIME_EXCEPTION_BARE, message);
 }
 
 __unused JNIEXPORT jlong JNICALL

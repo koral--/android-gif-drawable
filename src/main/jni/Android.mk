@@ -1,7 +1,9 @@
 cflags:= -Wpedantic
+extra_ldlibs :=
 
 ifeq ($(NDK_DEBUG),1)
 	cflags+= -DDEBUG
+	extra_ldlibs= -llog
 else
 	cflags+= -fvisibility=hidden
 endif
@@ -11,9 +13,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := pl_droidsonroids_gif
 LOCAL_CFLAGS := $(cflags)
-LOCAL_LDLIBS := \
-	-ljnigraphics \
-	-llog \
+LOCAL_LDLIBS := -ljnigraphics $(extra_ldlibs)
 
 LOCAL_SRC_FILES := \
 	drawing.c \
@@ -37,7 +37,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := pl_droidsonroids_gif_surface
 LOCAL_CFLAGS := $(cflags)
-LOCAL_LDLIBS := -landroid
+LOCAL_LDLIBS := -landroid $(extra_ldlibs)
 
 LOCAL_SRC_FILES := surface.c
 

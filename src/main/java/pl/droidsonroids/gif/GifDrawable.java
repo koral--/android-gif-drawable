@@ -445,7 +445,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
 	 * @throws IllegalArgumentException if factor&lt;=0
 	 */
-	public void setSpeed(@FloatRange(from = 0, fromInclusive = false) float factor) {
+	public void setSpeed(@FloatRange(from = 0, fromInclusive = false) final float factor) {
 		mNativeInfoHandle.setSpeedFactor(factor);
 	}
 
@@ -922,7 +922,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @return duration of the given frame in milliseconds
 	 * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
 	 */
-	public int getFrameDuration(int index) {
+	public int getFrameDuration(@IntRange(from = 0) final int index) {
 		return mNativeInfoHandle.getFrameDuration(index);
 	}
 

@@ -20,7 +20,7 @@
 #include <errno.h>
 #include "giflib/gif_lib.h"
 
-#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, ILLEGAL_STATE_EXCEPTION_ERRNO, message)
+#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
 
 #ifdef DEBUG
 #include <android/log.h>
@@ -65,7 +65,7 @@
 #define DEFAULT_FRAME_DURATION_MS 100
 
 enum Exception {
-    ILLEGAL_STATE_EXCEPTION_ERRNO, ILLEGAL_STATE_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
+    RUNTIME_EXCEPTION_ERRNO, RUNTIME_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
 };
 
 typedef struct {

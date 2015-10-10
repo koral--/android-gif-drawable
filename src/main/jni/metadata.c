@@ -130,7 +130,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unus
 
     const jlongArray state = (*env)->NewLongArray(env, 4);
     if (state == NULL) {
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "Could not create state array");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "Could not create state array");
         return NULL;
     }
     jlong nativeState[4] = {(jlong) info->currentIndex, (jlong) info->currentLoop, info->lastFrameRemainder};

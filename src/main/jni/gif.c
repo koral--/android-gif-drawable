@@ -112,7 +112,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 
     const char *const filename = (*env)->GetStringUTFChars(env, jfname, NULL);
     if (filename == NULL) {
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "GetStringUTFChars failed");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "GetStringUTFChars failed");
         return NULL;
     }
     FILE *file = fopen(filename, "rb");
@@ -148,7 +148,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
     container->buffer = (*env)->NewGlobalRef(env, bytes);
     if (container->buffer == NULL) {
         free(container);
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "NewGlobalRef failed");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
         return NULL;
     }
     container->arrLen = (*env)->GetArrayLength(env, container->buffer);
@@ -207,7 +207,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
                                                    jobject stream, jboolean justDecodeMetaData) {
     jclass streamCls = (*env)->NewGlobalRef(env, (*env)->GetObjectClass(env, stream));
     if (streamCls == NULL) {
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "NewGlobalRef failed");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
         return NULL;
     }
     jmethodID markMID = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
@@ -234,7 +234,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
     }
     container->buffer = (*env)->NewGlobalRef(env, container->buffer);
     if (container->buffer == NULL) {
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "NewGlobalRef failed");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
         return NULL;
     }
 
@@ -244,7 +244,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
     if (container->stream == NULL) {
         free(container);
         (*env)->DeleteGlobalRef(env, streamCls);
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "NewGlobalRef failed");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
         return NULL;
     }
     container->streamCls = streamCls;
@@ -375,7 +375,7 @@ JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
     struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {
         //sanity check here instead of on each clock_gettime() call
-        throwException(env, ILLEGAL_STATE_EXCEPTION_BARE, "CLOCK_MONOTONIC_RAW is not present");
+        throwException(env, RUNTIME_EXCEPTION_BARE, "CLOCK_MONOTONIC_RAW is not present");
     }
     return JNI_VERSION_1_6;
 }

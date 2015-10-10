@@ -1,6 +1,6 @@
 #include "gif.h"
 
-#define ILLEGAL_STATE_EXCEPTION_CLASS_NAME "java/lang/IllegalStateException"
+#define RUNTIME_EXCEPTION_CLASS_NAME "java/lang/RuntimeException"
 #define OUT_OF_MEMORY_ERROR_CLASS_NAME "java/lang/OutOfMemoryError"
 #define NULL_POINTER_EXCEPTION_CLASS_NAME "java/lang/NullPointerException"
 
@@ -18,14 +18,19 @@ inline void throwException(JNIEnv *env, enum Exception exception, char *message)
         case NULL_POINTER_EXCEPTION:
             exceptionClassName = NULL_POINTER_EXCEPTION_CLASS_NAME;
             break;
-        case ILLEGAL_STATE_EXCEPTION_ERRNO:
-            exceptionClassName = ILLEGAL_STATE_EXCEPTION_CLASS_NAME;
-            char fullMessage[64];
-            if (snprintf(fullMessage, 64, "%s, errno: %d", message, errno) > 0)
-                message = fullMessage;
+        case RUNTIME_EXCEPTION_ERRNO:
+            exceptionClassName = RUNTIME_EXCEPTION_CLASS_NAME;
+            char fullMessage[NL_TEXTMAX] = "";
+            strncat(fullMessage, message, NL_TEXTMAX);
+
+            char errnoMessage[NL_TEXTMAX];
+            if (strerror_r(errno, errnoMessage, NL_TEXTMAX) == 0) {
+                strncat(fullMessage, errnoMessage, NL_TEXTMAX);
+            }
+            message = fullMessage;
             break;
         default:
-            exceptionClassName = ILLEGAL_STATE_EXCEPTION_CLASS_NAME;
+            exceptionClassName = RUNTIME_EXCEPTION_CLASS_NAME;
     }
 
     jclass exClass = (*env)->FindClass(env, exceptionClassName);
