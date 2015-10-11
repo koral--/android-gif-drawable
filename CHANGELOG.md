@@ -1,3 +1,6 @@
+### 1.1.11
+- `MultiCallback` now accepts `Drawable.Callback`s, not only `View`s
+
 ### 1.1.10
 - Gradle wrapper version updated to 2.7
 - build tools updated to 23.0.1
@@ -12,7 +15,7 @@
 - rounded corners support added - [#202](https://github.com/koral--/android-gif-drawable/issues/202)
 
 ### 1.1.9
-- proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)
+- Proguard configuration is now bundled with the library - [#193](https://github.com/koral--/android-gif-drawable/pull/193)
 - Android gradle plugin updated to 1.3.0
 - fixed segfault when frame is not confined to canvas - [#196](https://github.com/koral--/android-gif-drawable/issues/196), [#194](https://github.com/koral--/android-gif-drawable/issues/194)
 - fixed relationship between drawable visibility and animation state - [#195](https://github.com/koral--/android-gif-drawable/issues/195)
