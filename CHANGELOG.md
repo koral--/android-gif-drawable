@@ -2,6 +2,7 @@
 - `MultiCallback` now accepts `Drawable.Callback`s, not only `View`s
 - Support library dependency version updated to 23.1.0
 - Gradle wrapper version updated to 2.8
+- Build tools version updated to 23.0.2
 
 ### 1.1.10
 - Gradle wrapper version updated to 2.7
