@@ -149,7 +149,7 @@ Note that all input sources need to have ability to rewind to the begining. It i
 + `isRunning()` - returns whether animation is currently running or not
 + `reset()` - rewinds the animation, does not restart stopped one
 + `setSpeed(float factor)` - sets new animation speed factor, eg. passing 2.0f will double the animation speed
-+ `seekTo(int position)` - seeks animation (within current loop) to given `position` (in milliseconds) __Only seeking forward is supported__
++ `seekTo(int position)` - seeks animation (within current loop) to given `position` (in milliseconds)
 + `getDuration()` - returns duration of one loop of the animation
 + `getCurrentPosition()` - returns elapsed time from the beginning of a current loop of animation
 
