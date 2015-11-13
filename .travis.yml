@@ -25,3 +25,6 @@ before_install:
 
 script:
   - ./gradlew build --info
+
+after_failure:
+  - cat /home/travis/build/koral--/android-gif-drawable-sample/android-gif-drawable/build/outputs/lint-results.xml
