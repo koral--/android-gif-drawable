@@ -39,7 +39,9 @@ final class GifInfoHandle {
     static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 0, 0, 0);
 
     static {
-        System.loadLibrary("pl_droidsonroids_gif");
+        if (!WorkaroundLibraryLoader.areLibrariesLoaded) {
+            System.loadLibrary("pl_droidsonroids_gif");
+        }
     }
 
     static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws
