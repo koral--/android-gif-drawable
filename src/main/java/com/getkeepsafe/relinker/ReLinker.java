@@ -71,10 +71,31 @@ public class ReLinker {
 
         final File workaroundFile = getWorkaroundLibFile(context, library);
         if (!workaroundFile.exists()) {
-            unpackLibrary(context, library);
+            unpackLibrary(context, library, workaroundFile);
         }
 
-        System.load(workaroundFile.getAbsolutePath());
+        try {
+            System.load(workaroundFile.getAbsolutePath());
+            return;
+        }
+        catch (UnsatisfiedLinkError ignored){
+        }
+
+        File tmpWorkaroundFile = null;
+        try {
+            final File cacheDir = context.getCacheDir();
+            tmpWorkaroundFile = File.createTempFile("tmp", "lib", cacheDir);
+            unpackLibrary(context, library, tmpWorkaroundFile);
+            System.load(tmpWorkaroundFile.getAbsolutePath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        finally {
+            if (tmpWorkaroundFile != null) {
+                tmpWorkaroundFile.delete();
+            }
+        }
+
     }
 
     /**
@@ -106,7 +127,7 @@ public class ReLinker {
     @SuppressLint("SetWorldReadable")
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void unpackLibrary(final Context context, final String library) {
+    private static void unpackLibrary(final Context context, final String library, final File outputFile) {
         ZipFile zipFile = null;
         try {
             final ApplicationInfo appInfo = context.getApplicationInfo();
@@ -147,7 +168,6 @@ public class ReLinker {
                     break;
                 }
 
-                final File outputFile = getWorkaroundLibFile(context, library);
                 outputFile.delete(); // Remove any old file that might exist
 
                 try {
