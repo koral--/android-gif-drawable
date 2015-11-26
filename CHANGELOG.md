@@ -4,6 +4,7 @@
 - Gradle wrapper version updated to 2.8
 - Build tools version updated to 23.0.2
 - Android gradle plugin updated to 1.5.0
+- Gradle version updated to 2.9
 
 ### 1.1.10
 - Gradle wrapper version updated to 2.7
