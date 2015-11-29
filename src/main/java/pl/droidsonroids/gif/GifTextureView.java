@@ -43,11 +43,6 @@ import java.lang.ref.WeakReference;
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
-    static {
-        if (!WorkaroundLibraryLoader.areLibrariesLoaded) {
-            System.loadLibrary("pl_droidsonroids_gif_surface");
-        }
-    }
 
     private ScaleType mScaleType = ScaleType.FIT_CENTER;
     private final Matrix mTransform = new Matrix();
@@ -105,6 +100,7 @@ public class GifTextureView extends TextureView {
             super.setOpaque(false);
         }
         if (!isInEditMode()) {
+            LibraryLoader.loadLibrary(getContext(), LibraryLoader.SURFACE_LIBRARY_NAME);
             mRenderThread = new RenderThread(this);
             if (mInputSource != null) {
                 mRenderThread.start();

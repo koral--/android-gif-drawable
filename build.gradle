@@ -16,6 +16,9 @@ repositories {
     jcenter()
 }
 
+project.version = VERSION_NAME
+project.group = GROUP
+
 android {
     compileSdkVersion 23
     buildToolsVersion '23.0.2'
@@ -24,6 +27,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
     defaultConfig {
+        versionName project.version
         minSdkVersion 8
         targetSdkVersion 23
         consumerProguardFiles 'consumer-proguard-rules.pro'
@@ -34,9 +38,6 @@ dependencies {
     provided 'com.android.support:support-annotations:23.1.1'
     testCompile 'junit:junit:4.12'
 }
-
-project.version = VERSION_NAME
-project.group = GROUP
 
 afterEvaluate { project ->
     android.libraryVariants.all { variant ->

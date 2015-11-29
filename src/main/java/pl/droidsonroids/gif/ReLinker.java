@@ -1,30 +1,29 @@
 /**
  * Copyright 2015 KeepSafe Software, Inc.
- *
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.getkeepsafe.relinker;
+package pl.droidsonroids.gif;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
-import android.text.TextUtils;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,11 +36,10 @@ import java.util.zip.ZipFile;
  * to Android's inability to properly install / load native libraries for Android versions before
  * API 21
  */
-@SuppressWarnings("deprecation")
-public class ReLinker {
+class ReLinker {
     private static final String LIB_DIR = "lib";
     private static final int MAX_TRIES = 5;
-    private static final int COPY_BUFFER_SIZE = 4096;
+    private static final int COPY_BUFFER_SIZE = 8192;
 
     private ReLinker() {
         // No instances
@@ -50,71 +48,14 @@ public class ReLinker {
     /**
      * Utilizes the regular system call to attempt to load a native library. If a failure occurs,
      * then the function extracts native .so library out of the app's APK and attempts to load it.
-     * <p>
-     *     <strong>Note: This is a synchronous operation</strong>
+     * <p/>
+     * <strong>Note: This is a synchronous operation</strong>
      */
-    public static void loadLibrary(final Context context, final String library) {
-        if (context == null) {
-            throw new IllegalArgumentException("Given context is null");
-        }
-
-        if (TextUtils.isEmpty(library)) {
-            throw new IllegalArgumentException("Given library is either null or empty");
-        }
-
-        try {
-            System.loadLibrary(library);
-            return;
-        } catch (final UnsatisfiedLinkError ignored) {
-            // :-(
-        }
-
-        final File workaroundFile = getWorkaroundLibFile(context, library);
-        if (!workaroundFile.exists()) {
-            unpackLibrary(context, library, workaroundFile);
-        }
-
-        try {
-            System.load(workaroundFile.getAbsolutePath());
-            return;
-        }
-        catch (UnsatisfiedLinkError ignored){
-        }
-
-        File tmpWorkaroundFile = null;
-        try {
-            final File cacheDir = context.getCacheDir();
-            tmpWorkaroundFile = File.createTempFile("tmp", "lib", cacheDir);
-            unpackLibrary(context, library, tmpWorkaroundFile);
-            System.load(tmpWorkaroundFile.getAbsolutePath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        finally {
-            if (tmpWorkaroundFile != null) {
-                tmpWorkaroundFile.delete();
-            }
-        }
-
-    }
-
-    /**
-     * @param context {@link Context} to describe the location of it's private directories
-     * @return A {@link File} locating the directory that can store extracted libraries
-     * for later use
-     */
-    private static File getWorkaroundLibDir(final Context context) {
-        return context.getDir(LIB_DIR, Context.MODE_PRIVATE);
-    }
-
-    /**
-     * @param context {@link Context} to retrieve the workaround directory from
-     * @param library The name of the library to load
-     * @return A {@link File} locating the workaround library file to load
-     */
-    private static File getWorkaroundLibFile(final Context context, final String library) {
+    static void loadLibrary(Context context, final String library) {
         final String libName = System.mapLibraryName(library);
-        return new File(getWorkaroundLibDir(context), libName);
+        final File workaroundFile = unpackLibrary(context, libName);
+
+        System.load(workaroundFile.getAbsolutePath());
     }
 
     /**
@@ -122,25 +63,43 @@ public class ReLinker {
      * IO operations to ensure they succeed.
      *
      * @param context {@link Context} to describe the location of the installed APK file
-     * @param library The name of the library to load
+     * @param libName The name of the library to load
      */
-    @SuppressLint("SetWorldReadable")
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void unpackLibrary(final Context context, final String library, final File outputFile) {
+    private static File unpackLibrary(final Context context, final String libName) {
+        File outputFile = new File(context.getDir(LIB_DIR, Context.MODE_PRIVATE), libName + BuildConfig.VERSION_NAME);
+        if (outputFile.isFile()) {
+            return outputFile;
+        }
+
+        final File cachedLibraryFile = new File(context.getCacheDir(), libName + BuildConfig.VERSION_NAME);
+        if (cachedLibraryFile.isFile()) {
+            return cachedLibraryFile;
+        }
+
+        final FilenameFilter filter = new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                return filename.startsWith(libName);
+            }
+        };
+        clearOldLibraryFiles(outputFile, filter);
+        clearOldLibraryFiles(cachedLibraryFile, filter);
+
+        final ApplicationInfo appInfo = context.getApplicationInfo();
+        final File apkFile = new File(appInfo.sourceDir);
         ZipFile zipFile = null;
         try {
-            final ApplicationInfo appInfo = context.getApplicationInfo();
             int tries = 0;
             while (tries++ < MAX_TRIES) {
                 try {
-                    zipFile = new ZipFile(new File(appInfo.sourceDir), ZipFile.OPEN_READ);
+                    zipFile = new ZipFile(apkFile, ZipFile.OPEN_READ);
                     break;
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
 
             if (zipFile == null) {
-                return;
+                throw new RuntimeException("Could not open APK file: " + apkFile.getAbsolutePath());
             }
 
             tries = 0;
@@ -148,9 +107,9 @@ public class ReLinker {
                 String jniNameInApk;
                 ZipEntry libraryEntry = null;
 
-                if (Build.VERSION.SDK_INT >= 21) {
+                if (Build.VERSION.SDK_INT >= 21 && Build.SUPPORTED_ABIS.length > 0) {
                     for (final String ABI : Build.SUPPORTED_ABIS) {
-                        jniNameInApk = "lib/" + ABI + "/" + System.mapLibraryName(library);
+                        jniNameInApk = "lib/" + ABI + "/" + libName;
                         libraryEntry = zipFile.getEntry(jniNameInApk);
 
                         if (libraryEntry != null) {
@@ -159,24 +118,12 @@ public class ReLinker {
                     }
                 } else {
                     //noinspection deprecation
-                    jniNameInApk = "lib/" + Build.CPU_ABI + "/" + System.mapLibraryName(library);
+                    jniNameInApk = "lib/" + Build.CPU_ABI + "/" + libName;
                     libraryEntry = zipFile.getEntry(jniNameInApk);
                 }
 
                 if (libraryEntry == null) {
-                    // Does not exist in the APK
-                    break;
-                }
-
-                outputFile.delete(); // Remove any old file that might exist
-
-                try {
-                    if (!outputFile.createNewFile()) {
-                        continue;
-                    }
-                } catch (IOException ignored) {
-                    // Try again
-                    continue;
+                    throw new IllegalStateException("Library " + libName + " not found in APK file");
                 }
 
                 InputStream inputStream = null;
@@ -186,32 +133,48 @@ public class ReLinker {
                     fileOut = new FileOutputStream(outputFile);
                     copy(inputStream, fileOut);
                 } catch (IOException e) {
-                    // Try again
+                    if (tries > MAX_TRIES / 2) {
+                        outputFile = cachedLibraryFile;
+                    }
                     continue;
                 } finally {
                     closeSilently(inputStream);
                     closeSilently(fileOut);
                 }
-
-                // Change permission to rwxr-xr-x
-                outputFile.setReadable(true, false);
-                outputFile.setExecutable(true, false);
-                outputFile.setWritable(true);
+                setFilePermissions(outputFile);
                 break;
             }
         } finally {
-            try {
-                if (zipFile != null) {
-                    zipFile.close();
-                }
-            } catch (IOException ignored) {}
+            closeSilently(zipFile);
+        }
+        return outputFile;
+    }
+
+    private static void clearOldLibraryFiles(File outputFile, FilenameFilter filter) {
+        final File[] fileList = outputFile.getParentFile().listFiles(filter);
+        if (fileList != null) {
+            for (File file : fileList) {
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
+            }
+        }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressLint("SetWorldReadable")
+    private static void setFilePermissions(File outputFile) {
+        // Try change permission to rwxr-xr-x
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+            outputFile.setReadable(true, false);
+            outputFile.setExecutable(true, false);
+            outputFile.setWritable(true);
         }
     }
 
     /**
      * Copies all data from an {@link InputStream} to an {@link OutputStream}.
      *
-     * @param in The stream to read from.
+     * @param in  The stream to read from.
      * @param out The stream to write to.
      * @throws IOException when a stream operation fails.
      */
@@ -228,6 +191,7 @@ public class ReLinker {
 
     /**
      * Closes a {@link Closeable} silently (without throwing or handling any exceptions)
+     *
      * @param closeable {@link Closeable} to close
      */
     private static void closeSilently(final Closeable closeable) {
@@ -235,6 +199,7 @@ public class ReLinker {
             if (closeable != null) {
                 closeable.close();
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 }
