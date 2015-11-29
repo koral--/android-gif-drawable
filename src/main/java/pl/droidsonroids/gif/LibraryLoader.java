@@ -21,7 +21,7 @@ public class LibraryLoader {
                 final Method currentApplicationMethod = activityThread.getDeclaredMethod("currentApplication");
                 sAppContext = (Context) currentApplicationMethod.invoke(null);
             } catch (Exception e) {
-                throw new RuntimeException("No context provided and ActivityThread workaround failed", e);
+                throw new RuntimeException("LibraryLoader not initialized. Call LibraryLoader.initialize() before using library classes.", e);
             }
         }
         return sAppContext;
