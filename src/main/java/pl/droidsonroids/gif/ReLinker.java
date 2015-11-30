@@ -53,9 +53,10 @@ class ReLinker {
      */
     static void loadLibrary(Context context, final String library) {
         final String libName = System.mapLibraryName(library);
-        final File workaroundFile = unpackLibrary(context, libName);
-
-        System.load(workaroundFile.getAbsolutePath());
+        synchronized (ReLinker.class) {
+            final File workaroundFile = unpackLibrary(context, libName);
+            System.load(workaroundFile.getAbsolutePath());
+        }
     }
 
     /**
