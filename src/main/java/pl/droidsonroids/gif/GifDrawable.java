@@ -771,6 +771,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		invalidateSelf();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	@Deprecated
 	public void setDither(boolean dither) {
