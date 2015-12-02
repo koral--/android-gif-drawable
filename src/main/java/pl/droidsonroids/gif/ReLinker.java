@@ -90,42 +90,11 @@ class ReLinker {
         final File apkFile = new File(appInfo.sourceDir);
         ZipFile zipFile = null;
         try {
+            zipFile = openZipFile(apkFile);
+
             int tries = 0;
             while (tries++ < MAX_TRIES) {
-                try {
-                    zipFile = new ZipFile(apkFile, ZipFile.OPEN_READ);
-                    break;
-                } catch (IOException ignored) {
-                }
-            }
-
-            if (zipFile == null) {
-                throw new RuntimeException("Could not open APK file: " + apkFile.getAbsolutePath());
-            }
-
-            tries = 0;
-            while (tries++ < MAX_TRIES) {
-                String jniNameInApk;
-                ZipEntry libraryEntry = null;
-
-                if (Build.VERSION.SDK_INT >= 21 && Build.SUPPORTED_ABIS.length > 0) {
-                    for (final String ABI : Build.SUPPORTED_ABIS) {
-                        jniNameInApk = "lib/" + ABI + "/" + libName;
-                        libraryEntry = zipFile.getEntry(jniNameInApk);
-
-                        if (libraryEntry != null) {
-                            break;
-                        }
-                    }
-                } else {
-                    //noinspection deprecation
-                    jniNameInApk = "lib/" + Build.CPU_ABI + "/" + libName;
-                    libraryEntry = zipFile.getEntry(jniNameInApk);
-                }
-
-                if (libraryEntry == null) {
-                    throw new IllegalStateException("Library " + libName + " not found in APK file");
-                }
+                ZipEntry libraryEntry = getLibraryEntry(libName, zipFile);
 
                 InputStream inputStream = null;
                 FileOutputStream fileOut = null;
@@ -151,18 +120,60 @@ class ReLinker {
         return outputFile;
     }
 
-    private static void clearOldLibraryFiles(File outputFile, FilenameFilter filter) {
+    @SuppressWarnings("deprecation") //required for old API levels
+    private static ZipEntry getLibraryEntry(final String libName, final ZipFile zipFile) {
+        String jniNameInApk;
+
+        ZipEntry libraryEntry = null;
+        if (Build.VERSION.SDK_INT >= 21 && Build.SUPPORTED_ABIS.length > 0) {
+            for (final String ABI : Build.SUPPORTED_ABIS) {
+                jniNameInApk = "lib/" + ABI + "/" + libName;
+                libraryEntry = zipFile.getEntry(jniNameInApk);
+
+                if (libraryEntry != null) {
+                    break;
+                }
+            }
+        } else {
+            jniNameInApk = "lib/" + Build.CPU_ABI + "/" + libName;
+            libraryEntry = zipFile.getEntry(jniNameInApk);
+        }
+
+        if (libraryEntry == null) {
+            throw new IllegalStateException("Library " + libName + " for supported ABIs not found in APK file");
+        }
+        return libraryEntry;
+    }
+
+    private static ZipFile openZipFile(final File apkFile) {
+        int tries = 0;
+        ZipFile zipFile = null;
+        while (tries++ < MAX_TRIES) {
+            try {
+                zipFile = new ZipFile(apkFile, ZipFile.OPEN_READ);
+                break;
+            } catch (IOException ignored) {
+            }
+        }
+
+        if (zipFile == null) {
+            throw new RuntimeException("Could not open APK file: " + apkFile.getAbsolutePath());
+        }
+        return zipFile;
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored") //intended, nothing useful can be done
+    private static void clearOldLibraryFiles(final File outputFile, final FilenameFilter filter) {
         final File[] fileList = outputFile.getParentFile().listFiles(filter);
         if (fileList != null) {
             for (File file : fileList) {
-                //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    @SuppressLint("SetWorldReadable")
+    @SuppressWarnings("ResultOfMethodCallIgnored") //intended, nothing useful can be done
+    @SuppressLint("SetWorldReadable") //intended, default permission
     private static void setFilePermissions(File outputFile) {
         // Try change permission to rwxr-xr-x
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
@@ -180,13 +191,13 @@ class ReLinker {
      * @throws IOException when a stream operation fails.
      */
     private static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buf = new byte[COPY_BUFFER_SIZE];
+        final byte[] buf = new byte[COPY_BUFFER_SIZE];
         while (true) {
-            int read = in.read(buf);
-            if (read == -1) {
+            final int bytesRead = in.read(buf);
+            if (bytesRead == -1) {
                 break;
             }
-            out.write(buf, 0, read);
+            out.write(buf, 0, bytesRead);
         }
     }
 
