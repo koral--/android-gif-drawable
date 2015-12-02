@@ -211,6 +211,11 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.1.10
+It is recommended (but not required) to call `LibraryLoader.initialize()` before using `GifDrawable`. `Context` is needed in some cases
+when native libraries cannot be extracted normally. See [ReLinker](https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db)
+for more details.
+
 ##Upgrading from 1.1.9
 `int` parameter `loopNumber` has been added to `AnimationListener#onAnimationCompleted()`.
 
@@ -219,7 +224,7 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 Proguard configuration is now bundled with the library, you don't need to specify it yourself.
 
 ##Upgrading from 1.1.3
-`src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflicts with other libraries
+`src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflicts with other libraries.
 
 ##Upgrading from 1.0.x
 ####Proguard configuration update
