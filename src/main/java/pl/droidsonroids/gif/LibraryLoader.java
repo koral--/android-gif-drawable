@@ -5,11 +5,20 @@ import android.support.annotation.NonNull;
 
 import java.lang.reflect.Method;
 
+/**
+ * Helper used to work around native libraries loading on some systems.
+ * See <a href="https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db">ReLinker</a> for more details.
+ */
 public class LibraryLoader {
     static final String SURFACE_LIBRARY_NAME = "pl_droidsonroids_gif_surface";
     static final String BASE_LIBRARY_NAME = "pl_droidsonroids_gif";
     private static Context sAppContext;
 
+	/**
+     * Intitializes loader with given `Context`. Subsequent calls should have no effect since application Context is retrieved.
+     * Libraries will not be loaded immediately but only when needed.
+     * @param context any Context except null
+     */
     public static void initialize(@NonNull final Context context) {
         sAppContext = context.getApplicationContext();
     }
