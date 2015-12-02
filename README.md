@@ -214,7 +214,8 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 ##Upgrading from 1.1.10
 It is recommended (but not required) to call `LibraryLoader.initialize()` before using `GifDrawable`. `Context` is needed in some cases
 when native libraries cannot be extracted normally. See [ReLinker](https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db)
-for more details.
+for more details. 
+If `LibraryLoader.initialize()` was not called and normal library loading fails, `Context` will be tried to be retrieved in fall back way which may not always work.   
 
 ##Upgrading from 1.1.9
 `int` parameter `loopNumber` has been added to `AnimationListener#onAnimationCompleted()`.
