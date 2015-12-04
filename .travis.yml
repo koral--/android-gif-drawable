@@ -1,3 +1,7 @@
+os:
+  - linux
+  - osx
+
 env:
   global:
     - NDK_VERSION=r10e
