@@ -1,6 +1,11 @@
 #ifndef _GIF
 #define _GIF
 
+#ifdef __clang__
+    #pragma clang system_header
+#else
+    #pragma GCC system_header
+#endif
 #include <unistd.h>
 #include <jni.h>
 #include <time.h>
