@@ -356,8 +356,8 @@ __unused JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
     g_jvm = vm;
     JNIEnv *env;
-    if ((*vm)->GetEnv(vm, (void **) (&env), JNI_VERSION_1_6) != JNI_OK) {
-        return -1;
+    if ((*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
     }
 
     defaultCmap = GifMakeMapObject(8, NULL);
