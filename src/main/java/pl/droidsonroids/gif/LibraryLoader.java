@@ -23,7 +23,7 @@ public class LibraryLoader {
         sAppContext = context.getApplicationContext();
     }
 
-    static Context getContext() {
+    private static Context getContext() {
         if (sAppContext == null) {
             try {
                 final Class<?> activityThread = Class.forName("android.app.ActivityThread");

@@ -51,6 +51,7 @@ class ReLinker {
      * <p/>
      * <strong>Note: This is a synchronous operation</strong>
      */
+    @SuppressLint("UnsafeDynamicallyLoadedCode") //intended fallback of System#loadLibrary()
     static void loadLibrary(Context context, final String library) {
         final String libName = System.mapLibraryName(library);
         synchronized (ReLinker.class) {
