@@ -31,12 +31,8 @@ def addFlavors() {
 }
 
 def getNdkBuildCommand() {
-    def ndkDir = android.ndkDirectory
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        return "$ndkDir/ndk-build.cmd"
-    } else {
-        return "$ndkDir/ndk-build"
-    }
+    def command = "${android.ndkDirectory}/ndk-build"
+    Os.isFamily(Os.FAMILY_WINDOWS) ? "${command}.cmd" : command
 }
 
 android {
