@@ -15,9 +15,12 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 final class GifViewUtils {
     static final String ANDROID_NS = "http://schemas.android.com/apk/res/android";
+    static final List<String> SUPPORTED_RESOURCE_TYPE_NAMES = Arrays.asList("raw", "drawable", "mipmap");
 
     private GifViewUtils() {
     }
@@ -36,7 +39,7 @@ final class GifViewUtils {
         final int resId = attrs.getAttributeResourceValue(ANDROID_NS, isSrc ? "src" : "background", 0);
         if (resId > 0) {
             final String resourceTypeName = view.getResources().getResourceTypeName(resId);
-            if ("drawable".equals(resourceTypeName) || "raw".equals(resourceTypeName)) {
+            if (SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
                 if (!setResource(view, isSrc, resId)) {
                     return resId;
                 }
