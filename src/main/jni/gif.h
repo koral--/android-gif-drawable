@@ -1,11 +1,13 @@
 #ifndef _GIF
 #define _GIF
 
+#define _POSIX_C_SOURCE 200809L
 #ifdef __clang__
     #pragma clang system_header
 #else
     #pragma GCC system_header
 #endif
+
 #include <unistd.h>
 #include <jni.h>
 #include <time.h>
@@ -13,7 +15,6 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <malloc.h>
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -25,13 +26,16 @@
 #include <errno.h>
 #include "giflib/gif_lib.h"
 
-#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
-
 #ifdef DEBUG
 #include <android/log.h>
 #define  LOG_TAG    "libgif"
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 #endif
+
+#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
+#define GET_ADDR(bm, width, left, top) bm + top * width + left
+#define OOME_MESSAGE "Failed to allocate native memory"
+#define DEFAULT_FRAME_DURATION_MS 100
 
 /**
  * Some gif files are not strictly follow 89a.
@@ -64,10 +68,6 @@
 * Decoding error - invalid and/or indirect byte buffer specified
 */
 #define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
-
-#define GET_ADDR(bm, width, left, top) bm + top * width + left
-#define OOME_MESSAGE "Failed to allocate native memory"
-#define DEFAULT_FRAME_DURATION_MS 100
 
 enum Exception {
     RUNTIME_EXCEPTION_ERRNO, RUNTIME_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
