@@ -1,3 +1,6 @@
+### 1.1.12
+- added `mipmap` resources support in XML attributes
+
 ### 1.1.11
 - `MultiCallback` now accepts `Drawable.Callback`s, not only `View`s
 - `UnsatisfiedLinkError` worked around - [#51](https://github.com/koral--/android-gif-drawable/issues/51)
@@ -8,7 +11,7 @@
 
 ### 1.1.10
 - Gradle wrapper version updated to 2.7
-- build tools updated to 23.0.1
+- Build tools updated to 23.0.1
 - Android gradle plugin updated to 1.3.1
 - Support library dependency version updated to 23.0.1
 - compileSdkVersion updated to 23
