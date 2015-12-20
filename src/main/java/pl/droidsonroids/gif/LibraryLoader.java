@@ -1,6 +1,7 @@
 package pl.droidsonroids.gif;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.NonNull;
 
 import java.lang.reflect.Method;
@@ -14,9 +15,10 @@ public class LibraryLoader {
     static final String BASE_LIBRARY_NAME = "pl_droidsonroids_gif";
     private static Context sAppContext;
 
-	/**
-     * Intitializes loader with given `Context`. Subsequent calls should have no effect since application Context is retrieved.
+    /**
+     * Initializes loader with given `Context`. Subsequent calls should have no effect since application Context is retrieved.
      * Libraries will not be loaded immediately but only when needed.
+     *
      * @param context any Context except null
      */
     public static void initialize(@NonNull final Context context) {
@@ -40,6 +42,10 @@ public class LibraryLoader {
         try {
             System.loadLibrary(library);
         } catch (final UnsatisfiedLinkError e) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
+                throw e;
+            }
+
             if (SURFACE_LIBRARY_NAME.equals(library)) {
                 loadLibrary(context, BASE_LIBRARY_NAME);
             }

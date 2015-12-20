@@ -16,6 +16,7 @@
 package pl.droidsonroids.gif;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
@@ -36,6 +37,7 @@ import java.util.zip.ZipFile;
  * to Android's inability to properly install / load native libraries for Android versions before
  * API 21
  */
+@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 class ReLinker {
     private static final String LIB_DIR = "lib";
     private static final int MAX_TRIES = 5;
@@ -177,11 +179,9 @@ class ReLinker {
     @SuppressLint("SetWorldReadable") //intended, default permission
     private static void setFilePermissions(File outputFile) {
         // Try change permission to rwxr-xr-x
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
-            outputFile.setReadable(true, false);
-            outputFile.setExecutable(true, false);
-            outputFile.setWritable(true);
-        }
+        outputFile.setReadable(true, false);
+        outputFile.setExecutable(true, false);
+        outputFile.setWritable(true);
     }
 
     /**
