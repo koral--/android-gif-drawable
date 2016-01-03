@@ -97,7 +97,10 @@ class ReLinker {
 
             int tries = 0;
             while (tries++ < MAX_TRIES) {
-                ZipEntry libraryEntry = getLibraryEntry(libName, zipFile);
+                ZipEntry libraryEntry = findLibraryEntry(libName, zipFile);
+                if (libraryEntry == null) {
+                    throw new IllegalStateException("Library " + libName + " for supported ABIs not found in APK file");
+                }
 
                 InputStream inputStream = null;
                 FileOutputStream fileOut = null;
@@ -123,29 +126,22 @@ class ReLinker {
         return outputFile;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @SuppressWarnings("deprecation") //required for old API levels
-    private static ZipEntry getLibraryEntry(final String libName, final ZipFile zipFile) {
-        String jniNameInApk;
-
-        ZipEntry libraryEntry = null;
-        if (Build.VERSION.SDK_INT >= 21 && Build.SUPPORTED_ABIS.length > 0) {
-            for (final String ABI : Build.SUPPORTED_ABIS) {
-                jniNameInApk = "lib/" + ABI + "/" + libName;
-                libraryEntry = zipFile.getEntry(jniNameInApk);
-
+    private static ZipEntry findLibraryEntry(final String libName, final ZipFile zipFile) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            for (final String abi : Build.SUPPORTED_ABIS) {
+                final ZipEntry libraryEntry = getEntry(libName, zipFile, abi);
                 if (libraryEntry != null) {
-                    break;
+                    return libraryEntry;
                 }
             }
-        } else {
-            jniNameInApk = "lib/" + Build.CPU_ABI + "/" + libName;
-            libraryEntry = zipFile.getEntry(jniNameInApk);
         }
+        return getEntry(libName, zipFile, Build.CPU_ABI);
+    }
 
-        if (libraryEntry == null) {
-            throw new IllegalStateException("Library " + libName + " for supported ABIs not found in APK file");
-        }
-        return libraryEntry;
+    private static ZipEntry getEntry(final String libName, final ZipFile zipFile, final String abi) {
+        return zipFile.getEntry("lib/" + abi + "/" + libName);
     }
 
     private static ZipFile openZipFile(final File apkFile) {

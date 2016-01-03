@@ -76,7 +76,6 @@ public class GifTextView extends TextView {
 
     private boolean mFreezesAnimation;
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private void init(AttributeSet attrs, int defStyle, int defStyleRes) {
         if (attrs != null) {
             Drawable left = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableLeft", 0));
@@ -112,7 +111,6 @@ public class GifTextView extends TextView {
         mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyle, defStyleRes);
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     // setBackground
     @SuppressWarnings("deprecation")
     // setBackgroundDrawable
@@ -129,7 +127,6 @@ public class GifTextView extends TextView {
         setBackgroundInternal(getGifOrDefaultDrawable(resId));
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP) //Resources#getDrawable(int, Theme)
     @SuppressWarnings("deprecation") //Resources#getDrawable(int)
     private Drawable getGifOrDefaultDrawable(int resId) {
         if (resId == 0) {
@@ -161,7 +158,6 @@ public class GifTextView extends TextView {
         setCompoundDrawablesWithIntrinsicBounds(getGifOrDefaultDrawable(left), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(right), getGifOrDefaultDrawable(bottom));
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
@@ -180,7 +176,6 @@ public class GifTextView extends TextView {
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public Parcelable onSaveInstanceState() {
         Drawable[] savedDrawables = new Drawable[7];
         if (mFreezesAnimation) {
@@ -198,7 +193,6 @@ public class GifTextView extends TextView {
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public void onRestoreInstanceState(Parcelable state) {
         GifViewSavedState ss = (GifViewSavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());

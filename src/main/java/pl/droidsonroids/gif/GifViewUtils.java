@@ -1,6 +1,5 @@
 package pl.droidsonroids.gif;
 
-import android.annotation.TargetApi;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.net.Uri;
@@ -48,7 +47,6 @@ final class GifViewUtils {
         return 0;
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @SuppressWarnings("deprecation")
     static boolean setResource(ImageView view, boolean isSrc, int resId) {
         Resources res = view.getResources();
