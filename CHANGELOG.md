@@ -1,6 +1,7 @@
 ### 1.1.12
 - added `mipmap` resources support in XML attributes
 - ReLinker code cleanup
+- Gradle wrapper version updated to 2.10
 
 ### 1.1.11
 - `MultiCallback` now accepts `Drawable.Callback`s, not only `View`s
