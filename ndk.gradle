@@ -8,7 +8,7 @@ def shouldAddFlavors() {
     def flavors = ['armeabi', 'armeabi-v7a', 'x86', 'mips', 'arm64-v8a', 'mips64', 'x86_64']
     boolean applyFlavors = false
     gradle.startParameter.taskNames.each() {
-        String normalizedTaskName = it.toLowerCase(Locale.US)
+        String normalizedTaskName = it.toLowerCase(Locale.ROOT)
         flavors.each() {
             applyFlavors |= normalizedTaskName.contains(it)
         }

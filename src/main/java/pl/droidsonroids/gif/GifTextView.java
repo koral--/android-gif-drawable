@@ -111,9 +111,7 @@ public class GifTextView extends TextView {
         mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyle, defStyleRes);
     }
 
-    // setBackground
-    @SuppressWarnings("deprecation")
-    // setBackgroundDrawable
+    @SuppressWarnings("deprecation") // setBackgroundDrawable
     private void setBackgroundInternal(Drawable bg) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             setBackground(bg);

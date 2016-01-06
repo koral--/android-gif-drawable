@@ -127,6 +127,6 @@ public enum GifError {
     }
 
     String getFormattedDescription() {
-        return String.format(Locale.US, "GifError %d: %s", errorCode, description);
+        return String.format(Locale.ENGLISH, "GifError %d: %s", errorCode, description);
     }
 }

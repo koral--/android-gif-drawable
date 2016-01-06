@@ -109,8 +109,7 @@ final class GifInfoHandle {
         return openStream(stream, justDecodeMetaData);
     }
 
-    static GifInfoHandle openAssetFileDescriptor(AssetFileDescriptor afd, boolean justDecodeMetaData) throws
-            IOException {
+    static GifInfoHandle openAssetFileDescriptor(AssetFileDescriptor afd, boolean justDecodeMetaData) throws IOException {
         try {
             return openFd(afd.getFileDescriptor(), afd.getStartOffset(), justDecodeMetaData);
         } finally {
@@ -119,8 +118,7 @@ final class GifInfoHandle {
     }
 
     static GifInfoHandle openUri(ContentResolver resolver, Uri uri, boolean justDecodeMetaData) throws IOException {
-        if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) //workaround for #128
-        {
+        if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) { //workaround for #128
             return openFile(uri.getPath(), justDecodeMetaData);
         }
         return openAssetFileDescriptor(resolver.openAssetFileDescriptor(uri, "r"), justDecodeMetaData);
@@ -159,7 +157,7 @@ final class GifInfoHandle {
         return getLoopCount(gifInfoPtr);
     }
 
-    void setLoopCount(@IntRange(from = 0, to = 65535) final int loopCount) {
+    void setLoopCount(@IntRange(from = 0, to = 0xFFFF) final int loopCount) {
         if (loopCount < 0 || loopCount > 0xFFFF) {
             throw new IllegalArgumentException("Loop count of range <0, 65535>");
         }

@@ -53,8 +53,7 @@ public class GifDrawableBuilder {
     }
 
     /**
-     * Sets drawable to be reused when creating new one. Currently it works only on {@link android.os.Build.VERSION_CODES#KITKAT}
-     * and newer, on older API levels call has no effect.
+     * Sets drawable to be reused when creating new one.
      *
      * @param drawable drawable to be reused
      * @return this builder instance, to chain calls

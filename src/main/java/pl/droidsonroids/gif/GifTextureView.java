@@ -35,8 +35,8 @@ import java.lang.ref.WeakReference;
  *          android:layout_height="match_parent" /&gt;
  * </pre>
  * Note that <b>src</b> attribute comes from app namespace (you can call it whatever you want) not from
- * android one. Drawable, raw resources and assets can be specified through XML. If value is a string
- * (from resources or entered directly) it will be treated as an asset.
+ * android one. Drawable, raw, mipmap resources and assets can be specified through XML. If value is a string
+ * (referenced from resources or entered directly) it will be treated as an asset.
  * <p>Unlike {@link TextureView} GifTextureView is transparent by default, but it can be changed by
  * {@link #setOpaque(boolean)}.
  * You can use scale types the same way as in {@link android.widget.ImageView}.</p>

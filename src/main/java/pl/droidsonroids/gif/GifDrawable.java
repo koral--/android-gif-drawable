@@ -398,7 +398,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	@Override
 	public String toString() {
-		return String.format(Locale.US, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width, mNativeInfoHandle.height, mNativeInfoHandle.frameCount, mNativeInfoHandle.getNativeErrorCode());
+		return String.format(Locale.ENGLISH, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width, mNativeInfoHandle.height, mNativeInfoHandle.frameCount, mNativeInfoHandle.getNativeErrorCode());
 	}
 
 	/**
