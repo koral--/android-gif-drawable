@@ -482,14 +482,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Seeks animation to given absolute position (within given loop) and refreshes the canvas.<br>
-	 * If position is greater than duration of the loop of animation
-	 * (or whole animation if there is no loop) then animation will be sought to the end.<br>
-	 * NOTE: all frames from current (or first one if seeking backward) to desired one must be
-	 * rendered sequentially to perform seeking.
+	 * If <code>position</code> is greater than duration of the loop of animation (or whole animation if there is no loop)
+	 * then animation will be sought to the end, no exception will be thrown.<br>
+	 * NOTE: all frames from current (or first one if seeking backward) to desired one must be rendered sequentially to perform seeking.
 	 * It may take a lot of time if number of such frames is large.
 	 * Method is thread-safe. Decoding is performed in background thread and drawable is invalidated automatically
 	 * afterwards.
-	 * If position exceeds animation duration, seek stops at the end, no exception is thrown.
 	 *
 	 * @param position position to seek to in milliseconds
 	 * @throws IllegalArgumentException if position&lt;0
@@ -510,7 +508,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Like {@link #seekTo(int)} but uses index of the frame instead of time.
-	 * If frameIndex exceeds number of frames, seek stops at the end, no exception is thrown.
+	 * If <code>frameIndex</code> exceeds number of frames, seek stops at the end, no exception is thrown.
 	 *
 	 * @param frameIndex index of the frame to seek to (zero based)
 	 * @throws IndexOutOfBoundsException if frameIndex&lt;0

@@ -39,10 +39,10 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-afterEvaluate { project ->
-    android.libraryVariants.all { variant ->
-        tasks.androidJavadocs.doFirst {
-            classpath += files(variant.javaCompile.classpath.files)
-        }
-    }
-}
+//afterEvaluate { project ->
+//    android.libraryVariants.all { variant ->
+//        tasks.androidJavadocs.doFirst {
+//            classpath += files(variant.javaCompile.classpath.files)
+//        }
+//    }
+//}

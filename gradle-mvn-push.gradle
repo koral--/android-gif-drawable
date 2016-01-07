@@ -93,8 +93,16 @@ afterEvaluate { project ->
     }
 
     task androidJavadocs(type: Javadoc) {
-        source = android.sourceSets.main.java.srcDirs
-        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        android.libraryVariants.all { variant ->
+            source = variant.javaCompile.source
+            classpath = files(variant.javaCompile.classpath.files, android.getBootClasspath())
+            options {
+                links "http://docs.oracle.com/javase/7/docs/api/"
+                linksOffline "http://d.android.com/reference","${android.sdkDirectory}/docs/reference"
+            }
+            exclude '**/R.java'
+            exclude '**/BuildConfig.java'
+        }
     }
 
     task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
