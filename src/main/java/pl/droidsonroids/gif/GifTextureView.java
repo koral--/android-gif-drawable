@@ -326,7 +326,7 @@ public class GifTextureView extends TextureView {
 
     /**
      * Returns last {@link IOException} occurred during loading or playing GIF (in such case only {@link GifIOException}
-     * can be returned. Null is returned when source is not, surface was not yet created or no error
+     * can be returned. Null is returned when source is not set, surface was not yet created or no error
      * occurred.
      *
      * @return exception occurred during loading or playing GIF or null
@@ -342,7 +342,7 @@ public class GifTextureView extends TextureView {
 
     /**
      * Controls how the image should be resized or moved to match the size
-     * of this ImageView.
+     * of this GifTextureView.
      *
      * @param scaleType The desired scaling mode.
      */
