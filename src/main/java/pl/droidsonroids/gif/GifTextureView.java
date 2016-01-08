@@ -252,18 +252,6 @@ public class GifTextureView extends TextureView {
             gifTextureView.setSuperSurfaceTextureListener(null);
             mGifInfoHandle.postUnbindSurface();
             interrupt();
-            final boolean isCallerInterrupted = Thread.currentThread().isInterrupted();
-            if (isCallerInterrupted) {
-                interrupted();
-            }
-            try {
-                join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            if (isCallerInterrupted) {
-                Thread.currentThread().interrupt();
-            }
         }
     }
 

@@ -1,11 +1,13 @@
 #ifndef _GIF
 #define _GIF
 
-#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 #ifdef __clang__
     #pragma clang system_header
-#else
+    #pragma clang diagnostic ignored "-Wgnu"
+#elif __GNUC__
     #pragma GCC system_header
+    #pragma GCC diagnostic ignored "-Wgnu"
 #endif
 
 #include <unistd.h>

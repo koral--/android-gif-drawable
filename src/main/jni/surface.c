@@ -6,8 +6,6 @@
 typedef uint64_t POLL_TYPE;
 #define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
-#define THROW_AND_BREAK_ON_NONZERO_RESULT(fun, message) if (fun !=0) {throwException(env, RUNTIME_EXCEPTION_ERRNO, message); break;}
-
 static void *slurp(void *pVoidInfo) {
     GifInfo *info = pVoidInfo;
     while (1) {
@@ -68,11 +66,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     int pollResult;
 
     while (1) {
-        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, 0);
+        pollResult = TEMP_FAILURE_RETRY(poll(&info->surfaceDescriptor->eventPollFd, 1, 0));
         if (pollResult == 0)
             break;
         else if (pollResult > 0) {
-            if (read(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+            ssize_t bytesRead = TEMP_FAILURE_RETRY(
+                    read(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE));
+            if (bytesRead != POLL_TYPE_SIZE) {
                 throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");
                 return;
             }
@@ -99,8 +99,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     void *oldBufferBits;
 
     if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
+#ifdef DEBUG
+        LOGE("Window lock failed %d", errno);
+#endif
         ANativeWindow_release(window);
-        throwException(env, RUNTIME_EXCEPTION_ERRNO, "Window lock failed ");
         return;
     }
     const size_t bufferSize = buffer.stride * buffer.height * sizeof(argb);
@@ -114,10 +116,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
         info->surfaceDescriptor->slurpHelper = 0;
     }
     else {
-        if (savedState != NULL){
+        if (savedState != NULL) {
             invalidationDelayMillis = restoreSavedState(info, env, savedState, buffer.bits);
-            if (invalidationDelayMillis <0)
-                invalidationDelayMillis =0;
+            if (invalidationDelayMillis < 0)
+                invalidationDelayMillis = 0;
         }
         else
             invalidationDelayMillis = 0;
@@ -130,7 +132,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 
     if (info->loopCount != 0 && info->currentLoop == info->loopCount) {
         ANativeWindow_release(window);
-        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, -1);
+        pollResult = TEMP_FAILURE_RETRY(poll(&info->surfaceDescriptor->eventPollFd, 1, -1));
         if (pollResult < 0) {
             throwException(env, RUNTIME_EXCEPTION_ERRNO, "Animation end poll failed ");
         }
@@ -145,7 +147,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
     }
 
     while (1) {
-        pollResult = poll(&info->surfaceDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
+        pollResult = TEMP_FAILURE_RETRY(poll(&info->surfaceDescriptor->eventPollFd, 1, (int) invalidationDelayMillis));
         long renderingStartTime = getRealTime();
 
         if (pollResult < 0) {
@@ -164,7 +166,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
             break;
         }
         oldBufferBits = buffer.bits;
-        THROW_AND_BREAK_ON_NONZERO_RESULT(ANativeWindow_lock(window, &buffer, NULL), "Window lock failed ");
+        if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
+#ifdef DEBUG
+            LOGE("Window lock failed %d", errno);
+#endif
+            break;
+        }
 
         if (info->currentIndex == 0)
             prepareCanvas(buffer.bits, info);
@@ -210,7 +217,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
         return;
     }
     POLL_TYPE eftd_ctr;
-    if (write(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE) != POLL_TYPE_SIZE) {
+    ssize_t bytesWritten = TEMP_FAILURE_RETRY(
+            write(info->surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE));
+    if (bytesWritten != POLL_TYPE_SIZE && errno != EBADF) {
         throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
     }
 }
