@@ -1,7 +1,8 @@
 ### 1.1.12
-- added `mipmap` resources support in XML attributes
+- Added `mipmap` resources support in XML attributes
 - ReLinker code cleanup
 - Gradle wrapper version updated to 2.10
+- Fixed ANR on disposing `GifTextureView` - [#240](https://github.com/koral--/android-gif-drawable/issues/240)
 
 ### 1.1.11
 - `MultiCallback` now accepts `Drawable.Callback`s, not only `View`s
