@@ -490,7 +490,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * afterwards.
 	 *
 	 * @param position position to seek to in milliseconds
-	 * @throws IllegalArgumentException if position&lt;0
+	 * @throws IllegalArgumentException if <code>position</code>&lt;0
 	 */
 	@Override
 	public void seekTo(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position) {
@@ -511,7 +511,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * If <code>frameIndex</code> exceeds number of frames, seek stops at the end, no exception is thrown.
 	 *
 	 * @param frameIndex index of the frame to seek to (zero based)
-	 * @throws IndexOutOfBoundsException if frameIndex&lt;0
+	 * @throws IllegalArgumentException if <code>frameIndex</code>&lt;0
 	 */
 	public void seekToFrame(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex) {
 		if (frameIndex < 0) {

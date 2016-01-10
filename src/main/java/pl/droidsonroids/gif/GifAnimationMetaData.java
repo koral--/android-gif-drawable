@@ -187,8 +187,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
     }
 
     /**
-     * Returns loop count previously read from GIF's application extension block.
-     * Defaults to 0 (infinite loop) if there is no such extension.
+     * See {@link GifDrawable#getLoopCount()}
      *
      * @return loop count, 0 means that animation is infinite
      */
@@ -197,10 +196,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
     }
 
     /**
-     * Retrieves duration of one loop of the animation.
-     * If there is no data (no Graphics Control Extension blocks) 0 is returned.
-     * Note that one-frame GIFs can have non-zero duration defined in Graphics Control Extension block,
-     * use {@link #getNumberOfFrames()} to determine if there is one or more frames.
+     * See {@link GifDrawable#getDuration()}
      *
      * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
      */
