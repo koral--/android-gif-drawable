@@ -554,6 +554,12 @@ DGifSetupDecompress(GifFileType *GifFile) {
     ((GifFilePrivateType *) GifFile->Private)->Read(GifFile, &CodeSize, 1);    /* Read Code size from file. */
     BitsPerPixel = CodeSize;
 
+    /* this can only happen on a severely malformed GIF */
+    if (BitsPerPixel > 8 || Private->RunningBits > 32) {
+        GifFile->Error = D_GIF_ERR_READ_FAILED;	/* somewhat bogus error code */
+        return GIF_ERROR;    /* Failed to read Code size. */
+    }
+
     Private->Buf[0] = 0;    /* Input Buffer empty. */
     Private->BitsPerPixel = BitsPerPixel;
     Private->ClearCode = (1 << BitsPerPixel);
