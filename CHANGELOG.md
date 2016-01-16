@@ -5,6 +5,7 @@
 - Fixed ANR on disposing `GifTextureView` - [#240](https://github.com/koral--/android-gif-drawable/issues/240)
 - Added `GifDecoder` for access GIF frames without `Drawable` or `View` - [#206](https://github.com/koral--/android-gif-drawable/issues/206)
 - Upstream changes from GIFLib 5.1.2 integrated
+- Fixed `ZipFile` closing on API level < 19 - [#244](https://github.com/koral--/android-gif-drawable/issues/244)
 
 ### 1.1.11
 - `MultiCallback` now accepts `Drawable.Callback`s, not only `View`s
