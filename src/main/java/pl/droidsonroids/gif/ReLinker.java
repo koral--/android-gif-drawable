@@ -121,7 +121,15 @@ class ReLinker {
                 break;
             }
         } finally {
-            closeSilently(zipFile);
+            //Should not use closeSilently() on ZipFile.
+            //Because ZipFile DO NOT implement Closeable when API < 19.Otherwise, app will crash!!
+            //http://bugs.java.com/view_bug.do?bug_id=6389768
+            try {
+                if (zipFile != null) {
+                    zipFile.close();
+                }
+            } catch (IOException ignored) {
+            }
         }
         return outputFile;
     }
