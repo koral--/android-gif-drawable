@@ -30,6 +30,7 @@ LOCAL_SRC_FILES := \
 	memset.arm.S \
 	giflib/dgif_lib.c \
 	giflib/gifalloc.c \
+	giflib/openbsd-reallocarray.c \
 
 include $(BUILD_SHARED_LIBRARY)
 

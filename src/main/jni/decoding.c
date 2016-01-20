@@ -31,7 +31,7 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                     gifFilePtr->SHeight += widthOverflow;
 
                     if (shouldDecode) {
-                        void *tmpRasterBits = realloc(info->rasterBits, gifFilePtr->SWidth * gifFilePtr->SHeight * sizeof(GifPixelType));
+                        void *tmpRasterBits = reallocarray(info->rasterBits, gifFilePtr->SWidth * gifFilePtr->SHeight, sizeof(GifPixelType));
                         if (tmpRasterBits == NULL) {
                             gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
                             return;
@@ -79,9 +79,7 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                 if (DGifGetExtension(gifFilePtr, &ExtFunction, &ExtData) == GIF_ERROR)
                     return;
                 if (!shouldDecode) {
-                    GraphicsControlBlock *tmpInfos = realloc(info->controlBlock,
-                                                             (gifFilePtr->ImageCount + 1) *
-                                                             sizeof(GraphicsControlBlock));
+                    GraphicsControlBlock *tmpInfos = reallocarray(info->controlBlock, info->gifFilePtr->ImageCount + 1 , sizeof(GraphicsControlBlock));
                     if (tmpInfos == NULL) {
                         gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
                         return;
@@ -92,7 +90,7 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                         return;
                 }
                 while (ExtData != NULL) {
-                    if (DGifGetExtensionNext(gifFilePtr, &ExtData, &ExtFunction) == GIF_ERROR)
+                    if (DGifGetExtensionNext(info->gifFilePtr, &ExtData) == GIF_ERROR)
                         return;
                     if (!shouldDecode) {
                         if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
@@ -132,8 +130,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
         char const *string = (char const *) (ExtData + 1);
         if (strncmp("NETSCAPE2.0", string, ExtData[0]) == 0
             || strncmp("ANIMEXTS1.0", string, ExtData[0]) == 0) {
-            if (DGifGetExtensionNext(info->gifFilePtr, &ExtData,
-                                     &ExtFunction) == GIF_ERROR)
+            if (DGifGetExtensionNext(info->gifFilePtr, &ExtData) == GIF_ERROR)
                 return GIF_ERROR;
             if (ExtData[0] == 3 && ExtData[1] == 1) {
                 info->loopCount = (uint_fast16_t) (ExtData[2] + (ExtData[3] << 8));
@@ -146,7 +143,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
 static int getComment(GifByteType *Bytes, GifInfo *info) {
     unsigned int len = (unsigned int) Bytes[0];
     size_t offset = info->comment != NULL ? strlen(info->comment) : 0;
-    char *ret = realloc(info->comment, (len + offset + 1) * sizeof(char));
+    char *ret = reallocarray(info->comment, len + offset + 1, sizeof(char));
     if (ret != NULL) {
         memcpy(ret + offset, &Bytes[1], len);
         ret[len + offset] = 0;

@@ -20,21 +20,21 @@ gif_lib.h - service library for decoding and encoding GIF images
 typedef unsigned char GifPixelType;
 typedef unsigned char GifByteType;
 typedef unsigned int GifPrefixType;
-typedef uint_fast32_t GifWord;
+typedef int GifWord;
 
 typedef struct GifColorType {
     uint8_t Red, Green, Blue;
 } GifColorType;
 
 typedef struct ColorMapObject {
-    uint_fast16_t ColorCount;
-    uint_fast8_t BitsPerPixel;
+    int ColorCount;
+    int BitsPerPixel;
 //    bool SortFlag;
     GifColorType *Colors;    /* on malloc(3) heap */
 } ColorMapObject;
 
 typedef struct GifImageDesc {
-    uint_fast16_t Left, Top, Width, Height;   /* Current image dimensions. */
+    GifWord Left, Top, Width, Height;   /* Current image dimensions. */
     bool Interlace;
     /* Sequential/Interlaced lines. */
     ColorMapObject *ColorMap;           /* The local color map */
@@ -59,7 +59,7 @@ typedef struct SavedImage {
 } SavedImage;
 
 typedef struct GifFileType {
-    uint_fast16_t SWidth, SHeight;         /* Size of virtual canvas */
+    GifWord SWidth, SHeight;         /* Size of virtual canvas */
 //    GifWord SColorResolution;        /* How many colors can we generate? */
     GifWord SBackGroundColor;        /* Background color for virtual canvas */
 //    GifByteType AspectByte;	     /* Used to compute pixel aspect ratio */
@@ -90,22 +90,22 @@ typedef enum {
 } GifRecordType;
 
 /* func type to read gif data from arbitrary sources (TVT) */
-typedef uint_fast8_t (*InputFunc)(GifFileType *, GifByteType *, uint_fast8_t);
+typedef int (*InputFunc)(GifFileType *, GifByteType *, int);
 
 /******************************************************************************
  GIF89 structures
 ******************************************************************************/
 
 typedef struct GraphicsControlBlock {
-    uint_fast8_t DisposalMode;
+    int DisposalMode;
 #define DISPOSAL_UNSPECIFIED      0       /* No disposal specified. */
 #define DISPOSE_DO_NOT            1       /* Leave image in place */
 #define DISPOSE_BACKGROUND        2       /* Set area too background color */
 #define DISPOSE_PREVIOUS          3       /* Restore to previous content */
 //    bool UserInputFlag;      /* User confirmation required before disposal */
-    uint_fast32_t DelayTime;
+    int DelayTime;
     /* pre-display delay in 0.01sec units */
-    int_fast16_t TransparentColor;    /* Palette index for transparency, -1 if none */
+    int TransparentColor;    /* Palette index for transparency, -1 if none */
 #define NO_TRANSPARENT_COLOR    -1
 } GraphicsControlBlock;
 
@@ -140,12 +140,12 @@ int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
 
 int DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount);
 
-int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, uint_fast32_t GifLineLen);
+int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, int GifLineLen);
 
 int DGifGetExtension(GifFileType *GifFile, int *GifExtCode,
                      GifByteType **GifExtension);
 
-int DGifGetExtensionNext(GifFileType *GifFile, GifByteType **GifExtension, int *ExtCode);
+int DGifGetExtensionNext(GifFileType *GifFile, GifByteType **GifExtension);
 
 int DGifGetCode(GifFileType *GifFile, int *GifCodeSize,
                 GifByteType **GifCodeBlock);
@@ -160,12 +160,12 @@ int DGifGetCodeNext(GifFileType *GifFile, GifByteType **GifCodeBlock);
  Color map handling from gif_alloc.c
 ******************************************************************************/
 
-extern ColorMapObject *GifMakeMapObject(uint_fast8_t BitsPerPixel,
+extern ColorMapObject *GifMakeMapObject(int BitsPerPixel,
                                         const GifColorType *ColorMap);
 
 extern void GifFreeMapObject(ColorMapObject *Object);
 //extern int GifBitSize(int n);
-
+extern void * reallocarray(void *optr, size_t nmemb, size_t size);
 /******************************************************************************
  Support for the in-core structures allocation (slurp mode).              
 ******************************************************************************/
