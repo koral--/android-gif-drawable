@@ -16,19 +16,21 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                 if (DGifGetImageDesc(gifFilePtr, !shouldDecode) == GIF_ERROR)
                     return;
 
-                uint_fast32_t leftOverflow = (uint_fast32_t) (gifFilePtr->Image.Left - gifFilePtr->Image.Width);
-                if (leftOverflow > 0)
-                    gifFilePtr->Image.Left -= leftOverflow;
-
-                uint_fast32_t topOverflow = (uint_fast32_t) (gifFilePtr->Image.Top - gifFilePtr->Image.Height);
-                if (topOverflow > 0)
+                int topOverflow = gifFilePtr->Image.Top + gifFilePtr->Image.Height - gifFilePtr->SHeight;
+                if (topOverflow > 0) {
                     gifFilePtr->Image.Top -= topOverflow;
+                }
 
-                uint_fast32_t widthOverflow = (uint_fast32_t) (gifFilePtr->Image.Width - gifFilePtr->SWidth);
-                uint_fast32_t heightOverflow = (uint_fast32_t) (gifFilePtr->Image.Height - gifFilePtr->SHeight);
+                int leftOverflow = gifFilePtr->Image.Left + gifFilePtr->Image.Width - gifFilePtr->SWidth;
+                if (leftOverflow > 0) {
+                    gifFilePtr->Image.Left -= leftOverflow;
+                }
+
+                int widthOverflow = gifFilePtr->Image.Width - gifFilePtr->SWidth;
+                int heightOverflow = gifFilePtr->Image.Height - gifFilePtr->SHeight;
                 if (widthOverflow > 0 || heightOverflow > 0) {
                     gifFilePtr->SWidth += widthOverflow;
-                    gifFilePtr->SHeight += widthOverflow;
+                    gifFilePtr->SHeight += heightOverflow;
 
                     if (shouldDecode) {
                         void *tmpRasterBits = reallocarray(info->rasterBits, gifFilePtr->SWidth * gifFilePtr->SHeight, sizeof(GifPixelType));

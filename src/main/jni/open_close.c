@@ -59,8 +59,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     if (justDecodeMetaData == JNI_TRUE)
         info->rasterBits = NULL;
     else {
-        info->rasterBits = malloc(
-                descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
+        info->rasterBits = malloc(descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
         if (info->rasterBits == NULL) {
             descriptor->GifFileIn->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
         }
