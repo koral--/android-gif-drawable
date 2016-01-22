@@ -45,8 +45,6 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                         info->rasterBits = tmpRasterBits;
                     }
                 }
-                LOGE("slurp %d", info->gifFilePtr->SavedImages->ImageDesc.Left);
-                LOGE("slurp2 %d", gifFilePtr->Image.Left);
 
                 if (shouldDecode) {
                     if (gifFilePtr->Image.Interlace) {
