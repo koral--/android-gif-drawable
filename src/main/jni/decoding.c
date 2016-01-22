@@ -16,14 +16,18 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                 if (DGifGetImageDesc(gifFilePtr, !shouldDecode) == GIF_ERROR)
                     return;
 
-                int topOverflow = gifFilePtr->Image.Top + gifFilePtr->Image.Height - gifFilePtr->SHeight;
-                if (topOverflow > 0) {
-                    gifFilePtr->Image.Top -= topOverflow;
-                }
+                if (!shouldDecode) {
+                    SavedImage *sp = &gifFilePtr->SavedImages[gifFilePtr->ImageCount - 1];
 
-                int leftOverflow = gifFilePtr->Image.Left + gifFilePtr->Image.Width - gifFilePtr->SWidth;
-                if (leftOverflow > 0) {
-                    gifFilePtr->Image.Left -= leftOverflow;
+                    int topOverflow = gifFilePtr->Image.Top + gifFilePtr->Image.Height - gifFilePtr->SHeight;
+                    if (topOverflow > 0) {
+                        sp->ImageDesc.Top -= topOverflow;
+                    }
+
+                    int leftOverflow = gifFilePtr->Image.Left + gifFilePtr->Image.Width - gifFilePtr->SWidth;
+                    if (leftOverflow > 0) {
+                        sp->ImageDesc.Left -= leftOverflow;
+                    }
                 }
 
                 int widthOverflow = gifFilePtr->Image.Width - gifFilePtr->SWidth;
@@ -41,6 +45,8 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                         info->rasterBits = tmpRasterBits;
                     }
                 }
+                LOGE("slurp %d", info->gifFilePtr->SavedImages->ImageDesc.Left);
+                LOGE("slurp2 %d", gifFilePtr->Image.Left);
 
                 if (shouldDecode) {
                     if (gifFilePtr->Image.Interlace) {
