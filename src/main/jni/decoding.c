@@ -3,7 +3,6 @@
 void DDGifSlurp(GifInfo *info, bool shouldDecode) {
     GifRecordType RecordType;
     GifByteType *ExtData;
-    int codeSize;
     int ExtFunction;
     GifFileType *gifFilePtr;
     gifFilePtr = info->gifFilePtr;
@@ -19,19 +18,19 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                 if (!shouldDecode) {
                     SavedImage *sp = &gifFilePtr->SavedImages[gifFilePtr->ImageCount - 1];
 
-                    int topOverflow = gifFilePtr->Image.Top + gifFilePtr->Image.Height - gifFilePtr->SHeight;
+                    int_fast32_t topOverflow = gifFilePtr->Image.Top + gifFilePtr->Image.Height - gifFilePtr->SHeight;
                     if (topOverflow > 0) {
                         sp->ImageDesc.Top -= topOverflow;
                     }
 
-                    int leftOverflow = gifFilePtr->Image.Left + gifFilePtr->Image.Width - gifFilePtr->SWidth;
+                    int_fast32_t leftOverflow = gifFilePtr->Image.Left + gifFilePtr->Image.Width - gifFilePtr->SWidth;
                     if (leftOverflow > 0) {
                         sp->ImageDesc.Left -= leftOverflow;
                     }
                 }
 
-                int widthOverflow = gifFilePtr->Image.Width - gifFilePtr->SWidth;
-                int heightOverflow = gifFilePtr->Image.Height - gifFilePtr->SHeight;
+                uint_fast16_t widthOverflow = gifFilePtr->Image.Width - gifFilePtr->SWidth;
+                uint_fast16_t heightOverflow = gifFilePtr->Image.Height - gifFilePtr->SHeight;
                 if (widthOverflow > 0 || heightOverflow > 0) {
                     gifFilePtr->SWidth += widthOverflow;
                     gifFilePtr->SHeight += heightOverflow;
@@ -58,26 +57,21 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                         /* Need to perform 4 passes on the image */
                         for (i = 0; i < 4; i++)
                             for (j = InterlacedOffset[i]; j < gifFilePtr->Image.Height; j += InterlacedJumps[i]) {
-                                if (DGifGetLine(gifFilePtr, info->rasterBits + j * gifFilePtr->Image.Width,
-                                                gifFilePtr->Image.Width) == GIF_ERROR)
+                                if (DGifGetLine(gifFilePtr, info->rasterBits + j * gifFilePtr->Image.Width, gifFilePtr->Image.Width) == GIF_ERROR)
                                     return;
                             }
                     }
                     else {
-                        if (DGifGetLine(
-                                gifFilePtr, info->rasterBits,
-                                gifFilePtr->Image.Width * gifFilePtr->Image.Height) == GIF_ERROR)
+                        if (DGifGetLine(gifFilePtr, info->rasterBits,gifFilePtr->Image.Width * gifFilePtr->Image.Height) == GIF_ERROR)
                             return;
                     }
                     return;
                 }
                 else {
-                    if (DGifGetCode(gifFilePtr, &codeSize, &ExtData) == GIF_ERROR)
-                        return;
-                    while (ExtData != NULL) {
+                    do
                         if (DGifGetCodeNext(gifFilePtr, &ExtData) == GIF_ERROR)
                             return;
-                    }
+                    while (ExtData != NULL);
                 }
                 break;
 

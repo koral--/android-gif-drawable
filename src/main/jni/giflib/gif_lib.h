@@ -20,15 +20,15 @@ gif_lib.h - service library for decoding and encoding GIF images
 typedef unsigned char GifPixelType;
 typedef unsigned char GifByteType;
 typedef unsigned int GifPrefixType;
-typedef int GifWord;
+typedef uint_fast16_t GifWord;
 
 typedef struct GifColorType {
     uint8_t Red, Green, Blue;
 } GifColorType;
 
 typedef struct ColorMapObject {
-    int ColorCount;
-    int BitsPerPixel;
+    uint_fast16_t ColorCount;
+    uint_fast8_t BitsPerPixel;
 //    bool SortFlag;
     GifColorType *Colors;    /* on malloc(3) heap */
 } ColorMapObject;
@@ -90,20 +90,20 @@ typedef enum {
 } GifRecordType;
 
 /* func type to read gif data from arbitrary sources (TVT) */
-typedef int (*InputFunc)(GifFileType *, GifByteType *, int);
+typedef uint_fast8_t (*InputFunc)(GifFileType *, GifByteType *, uint_fast8_t);
 
 /******************************************************************************
  GIF89 structures
 ******************************************************************************/
 
 typedef struct GraphicsControlBlock {
-    int DisposalMode;
+    uint_fast8_t DisposalMode;
 #define DISPOSAL_UNSPECIFIED      0       /* No disposal specified. */
 #define DISPOSE_DO_NOT            1       /* Leave image in place */
 #define DISPOSE_BACKGROUND        2       /* Set area too background color */
 #define DISPOSE_PREVIOUS          3       /* Restore to previous content */
 //    bool UserInputFlag;      /* User confirmation required before disposal */
-    int DelayTime;
+    uint_fast32_t DelayTime;
     /* pre-display delay in 0.01sec units */
     int TransparentColor;    /* Palette index for transparency, -1 if none */
 #define NO_TRANSPARENT_COLOR    -1
@@ -140,15 +140,12 @@ int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
 
 int DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount);
 
-int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, int GifLineLen);
+int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, uint_fast32_t GifLineLen);
 
 int DGifGetExtension(GifFileType *GifFile, int *GifExtCode,
                      GifByteType **GifExtension);
 
 int DGifGetExtensionNext(GifFileType *GifFile, GifByteType **GifExtension);
-
-int DGifGetCode(GifFileType *GifFile, int *GifCodeSize,
-                GifByteType **GifCodeBlock);
 
 int DGifGetCodeNext(GifFileType *GifFile, GifByteType **GifCodeBlock);
 /*****************************************************************************
@@ -160,7 +157,7 @@ int DGifGetCodeNext(GifFileType *GifFile, GifByteType **GifCodeBlock);
  Color map handling from gif_alloc.c
 ******************************************************************************/
 
-extern ColorMapObject *GifMakeMapObject(int BitsPerPixel,
+extern ColorMapObject *GifMakeMapObject(uint_fast8_t BitsPerPixel,
                                         const GifColorType *ColorMap);
 
 extern void GifFreeMapObject(ColorMapObject *Object);

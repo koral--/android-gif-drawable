@@ -26,7 +26,7 @@ static int DGifGetWord(GifFileType *GifFile, GifWord *Word);
 static int DGifSetupDecompress(GifFileType *GifFile);
 
 static int DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line,
-                              int LineLen);
+                              uint_fast32_t LineLen);
 
 static int DGifGetPrefixChar(GifPrefixType *Prefix, int Code, int ClearCode);
 
@@ -138,7 +138,7 @@ DGifGetScreenDesc(GifFileType *GifFile) {
     }
 //    GifFile->SColorResolution = (((Buf[0] & 0x70) + 1) >> 4) + 1;
 //    SortFlag = (Buf[0] & 0x08) != 0;
-    int BitsPerPixel = ((Buf[0] & 0x07) + 1);
+    uint_fast8_t BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
     GifFile->SBackGroundColor = Buf[1];
 //    GifFile->AspectByte = Buf[2];
     if (Buf[0] & 0x80) {    /* Do we have global color map? */
@@ -234,7 +234,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
         GifFile->Image.ColorMap = NULL;
         return GIF_ERROR;
     }
-    unsigned int BitsPerPixel = ((Buf[0] & 0x07) + 1);
+    uint_fast8_t BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
     GifFile->Image.Interlace = (Buf[0] & 0x40) ? true : false;
 
     /* Setup the colormap */
@@ -299,7 +299,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 Get one full scanned line (Line) of length LineLen from GIF file.
 ******************************************************************************/
 int
-DGifGetLine(GifFileType *GifFile, GifPixelType *Line, int LineLen) {
+DGifGetLine(GifFileType *GifFile, GifPixelType *Line, uint_fast32_t LineLen) {
     GifByteType *Dummy;
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
@@ -401,7 +401,7 @@ int DGifExtensionToGCB(const size_t GifExtensionLength,
         return GIF_ERROR;
     }
 
-    GCB->DisposalMode = ((GifExtension[0] >> 2) & 0x07);
+    GCB->DisposalMode = (uint_fast8_t) ((GifExtension[0] >> 2) & 0x07);
 //    GCB->UserInputFlag = (GifExtension[0] & 0x02) != 0;
     GCB->DelayTime = UNSIGNED_LITTLE_ENDIAN(GifExtension[1], GifExtension[2]);
     if (GifExtension[0] & 0x01)
@@ -479,28 +479,6 @@ DGifGetWord(GifFileType *GifFile, GifWord *Word) {
 
     *Word = (GifWord) UNSIGNED_LITTLE_ENDIAN(c[0], c[1]);
     return GIF_OK;
-}
-
-/******************************************************************************
-Get the image code in compressed form.  This routine can be called if the
-information needed to be piped out as is. Obviously this is much faster
-than decoding and encoding again. This routine should be followed by calls
-to DGifGetCodeNext, until NULL block is returned.
-The block should NOT be freed by the user (not dynamically allocated).
-******************************************************************************/
-int
-DGifGetCode(GifFileType *GifFile, int *CodeSize, GifByteType **CodeBlock) {
-    GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
-
-//    if (!IS_READABLE(Private)) {
-//        /* This file was NOT open for reading: */
-//        GifFile->Error = D_GIF_ERR_NOT_READABLE;
-//        return GIF_ERROR;
-//    }
-
-    *CodeSize = Private->BitsPerPixel;
-
-    return DGifGetCodeNext(GifFile, CodeBlock);
 }
 
 /******************************************************************************
@@ -582,7 +560,7 @@ This routine can be called few times (one per scan line, for example), in
 order the complete the whole image.
 ******************************************************************************/
 static int
-DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, int LineLen) {
+DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, uint_fast32_t LineLen) {
     int i = 0, j;
     int CrntCode, EOFCode, ClearCode, CrntPrefix, LastCode, StackPtr;
     GifByteType *Stack, *Suffix;

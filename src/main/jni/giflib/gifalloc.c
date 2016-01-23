@@ -35,7 +35,7 @@
  * ColorMap if that pointer is non-NULL.
  */
 ColorMapObject *
-GifMakeMapObject(int BitsPerPixel, const GifColorType *ColorMap) {
+GifMakeMapObject(uint_fast8_t BitsPerPixel, const GifColorType *ColorMap) {
     ColorMapObject *Object;
 
     /*** Our ColorCount has to be a power of two.  Is it necessary to
