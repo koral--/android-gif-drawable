@@ -73,6 +73,7 @@ public class GifViewUtilsTest {
     public void testNoneDisplayDensities() throws Exception {
         assertEquals(1, getDensityScale(getMockedResources(DENSITY_LOW, Bitmap.DENSITY_NONE), 0), DELTA);
         assertEquals(1, getDensityScale(getMockedResources(DENSITY_MEDIUM, Bitmap.DENSITY_NONE), 0), DELTA);
+        assertEquals(1, getDensityScale(getMockedResources(TypedValue.DENSITY_DEFAULT, Bitmap.DENSITY_NONE), 0), DELTA);
         assertEquals(1, getDensityScale(getMockedResources(DENSITY_HIGH, Bitmap.DENSITY_NONE), 0), DELTA);
         assertEquals(1, getDensityScale(getMockedResources(DENSITY_XXHIGH, Bitmap.DENSITY_NONE), 0), DELTA);
     }
