@@ -22,7 +22,7 @@ before_install:
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:
-  - ./gradlew build --info
+  - ./gradlew build jacocoTestReport --info
 
-after_failure:
-  - cat build/outputs/lint-results.xml
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
