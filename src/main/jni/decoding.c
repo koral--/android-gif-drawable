@@ -29,8 +29,8 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                     }
                 }
 
-                uint_fast16_t widthOverflow = gifFilePtr->Image.Width - gifFilePtr->SWidth;
-                uint_fast16_t heightOverflow = gifFilePtr->Image.Height - gifFilePtr->SHeight;
+                int_fast32_t widthOverflow = gifFilePtr->Image.Width - gifFilePtr->SWidth;
+                int_fast32_t heightOverflow = gifFilePtr->Image.Height - gifFilePtr->SHeight;
                 if (widthOverflow > 0 || heightOverflow > 0) {
                     gifFilePtr->SWidth += widthOverflow;
                     gifFilePtr->SHeight += heightOverflow;
