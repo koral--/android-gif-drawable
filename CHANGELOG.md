@@ -1,3 +1,6 @@
+### 1.1.13
+- Fixed regression (heap corruption if frame size is lower than canvas size) - [#250](https://github.com/koral--/android-gif-drawable/issues/250)
+
 ### 1.1.12
 - Added `mipmap` resources support in XML attributes
 - ReLinker code cleanup
