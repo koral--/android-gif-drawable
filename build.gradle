@@ -34,11 +34,6 @@ android {
         targetSdkVersion 23
         consumerProguardFiles 'consumer-proguard-rules.pro'
     }
-    buildTypes {
-        debug {
-            testCoverageEnabled true
-        }
-    }
 }
 
 dependencies {
@@ -47,7 +42,6 @@ dependencies {
 }
 
 jacocoAndroidUnitTestReport {
-    csv.enabled false
     html.enabled true
     xml.enabled true
 }
