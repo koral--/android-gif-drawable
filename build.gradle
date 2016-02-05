@@ -5,10 +5,12 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'com.dicedmelon.gradle:jacoco-android:0.1.1'
     }
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'jacoco-android'
 apply from: 'gradle-mvn-push.gradle'
 apply from: 'ndk.gradle'
 
@@ -37,4 +39,9 @@ android {
 dependencies {
     provided 'com.android.support:support-annotations:23.1.1'
     testCompile 'junit:junit:4.12'
+}
+
+jacocoAndroidUnitTestReport {
+    html.enabled true
+    xml.enabled true
 }
