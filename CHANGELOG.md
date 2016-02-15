@@ -1,3 +1,10 @@
+### 1.1.14
+- Gradle wrapper version updated to 2.11
+- duplicated frame offset correction removed
+- subsampling added - [#239](https://github.com/koral--/android-gif-drawable/issues/239)
+- width, height and number of frames storage in recycled objects removed
+- native code cleanup  
+
 ### 1.1.13
 - Fixed regression (heap corruption if frame size is lower than canvas size) - [#250](https://github.com/koral--/android-gif-drawable/issues/250)
 

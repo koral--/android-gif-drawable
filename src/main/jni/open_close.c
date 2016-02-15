@@ -16,7 +16,7 @@ void cleanUp(GifInfo *info) {
     free(info);
 }
 
-jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData) {
+GifInfo* createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData) {
     if (descriptor->startPos < 0) {
         descriptor->Error = D_GIF_ERR_NOT_READABLE;
         DGifCloseFile(descriptor->GifFileIn);
@@ -54,11 +54,14 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
     info->rewindFunction = descriptor->rewindFunc;
     info->surfaceDescriptor = NULL;
     info->isOpaque = JNI_FALSE;
+    info->sampleSize = 1;
+    info->originalHeight = info->gifFilePtr->SHeight;
+    info->originalWidth = info->gifFilePtr->SWidth;
 
     DDGifSlurp(info, false);
-    if (justDecodeMetaData == JNI_TRUE)
+    if (justDecodeMetaData == JNI_TRUE) {
         info->rasterBits = NULL;
-    else {
+    } else {
         info->rasterBits = malloc(descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
         if (info->rasterBits == NULL) {
             descriptor->GifFileIn->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
@@ -76,7 +79,7 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         return NULL;
     }
 #if defined(STRICT_FORMAT_89A)
-        descriptor->Error = descriptor->GifFileIn->Error;
+    descriptor->Error = descriptor->GifFileIn->Error;
 #endif
 
     if (descriptor->GifFileIn->ImageCount == 0) {
@@ -90,17 +93,5 @@ jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean j
         throwGifIOException(descriptor->Error, env);
         return NULL;
     }
-    jclass gifInfoHandleClass = (*env)->FindClass(env, "pl/droidsonroids/gif/GifInfoHandle");
-    if (gifInfoHandleClass == NULL) {
-        cleanUp(info);
-        return NULL;
-    }
-    jmethodID gifInfoHandleCtorMID = (*env)->GetMethodID(env, gifInfoHandleClass, "<init>", "(JIII)V");
-    if (gifInfoHandleCtorMID == NULL) {
-        cleanUp(info);
-        return NULL;
-    }
-    return (*env)->NewObject(env, gifInfoHandleClass, gifInfoHandleCtorMID,
-                             (jlong) (intptr_t) info, info->gifFilePtr->SWidth, info->gifFilePtr->SHeight,
-                             info->gifFilePtr->ImageCount);
+    return info;
 }

@@ -352,9 +352,9 @@ public class GifTextureView extends TextureView {
         final float viewWidth = getWidth();
         final float viewHeight = getHeight();
         final float scaleRef;
-        final float scaleX = gifInfoHandle.width / viewWidth;
-        final float scaleY = gifInfoHandle.height / viewHeight;
-        RectF src = new RectF(0, 0, gifInfoHandle.width, gifInfoHandle.height);
+        final float scaleX = gifInfoHandle.getWidth() / viewWidth;
+        final float scaleY = gifInfoHandle.getHeight() / viewHeight;
+        RectF src = new RectF(0, 0, gifInfoHandle.getWidth(), gifInfoHandle.getHeight());
         RectF dst = new RectF(0, 0, viewWidth, viewHeight);
         switch (mScaleType) {
             case CENTER:
@@ -365,7 +365,7 @@ public class GifTextureView extends TextureView {
                 transform.setScale(scaleRef * scaleX, scaleRef * scaleY, viewWidth / 2, viewHeight / 2);
                 break;
             case CENTER_INSIDE:
-                if (gifInfoHandle.width <= viewWidth && gifInfoHandle.height <= viewHeight) {
+                if (gifInfoHandle.getWidth() <= viewWidth && gifInfoHandle.getHeight() <= viewHeight) {
                     scaleRef = 1.0f;
                 } else {
                     scaleRef = Math.min(1 / scaleX, 1 / scaleY);

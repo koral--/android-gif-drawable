@@ -90,7 +90,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused 
         return 0;
     }
     GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-    GifWord pxCount = info->gifFilePtr->SWidth + info->gifFilePtr->SHeight;
+    GifWord pxCount = info->originalWidth + info->originalHeight;
     size_t sum = pxCount * sizeof(char);
     if (info->backupPtr != NULL)
         sum += pxCount * sizeof(argb);

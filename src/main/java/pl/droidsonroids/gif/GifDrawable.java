@@ -94,8 +94,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	public GifDrawable(@NonNull Resources res, @DrawableRes @RawRes int id) throws NotFoundException, IOException {
 		this(res.openRawResourceFd(id));
 		final float densityScale = GifViewUtils.getDensityScale(res, id);
-		mScaledHeight = (int) (mNativeInfoHandle.height * densityScale);
-		mScaledWidth = (int) (mNativeInfoHandle.width * densityScale);
+		mScaledHeight = (int) (mNativeInfoHandle.getHeight() * densityScale);
+		mScaledWidth = (int) (mNativeInfoHandle.getWidth() * densityScale);
 	}
 
 	/**
@@ -121,7 +121,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if filePath is null
 	 */
 	public GifDrawable(@NonNull String filePath) throws IOException {
-		this(GifInfoHandle.openFile(filePath, false), null, null, true);
+		this(new GifInfoHandle(filePath, false), null, null, true);
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if file is null
 	 */
 	public GifDrawable(@NonNull File file) throws IOException {
-		this(GifInfoHandle.openFile(file.getPath(), false), null, null, true);
+		this(file.getPath());
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException     if stream is null
 	 */
 	public GifDrawable(@NonNull InputStream stream) throws IOException {
-		this(GifInfoHandle.openMarkableInputStream(stream, false), null, null, true);
+		this(new GifInfoHandle(stream, false), null, null, true);
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws IOException          when opening failed
 	 */
 	public GifDrawable(@NonNull AssetFileDescriptor afd) throws IOException {
-		this(GifInfoHandle.openAssetFileDescriptor(afd, false), null, null, true);
+		this(new GifInfoHandle(afd, false), null, null, true);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if fd is null
 	 */
 	public GifDrawable(@NonNull FileDescriptor fd) throws IOException {
-		this(GifInfoHandle.openFd(fd, 0, false), null, null, true);
+		this(new GifInfoHandle(fd, 0, false), null, null, true);
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if bytes are null
 	 */
 	public GifDrawable(@NonNull byte[] bytes) throws IOException {
-		this(GifInfoHandle.openByteArray(bytes, false), null, null, true);
+		this(new GifInfoHandle(bytes, false), null, null, true);
 	}
 
 	/**
@@ -192,7 +192,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if buffer is null
 	 */
 	public GifDrawable(@NonNull ByteBuffer buffer) throws IOException {
-		this(GifInfoHandle.openDirectByteBuffer(buffer, false), null, null, true);
+		this(new GifInfoHandle(buffer, false), null, null, true);
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		if (oldDrawable != null) {
 			synchronized (oldDrawable.mNativeInfoHandle) {
 				if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
-					if (oldDrawable.mNativeInfoHandle.height >= mNativeInfoHandle.height && oldDrawable.mNativeInfoHandle.width >= mNativeInfoHandle.width) {
+					if (oldDrawable.mNativeInfoHandle.getHeight() >= mNativeInfoHandle.getHeight() && oldDrawable.mNativeInfoHandle.getWidth() >= mNativeInfoHandle.getWidth()) {
 						oldDrawable.shutdown();
 						oldBitmap = oldDrawable.mBuffer;
 						oldBitmap.eraseColor(Color.TRANSPARENT);
@@ -226,16 +226,16 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		}
 
 		if (oldBitmap == null) {
-			mBuffer = Bitmap.createBitmap(mNativeInfoHandle.width, mNativeInfoHandle.height, Bitmap.Config.ARGB_8888);
+			mBuffer = Bitmap.createBitmap(mNativeInfoHandle.getWidth(), mNativeInfoHandle.getHeight(), Bitmap.Config.ARGB_8888);
 		} else {
 			mBuffer = oldBitmap;
 		}
 
-		mSrcRect = new Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
+		mSrcRect = new Rect(0, 0, mNativeInfoHandle.getWidth(), mNativeInfoHandle.getHeight());
 		mInvalidationHandler = new InvalidationHandler(this);
 		mRenderTask.doWork();
-		mScaledWidth = mNativeInfoHandle.width;
-		mScaledHeight = mNativeInfoHandle.height;
+		mScaledWidth = mNativeInfoHandle.getWidth();
+		mScaledHeight = mNativeInfoHandle.getHeight();
 	}
 
 	/**
@@ -398,14 +398,15 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	@Override
 	public String toString() {
-		return String.format(Locale.ENGLISH, "GIF: size: %dx%d, frames: %d, error: %d", mNativeInfoHandle.width, mNativeInfoHandle.height, mNativeInfoHandle.frameCount, mNativeInfoHandle.getNativeErrorCode());
+		return String.format(Locale.ENGLISH, "GIF: size: %dx%d, frames: %d, error: %d",
+				mNativeInfoHandle.getWidth(), mNativeInfoHandle.getHeight(), mNativeInfoHandle.getNumberOfFrames(), mNativeInfoHandle.getNativeErrorCode());
 	}
 
 	/**
 	 * @return number of frames in GIF, at least one
 	 */
 	public int getNumberOfFrames() {
-		return mNativeInfoHandle.frameCount;
+		return mNativeInfoHandle.getNumberOfFrames();
 	}
 
 	/**
@@ -676,7 +677,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws ArrayIndexOutOfBoundsException if the pixels array is too small to receive required number of pixels
 	 */
 	public void getPixels(@NonNull int[] pixels) {
-		mBuffer.getPixels(pixels, 0, mNativeInfoHandle.width, 0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height);
+		mBuffer.getPixels(pixels, 0, mNativeInfoHandle.getWidth(), 0, 0, mNativeInfoHandle.getWidth(), mNativeInfoHandle.getHeight());
 	}
 
 	/**
@@ -691,10 +692,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws IllegalStateException    if drawable is recycled
 	 */
 	public int getPixel(int x, int y) {
-		if (x >= mNativeInfoHandle.width) { //need to check explicitly because reused bitmap may be larger
+		if (x >= mNativeInfoHandle.getWidth()) { //need to check explicitly because reused bitmap may be larger
 			throw new IllegalArgumentException("x must be < width");
 		}
-		if (y >= mNativeInfoHandle.height) {
+		if (y >= mNativeInfoHandle.getHeight()) {
 			throw new IllegalArgumentException("y must be < height");
 		}
 		return mBuffer.getPixel(x, y);

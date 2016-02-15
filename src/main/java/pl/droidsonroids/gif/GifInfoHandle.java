@@ -23,36 +23,41 @@ final class GifInfoHandle {
      * when {@link #recycle()} is called during another operation.
      */
     private volatile long gifInfoPtr;
-    final int width;
-    final int height;
-    final int frameCount;
 
-    @SuppressWarnings("SameParameterValue")
-    //invoked from native code
-    private GifInfoHandle(long gifInfoPtr, int width, int height, int frameCount) {
-        this.gifInfoPtr = gifInfoPtr;
-        this.width = width;
-        this.height = height;
-        this.frameCount = frameCount;
-    }
-
-    static final GifInfoHandle NULL_INFO = new GifInfoHandle(0, 0, 0, 0);
+    static final GifInfoHandle NULL_INFO = new GifInfoHandle();
 
     static {
         LibraryLoader.loadLibrary(null, LibraryLoader.BASE_LIBRARY_NAME);
     }
 
-    static native GifInfoHandle openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws
-            GifIOException;
+    private GifInfoHandle() {
+    }
 
-    static native GifInfoHandle openByteArray(byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
+    GifInfoHandle(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException {
+        gifInfoPtr = openFd(fd, offset, justDecodeMetaData);
+    }
 
-    static native GifInfoHandle openDirectByteBuffer(ByteBuffer buffer, boolean justDecodeMetaData) throws
-            GifIOException;
+    GifInfoHandle(byte[] bytes, boolean justDecodeMetaData) throws GifIOException {
+        gifInfoPtr = openByteArray(bytes, justDecodeMetaData);
+    }
 
-    static native GifInfoHandle openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
+    GifInfoHandle(ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException {
+        gifInfoPtr = openDirectByteBuffer(buffer, justDecodeMetaData);
+    }
 
-    static native GifInfoHandle openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
+    GifInfoHandle(String filePath, boolean justDecodeMetaData) throws GifIOException {
+        gifInfoPtr = openFile(filePath, justDecodeMetaData);
+    }
+
+    static native long openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
+
+    static native long openByteArray(byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
+
+    static native long openDirectByteBuffer(ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
+
+    static native long openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
+
+    static native long openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
 
     private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
@@ -102,16 +107,24 @@ final class GifInfoHandle {
 
     private static native int getFrameDuration(long gifInfoPtr, int index);
 
-    static GifInfoHandle openMarkableInputStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
+    private static native int setSampleSize(long gifInfoPtr, int sampleSize);
+
+    private static native int getWidth(long gifFileInPtr);
+
+    private static native int getHeight(long gifFileInPtr);
+
+    private native int getNumberOfFrames(long gifInfoPtr);
+
+    GifInfoHandle(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported()) {
             throw new IllegalArgumentException("InputStream does not support marking");
         }
-        return openStream(stream, justDecodeMetaData);
+        gifInfoPtr = openStream(stream, justDecodeMetaData);
     }
 
-    static GifInfoHandle openAssetFileDescriptor(AssetFileDescriptor afd, boolean justDecodeMetaData) throws IOException {
+    GifInfoHandle(AssetFileDescriptor afd, boolean justDecodeMetaData) throws IOException {
         try {
-            return openFd(afd.getFileDescriptor(), afd.getStartOffset(), justDecodeMetaData);
+            gifInfoPtr = openFd(afd.getFileDescriptor(), afd.getStartOffset(), justDecodeMetaData);
         } finally {
             afd.close();
         }
@@ -119,9 +132,9 @@ final class GifInfoHandle {
 
     static GifInfoHandle openUri(ContentResolver resolver, Uri uri, boolean justDecodeMetaData) throws IOException {
         if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) { //workaround for #128
-            return openFile(uri.getPath(), justDecodeMetaData);
+            return new GifInfoHandle(uri.getPath(), justDecodeMetaData);
         }
-        return openAssetFileDescriptor(resolver.openAssetFileDescriptor(uri, "r"), justDecodeMetaData);
+        return new GifInfoHandle(resolver.openAssetFileDescriptor(uri, "r"), justDecodeMetaData);
     }
 
     synchronized long renderFrame(Bitmap frameBuffer) {
@@ -244,11 +257,27 @@ final class GifInfoHandle {
     }
 
     int getFrameDuration(@IntRange(from = 0) final int index) {
-        if (index < 0 || index >= frameCount) {
-            throw new IndexOutOfBoundsException("Frame index is out of bounds");
-        }
         synchronized (this) {
+            if (index < 0 || index >= getNumberOfFrames(gifInfoPtr)) {
+                throw new IndexOutOfBoundsException("Frame index is out of bounds");
+            }
             return getFrameDuration(gifInfoPtr, index);
         }
+    }
+
+    void setSampleSize(int sampleSize) {
+        setSampleSize(gifInfoPtr, sampleSize);
+    }
+
+    synchronized int getWidth() {
+        return getWidth(gifInfoPtr);
+    }
+
+    synchronized int getHeight() {
+        return getHeight(gifInfoPtr);
+    }
+
+    synchronized int getNumberOfFrames() {
+        return getNumberOfFrames(gifInfoPtr);
     }
 }

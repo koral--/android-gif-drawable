@@ -103,17 +103,9 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
     if (nextTrans || !checkIfCover(next, cur)) {
         if (curDisposal == DISPOSE_BACKGROUND) {// restore to background (under this image) color
             uint32_t *dst = (uint32_t *) GET_ADDR(bm, info->stride, cur->ImageDesc.Left, cur->ImageDesc.Top);
-            uint_fast16_t copyWidth = cur->ImageDesc.Width;
-            if (cur->ImageDesc.Left + copyWidth > fGif->SWidth) {
-                copyWidth = fGif->SWidth - cur->ImageDesc.Left;
-            }
-
             uint_fast16_t copyHeight = cur->ImageDesc.Height;
-            if (cur->ImageDesc.Top + copyHeight > fGif->SHeight) {
-                copyHeight = fGif->SHeight - cur->ImageDesc.Top;
-            }
             for (; copyHeight > 0; copyHeight--) {
-                MEMSET_ARGB(dst, 0, copyWidth);
+                MEMSET_ARGB(dst, 0, cur->ImageDesc.Width);
                 dst += info->stride;
             }
         }
@@ -142,8 +134,9 @@ void prepareCanvas(argb *bm, GifInfo *info) {
 }
 
 void drawNextBitmap(argb *bm, GifInfo *info){
-    if (info->currentIndex > 0)
+    if (info->currentIndex > 0) {
         disposeFrameIfNeeded(bm, info);
+    }
     drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
 }
 

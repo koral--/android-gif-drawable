@@ -98,6 +98,8 @@ typedef struct {
 
 struct GifInfo {
     GifFileType *gifFilePtr;
+    GifWord originalWidth, originalHeight;
+    uint_fast16_t sampleSize;
     long lastFrameRemainder;
     long nextStartTime;
     uint_fast32_t currentIndex;
@@ -186,7 +188,7 @@ __attribute__ ((visibility ("default"))) void DDGifSlurp(GifInfo *info, bool sho
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
-jobject createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData);
+GifInfo* createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData);
 
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
 

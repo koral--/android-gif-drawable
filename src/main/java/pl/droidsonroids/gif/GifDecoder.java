@@ -107,35 +107,35 @@ public class GifDecoder {
      * @return width od the GIF canvas in pixels
      */
     public int getWidth() {
-        return mGifInfoHandle.width;
+        return mGifInfoHandle.getWidth();
     }
 
     /**
      * @return height od the GIF canvas in pixels
      */
     public int getHeight() {
-        return mGifInfoHandle.height;
+        return mGifInfoHandle.getHeight();
     }
 
     /**
      * @return number of frames in GIF, at least one
      */
     public int getNumberOfFrames() {
-        return mGifInfoHandle.frameCount;
+        return mGifInfoHandle.getNumberOfFrames();
     }
 
     /**
      * @return true if GIF is animated (has at least 2 frames and positive duration), false otherwise
      */
     public boolean isAnimated() {
-        return mGifInfoHandle.frameCount > 1 && getDuration() > 0;
+        return mGifInfoHandle.getNumberOfFrames() > 1 && getDuration() > 0;
     }
 
     private void checkBuffer(final Bitmap buffer) {
         if (buffer.isRecycled()) {
             throw new IllegalArgumentException("Bitmap is recycled");
         }
-        if (buffer.getWidth() < mGifInfoHandle.width || buffer.getHeight() < mGifInfoHandle.height) {
+        if (buffer.getWidth() < mGifInfoHandle.getWidth() || buffer.getHeight() < mGifInfoHandle.getHeight()) {
             throw new IllegalArgumentException("Bitmap ia too small, size must be greater than or equal to GIF size");
         }
     }

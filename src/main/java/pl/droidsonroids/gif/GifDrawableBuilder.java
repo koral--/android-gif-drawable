@@ -28,6 +28,8 @@ import static pl.droidsonroids.gif.InputSource.UriSource;
  * by reusing old ones.
  */
 public class GifDrawableBuilder {
+    private int mSampleSize = 1;
+
     /**
      * Constructs empty builder.
      */
@@ -40,6 +42,20 @@ public class GifDrawableBuilder {
     private boolean mIsRenderingTriggeredOnDraw = true;
 
     /**
+     * If set to a value &gt; 1, requests the decoder to subsample the original
+     * frames, returning a smaller frame buffer to save memory. The sample size is
+     * the number of pixels in either dimension that correspond to a single
+     * pixel in the decoded bitmap. For example, inSampleSize == 4 returns
+     * an image that is 1/4 the width/height of the original, and 1/16 the
+     * number of pixels. Any value &lt;= 1 is treated the same as 1.
+     * Unlike {@link android.graphics.BitmapFactory.Options#inSampleSize}
+     * values which are not powers of 2 are also supported.
+     */
+    public void sampleSize(final int sampleSize) {
+        mSampleSize = sampleSize;
+    }
+
+    /**
      * Appropriate constructor wrapper. Must be preceded by on of {@code from()} calls.
      *
      * @return new drawable instance
@@ -49,7 +65,7 @@ public class GifDrawableBuilder {
         if (mInputSource == null) {
             throw new NullPointerException("Source is not set");
         }
-        return mInputSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw);
+        return mInputSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw, mSampleSize);
     }
 
     /**

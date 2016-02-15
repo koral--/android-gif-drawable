@@ -28,8 +28,12 @@ public abstract class InputSource {
 
     abstract GifInfoHandle open() throws IOException;
 
-    final GifDrawable build(GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingAlwaysEnabled) throws IOException {
-        return new GifDrawable(open(), oldDrawable, executor, isRenderingAlwaysEnabled);
+    final GifDrawable build(final GifDrawable oldDrawable, final ScheduledThreadPoolExecutor executor, final boolean isRenderingAlwaysEnabled, final int sampleSize) throws IOException {
+        final GifInfoHandle handle = open();
+        if (sampleSize > 1) {
+            handle.setSampleSize(sampleSize);
+        }
+        return new GifDrawable(handle, oldDrawable, executor, isRenderingAlwaysEnabled);
     }
 
     final boolean isOpaque() {
@@ -40,7 +44,8 @@ public abstract class InputSource {
      * Indicates whether the content of this source is opaque. GIF that is known to be opaque can
      * take a faster drawing case than non-opaque one. See {@link GifTextureView#setOpaque(boolean)}
      * for more information.<br>
-     * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}
+     * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}.
+     *
      * @param isOpaque whether the content of this source is opaque
      * @return this InputSource
      */
@@ -67,7 +72,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws GifIOException {
-            return GifInfoHandle.openDirectByteBuffer(byteBuffer, false);
+            return new GifInfoHandle(byteBuffer, false);
         }
     }
 
@@ -89,7 +94,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws GifIOException {
-            return GifInfoHandle.openByteArray(bytes, false);
+            return new GifInfoHandle(bytes, false);
         }
     }
 
@@ -119,7 +124,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws GifIOException {
-            return GifInfoHandle.openFile(mPath, false);
+            return new GifInfoHandle(mPath, false);
         }
     }
 
@@ -167,7 +172,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mAssetManager.openFd(mAssetName), false);
+            return new GifInfoHandle(mAssetManager.openFd(mAssetName), false);
         }
     }
 
@@ -188,7 +193,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openFd(mFd, 0, false);
+            return new GifInfoHandle(mFd, 0, false);
         }
     }
 
@@ -209,7 +214,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openMarkableInputStream(inputStream, false);
+            return new GifInfoHandle(inputStream, false);
         }
     }
 
@@ -233,7 +238,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mResources.openRawResourceFd(mResourceId), false);
+            return new GifInfoHandle(mResources.openRawResourceFd(mResourceId), false);
         }
     }
 
@@ -245,6 +250,7 @@ public abstract class InputSource {
 
         /**
          * Constructs new source.
+         *
          * @param assetFileDescriptor source asset file descriptor.
          */
         public AssetFileDescriptorSource(@NonNull AssetFileDescriptor assetFileDescriptor) {
@@ -253,7 +259,7 @@ public abstract class InputSource {
 
         @Override
         GifInfoHandle open() throws IOException {
-            return GifInfoHandle.openAssetFileDescriptor(mAssetFileDescriptor, false);
+            return new GifInfoHandle(mAssetFileDescriptor, false);
         }
     }
 
