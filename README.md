@@ -249,6 +249,11 @@ That method can be used to control drawable visibility in cases when it is not a
 ##References
 This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.2 and [SKIA](https://code.google.com/p/skia/).
 
+###Projects using android-gif-drawable
+[ImageFactory](https://github.com/Doctoror/ImageFactory)
+
+Want to include your project here? [Fill an issue](https://github.com/koral--/android-gif-drawable/issues/new)
+
 ##License
 
 MIT License<br>
