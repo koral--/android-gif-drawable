@@ -46,7 +46,7 @@ public class GifDecoder {
     /**
      * See {@link GifDrawable#getInputSourceByteCount()}
      *
-     * @return loop count, 0 means that animation is infinite
+     * @return number of bytes backed by input source or -1 if it is unknown
      */
     public long getSourceLength() {
         return mGifInfoHandle.getSourceLength();
@@ -56,6 +56,7 @@ public class GifDecoder {
      * See {@link GifDrawable#seekTo(int)}
      *
      * @param position position to seek to in milliseconds
+     * @param buffer the frame buffer
      * @throws IllegalArgumentException if <code>position</code>&lt;0 or <code>buffer</code> is recycled
      */
     public void seekToTime(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position, @NonNull final Bitmap buffer) {
@@ -67,6 +68,7 @@ public class GifDecoder {
      * See {@link GifDrawable#seekToFrame(int)}
      *
      * @param frameIndex position to seek to in milliseconds
+     * @param buffer the frame buffer
      * @throws IllegalArgumentException if <code>frameIndex</code>&lt;0 or <code>buffer</code> is recycled
      */
     public void seekToFrame(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex, @NonNull final Bitmap buffer) {
