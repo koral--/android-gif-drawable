@@ -113,7 +113,7 @@ final class GifInfoHandle {
 
     private static native int getHeight(long gifFileInPtr);
 
-    private native int getNumberOfFrames(long gifInfoPtr);
+    private static native int getNumberOfFrames(long gifInfoPtr);
 
     GifInfoHandle(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
         if (!stream.markSupported()) {

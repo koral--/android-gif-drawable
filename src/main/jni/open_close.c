@@ -55,8 +55,6 @@ GifInfo* createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
     info->surfaceDescriptor = NULL;
     info->isOpaque = JNI_FALSE;
     info->sampleSize = 1;
-    info->originalHeight = info->gifFilePtr->SHeight;
-    info->originalWidth = info->gifFilePtr->SWidth;
 
     DDGifSlurp(info, false);
     if (justDecodeMetaData == JNI_TRUE) {
@@ -67,6 +65,8 @@ GifInfo* createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
             descriptor->GifFileIn->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
         }
     }
+    info->originalHeight = info->gifFilePtr->SHeight;
+    info->originalWidth = info->gifFilePtr->SWidth;
 
     if (descriptor->GifFileIn->SWidth < 1 || descriptor->GifFileIn->SHeight < 1) {
         DGifCloseFile(descriptor->GifFileIn);

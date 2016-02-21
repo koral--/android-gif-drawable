@@ -39,8 +39,12 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
                     int_fast32_t widthOverflow = gifFilePtr->Image.Width - info->originalWidth;
                     int_fast32_t heightOverflow = gifFilePtr->Image.Height - info->originalHeight;
                     if (widthOverflow > 0 || heightOverflow > 0) {
-                        gifFilePtr->Error = D_GIF_ERR_IMG_NOT_CONFINED;
-                        return;
+                        void *tmpRasterBits = reallocarray(info->rasterBits, info->originalWidth * info->originalHeight, sizeof(GifPixelType));
+                        if (tmpRasterBits == NULL) {
+                            gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+                            return;
+                        }
+                        info->rasterBits = tmpRasterBits;
                     }
                     if (gifFilePtr->Image.Interlace) {
                         uint_fast16_t i, j;

@@ -15,7 +15,8 @@ static void *slurp(void *pVoidInfo) {
 
         if (info->surfaceDescriptor->slurpHelper == 2) {
             pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
-            break;
+            DetachCurrentThread();
+            return NULL;
         }
         info->surfaceDescriptor->slurpHelper = 0;
         pthread_mutex_unlock(&info->surfaceDescriptor->slurpMutex);
@@ -25,9 +26,6 @@ static void *slurp(void *pVoidInfo) {
         pthread_cond_signal(&info->surfaceDescriptor->renderCond);
         pthread_mutex_unlock(&info->surfaceDescriptor->renderMutex);
     }
-
-    DetachCurrentThread();
-    return NULL;
 }
 
 static inline bool initSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *env) {
