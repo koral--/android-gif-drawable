@@ -210,6 +210,11 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.1.13
+Handling of several edge cases has been changed:
++ `GifDrawable#getNumberOfFrames()` now returns 0 when `GifDrawable` is recycled
++ Information included in result of `GifDrawable#toString()` when `GifDrawable` is recycled now contains zeroes only
+
 ##Upgrading from 1.1.10
 It is recommended (but not required) to call `LibraryLoader.initialize()` before using `GifDrawable`. `Context` is needed in some cases
 when native libraries cannot be extracted normally. See [ReLinker](https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db)
