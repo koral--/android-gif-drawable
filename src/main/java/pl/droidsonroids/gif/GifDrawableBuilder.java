@@ -50,6 +50,7 @@ public class GifDrawableBuilder {
      * number of pixels. Any value &lt;= 1 is treated the same as 1.
      * Unlike {@link android.graphics.BitmapFactory.Options#inSampleSize}
      * values which are not powers of 2 are also supported.
+     * @param sampleSize the sample size
      */
     public void sampleSize(final int sampleSize) {
         mSampleSize = sampleSize;
