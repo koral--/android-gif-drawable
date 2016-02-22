@@ -96,8 +96,13 @@ typedef struct {
 	uint8_t renderHelper;
 	pthread_mutex_t renderMutex;
 	pthread_cond_t renderCond;
-	pthread_t thread;
 } SurfaceDescriptor;
+
+typedef struct {
+	struct pollfd eventPollFd;
+	void *frameBuffer;
+	pthread_t slurpThread;
+} TexImageDescriptor;
 
 struct GifInfo {
 	GifFileType *gifFilePtr;
@@ -118,7 +123,7 @@ struct GifInfo {
 	int32_t stride;
 	jlong sourceLength;
 	jboolean isOpaque;
-	SurfaceDescriptor *surfaceDescriptor;
+	void *frameBufferDescriptor;
 };
 
 typedef struct {
@@ -213,15 +218,13 @@ __attribute__ ((visibility ("default"))) long calculateInvalidationDelay(GifInfo
 
 __attribute__ ((visibility ("default"))) jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 
-__attribute__ ((visibility ("default"))) void releaseSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *pConst);
+__attribute__ ((visibility ("default"))) void releaseSurfaceDescriptor(GifInfo *surfaceDescriptor, JNIEnv *pConst);
 
 __attribute__ ((visibility ("default"))) void prepareCanvas(argb *bm, GifInfo *info);
 
 void drawNextBitmap(argb *bm, GifInfo *info);
 
 uint_fast32_t getFrameDuration(GifInfo *info);
-
-bool initSurfaceDescriptor(SurfaceDescriptor *surfaceDescriptor, JNIEnv *env);
 
 JNIEnv *getEnv();
 

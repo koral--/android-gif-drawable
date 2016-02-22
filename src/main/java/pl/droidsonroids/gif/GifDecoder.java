@@ -12,7 +12,7 @@ import java.io.IOException;
  * For access only metadata (size, number of frames etc.) without pixels see {@link GifAnimationMetaData}.
  */
 public class GifDecoder {
-
+	//TODO extract common container
 	private final GifInfoHandle mGifInfoHandle;
 
 	/**
@@ -131,6 +131,13 @@ public class GifDecoder {
 	 */
 	public boolean isAnimated() {
 		return mGifInfoHandle.getNumberOfFrames() > 1 && getDuration() > 0;
+	}
+
+	/**
+	 * See {@link GifDrawable#recycle()}
+	 */
+	public void recycle() {
+		mGifInfoHandle.recycle();
 	}
 
 	private void checkBuffer(final Bitmap buffer) {

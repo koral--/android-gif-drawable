@@ -340,7 +340,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 		free(info->gifFilePtr->UserData);
 	}
 	info->gifFilePtr->UserData = NULL;
-	releaseSurfaceDescriptor(info->surfaceDescriptor, env);
+	releaseSurfaceDescriptor(info, env);
 	cleanUp(info);
 }
 

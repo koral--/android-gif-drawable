@@ -1,7 +1,6 @@
 #include "gif.h"
 
 void cleanUp(GifInfo *info) {
-	info->surfaceDescriptor = NULL;
 	free(info->backupPtr);
 	info->backupPtr = NULL;
 	free(info->controlBlock);
@@ -11,8 +10,7 @@ void cleanUp(GifInfo *info) {
 	free(info->comment);
 	info->comment = NULL;
 
-	GifFileType *GifFile = info->gifFilePtr;
-	DGifCloseFile(GifFile);
+	DGifCloseFile(info->gifFilePtr);
 	free(info);
 }
 
@@ -52,7 +50,7 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 
 	info->backupPtr = NULL;
 	info->rewindFunction = descriptor->rewindFunc;
-	info->surfaceDescriptor = NULL;
+	info->frameBufferDescriptor = NULL;
 	info->isOpaque = JNI_FALSE;
 	info->sampleSize = 1;
 
