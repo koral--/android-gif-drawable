@@ -1,12 +1,12 @@
 buildscript {
-    repositories {
-        jcenter()
-    }
+	repositories {
+		jcenter()
+	}
 
-    dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0'
-        classpath 'com.dicedmelon.gradle:jacoco-android:0.1.1'
-    }
+	dependencies {
+		classpath 'com.android.tools.build:gradle:1.5.0'
+		classpath 'com.dicedmelon.gradle:jacoco-android:0.1.1'
+	}
 }
 
 apply plugin: 'com.android.library'
@@ -15,36 +15,36 @@ apply from: 'gradle-mvn-push.gradle'
 apply from: 'ndk.gradle'
 
 repositories {
-    jcenter()
+	jcenter()
 }
 
 project.version = VERSION_NAME
 project.group = GROUP
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.2'
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
-    defaultConfig {
-        versionName project.version
-        minSdkVersion 8
-        targetSdkVersion 23
-        consumerProguardFiles 'consumer-proguard-rules.pro'
-    }
+	compileSdkVersion 23
+	buildToolsVersion '23.0.2'
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_7
+		targetCompatibility JavaVersion.VERSION_1_7
+	}
+	defaultConfig {
+		versionName project.version
+		minSdkVersion 8
+		targetSdkVersion 23
+		consumerProguardFiles 'consumer-proguard-rules.pro'
+	}
 }
 
 dependencies {
-    provided 'com.android.support:support-annotations:23.1.1'
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.robolectric:robolectric:3.0'
-    testCompile 'org.assertj:assertj-core:1.7.1'
-    testCompile 'net.jodah:concurrentunit:0.4.2'
+	provided 'com.android.support:support-annotations:23.1.1'
+	testCompile 'junit:junit:4.12'
+	testCompile 'org.robolectric:robolectric:3.0'
+	testCompile 'org.assertj:assertj-core:1.7.1'
+	testCompile 'net.jodah:concurrentunit:0.4.2'
 }
 
 jacocoAndroidUnitTestReport {
-    html.enabled true
-    xml.enabled true
+	html.enabled true
+	xml.enabled true
 }

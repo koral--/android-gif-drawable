@@ -23,21 +23,21 @@ typedef unsigned int GifPrefixType;
 typedef uint_fast16_t GifWord;
 
 typedef struct GifColorType {
-    uint8_t Red, Green, Blue;
+	uint8_t Red, Green, Blue;
 } GifColorType;
 
 typedef struct ColorMapObject {
-    uint_fast16_t ColorCount;
-    uint_fast8_t BitsPerPixel;
+	uint_fast16_t ColorCount;
+	uint_fast8_t BitsPerPixel;
 //    bool SortFlag;
-    GifColorType *Colors;    /* on malloc(3) heap */
+	GifColorType *Colors;    /* on malloc(3) heap */
 } ColorMapObject;
 
 typedef struct GifImageDesc {
-    GifWord Left, Top, Width, Height;   /* Current image dimensions. */
-    bool Interlace;
-    /* Sequential/Interlaced lines. */
-    ColorMapObject *ColorMap;           /* The local color map */
+	GifWord Left, Top, Width, Height;   /* Current image dimensions. */
+	bool Interlace;
+	/* Sequential/Interlaced lines. */
+	ColorMapObject *ColorMap;           /* The local color map */
 } GifImageDesc;
 
 //typedef struct ExtensionBlock {
@@ -52,41 +52,41 @@ typedef struct GifImageDesc {
 //} ExtensionBlock;
 
 typedef struct SavedImage {
-    GifImageDesc ImageDesc;
+	GifImageDesc ImageDesc;
 //    GifByteType *RasterBits;         /* on malloc(3) heap */
 //    int ExtensionBlockCount;         /* Count of extensions before image */
 //    ExtensionBlock *ExtensionBlocks; /* Extensions before image */
 } SavedImage;
 
 typedef struct GifFileType {
-    GifWord SWidth, SHeight;         /* Size of virtual canvas */
+	GifWord SWidth, SHeight;         /* Size of virtual canvas */
 //    GifWord SColorResolution;        /* How many colors can we generate? */
-    GifWord SBackGroundColor;        /* Background color for virtual canvas */
+	GifWord SBackGroundColor;        /* Background color for virtual canvas */
 //    GifByteType AspectByte;	     /* Used to compute pixel aspect ratio */
-    ColorMapObject *SColorMap;
-    /* Global colormap, NULL if nonexistent. */
-    uint_fast32_t ImageCount;
-    /* Number of current image (both APIs) */
-    GifImageDesc Image;
-    /* Current image (low-level API) */
-    SavedImage *SavedImages;         /* Image sequence (high-level API) */
+	ColorMapObject *SColorMap;
+	/* Global colormap, NULL if nonexistent. */
+	uint_fast32_t ImageCount;
+	/* Number of current image (both APIs) */
+	GifImageDesc Image;
+	/* Current image (low-level API) */
+	SavedImage *SavedImages;         /* Image sequence (high-level API) */
 //    int ExtensionBlockCount;         /* Count extensions past last image */
 //    ExtensionBlock *ExtensionBlocks; /* Extensions past last image */
-    int Error;
-    /* Last error condition reported */
-    void *UserData;
-    /* hook to attach user data (TVT) */
-    void *Private;                   /* Don't mess with this! */
+	int Error;
+	/* Last error condition reported */
+	void *UserData;
+	/* hook to attach user data (TVT) */
+	void *Private;                   /* Don't mess with this! */
 } GifFileType;
 
 //#define GIF_ASPECT_RATIO(n)    ((n)+15.0/64.0)
 
 typedef enum {
-    UNDEFINED_RECORD_TYPE,
-    SCREEN_DESC_RECORD_TYPE,
-    IMAGE_DESC_RECORD_TYPE, /* Begin with ',' */
-            EXTENSION_RECORD_TYPE, /* Begin with '!' */
-            TERMINATE_RECORD_TYPE   /* Begin with ';' */
+	UNDEFINED_RECORD_TYPE,
+	SCREEN_DESC_RECORD_TYPE,
+	IMAGE_DESC_RECORD_TYPE, /* Begin with ',' */
+			EXTENSION_RECORD_TYPE, /* Begin with '!' */
+			TERMINATE_RECORD_TYPE   /* Begin with ';' */
 } GifRecordType;
 
 /* func type to read gif data from arbitrary sources (TVT) */
@@ -97,15 +97,15 @@ typedef uint_fast8_t (*InputFunc)(GifFileType *, GifByteType *, uint_fast8_t);
 ******************************************************************************/
 
 typedef struct GraphicsControlBlock {
-    uint_fast8_t DisposalMode;
+	uint_fast8_t DisposalMode;
 #define DISPOSAL_UNSPECIFIED      0       /* No disposal specified. */
 #define DISPOSE_DO_NOT            1       /* Leave image in place */
 #define DISPOSE_BACKGROUND        2       /* Set area too background color */
 #define DISPOSE_PREVIOUS          3       /* Restore to previous content */
 //    bool UserInputFlag;      /* User confirmation required before disposal */
-    uint_fast32_t DelayTime;
-    /* pre-display delay in 0.01sec units */
-    int TransparentColor;    /* Palette index for transparency, -1 if none */
+	uint_fast32_t DelayTime;
+	/* pre-display delay in 0.01sec units */
+	int TransparentColor;    /* Palette index for transparency, -1 if none */
 #define NO_TRANSPARENT_COLOR    -1
 } GraphicsControlBlock;
 
@@ -161,8 +161,9 @@ extern ColorMapObject *GifMakeMapObject(uint_fast8_t BitsPerPixel,
                                         const GifColorType *ColorMap);
 
 extern void GifFreeMapObject(ColorMapObject *Object);
+
 //extern int GifBitSize(int n);
-extern void * reallocarray(void *optr, size_t nmemb, size_t size);
+extern void *reallocarray(void *optr, size_t nmemb, size_t size);
 /******************************************************************************
  Support for the in-core structures allocation (slurp mode).              
 ******************************************************************************/

@@ -24,16 +24,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Config(sdk = Build.VERSION_CODES.LOLLIPOP, constants = BuildConfig.class)
 public class GifViewUtilsTest {
 
-    @Test
-    public void testFreezesAnimationAttribute() {
-        final Context context = RuntimeEnvironment.application;
-        final String packageName = GifImageView.class.getPackage().getName();
-        final Resources resources = context.getResources();
-        final ResourceLoader resourceLoader = ((ShadowResources) ShadowExtractor.extract(resources)).getResourceLoader();
+	@Test
+	public void testFreezesAnimationAttribute() {
+		final Context context = RuntimeEnvironment.application;
+		final String packageName = GifImageView.class.getPackage().getName();
+		final Resources resources = context.getResources();
+		final ResourceLoader resourceLoader = ((ShadowResources) ShadowExtractor.extract(resources)).getResourceLoader();
 
-        final Attribute attribute = new Attribute(packageName + ":attr/freezesAnimation", "true", packageName);
-        final AttributeSet attributeSet = new RoboAttributeSet(Collections.singletonList(attribute), resourceLoader);
-        final GifImageView gifImageView = new GifImageView(context, attributeSet);
-        assertThat(GifViewUtils.isFreezingAnimation(gifImageView, attributeSet, 0, 0)).isTrue();
-    }
+		final Attribute attribute = new Attribute(packageName + ":attr/freezesAnimation", "true", packageName);
+		final AttributeSet attributeSet = new RoboAttributeSet(Collections.singletonList(attribute), resourceLoader);
+		final GifImageView gifImageView = new GifImageView(context, attributeSet);
+		assertThat(GifViewUtils.isFreezingAnimation(gifImageView, attributeSet, 0, 0)).isTrue();
+	}
 }

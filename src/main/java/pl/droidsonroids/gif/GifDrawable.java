@@ -927,6 +927,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Sets the corner radius to be applied when drawing the bitmap.
 	 * Note that changing corner radius will cause replacing current {@link Paint} shader by {@link BitmapShader}.
+	 *
 	 * @param cornerRadius corner radius or 0 to remove rounding
 	 */
 	public void setCornerRadius(@FloatRange(from = 0) final float cornerRadius) {
@@ -943,7 +944,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
 	 */
-	public @FloatRange(from = 0) float getCornerRadius() {
+	public
+	@FloatRange(from = 0)
+	float getCornerRadius() {
 		return mCornerRadius;
 	}
 }
