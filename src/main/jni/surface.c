@@ -1,5 +1,4 @@
 #include "gif.h"
-#include <sys/eventfd.h>
 #include <android/native_window_jni.h>
 #include <android/native_window.h>
 
