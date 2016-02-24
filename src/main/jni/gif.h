@@ -99,12 +99,6 @@ typedef struct {
 	pthread_cond_t renderCond;
 } SurfaceDescriptor;
 
-typedef struct {
-	struct pollfd eventPollFd;
-	void *frameBuffer;
-	pthread_t slurpThread;
-} TexImageDescriptor;
-
 struct GifInfo {
 	GifFileType *gifFilePtr;
 	GifWord originalWidth, originalHeight;
