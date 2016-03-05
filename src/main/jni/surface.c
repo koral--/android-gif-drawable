@@ -54,7 +54,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		info->frameBufferDescriptor = surfaceDescriptor;
 	}
 
-	POLL_TYPE eftd_ctr;
+	eventfd_t eventValue;
 	int pollResult;
 
 	while (1) {
@@ -62,9 +62,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		if (pollResult == 0)
 			break;
 		else if (pollResult > 0) {
-			ssize_t bytesRead = TEMP_FAILURE_RETRY(
-					read(surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE));
-			if (bytesRead != POLL_TYPE_SIZE) {
+			const int readResult = TEMP_FAILURE_RETRY(eventfd_read(surfaceDescriptor->eventPollFd.fd, &eventValue));
+			if (readResult != 0) {
 				throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");
 				return;
 			}
@@ -213,9 +212,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
 		return;
 	}
 	SurfaceDescriptor const *surfaceDescriptor = info->frameBufferDescriptor;
-	POLL_TYPE eftd_ctr;
-	ssize_t bytesWritten = TEMP_FAILURE_RETRY(write(surfaceDescriptor->eventPollFd.fd, &eftd_ctr, POLL_TYPE_SIZE));
-	if (bytesWritten != POLL_TYPE_SIZE && errno != EBADF) {
+	const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(surfaceDescriptor->eventPollFd.fd, 1));
+	if (writeResult != 0 && errno != EBADF) {
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
 	}
 }

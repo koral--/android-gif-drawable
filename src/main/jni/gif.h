@@ -39,8 +39,6 @@
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
 #define OOME_MESSAGE "Failed to allocate native memory"
 #define DEFAULT_FRAME_DURATION_MS 100
-typedef uint64_t POLL_TYPE;
-#define POLL_TYPE_SIZE sizeof(POLL_TYPE)
 
 /**
  * Some gif files are not strictly follow 89a.
