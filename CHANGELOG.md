@@ -1,3 +1,7 @@
+### 1.1.15
+- Fixed possible infinite surface binding
+- Added beta OpenGL support - `GifTexImage2D` 
+
 ### 1.1.14
 - Gradle wrapper version updated to 2.11
 - Duplicated frame offset correction removed

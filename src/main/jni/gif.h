@@ -1,7 +1,7 @@
 #ifndef _GIF
 #define _GIF
 
-#define _GNU_SOURCE
+#define _GNU_SOURCE 1
 #ifdef __clang__
 #pragma clang system_header
 #pragma clang diagnostic ignored "-Wgnu"

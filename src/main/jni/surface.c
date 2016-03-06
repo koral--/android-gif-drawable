@@ -39,7 +39,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		surfaceDescriptor->eventPollFd.events = POLL_IN;
 		surfaceDescriptor->eventPollFd.fd = eventfd(0, 0);
 		if (surfaceDescriptor->eventPollFd.fd == -1) {
-			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not create eventfd ");
+			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd creation failed ");
 			free(surfaceDescriptor);
 			return;
 		}

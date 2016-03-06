@@ -115,6 +115,12 @@ final class GifInfoHandle {
 
 	private static native int getNumberOfFrames(long gifInfoPtr);
 
+	private static native void startDecoderThread(long gifInfoPtr);
+
+	private static native void stopDecoderThread(long gifInfoPtr);
+
+	private static native void glTexImage2D(long gifInfoPtr);
+
 	GifInfoHandle(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
 		if (!stream.markSupported()) {
 			throw new IllegalArgumentException("InputStream does not support marking");
@@ -279,5 +285,17 @@ final class GifInfoHandle {
 
 	synchronized int getNumberOfFrames() {
 		return getNumberOfFrames(gifInfoPtr);
+	}
+
+	void glTexImage2D() {
+		glTexImage2D(gifInfoPtr);
+	}
+
+	void startDecoderThread() {
+		startDecoderThread(gifInfoPtr);
+	}
+
+	void stopDecoderThread() {
+		stopDecoderThread(gifInfoPtr);
 	}
 }
