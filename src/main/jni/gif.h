@@ -219,6 +219,6 @@ void drawNextBitmap(argb *bm, GifInfo *info);
 
 uint_fast32_t getFrameDuration(GifInfo *info);
 
-JNIEnv *getEnv();
+__attribute__ ((visibility ("default"))) JNIEnv *getEnv();
 
 #endif
