@@ -1,6 +1,6 @@
 env:
   global:
-    - NDK_VERSION=r10e
+    - NDK_VERSION=r11
 
 sudo: false
 
@@ -15,10 +15,9 @@ before_install:
   - echo y|android update sdk --all --no-ui --force --filter build-tools-23.0.2
   - echo y|android update sdk --all --no-ui --force --filter android-23
   - echo y|android update sdk --all --no-ui --force --filter extra-android-m2repository
-  - wget http://dl.google.com/android/ndk/android-ndk-$NDK_VERSION-linux-x86_64.bin
-  - chmod +x android-ndk-$NDK_VERSION-linux-x86_64.bin
-  - ./android-ndk-$NDK_VERSION-linux-x86_64.bin | egrep -v ^Extracting
-  - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION
+  - wget http://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip
+  - unzip android-ndk-$NDK_VERSION-linux-x86_64.zip |grep -v inflating
+  - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION-linux-x86_64.tar.bz2
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:
