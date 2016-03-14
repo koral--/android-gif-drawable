@@ -79,7 +79,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private final Rect mSrcRect;
 	ScheduledFuture<?> mSchedule;
 	private int mScaledWidth, mScaledHeight;
-	private float mCornerRadius;
+	private Transform mTransform;
 	private final RectF mDstRectF = new RectF();
 
 	/**
@@ -704,18 +704,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	@Override
 	protected void onBoundsChange(Rect bounds) {
 		mDstRect.set(bounds);
-		mDstRectF.set(mDstRect);
-
-		final Shader shader = mPaint.getShader();
-		if (shader != null) {
-			final Matrix shaderMatrix = new Matrix();
-			shaderMatrix.setTranslate(mDstRectF.left, mDstRectF.top);
-			shaderMatrix.preScale(
-					mDstRectF.width() / mBuffer.getWidth(),
-					mDstRectF.height() / mBuffer.getHeight());
-			shader.setLocalMatrix(shaderMatrix);
-			mPaint.setShader(shader);
-		}
+	        if (mTransform != null) {
+	            mTransform.onBoundsChange(bounds);
+        	}
 	}
 
 	/**
@@ -732,10 +723,10 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		} else {
 			clearColorFilter = false;
 		}
-		if (mPaint.getShader() == null) {
+		if (mTransform == null) {
 			canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, mPaint);
 		} else {
-			canvas.drawRoundRect(mDstRectF, mCornerRadius, mCornerRadius, mPaint);
+			mTransform.onDraw(canvas, mPaint, mBuffer);
 		}
 		if (clearColorFilter) {
 			mPaint.setColorFilter(null);
@@ -924,29 +915,37 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		return mNativeInfoHandle.getFrameDuration(index);
 	}
 
-	/**
-	 * Sets the corner radius to be applied when drawing the bitmap.
-	 * Note that changing corner radius will cause replacing current {@link Paint} shader by {@link BitmapShader}.
-	 *
-	 * @param cornerRadius corner radius or 0 to remove rounding
-	 */
-	public void setCornerRadius(@FloatRange(from = 0) final float cornerRadius) {
-		mCornerRadius = cornerRadius;
-		final Shader bitmapShader;
-		if (cornerRadius > 0) {
-			bitmapShader = new BitmapShader(mBuffer, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-		} else {
-			bitmapShader = null;
-		}
-		mPaint.setShader(bitmapShader);
-	}
+       /**
+        * Specify a {@link Transform} implementation to customize how the GIF's current Bitmap is drawn
+        */
+       public void setTransform(Transform transform) {
+           mTransform = transform;
+       }
 
-	/**
-	 * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
-	 */
-	public
-	@FloatRange(from = 0)
-	float getCornerRadius() {
-		return mCornerRadius;
-	}
+       /**
+        * @return The current {@link Transform} implementation that customizes how the GIF's current Bitmap is drawn
+        */
+       public Transform getTransform() {
+           return mTransform;
+       }
+
+       /**
+        * Interface to support clients performing custom transformations before the GIF's current Bitmap is drawn
+        */
+       public interface Transform {
+
+			/**
+			 * Called by {@link GifDrawable} when its onBoundsChange is called
+			 */
+			void onBoundsChange(Rect bounds);
+
+			/**
+			 * Called by {@link GifDrawable} when its {@link } is called
+			 *
+			 * @param canvas The canvas supplied by the system to draw on
+			 * @param paint The paint to use for custom drawing
+			 * @param buffer The current Bitmap for the GIF
+			 */
+			void onDraw(Canvas canvas, Paint paint, Bitmap buffer);
+    }
 }
