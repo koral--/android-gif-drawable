@@ -11,14 +11,11 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.Shader;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -45,6 +42,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import pl.droidsonroids.gif.transforms.CornerRadiusTransform;
+import pl.droidsonroids.gif.transforms.Transform;
 
 import static pl.droidsonroids.gif.InvalidationHandler.MSG_TYPE_INVALIDATION;
 
@@ -82,7 +80,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	ScheduledFuture<?> mSchedule;
 	private int mScaledWidth, mScaledHeight;
 	private Transform mTransform;
-	private final RectF mDstRectF = new RectF();
 
 	/**
 	 * Creates drawable from resource.
@@ -706,9 +703,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	@Override
 	protected void onBoundsChange(Rect bounds) {
 		mDstRect.set(bounds);
-	        if (mTransform != null) {
-	            mTransform.onBoundsChange(bounds);
-        	}
+		if (mTransform != null) {
+			mTransform.onBoundsChange(bounds);
+		}
 	}
 
 	/**
@@ -930,45 +927,26 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
 	 */
-	 @FloatRange(from = 0)
-	 public float getCornerRadius() {
-	 	if (mTransform instanceof CornerRadiusTransform) {
-		    return ((CornerRadiusTransform) mTransform).getCornerRadius();
+	@FloatRange(from = 0)
+	public float getCornerRadius() {
+		if (mTransform instanceof CornerRadiusTransform) {
+			return ((CornerRadiusTransform) mTransform).getCornerRadius();
 		}
-    	return 0;
-    }
+		return 0;
+	}
 
-    /**
-    * Specify a {@link Transform} implementation to customize how the GIF's current Bitmap is drawn
-    */
-    public void setTransform(Transform transform) {
-        mTransform = transform;
-    }
+	/**
+	 * Specify a {@link Transform} implementation to customize how the GIF's current Bitmap is drawn.
+	 */
+	public void setTransform(Transform transform) {
+		mTransform = transform;
+	}
 
-    /**
-     * @return The current {@link Transform} implementation that customizes how the GIF's current Bitmap is drawn
-     */
-     public Transform getTransform() {
-        return mTransform;
-     }
+	/**
+	 * @return The current {@link Transform} implementation that customizes how the GIF's current Bitmap is drawn.
+	 */
+	public Transform getTransform() {
+		return mTransform;
+	}
 
-     /**
-      * Interface to support clients performing custom transformations before the current GIF Bitmap is drawn
-      */
-     public interface Transform {
-
-		/**
-		 * Called by {@link GifDrawable} when its onBoundsChange is called
-		 */
-		 void onBoundsChange(Rect bounds);
-
-		 /**
-		  * Called by {@link GifDrawable} when its {@link } is called
-		  *
-		  * @param canvas The canvas supplied by the system to draw on
-		  * @param paint The paint to use for custom drawing
-		  * @param buffer The current Bitmap for the GIF
-		  */
-		 void onDraw(Canvas canvas, Paint paint, Bitmap buffer);
-    }
 }
