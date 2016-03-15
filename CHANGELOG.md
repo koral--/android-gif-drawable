@@ -1,6 +1,7 @@
 ### 1.1.15
 - Fixed possible infinite surface binding
-- Added beta OpenGL support - `GifTexImage2D` 
+- Added beta OpenGL support - `GifTexImage2D`
+- Added ability to specify a custom transformation to apply to the current Bitmap - [#259](https://github.com/koral--/android-gif-drawable/pull/259)
 
 ### 1.1.14
 - Gradle wrapper version updated to 2.11
