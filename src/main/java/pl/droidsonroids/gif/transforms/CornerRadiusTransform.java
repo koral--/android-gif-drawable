@@ -13,16 +13,15 @@ import pl.droidsonroids.gif.GifDrawable.Transform;
 
 public class CornerRadiusTransform implements Transform {
 
-    private int mCornerRadius;
+    private float mCornerRadius;
     private Shader mShader;
-    private final Rect mDstRect = new Rect();
     private final RectF mDstRectF = new RectF();
 
-    public CornerRadiusTransform(int cornerRadius) {
+    public CornerRadiusTransform(float cornerRadius) {
         setCornerRadius(cornerRadius);
     }
 
-    public void setCornerRadius(int cornerRadius) {
+    public void setCornerRadius(float cornerRadius) {
         cornerRadius = Math.max(0, cornerRadius);
         if (cornerRadius == mCornerRadius) {
             return;
@@ -31,13 +30,12 @@ public class CornerRadiusTransform implements Transform {
         mShader = null;
     }
 
-    public int getCornerRadius() {
+    public float getCornerRadius() {
         return mCornerRadius;
     }
 
     @Override
     public void onBoundsChange(Rect bounds) {
-        mDstRect.set(bounds);
         mDstRectF.set(bounds);
         mShader = null;
     }
@@ -45,7 +43,7 @@ public class CornerRadiusTransform implements Transform {
     @Override
     public void onDraw(Canvas canvas, Paint paint, Bitmap buffer) {
         if (mCornerRadius == 0) {
-            canvas.drawBitmap(buffer, null, mDstRect, paint);
+            canvas.drawBitmap(buffer, null, mDstRectF, paint);
             return;
         }
         if (mShader == null) {
