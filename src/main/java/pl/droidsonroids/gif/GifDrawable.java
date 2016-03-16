@@ -917,6 +917,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Sets the corner radius to be applied when drawing the bitmap.
 	 * Note that changing corner radius will cause replacing current {@link Paint} shader by {@link BitmapShader}.
+	 * Transform set by {@link #setTransform(Transform)} will also be replaced.
 	 *
 	 * @param cornerRadius corner radius or 0 to remove rounding
 	 */
@@ -938,13 +939,15 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Specify a {@link Transform} implementation to customize how the GIF's current Bitmap is drawn.
 	 */
-	public void setTransform(Transform transform) {
+	public void setTransform(@Nullable Transform transform) {
 		mTransform = transform;
 	}
 
 	/**
-	 * @return The current {@link Transform} implementation that customizes how the GIF's current Bitmap is drawn.
+	 * @return The current {@link Transform} implementation that customizes
+	 * how the GIF's current Bitmap is drawn or null if nothing has been set.
 	 */
+	@Nullable
 	public Transform getTransform() {
 		return mTransform;
 	}

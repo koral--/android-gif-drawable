@@ -16,10 +16,19 @@ public class CornerRadiusTransform implements Transform {
 	private Shader mShader;
 	private final RectF mDstRectF = new RectF();
 
+	/**
+	 *
+	 * @param cornerRadius corner radius, may be 0
+	 */
 	public CornerRadiusTransform(@FloatRange(from = 0) float cornerRadius) {
 		setCornerRadius(cornerRadius);
 	}
 
+	/**
+	 * Sets the corner radius to be applied when drawing the bitmap.
+	 *
+	 * @param cornerRadius corner radius or 0 to remove rounding
+	 */
 	public void setCornerRadius(@FloatRange(from = 0) float cornerRadius) {
 		cornerRadius = Math.max(0, cornerRadius);
 		if (cornerRadius == mCornerRadius) {
@@ -29,6 +38,9 @@ public class CornerRadiusTransform implements Transform {
 		mShader = null;
 	}
 
+	/**
+	 * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
+	 */
 	@FloatRange(from = 0)
 	public float getCornerRadius() {
 		return mCornerRadius;
