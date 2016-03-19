@@ -57,7 +57,7 @@ DGifOpen(void *userData, InputFunc readFunc, int *Error) {
 	GifFile->SavedImages = NULL;
 	GifFile->SColorMap = NULL;
 
-	Private = (GifFilePrivateType *) malloc(sizeof(GifFilePrivateType));
+	Private = (GifFilePrivateType *) calloc(1, sizeof(GifFilePrivateType));
 	if (!Private) {
 		if (Error != NULL)
 			*Error = D_GIF_ERR_NOT_ENOUGH_MEM;
@@ -528,7 +528,7 @@ DGifSetupDecompress(GifFileType *GifFile) {
 	BitsPerPixel = CodeSize;
 
 	/* this can only happen on a severely malformed GIF */
-	if (BitsPerPixel > 8 /*|| Private->RunningBits > 32*/) { //TODO wait for fix http://sourceforge.net/p/giflib/bugs/80/
+	if (BitsPerPixel > 8) {
 		GifFile->Error = D_GIF_ERR_READ_FAILED;    /* somewhat bogus error code */
 		return GIF_ERROR;    /* Failed to read Code size. */
 	}
