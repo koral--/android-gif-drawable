@@ -17,7 +17,7 @@ before_install:
   - echo y|android update sdk --all --no-ui --force --filter extra-android-m2repository
   - wget http://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip
   - unzip android-ndk-$NDK_VERSION-linux-x86_64.zip |grep -v inflating
-  - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION-linux-x86_64.tar.bz2
+  - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:

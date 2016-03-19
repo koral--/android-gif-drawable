@@ -65,22 +65,26 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
 	}
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	const uint_fast32_t idx = info->currentIndex;
-	if (info->gifFilePtr->ImageCount == 1)
+	if (info->gifFilePtr->ImageCount == 1) {
 		return 0;
+	}
 	uint_fast32_t i;
 	uint32_t sum = 0;
-	for (i = 0; i < idx; i++)
+	for (i = 0; i < idx; i++) {
 		sum += info->controlBlock[i].DelayTime;
+    }
 
 	long remainder;
 	if (info->lastFrameRemainder == -1) {
 		remainder = info->nextStartTime - getRealTime();
-		if (remainder < 0) //in case of if frame hasn't been rendered until nextStartTime passed
+		if (remainder < 0) { //in case of if frame hasn't been rendered until nextStartTime passed
 			remainder = 0;
+		}
 	}
-	else
+	else {
 		remainder = info->lastFrameRemainder;
-	return (jint) (sum + remainder); //2^31-1[ms]>596[h] so jint is enough
+	}
+	return (jint) (sum - remainder); //2^31-1[ms]>596[h] so jint is enough
 }
 
 __unused JNIEXPORT jlong JNICALL
