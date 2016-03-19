@@ -10,6 +10,9 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.support.annotation.FloatRange;
 
+/**
+ * {@link Transform} which adds rounded corners.
+ */
 public class CornerRadiusTransform implements Transform {
 
 	private float mCornerRadius;
@@ -17,8 +20,7 @@ public class CornerRadiusTransform implements Transform {
 	private final RectF mDstRectF = new RectF();
 
 	/**
-	 *
-	 * @param cornerRadius corner radius, may be 0
+	 * @param cornerRadius corner radius, may be 0.
 	 */
 	public CornerRadiusTransform(@FloatRange(from = 0) float cornerRadius) {
 		setCornerRadius(cornerRadius);

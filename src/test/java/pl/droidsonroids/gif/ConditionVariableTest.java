@@ -13,14 +13,14 @@ import java.util.concurrent.TimeoutException;
 
 public class ConditionVariableTest {
 
-	static final int TEST_TIMEOUT = 500;
-	static final int BLOCK_DURATION = 200;
+	private static final int TEST_TIMEOUT = 500;
+	private static final int BLOCK_DURATION = 200;
 
 	@Rule
 	public Timeout timeout = new Timeout(TEST_TIMEOUT, TimeUnit.MILLISECONDS);
 
-	ConditionVariable conditionVariable;
-	Waiter waiter;
+	private ConditionVariable conditionVariable;
+	private Waiter waiter;
 
 	@Before
 	public void setUp() {
