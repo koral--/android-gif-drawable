@@ -4,6 +4,7 @@
 - Added ability to specify a custom transformation to apply to the current Bitmap - [#259](https://github.com/koral--/android-gif-drawable/pull/259)
 - Gradle wrapper version updated to 2.12
 - Support library dependency version updated to 23.2.1
+- remainder accounting in `GifDrawable#getCurrentPosition()` fixed
 
 ### 1.1.14
 - Gradle wrapper version updated to 2.11
