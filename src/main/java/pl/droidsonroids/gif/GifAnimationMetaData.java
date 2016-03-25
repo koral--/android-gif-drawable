@@ -116,7 +116,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws NullPointerException if fd is null
 	 */
 	public GifAnimationMetaData(@NonNull FileDescriptor fd) throws IOException {
-		this(new GifInfoHandle(fd, 0, true));
+		this(new GifInfoHandle(fd, true));
 	}
 
 	/**

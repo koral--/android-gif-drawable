@@ -193,7 +193,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws IOException {
-			return new GifInfoHandle(mFd, 0, false);
+			return new GifInfoHandle(mFd, false);
 		}
 	}
 

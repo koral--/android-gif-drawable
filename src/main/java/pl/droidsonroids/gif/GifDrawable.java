@@ -167,7 +167,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if fd is null
 	 */
 	public GifDrawable(@NonNull FileDescriptor fd) throws IOException {
-		this(new GifInfoHandle(fd, 0, false), null, null, true);
+		this(new GifInfoHandle(fd, false), null, null, true);
 	}
 
 	/**
