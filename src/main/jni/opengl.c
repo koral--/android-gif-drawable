@@ -1,5 +1,4 @@
 #include "gif.h"
-#include <sys/eventfd.h>
 #include <GLES2/gl2.h>
 
 typedef struct {

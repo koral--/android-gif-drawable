@@ -1,6 +1,5 @@
 #include "gif.h"
 #include <android/native_window_jni.h>
-#include <android/native_window.h>
 
 static void *slurp(void *pVoidInfo) {
 	GifInfo *info = pVoidInfo;
