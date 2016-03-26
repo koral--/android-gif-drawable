@@ -938,6 +938,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Specify a {@link Transform} implementation to customize how the GIF's current Bitmap is drawn.
+	 * @param transform new {@link Transform} or null to remove current one
 	 */
 	public void setTransform(@Nullable Transform transform) {
 		mTransform = transform;

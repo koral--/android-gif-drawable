@@ -14,6 +14,7 @@ public interface Transform {
 
 	/**
 	 * Called by {@link GifDrawable} when its {@link GifDrawable#onBoundsChange(Rect)} is called.
+	 * @param bounds new bounds
 	 */
 	void onBoundsChange(Rect bounds);
 

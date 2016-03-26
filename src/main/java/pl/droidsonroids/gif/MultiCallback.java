@@ -3,6 +3,7 @@ package pl.droidsonroids.gif;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Drawable.Callback;
 import android.view.View;
+import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -19,6 +20,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class MultiCallback implements Callback {
 
 	private final CopyOnWriteArrayList<CallbackWeakReference> mCallbacks = new CopyOnWriteArrayList<>();
+	private final boolean mUseViewInvalidate;
+
+	/**
+	 * Equivalent to {@link #MultiCallback(boolean)} with <code>false</code> value.
+	 */
+	public MultiCallback() {
+		this(false);
+	}
+
+	/**
+	 * Set <code>useViewInvalidate</code> to <code>true</code> if displayed {@link Drawable} is not supported by
+	 * {@link Drawable.Callback#invalidateDrawable(Drawable)} of the target. For example if it is located inside {@link android.text.style.ImageSpan}
+	 * displayed in {@link TextView}.
+	 *
+	 * @param useViewInvalidate whether {@link View#invalidate()} should be used instead of {@link Drawable.Callback#invalidateDrawable(Drawable)}
+	 */
+	public MultiCallback(final boolean useViewInvalidate) {
+		mUseViewInvalidate = useViewInvalidate;
+	}
 
 	@Override
 	public void invalidateDrawable(final Drawable who) {
@@ -26,7 +46,11 @@ public class MultiCallback implements Callback {
 			final CallbackWeakReference reference = mCallbacks.get(i);
 			final Callback callback = reference.get();
 			if (callback != null) {
-				callback.invalidateDrawable(who);
+				if (mUseViewInvalidate && callback instanceof View) {
+					((View) callback).invalidate();
+				} else {
+					callback.invalidateDrawable(who);
+				}
 			} else {
 				// Always remove null references to reduce list size
 				mCallbacks.remove(reference);
@@ -95,13 +119,13 @@ public class MultiCallback implements Callback {
 		}
 	}
 
-	private static final class CallbackWeakReference extends WeakReference<Callback> {
-		CallbackWeakReference(Callback r) {
+	static final class CallbackWeakReference extends WeakReference<Callback> {
+		CallbackWeakReference(final Callback r) {
 			super(r);
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(final Object o) {
 			if (this == o) {
 				return true;
 			}
