@@ -1,3 +1,6 @@
+### 1.1.16
+- `View#invalidate()` support added to `MultiCallback` - [#260](https://github.com/koral--/android-gif-drawable/issues/260#issuecomment-201949696)
+
 ### 1.1.15
 - Fixed possible infinite surface binding
 - Added beta OpenGL support - `GifTexImage2D`
