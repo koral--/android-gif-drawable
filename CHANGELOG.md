@@ -1,5 +1,7 @@
 ### 1.1.16
 - `View#invalidate()` support added to `MultiCallback` - [#260](https://github.com/koral--/android-gif-drawable/issues/260#issuecomment-201949696)
+- Support library dependency version updated to 23.3.0
+- Build tools version updated to 23.0.3
 
 ### 1.1.15
 - Fixed possible infinite surface binding
