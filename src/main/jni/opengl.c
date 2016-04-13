@@ -94,15 +94,54 @@ Java_pl_droidsonroids_gif_GifInfoHandle_stopDecoderThread(JNIEnv *env, jclass __
 	if (writeResult != 0) {
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
 	}
-	errno = pthread_join(texImageDescriptor->slurpThread, NULL);
-	if (errno != 0) {
-		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Slurp thread join failed ");
-	}
-	if (close(texImageDescriptor->eventPollFd.fd) != 0 && errno != EINTR) {
-		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd close failed ");
+	if (texImageDescriptor->eventPollFd.fd != -1) {
+		errno = pthread_join(texImageDescriptor->slurpThread, NULL);
+		if (errno != 0) {
+			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Slurp thread join failed ");
+		}
+		if (close(texImageDescriptor->eventPollFd.fd) != 0 && errno != EINTR) {
+			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd close failed ");
+		}
+		texImageDescriptor->eventPollFd.fd = -1;
 	}
 	free(texImageDescriptor->frameBuffer);
 	free(texImageDescriptor);
 	info->frameBufferDescriptor = NULL;
+}
+
+__unused JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_renderGLFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint desiredIndex) {
+	GifInfo *info = (GifInfo *) gifInfo;
+	if (info == NULL) {
+		return;
+	}
+	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
+	if (texImageDescriptor == NULL) {
+		texImageDescriptor = malloc(sizeof(TexImageDescriptor));
+		if (!texImageDescriptor) {
+			throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+			return;
+		}
+		texImageDescriptor->frameBuffer = malloc(info->gifFilePtr->SWidth * info->gifFilePtr->SHeight * sizeof(argb));
+		if (!texImageDescriptor->frameBuffer) {
+			free(texImageDescriptor);
+			throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+			return;
+		}
+		info->frameBufferDescriptor = texImageDescriptor;
+		info->stride = (int32_t) info->gifFilePtr->SWidth;
+		texImageDescriptor->eventPollFd.fd = -1;
+	}
+
+	if (info->currentIndex == 0)
+		prepareCanvas(texImageDescriptor->frameBuffer, info);
+	do {
+		DDGifSlurp(info, true);
+		drawNextBitmap((argb *) texImageDescriptor->frameBuffer, info);
+	} while (info->currentIndex++ < desiredIndex);
+
+	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
+	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texImageDescriptor->frameBuffer);
 }
 

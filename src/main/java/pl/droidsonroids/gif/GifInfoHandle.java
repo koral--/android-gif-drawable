@@ -143,6 +143,8 @@ final class GifInfoHandle {
 
 	private static native void glTexImage2D(long gifInfoPtr);
 
+	private static native void renderGLFrame(long gifInfoPtr, int index);
+
 	synchronized long renderFrame(Bitmap frameBuffer) {
 		return renderFrame(gifInfoPtr, frameBuffer);
 	}
@@ -297,5 +299,12 @@ final class GifInfoHandle {
 
 	void stopDecoderThread() {
 		stopDecoderThread(gifInfoPtr);
+	}
+
+	void renderGLFrame(@IntRange(from = 0) final int index) {
+		if (index < 0 || index >= getNumberOfFrames(gifInfoPtr)) {
+			throw new IndexOutOfBoundsException("Frame index is out of bounds");
+		}
+		renderGLFrame(gifInfoPtr, index);
 	}
 }
