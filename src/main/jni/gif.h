@@ -215,7 +215,7 @@ __attribute__ ((visibility ("default"))) void releaseSurfaceDescriptor(GifInfo *
 
 __attribute__ ((visibility ("default"))) void prepareCanvas(argb *bm, GifInfo *info);
 
-void drawNextBitmap(argb *bm, GifInfo *info);
+__attribute__ ((visibility ("default"))) void drawNextBitmap(argb *bm, GifInfo *info);
 
 uint_fast32_t getFrameDuration(GifInfo *info);
 
