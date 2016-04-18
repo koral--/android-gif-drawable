@@ -86,18 +86,8 @@ typedef struct GifInfo GifInfo;
 typedef int
 (*RewindFunc)(GifInfo *);
 
-typedef struct {
-	struct pollfd eventPollFd;
-	void *surfaceBackupPtr;
-	uint8_t slurpHelper;
-	pthread_mutex_t slurpMutex;
-	pthread_cond_t slurpCond;
-	uint8_t renderHelper;
-	pthread_mutex_t renderMutex;
-	pthread_cond_t renderCond;
-} SurfaceDescriptor;
-
 struct GifInfo {
+	void (*destructor)(GifInfo *, JNIEnv *);
 	GifFileType *gifFilePtr;
 	GifWord originalWidth, originalHeight;
 	uint_fast16_t sampleSize;
@@ -210,8 +200,6 @@ void unlockPixels(JNIEnv *env, jobject jbitmap);
 __attribute__ ((visibility ("default"))) long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
 
 __attribute__ ((visibility ("default"))) jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
-
-__attribute__ ((visibility ("default"))) void releaseSurfaceDescriptor(GifInfo *surfaceDescriptor, JNIEnv *pConst);
 
 __attribute__ ((visibility ("default"))) void prepareCanvas(argb *bm, GifInfo *info);
 

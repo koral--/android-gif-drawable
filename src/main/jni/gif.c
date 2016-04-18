@@ -170,7 +170,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass __unused class, jobject buffer, jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass __unused class, jobject buffer,
+                                                             jboolean justDecodeMetaData) {
 	jbyte *bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
 	if (bytes == NULL || capacity <= 0) {
@@ -201,7 +202,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream, jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream,
+                                                   jboolean justDecodeMetaData) {
 	jclass streamCls = (*env)->NewGlobalRef(env, (*env)->GetObjectClass(env, stream));
 	if (streamCls == NULL) {
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
@@ -266,7 +268,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused handleClass, jobject jfd, jlong offset, jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused handleClass, jobject jfd, jlong offset,
+                                               jboolean justDecodeMetaData) {
 	if (isSourceNull(jfd, env)) {
 		return NULL_GIF_INFO;
 	}
@@ -340,12 +343,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 		free(info->gifFilePtr->UserData);
 	}
 	info->gifFilePtr->UserData = NULL;
-	releaseSurfaceDescriptor(info, env);
+	if (info->destructor != NULL) {
+		info->destructor(info, env);
+	}
 	cleanUp(info);
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setSampleSize(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jint sampleSize) {
+Java_pl_droidsonroids_gif_GifInfoHandle_setSampleSize(__unused JNIEnv *env, jclass __unused class, jlong gifInfo,
+                                                      jint sampleSize) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL)
 		return;

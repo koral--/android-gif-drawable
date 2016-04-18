@@ -24,7 +24,6 @@ LOCAL_SRC_FILES := \
 	open_close.c \
 	decoding.c \
 	exception.c \
-	surface_common.c \
 	time.c \
 	control.c \
 	memset.arm.S \

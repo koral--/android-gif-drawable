@@ -37,6 +37,7 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
+	info->destructor = NULL;
 	info->gifFilePtr = descriptor->GifFileIn;
 	info->startPos = descriptor->startPos;
 	info->currentIndex = 0;
@@ -58,7 +59,8 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 	if (justDecodeMetaData == JNI_TRUE) {
 		info->rasterBits = NULL;
 	} else {
-		info->rasterBits = malloc(descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
+		info->rasterBits = malloc(
+				descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
 		if (info->rasterBits == NULL) {
 			descriptor->GifFileIn->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
 		}

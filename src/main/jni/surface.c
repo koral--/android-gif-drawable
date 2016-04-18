@@ -1,6 +1,17 @@
 #include "gif.h"
 #include <android/native_window_jni.h>
 
+typedef struct {
+	struct pollfd eventPollFd;
+	void *surfaceBackupPtr;
+	uint8_t slurpHelper;
+	pthread_mutex_t slurpMutex;
+	pthread_cond_t slurpCond;
+	uint8_t renderHelper;
+	pthread_mutex_t renderMutex;
+	pthread_cond_t renderCond;
+} SurfaceDescriptor;
+
 static void *slurp(void *pVoidInfo) {
 	GifInfo *info = pVoidInfo;
 	SurfaceDescriptor *surfaceDescriptor = info->frameBufferDescriptor;
@@ -24,12 +35,31 @@ static void *slurp(void *pVoidInfo) {
 	}
 }
 
+static void releaseSurfaceDescriptor(GifInfo *info, JNIEnv *env) {
+	SurfaceDescriptor* surfaceDescriptor = info->frameBufferDescriptor;
+	if (surfaceDescriptor == NULL)
+		return;
+
+	free(surfaceDescriptor->surfaceBackupPtr);
+	surfaceDescriptor->surfaceBackupPtr = NULL;
+	if (close(surfaceDescriptor->eventPollFd.fd) != 0 && errno != EINTR) {
+		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd close failed ");
+	}
+	THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&surfaceDescriptor->slurpMutex), "Slurp mutex destroy failed ");
+	THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&surfaceDescriptor->renderMutex), "Render mutex destroy failed ");
+	THROW_ON_NONZERO_RESULT(pthread_cond_destroy(&surfaceDescriptor->slurpCond), "Slurp cond destroy failed ");
+	THROW_ON_NONZERO_RESULT(pthread_cond_destroy(&surfaceDescriptor->renderCond), "Render cond  destroy failed ");
+	free(surfaceDescriptor);
+	info->frameBufferDescriptor = NULL;
+}
+
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
                                                     jobject jsurface, jlongArray savedState, jboolean isOpaque) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	SurfaceDescriptor *surfaceDescriptor = info->frameBufferDescriptor;
 	if (surfaceDescriptor == NULL) {
+		info->destructor = releaseSurfaceDescriptor;
 		surfaceDescriptor = malloc(sizeof(SurfaceDescriptor));
 		if (surfaceDescriptor == NULL) {
 			throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
