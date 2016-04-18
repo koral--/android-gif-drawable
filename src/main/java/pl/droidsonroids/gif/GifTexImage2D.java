@@ -11,9 +11,9 @@ import pl.droidsonroids.gif.annotations.Beta;
  * Provides support for animated GIFs in OpenGL.
  * There are 2 possible usages:
  * <ol>
- *     <li>Rendering GIF automatically according to its timing to internal frame buffer in the background thread,
- *     and requesting frame to be copied to 2D texture when needed. See {@link #glTexImage2D()} and {@link #glTexImage2D()}</li>
- *     <li>Manual frame advancing. See {@link #renderFrame(int)}</li>
+ * <li>Rendering GIF automatically according to its timing to internal frame buffer in the background thread,
+ * and requesting frame to be copied to 2D texture when needed. See {@link #glTexImage2D()} and {@link #glTexImage2D()}</li>
+ * <li>Manual frame advancing. See {@link #renderFrame(int)}</li>
  * </ol>
  * Note that currently only one of those ways can be used in given {@link GifTexImage2D} instance.
  */
@@ -22,11 +22,13 @@ public class GifTexImage2D {
 	static {
 		LibraryLoader.loadLibrary(null, LibraryLoader.SURFACE_LIBRARY_NAME);
 	}
+
 	private final GifInfoHandle mGifInfoHandle;
 
 	/**
 	 * Constructs new GifTexImage2D.
 	 * Decoder thread is initially stopped, use {@link #startDecoderThread()} to start it.
+	 *
 	 * @param inputSource source
 	 * @throws IOException when creation fails
 	 */
@@ -49,10 +51,11 @@ public class GifTexImage2D {
 	 * Seeks to given frame and then copies its pixels to 2D texture like
 	 * {@link android.opengl.GLES20#glTexImage2D(int, int, int, int, int, int, int, int, Buffer)}.
 	 * Where <code>target</code> is {@link android.opengl.GLES20#GL_TEXTURE_2D} and <code>Buffer</code> contains pixels of the current frame.
+	 *
 	 * @param index index of the frame
 	 * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
 	 */
-	public void renderFrame(@IntRange(from = 0) int index){
+	public void renderFrame(@IntRange(from = 0) int index) {
 		mGifInfoHandle.renderGLFrame(index);
 	}
 
