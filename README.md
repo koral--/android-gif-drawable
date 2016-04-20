@@ -257,6 +257,8 @@ This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.3 and [
 ###Projects using android-gif-drawable
 [ImageFactory](https://github.com/Doctoror/ImageFactory)
 
+[NativeScript Plugin by Brad Martin](https://github.com/bradmartin/nativescript-gif) available on [NPM](https://www.npmjs.com/package/nativescript-gif)
+
 Want to include your project here? [Fill an issue](https://github.com/koral--/android-gif-drawable/issues/new)
 
 ##License
