@@ -144,16 +144,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderGLFrame(JNIEnv *env, jclass __unus
 		texImageDescriptor->eventPollFd.fd = -1;
 	}
 
-	if (info->currentIndex == 0)
-		prepareCanvas(texImageDescriptor->frameBuffer, info);
-	do {
-		DDGifSlurp(info, true);
-		drawNextBitmap((argb *) texImageDescriptor->frameBuffer, info);
-	} while (info->currentIndex++ < desiredIndex);
+	seek(info, desiredIndex, texImageDescriptor->frameBuffer);
 
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-	             texImageDescriptor->frameBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texImageDescriptor->frameBuffer);
 }
 

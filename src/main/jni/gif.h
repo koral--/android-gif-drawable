@@ -209,4 +209,6 @@ uint_fast32_t getFrameDuration(GifInfo *info);
 
 __attribute__ ((visibility ("default"))) JNIEnv *getEnv();
 
+__attribute__ ((visibility ("default"))) uint_fast32_t seek(GifInfo *info, jint desiredIndex, const void *pixels);
+
 #endif

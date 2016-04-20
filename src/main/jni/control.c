@@ -31,11 +31,23 @@ Java_pl_droidsonroids_gif_GifInfoHandle_setSpeedFactor(JNIEnv __unused *env, jcl
 	info->speedFactor = factor;
 }
 
-static uint_fast32_t seek(GifInfo *info, JNIEnv *env, jint desiredIndex, jobject jbitmap) {
-
+static uint_fast32_t seekBitmap(GifInfo *info, JNIEnv *env, jint desiredIndex, jobject jbitmap) {
 	void *pixels;
 	if (lockPixels(env, jbitmap, info, &pixels) != 0) {
 		return 0;
+	}
+	uint_fast32_t duration = seek(info, desiredIndex, pixels);
+	unlockPixels(env, jbitmap);
+	return duration;
+}
+
+uint_fast32_t seek(GifInfo *info, jint desiredIndex, const void *pixels) {
+	if (desiredIndex < info->currentIndex && !reset(info)) {
+		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+		return 0;
+	}	
+	if (desiredIndex >= info->gifFilePtr->ImageCount) {
+		desiredIndex = (jint) (info->gifFilePtr->ImageCount - 1);
 	}
 	if (info->currentIndex == 0)
 		prepareCanvas(pixels, info);
@@ -43,7 +55,6 @@ static uint_fast32_t seek(GifInfo *info, JNIEnv *env, jint desiredIndex, jobject
 		DDGifSlurp(info, true);
 		drawNextBitmap((argb *) pixels, info);
 	} while (info->currentIndex++ < desiredIndex);
-	unlockPixels(env, jbitmap);
 	--info->currentIndex;
 	return getFrameDuration(info);
 }
@@ -52,10 +63,9 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused handleClass,
                                                    jlong gifInfo, jint desiredPos, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+	if (info == NULL || info->gifFilePtr->ImageCount == 1) {
 		return;
-	if (info->gifFilePtr->ImageCount == 1)
-		return;
+	}
 
 	unsigned long sum = 0;
 	int desiredIndex;
@@ -66,18 +76,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 		sum = newSum;
 	}
 
-	if (desiredIndex < info->currentIndex && !reset(info)) {
-		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
-		return;
-	}
-
 	if (info->lastFrameRemainder != -1) {
 		info->lastFrameRemainder = desiredPos - sum;
 		if (desiredIndex == info->gifFilePtr->ImageCount - 1 &&
 		    info->lastFrameRemainder > info->controlBlock[desiredIndex].DelayTime)
 			info->lastFrameRemainder = info->controlBlock[desiredIndex].DelayTime;
 	}
-	seek(info, env, desiredIndex, jbitmap);
+	seekBitmap(info, env, desiredIndex, jbitmap);
 
 	info->nextStartTime = getRealTime() + (long) (info->lastFrameRemainder / info->speedFactor);
 }
@@ -86,18 +91,11 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused handleClass,
                                                     jlong gifInfo, jint desiredIndex, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL || info->gifFilePtr->ImageCount == 1)
-		return;
-
-	if (desiredIndex < info->currentIndex && !reset(info)) {
-		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+	if (info == NULL || info->gifFilePtr->ImageCount == 1) {
 		return;
 	}
 
-	if (desiredIndex >= info->gifFilePtr->ImageCount)
-		desiredIndex = (jint) (info->gifFilePtr->ImageCount - 1);
-
-	uint_fast32_t lastFrameDuration = seek(info, env, desiredIndex, jbitmap);
+	uint_fast32_t lastFrameDuration = seekBitmap(info, env, desiredIndex, jbitmap);
 
 	info->nextStartTime = getRealTime() + (long) (lastFrameDuration / info->speedFactor);
 	if (info->lastFrameRemainder != -1)
