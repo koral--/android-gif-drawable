@@ -54,11 +54,11 @@ static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
 	if (texImageDescriptor == NULL) {
 		return;
 	}
-	const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(texImageDescriptor->eventPollFd.fd, 1));
-	if (writeResult != 0) {
-		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
-	}
 	if (texImageDescriptor->eventPollFd.fd != -1) {
+		const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(texImageDescriptor->eventPollFd.fd, 1));
+		if (writeResult != 0) {
+			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
+		}
 		errno = pthread_join(texImageDescriptor->slurpThread, NULL);
 		if (errno != 0) {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Slurp thread join failed ");
