@@ -25,13 +25,13 @@ static void *slurp(void *pVoidInfo) {
 	GifInfo *info = pVoidInfo;
 	while (1) {
 		long renderStartTime = getRealTime();
-		DDGifSlurp(info, true);
+		DDGifSlurp(info, true, false);
 		TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
 		if (info->currentIndex == 0)
 			prepareCanvas(texImageDescriptor->frameBuffer, info);
 		const uint_fast32_t frameDuration = getBitmap((argb *) texImageDescriptor->frameBuffer, info);
 
-		const long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
+		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
 		int pollResult = poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
 		eventfd_t eventValue;
 		if (pollResult < 0) {
@@ -120,8 +120,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_stopDecoderThread(JNIEnv *env, jclass __
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_renderGLFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
-                                                      jint desiredIndex) {
+Java_pl_droidsonroids_gif_GifInfoHandle_renderGLFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint desiredIndex) {
 	GifInfo *info = (GifInfo *) gifInfo;
 	if (info == NULL) {
 		return;
@@ -144,7 +143,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderGLFrame(JNIEnv *env, jclass __unus
 		texImageDescriptor->eventPollFd.fd = -1;
 	}
 
-	seek(info, desiredIndex, texImageDescriptor->frameBuffer);
+	seek(info, (uint_fast32_t) desiredIndex, texImageDescriptor->frameBuffer);
 
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;

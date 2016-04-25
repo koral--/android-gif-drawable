@@ -74,7 +74,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
 		sum += info->controlBlock[i].DelayTime;
     }
 
-	long remainder;
+	long long remainder;
 	if (info->lastFrameRemainder == -1) {
 		remainder = info->nextStartTime - getRealTime();
 		if (remainder < 0) { //in case of if frame hasn't been rendered until nextStartTime passed
@@ -167,7 +167,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 		if (info->currentIndex == 0)
 			prepareCanvas(pixels, info);
 		while (info->currentIndex < savedIndex) {
-			DDGifSlurp(info, true);
+            DDGifSlurp(info, true, false);
 			lastFrameDuration = getBitmap((argb *) pixels, info);
 		}
 	}

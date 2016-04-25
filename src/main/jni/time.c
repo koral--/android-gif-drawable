@@ -1,8 +1,8 @@
 #include "gif.h"
 
-long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration) {
+long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration) {
 	if (frameDuration) {
-		long invalidationDelay = frameDuration;
+		long long invalidationDelay = frameDuration;
 		if (info->speedFactor != 1.0) {
 			invalidationDelay /= info->speedFactor;
 		}

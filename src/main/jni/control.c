@@ -36,23 +36,46 @@ static uint_fast32_t seekBitmap(GifInfo *info, JNIEnv *env, jint desiredIndex, j
 	if (lockPixels(env, jbitmap, info, &pixels) != 0) {
 		return 0;
 	}
-	uint_fast32_t duration = seek(info, desiredIndex, pixels);
+	uint_fast32_t duration = seek(info, (uint_fast32_t) desiredIndex, pixels);
 	unlockPixels(env, jbitmap);
 	return duration;
 }
 
-uint_fast32_t seek(GifInfo *info, jint desiredIndex, const void *pixels) {
-	if (desiredIndex < info->currentIndex && !reset(info)) {
-		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
-		return 0;
-	}	
-	if (desiredIndex >= info->gifFilePtr->ImageCount) {
-		desiredIndex = (jint) (info->gifFilePtr->ImageCount - 1);
-	}
-	if (info->currentIndex == 0)
+uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels) {
+	GifFileType *const gifFilePtr = info->gifFilePtr;
+	if (desiredIndex < info->currentIndex || info->currentIndex == 0) {
+		if (!reset(info)) {
+			gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
+			return 0;
+		}
 		prepareCanvas(pixels, info);
+	}
+	if (desiredIndex >= gifFilePtr->ImageCount) {
+		desiredIndex = gifFilePtr->ImageCount - 1;
+	}
+
+	uint_fast32_t i;
+	for (i = desiredIndex; i > info->currentIndex; i--) {
+		const GifImageDesc imageDesc = info->gifFilePtr->SavedImages[i].ImageDesc;
+		if (gifFilePtr->SWidth == imageDesc.Width && gifFilePtr->SHeight == imageDesc.Height) {
+			const GraphicsControlBlock controlBlock = info->controlBlock[i];
+			if (controlBlock.TransparentColor == NO_TRANSPARENT_COLOR) {
+				break;
+			} else if (controlBlock.DisposalMode == DISPOSE_BACKGROUND) {
+				break;
+			}
+		}
+	}
+
+	if (i > 0) {
+		while (info->currentIndex < i - 1) {
+			DDGifSlurp(info, false, true);
+			++info->currentIndex;
+		}
+	}
+
 	do {
-		DDGifSlurp(info, true);
+		DDGifSlurp(info, true, false);
 		drawNextBitmap((argb *) pixels, info);
 	} while (info->currentIndex++ < desiredIndex);
 	--info->currentIndex;
@@ -122,7 +145,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
 	    (info->loopCount > 0 && info->currentLoop == info->loopCount))
 		return -1;
 	info->nextStartTime = getRealTime() + info->lastFrameRemainder;
-	const long remainder = info->lastFrameRemainder;
+	const long long remainder = info->lastFrameRemainder;
 	info->lastFrameRemainder = -1;
 	return remainder;
 }

@@ -1,21 +1,23 @@
 #include "gif.h"
 
-void DDGifSlurp(GifInfo *info, bool shouldDecode) {
+void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 	GifRecordType RecordType;
 	GifByteType *ExtData;
 	int ExtFunction;
 	GifFileType *gifFilePtr;
 	gifFilePtr = info->gifFilePtr;
+	uint_fast32_t lastAllocatedGCB = 0;
 	do {
 		if (DGifGetRecordType(gifFilePtr, &RecordType) == GIF_ERROR)
 			return;
+		bool isInitialPass = !decode && !exitAfterFrame;
 		switch (RecordType) {
 			case IMAGE_DESC_RECORD_TYPE:
 
-				if (DGifGetImageDesc(gifFilePtr, !shouldDecode) == GIF_ERROR)
+				if (DGifGetImageDesc(gifFilePtr, isInitialPass) == GIF_ERROR)
 					return;
 
-				if (!shouldDecode) {
+				if (isInitialPass) {
 					SavedImage *sp = &gifFilePtr->SavedImages[gifFilePtr->ImageCount - 1];
 
 					int_fast32_t topOverflow = gifFilePtr->Image.Top + gifFilePtr->Image.Height - gifFilePtr->SHeight;
@@ -35,7 +37,7 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
 					}
 				}
 
-				if (shouldDecode) {
+				if (decode) {
 					int_fast32_t widthOverflow = gifFilePtr->Image.Width - info->originalWidth;
 					int_fast32_t heightOverflow = gifFilePtr->Image.Height - info->originalHeight;
 					if (widthOverflow > 0 || heightOverflow > 0) {
@@ -60,8 +62,7 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
 								if (DGifGetLine(gifFilePtr, info->rasterBits + j * gifFilePtr->Image.Width, gifFilePtr->Image.Width) == GIF_ERROR)
 									return;
 							}
-					}
-					else {
+					} else {
 						if (DGifGetLine(gifFilePtr, info->rasterBits, gifFilePtr->Image.Width * gifFilePtr->Image.Height) == GIF_ERROR) {
 							return;
 						}
@@ -79,43 +80,45 @@ void DDGifSlurp(GifInfo *info, bool shouldDecode) {
 								*dst = *src;
 								dst++;
 								src += info->sampleSize;
-							}
-							while (src < srcEndLine);
+							} while (src < srcEndLine);
 							dst = dstEndLine;
 							src = srcNextLineStart;
-						}
-						while (src < srcEndImage);
+						} while (src < srcEndImage);
 					}
 					return;
-				}
-				else {
+				} else {
 					do {
 						if (DGifGetCodeNext(gifFilePtr, &ExtData) == GIF_ERROR) {
 							return;
 						}
+					} while (ExtData != NULL);
+					if (exitAfterFrame) {
+						return;
 					}
-					while (ExtData != NULL);
 				}
 				break;
 
 			case EXTENSION_RECORD_TYPE:
 				if (DGifGetExtension(gifFilePtr, &ExtFunction, &ExtData) == GIF_ERROR)
 					return;
-				if (!shouldDecode) {
-					GraphicsControlBlock *tmpInfos = reallocarray(info->controlBlock, info->gifFilePtr->ImageCount + 1, sizeof(GraphicsControlBlock));
-					if (tmpInfos == NULL) {
-						gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-						return;
+				if (isInitialPass) {
+					if (lastAllocatedGCB < info->gifFilePtr->ImageCount) {
+						GraphicsControlBlock *tmpInfos = reallocarray(info->controlBlock, info->gifFilePtr->ImageCount + 1, sizeof(GraphicsControlBlock));
+						if (tmpInfos == NULL) {
+							gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+							return;
+						}
+						lastAllocatedGCB = info->gifFilePtr->ImageCount;
+						info->controlBlock = tmpInfos;
+						info->controlBlock[gifFilePtr->ImageCount].DelayTime = DEFAULT_FRAME_DURATION_MS;
 					}
-					info->controlBlock = tmpInfos;
-					info->controlBlock[gifFilePtr->ImageCount].DelayTime = DEFAULT_FRAME_DURATION_MS;
 					if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
 						return;
 				}
 				while (ExtData != NULL) {
 					if (DGifGetExtensionNext(info->gifFilePtr, &ExtData) == GIF_ERROR)
 						return;
-					if (!shouldDecode) {
+					if (isInitialPass) {
 						if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
 							return;
 					}

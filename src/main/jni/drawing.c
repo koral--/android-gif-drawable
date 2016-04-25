@@ -90,7 +90,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 	// and completely covers current area
 	uint_fast8_t curDisposal = info->controlBlock[info->currentIndex - 1].DisposalMode;
 	bool nextTrans = info->controlBlock[info->currentIndex].TransparentColor != NO_TRANSPARENT_COLOR;
-	unsigned char nextDisposal = info->controlBlock[info->currentIndex].DisposalMode;
+	uint_fast8_t nextDisposal = info->controlBlock[info->currentIndex].DisposalMode;
 
 	if ((curDisposal == DISPOSE_PREVIOUS || nextDisposal == DISPOSE_PREVIOUS) && info->backupPtr == NULL) {
 		info->backupPtr = calloc(info->stride * fGif->SHeight, sizeof(argb));
@@ -121,7 +121,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 		memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
 }
 
-void prepareCanvas(argb *bm, GifInfo *info) {
+void prepareCanvas(const argb *bm, GifInfo *info) {
 	if (info->gifFilePtr->SColorMap && info->controlBlock->TransparentColor == NO_TRANSPARENT_COLOR) {
 		argb bgColArgb;
 		bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];

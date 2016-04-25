@@ -55,7 +55,7 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 	info->isOpaque = JNI_FALSE;
 	info->sampleSize = 1;
 
-	DDGifSlurp(info, false);
+	DDGifSlurp(info, false, false);
 	if (justDecodeMetaData == JNI_TRUE) {
 		info->rasterBits = NULL;
 	} else {

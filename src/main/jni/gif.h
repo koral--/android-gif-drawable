@@ -91,12 +91,12 @@ struct GifInfo {
 	GifFileType *gifFilePtr;
 	GifWord originalWidth, originalHeight;
 	uint_fast16_t sampleSize;
-	long lastFrameRemainder;
-	long nextStartTime;
+	long long lastFrameRemainder;
+	long long nextStartTime;
 	uint_fast32_t currentIndex;
 	GraphicsControlBlock *controlBlock;
 	argb *backupPtr;
-	long startPos;
+	long long startPos;
 	unsigned char *rasterBits;
 	char *comment;
 	uint_fast16_t loopCount;
@@ -132,7 +132,7 @@ typedef struct {
 typedef struct {
 	GifFileType *GifFileIn;
 	int Error;
-	long startPos;
+	long long startPos;
 	RewindFunc rewindFunc;
 	jlong sourceLength;
 } GifSourceDescriptor;
@@ -175,7 +175,7 @@ static int getComment(GifByteType *Bytes, GifInfo *);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
-__attribute__ ((visibility ("default"))) void DDGifSlurp(GifInfo *info, bool shouldDecode);
+__attribute__ ((visibility ("default"))) void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
@@ -197,11 +197,11 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-__attribute__ ((visibility ("default"))) long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
+__attribute__ ((visibility ("default"))) long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
 
 __attribute__ ((visibility ("default"))) jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 
-__attribute__ ((visibility ("default"))) void prepareCanvas(argb *bm, GifInfo *info);
+__attribute__ ((visibility ("default"))) void prepareCanvas(const argb *bm, GifInfo *info);
 
 __attribute__ ((visibility ("default"))) void drawNextBitmap(argb *bm, GifInfo *info);
 
@@ -209,6 +209,6 @@ uint_fast32_t getFrameDuration(GifInfo *info);
 
 __attribute__ ((visibility ("default"))) JNIEnv *getEnv();
 
-__attribute__ ((visibility ("default"))) uint_fast32_t seek(GifInfo *info, jint desiredIndex, const void *pixels);
+__attribute__ ((visibility ("default"))) uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels);
 
 #endif

@@ -27,7 +27,7 @@ static void *slurp(void *pVoidInfo) {
 		}
 		surfaceDescriptor->slurpHelper = 0;
 		pthread_mutex_unlock(&surfaceDescriptor->slurpMutex);
-		DDGifSlurp(info, true);
+        DDGifSlurp(info, true, false);
 		pthread_mutex_lock(&surfaceDescriptor->renderMutex);
 		surfaceDescriptor->renderHelper = 1;
 		pthread_cond_signal(&surfaceDescriptor->renderCond);
@@ -128,7 +128,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 	const size_t bufferSize = buffer.stride * buffer.height * sizeof(argb);
 
 	info->stride = buffer.stride;
-	long invalidationDelayMillis;
+	long long invalidationDelayMillis;
 	if (surfaceDescriptor->surfaceBackupPtr) {
 		memcpy(buffer.bits, surfaceDescriptor->surfaceBackupPtr, bufferSize);
 		invalidationDelayMillis = 0;
