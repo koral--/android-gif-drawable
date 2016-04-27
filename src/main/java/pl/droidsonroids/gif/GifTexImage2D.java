@@ -67,10 +67,17 @@ public class GifTexImage2D {
 	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexImage2D(int, int, int, int, int, int, int, int, Buffer)}.
 	 * Where <code>target</code> is {@link android.opengl.GLES20#GL_TEXTURE_2D} and <code>Buffer</code> contains pixels of the current frame.
-	 * Does nothing if decoder thread is not started.
 	 */
 	public void glTexImage2D() {
 		mGifInfoHandle.glTexImage2D();
+	}
+
+	/**
+	 * Equivalent of {@link android.opengl.GLES20#glTexSubImage2D(int, int, int, int, int, int, int, int, Buffer)}.
+	 * Where <code>target</code> is {@link android.opengl.GLES20#GL_TEXTURE_2D} and <code>Buffer</code> contains pixels of the current frame.
+	 */
+	public void glTexSubImage2D() {
+		mGifInfoHandle.glTexSubImage2D();
 	}
 
 	/**
