@@ -49,11 +49,7 @@ static void *slurp(void *pVoidInfo) {
 	return NULL;
 }
 
-static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
-	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-	if (texImageDescriptor == NULL) {
-		return;
-	}
+static void stopDecoderThread(JNIEnv *env, TexImageDescriptor *texImageDescriptor) {
 	if (texImageDescriptor->eventPollFd.fd != -1) {
 		const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(texImageDescriptor->eventPollFd.fd, 1));
 		if (writeResult != 0) {
@@ -68,22 +64,26 @@ static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
 		}
 		texImageDescriptor->eventPollFd.fd = -1;
 	}
+}
+
+static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
+	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
+	if (texImageDescriptor == NULL) {
+		return;
+	}
+	stopDecoderThread(env, texImageDescriptor);
 	free(texImageDescriptor->frameBuffer);
 	free(texImageDescriptor);
 	info->frameBufferDescriptor = NULL;
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) gifInfo;
 	if (info == NULL) {
 		return;
 	}
-	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-	if (texImageDescriptor != NULL) {
-		return;
-	}
-	texImageDescriptor = malloc(sizeof(TexImageDescriptor));
+	TexImageDescriptor *texImageDescriptor = malloc(sizeof(TexImageDescriptor));
 	if (!texImageDescriptor) {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
@@ -94,6 +94,22 @@ Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass _
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
 	}
+	info->stride = (int32_t) info->gifFilePtr->SWidth;
+	texImageDescriptor->eventPollFd.fd = -1;
+	info->frameBufferDescriptor = texImageDescriptor;
+}
+
+__unused JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *info = (GifInfo *) gifInfo;
+	if (info == NULL) {
+		return;
+	}
+	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
+	if (texImageDescriptor->eventPollFd.fd != -1) {
+		return;
+	}
+
 	texImageDescriptor->eventPollFd.events = POLL_IN;
 	texImageDescriptor->eventPollFd.fd = eventfd(0, 0);
 	if (texImageDescriptor->eventPollFd.fd == -1) {
@@ -104,7 +120,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass _
 	info->destructor = releaseTexImageDescriptor;
 	info->frameBufferDescriptor = texImageDescriptor;
 
-	info->stride = (int32_t) info->gifFilePtr->SWidth;
 	if (pthread_create(&texImageDescriptor->slurpThread, NULL, slurp, info) != 0) {
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Slurp thread creation failed ");
 	}
@@ -113,40 +128,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass _
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_stopDecoderThread(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL) {
+	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
 	}
-	releaseTexImageDescriptor(info, env);
+	stopDecoderThread(env, info->frameBufferDescriptor);
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_renderGLFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint desiredIndex) {
+Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrameGL(__unused JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint desiredIndex) {
 	GifInfo *info = (GifInfo *) gifInfo;
 	if (info == NULL) {
 		return;
 	}
 	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-	if (texImageDescriptor == NULL) {
-		texImageDescriptor = malloc(sizeof(TexImageDescriptor));
-		if (!texImageDescriptor) {
-			throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-			return;
-		}
-		texImageDescriptor->frameBuffer = malloc(info->gifFilePtr->SWidth * info->gifFilePtr->SHeight * sizeof(argb));
-		if (!texImageDescriptor->frameBuffer) {
-			free(texImageDescriptor);
-			throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-			return;
-		}
-		info->frameBufferDescriptor = texImageDescriptor;
-		info->stride = (int32_t) info->gifFilePtr->SWidth;
-		texImageDescriptor->eventPollFd.fd = -1;
-	}
-
 	seek(info, (uint_fast32_t) desiredIndex, texImageDescriptor->frameBuffer);
-
-	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
-	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texImageDescriptor->frameBuffer);
 }
 
