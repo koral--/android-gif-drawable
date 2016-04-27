@@ -1,8 +1,9 @@
 ### 1.1.16
 - `View#invalidate()` support added to `MultiCallback` - [#260](https://github.com/koral--/android-gif-drawable/issues/260#issuecomment-201949696)
+- `glTexSubImage2D()` support added to `GifTexImage2D` - [#288](https://github.com/koral--/android-gif-drawable/pull/288)
 - Support library dependency version updated to 23.3.0
 - Build tools version updated to 23.0.3
-- Android gradle plugin updated to 2.0.0
+- Android gradle plugin updated to 2.1.0
 
 ### 1.1.15
 - Fixed possible infinite surface binding
