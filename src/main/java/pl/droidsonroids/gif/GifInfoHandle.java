@@ -143,6 +143,8 @@ final class GifInfoHandle {
 
 	private static native void glTexImage2D(long gifInfoPtr);
 
+	private static native void glTexSubImage2D(long gifInfoPtr);
+
 	private static native void seekToFrameGL(long gifInfoPtr, int index);
 
 	private static native void initTexImageDescriptor(long gifInfoPtr);
@@ -293,6 +295,10 @@ final class GifInfoHandle {
 
 	void glTexImage2D() {
 		glTexImage2D(gifInfoPtr);
+	}
+
+	void glTexSubImage2D() {
+		glTexSubImage2D(gifInfoPtr);
 	}
 
 	void startDecoderThread() {
