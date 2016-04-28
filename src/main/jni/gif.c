@@ -312,6 +312,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL)
 		return;
+	if (info->destructor != NULL) {
+		info->destructor(info, env);
+	}
 	if (info->rewindFunction == streamRewind) {
 		StreamContainer *sc = info->gifFilePtr->UserData;
 		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close", "()V");
@@ -343,9 +346,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 		free(info->gifFilePtr->UserData);
 	}
 	info->gifFilePtr->UserData = NULL;
-	if (info->destructor != NULL) {
-		info->destructor(info, env);
-	}
 	cleanUp(info);
 }
 

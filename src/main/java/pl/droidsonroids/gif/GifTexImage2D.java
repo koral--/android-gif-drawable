@@ -101,6 +101,20 @@ public class GifTexImage2D {
 		mGifInfoHandle.recycle();
 	}
 
+	/**
+	 * @return width of the GIF canvas, 0 if recycled
+	 */
+	public int getWidth() {
+		return mGifInfoHandle.getWidth();
+	}
+
+	/**
+	 * @return height of the GIF canvas, 0 if recycled
+	 */
+	public int getHeight() {
+		return mGifInfoHandle.getHeight();
+	}
+
 	@Override
 	protected final void finalize() throws Throwable {
 		try {
