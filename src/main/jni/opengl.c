@@ -22,16 +22,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jc
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused unused, jclass __unused handleClass,
-                                                     jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused env, jclass __unused handleClass,
+                                                        jlong gifInfo) {
 	GifInfo *info = (GifInfo *) gifInfo;
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
 	}
 	const TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-    const GifImageDesc imageDesc = info->gifFilePtr->SavedImages[info->currentIndex].ImageDesc;
-    glTexSubImage2D(GL_TEXTURE_2D, 0, imageDesc.Left, imageDesc.Top, imageDesc.Width, imageDesc.Height, GL_RGBA, GL_UNSIGNED_BYTE,
-                    texImageDescriptor->frameBuffer);
+	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
+	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+	                texImageDescriptor->frameBuffer);
 }
 
 static void *slurp(void *pVoidInfo) {
