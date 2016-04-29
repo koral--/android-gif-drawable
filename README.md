@@ -12,7 +12,7 @@ android-gif-drawable
 ## Overview
 Bundled GIFLib via JNI is used to render frames. This way should be more efficient than `WebView` or `Movie` classes.
 
-### [Javadoc](http://koral--.github.io/android-gif-drawable/javadoc/)
+### [Javadoc](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 
 ### Setup
 
