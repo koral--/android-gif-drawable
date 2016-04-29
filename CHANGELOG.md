@@ -4,6 +4,7 @@
 - Support library dependency version updated to 23.3.0
 - Build tools version updated to 23.0.3
 - Android gradle plugin updated to 2.1.0
+- Gradle wrapper version updated to 2.13
 
 ### 1.1.15
 - Fixed possible infinite surface binding
