@@ -19,31 +19,31 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
 	if (info->isOpaque == JNI_TRUE) {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
-				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++)
+				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
 					dst->rgb = cmap->Colors[*src];
+				}
 				dst += info->stride - frame->ImageDesc.Width;
 			}
-		}
-		else {
+		} else {
 			for (; y > 0; y--) {
 				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
-					if (*src != transpIndex)
+					if (*src != transpIndex) {
 						dst->rgb = cmap->Colors[*src];
+					}
 				}
 				dst += info->stride - frame->ImageDesc.Width;
 			}
 		}
-	}
-	else {
+	} else {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
 				MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frame->ImageDesc.Width);
-				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++)
+				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
 					dst->rgb = cmap->Colors[*src];
+				}
 				dst += info->stride - frame->ImageDesc.Width;
 			}
-		}
-		else {
+		} else {
 			for (; y > 0; y--) {
 				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
 					if (*src != transpIndex) {
@@ -108,8 +108,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 				MEMSET_ARGB(dst, 0, cur->ImageDesc.Width);
 				dst += info->stride;
 			}
-		}
-		else if (curDisposal == DISPOSE_PREVIOUS && nextDisposal == DISPOSE_PREVIOUS) {// restore to previous
+		} else if (curDisposal == DISPOSE_PREVIOUS && nextDisposal == DISPOSE_PREVIOUS) {// restore to previous
 			argb *tmp = bm;
 			bm = backup;
 			backup = tmp;
@@ -117,19 +116,21 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 	}
 
 	// Save current image if next frame's disposal method == DISPOSE_PREVIOUS
-	if (nextDisposal == DISPOSE_PREVIOUS)
+	if (nextDisposal == DISPOSE_PREVIOUS) {
 		memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
+    }
 }
 
 void prepareCanvas(const argb *bm, GifInfo *info) {
-	if (info->gifFilePtr->SColorMap && info->controlBlock->TransparentColor == NO_TRANSPARENT_COLOR) {
-		argb bgColArgb;
-		bgColArgb.rgb = info->gifFilePtr->SColorMap->Colors[info->gifFilePtr->SBackGroundColor];
-		bgColArgb.alpha = 0xFF;
-		MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * info->gifFilePtr->SHeight);
-	}
-	else {
-		MEMSET_ARGB((uint32_t *) bm, 0, info->stride * info->gifFilePtr->SHeight);
+	GifFileType *const gifFilePtr = info->gifFilePtr;
+	if (gifFilePtr->SColorMap && info->controlBlock->TransparentColor == NO_TRANSPARENT_COLOR) {
+		argb bgColArgb = {
+				.rgb = gifFilePtr->SColorMap->Colors[gifFilePtr->SBackGroundColor],
+				.alpha = 0xFF
+		};
+		MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * gifFilePtr->SHeight);
+	} else {
+		MEMSET_ARGB((uint32_t *) bm, 0, info->stride * gifFilePtr->SHeight);
 	}
 }
 
@@ -149,8 +150,7 @@ uint_fast32_t getFrameDuration(GifInfo *info) {
 			else if (info->loopCount > 0)
 				info->currentLoop++;
 			info->currentIndex = 0;
-		}
-		else {
+		} else {
 			info->currentLoop++;
 			--info->currentIndex;
 			frameDuration = 0;

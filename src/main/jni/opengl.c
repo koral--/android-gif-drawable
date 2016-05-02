@@ -8,31 +8,27 @@ typedef struct {
 } TexImageDescriptor;
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jclass __unused handleClass,
-                                                     jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jclass __unused handleClass, jlong gifInfo, jint target, jint level) {
 	GifInfo *info = (GifInfo *) gifInfo;
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
 	}
-	const TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-	             texImageDescriptor->frameBuffer);
+	void *const pixels = ((TexImageDescriptor *) info->frameBufferDescriptor)->frameBuffer;
+	glTexImage2D((GLenum) target, level, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused env, jclass __unused handleClass,
-                                                        jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused env, jclass __unused handleClass, jlong gifInfo, jint target, jint level) {
 	GifInfo *info = (GifInfo *) gifInfo;
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
 	}
-	const TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-	                texImageDescriptor->frameBuffer);
+	void *const pixels = ((TexImageDescriptor *) info->frameBufferDescriptor)->frameBuffer;
+	glTexSubImage2D((GLenum) target, level, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 }
 
 static void *slurp(void *pVoidInfo) {
@@ -102,14 +98,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jcla
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
 	}
-	texImageDescriptor->frameBuffer = malloc(info->gifFilePtr->SWidth * info->gifFilePtr->SHeight * sizeof(argb));
+    texImageDescriptor->eventPollFd.fd = -1;
+    const GifWord width = info->gifFilePtr->SWidth;
+    const GifWord height = info->gifFilePtr->SHeight;
+    texImageDescriptor->frameBuffer = malloc(width * height * sizeof(argb));
 	if (!texImageDescriptor->frameBuffer) {
 		free(texImageDescriptor);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
 	}
-	info->stride = (int32_t) info->gifFilePtr->SWidth;
-	texImageDescriptor->eventPollFd.fd = -1;
+	info->stride = (int32_t) width;
 	info->frameBufferDescriptor = texImageDescriptor;
 }
 

@@ -12,7 +12,7 @@ import pl.droidsonroids.gif.annotations.Beta;
  * There are 2 possible usages:
  * <ol>
  * <li>Rendering GIF automatically according to its timing to internal frame buffer in the background thread,
- * and requesting frame to be copied to 2D texture when needed. See {@link #glTexImage2D()} and {@link #glTexImage2D()}</li>
+ * and requesting frame to be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexImage2D(int, int)}</li>
  * <li>Manual frame advancing. See {@link #seekToFrame(int)} (int)}</li>
  * </ol>
  */
@@ -66,18 +66,18 @@ public class GifTexImage2D {
 
 	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexImage2D(int, int, int, int, int, int, int, int, Buffer)}.
-	 * Where <code>target</code> is {@link android.opengl.GLES20#GL_TEXTURE_2D} and <code>Buffer</code> contains pixels of the current frame.
+	 * Where <code>Buffer</code> contains pixels of the current frame.
 	 */
-	public void glTexImage2D() {
-		mGifInfoHandle.glTexImage2D();
+	public void glTexImage2D(int target, int level) {
+		mGifInfoHandle.glTexImage2D(target, level);
 	}
 
 	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexSubImage2D(int, int, int, int, int, int, int, int, Buffer)}.
-	 * Where <code>target</code> is {@link android.opengl.GLES20#GL_TEXTURE_2D} and <code>Buffer</code> contains pixels of the current frame.
+	 * Where <code>Buffer</code> contains pixels of the current frame.
 	 */
-	public void glTexSubImage2D() {
-		mGifInfoHandle.glTexSubImage2D();
+	public void glTexSubImage2D(int target, int level) {
+		mGifInfoHandle.glTexSubImage2D(target, level);
 	}
 
 	/**

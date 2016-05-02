@@ -141,9 +141,9 @@ final class GifInfoHandle {
 
 	private static native void stopDecoderThread(long gifInfoPtr);
 
-	private static native void glTexImage2D(long gifInfoPtr);
+	private static native void glTexImage2D(long gifInfoPtr, int target, int level);
 
-	private static native void glTexSubImage2D(long gifInfoPtr);
+	private static native void glTexSubImage2D(long gifInfoPtr, int target, int level);
 
 	private static native void seekToFrameGL(long gifInfoPtr, int index);
 
@@ -293,12 +293,12 @@ final class GifInfoHandle {
 		return getNumberOfFrames(gifInfoPtr);
 	}
 
-	void glTexImage2D() {
-		glTexImage2D(gifInfoPtr);
+	void glTexImage2D(int target, int level) {
+		glTexImage2D(gifInfoPtr, target, level);
 	}
 
-	void glTexSubImage2D() {
-		glTexSubImage2D(gifInfoPtr);
+	void glTexSubImage2D(int target, int level) {
+		glTexSubImage2D(gifInfoPtr, target, level);
 	}
 
 	void startDecoderThread() {
