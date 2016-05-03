@@ -27,7 +27,7 @@ static void *slurp(void *pVoidInfo) {
 		}
 		surfaceDescriptor->slurpHelper = 0;
 		pthread_mutex_unlock(&surfaceDescriptor->slurpMutex);
-        DDGifSlurp(info, true, false);
+		DDGifSlurp(info, true, false);
 		pthread_mutex_lock(&surfaceDescriptor->renderMutex);
 		surfaceDescriptor->renderHelper = 1;
 		pthread_cond_signal(&surfaceDescriptor->renderCond);
@@ -36,7 +36,7 @@ static void *slurp(void *pVoidInfo) {
 }
 
 static void releaseSurfaceDescriptor(GifInfo *info, JNIEnv *env) {
-	SurfaceDescriptor* surfaceDescriptor = info->frameBufferDescriptor;
+	SurfaceDescriptor *surfaceDescriptor = info->frameBufferDescriptor;
 	if (surfaceDescriptor == NULL)
 		return;
 
@@ -107,8 +107,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 	info->isOpaque = isOpaque;
 
 	struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
-	if (ANativeWindow_setBuffersGeometry(window, (int32_t) info->gifFilePtr->SWidth,
-	                                     (int32_t) info->gifFilePtr->SHeight,
+	GifFileType *const gifFilePtr = info->gifFilePtr;
+	if (ANativeWindow_setBuffersGeometry(window, (int32_t) gifFilePtr->SWidth,
+	                                     (int32_t) gifFilePtr->SHeight,
 	                                     windowFormat) != 0) {
 		ANativeWindow_release(window);
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Buffers geometry setting failed ");
@@ -134,14 +135,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		invalidationDelayMillis = 0;
 		surfaceDescriptor->renderHelper = 1;
 		surfaceDescriptor->slurpHelper = 0;
-	}
-	else {
+	} else {
 		if (savedState != NULL) {
 			invalidationDelayMillis = restoreSavedState(info, env, savedState, buffer.bits);
 			if (invalidationDelayMillis < 0)
 				invalidationDelayMillis = 0;
-		}
-		else
+		} else
 			invalidationDelayMillis = 0;
 		surfaceDescriptor->renderHelper = 0;
 		surfaceDescriptor->slurpHelper = 1;
@@ -174,8 +173,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		if (pollResult < 0) {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Display loop poll failed ");
 			break;
-		}
-		else if (pollResult > 0) {
+		} else if (pollResult > 0) {
 			if (surfaceDescriptor->surfaceBackupPtr == NULL) {
 				surfaceDescriptor->surfaceBackupPtr = malloc(bufferSize);
 				if (surfaceDescriptor->surfaceBackupPtr == NULL) {
@@ -187,7 +185,21 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 			break;
 		}
 		oldBufferBits = buffer.bits;
-		if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
+
+		struct ARect *dirtyRectPtr;
+		if (info->currentIndex == 0) {
+			dirtyRectPtr = NULL;
+		} else {
+			const GifImageDesc imageDesc = gifFilePtr->SavedImages[info->currentIndex].ImageDesc;
+			struct ARect dirtyRect = {
+					.left = imageDesc.Left,
+					.top = imageDesc.Top,
+					.right = imageDesc.Left + imageDesc.Width,
+					.bottom = imageDesc.Top - imageDesc.Height
+			};
+			dirtyRectPtr = &dirtyRect;
+		}
+		if (ANativeWindow_lock(window, &buffer, dirtyRectPtr) != 0) {
 #ifdef DEBUG
 			LOGE("Window lock failed %d", errno);
 #endif
