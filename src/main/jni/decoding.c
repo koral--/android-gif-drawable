@@ -18,8 +18,13 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 					return;
 
 				if (isInitialPass) {
+					int_fast32_t widthOverflow = gifFilePtr->Image.Width - info->gifFilePtr->SWidth;
+					int_fast32_t heightOverflow = gifFilePtr->Image.Height - info->gifFilePtr->SHeight;
+					if (widthOverflow > 0 || heightOverflow > 0) {
+						gifFilePtr->SWidth += widthOverflow;
+						gifFilePtr->SHeight += heightOverflow;
+					}
 					SavedImage *sp = &gifFilePtr->SavedImages[gifFilePtr->ImageCount - 1];
-
 					int_fast32_t topOverflow = gifFilePtr->Image.Top + gifFilePtr->Image.Height - gifFilePtr->SHeight;
 					if (topOverflow > 0) {
 						sp->ImageDesc.Top -= topOverflow;
@@ -28,12 +33,6 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 					int_fast32_t leftOverflow = gifFilePtr->Image.Left + gifFilePtr->Image.Width - gifFilePtr->SWidth;
 					if (leftOverflow > 0) {
 						sp->ImageDesc.Left -= leftOverflow;
-					}
-					int_fast32_t widthOverflow = gifFilePtr->Image.Width - info->gifFilePtr->SWidth;
-					int_fast32_t heightOverflow = gifFilePtr->Image.Height - info->gifFilePtr->SHeight;
-					if (widthOverflow > 0 || heightOverflow > 0) {
-						info->gifFilePtr->SWidth += widthOverflow;
-						info->gifFilePtr->SHeight += heightOverflow;
 					}
 				}
 
