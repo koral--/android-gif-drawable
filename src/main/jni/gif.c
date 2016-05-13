@@ -69,7 +69,7 @@ static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fas
 }
 
 static int fileRewind(GifInfo *info) {
-	if (fseek(info->gifFilePtr->UserData, info->startPos, SEEK_SET) == 0)
+	if (fseeko(info->gifFilePtr->UserData, info->startPos, SEEK_SET) == 0)
 		return 0;
 	info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 	return -1;
@@ -209,11 +209,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
-	jmethodID markMID = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
-	jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
-	jmethodID resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
+	static jmethodID markMID = NULL;
+	if (markMID == NULL) {
+		markMID = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
+	}
+	static jmethodID readMID = NULL;
+	if (readMID == NULL) {
+		readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
+	}
+	static jmethodID resetMID = NULL;
+	if (resetMID == NULL) {
+		resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
+	}
 
-	if (markMID == 0 || readMID == 0 || resetMID == 0) {
+	if (markMID == NULL || readMID == NULL || resetMID == NULL) {
 		(*env)->DeleteGlobalRef(env, streamCls);
 		return NULL_GIF_INFO;
 	}
@@ -274,7 +283,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		return NULL_GIF_INFO;
 	}
 	jclass fdClass = (*env)->GetObjectClass(env, jfd);
-	jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass, "descriptor", "I");
+	static jfieldID fdClassDescriptorFieldID = NULL;
+	if (fdClassDescriptorFieldID == NULL) {
+		fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass, "descriptor", "I");
+	}
 	if (fdClassDescriptorFieldID == NULL) {
 		return NULL_GIF_INFO;
 	}
@@ -283,28 +295,24 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
 		return NULL_GIF_INFO;
 	}
-	FILE *file = fdopen(fd, "rb");
-	if (file == NULL) {
-		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
-		return NULL_GIF_INFO;
-	}
-	GifInfo *info;
-	if (fseek(file, offset, SEEK_SET) == 0) {
+	if (lseek(fd, offset, SEEK_SET) != -1) {
+        FILE *file = fdopen(fd, "rb");
+        if (file == NULL) {
+            throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+            return NULL_GIF_INFO;
+        }
 		GifSourceDescriptor descriptor;
 		descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
 		descriptor.rewindFunc = fileRewind;
 		descriptor.startPos = ftell(file);
 		struct stat st;
 		descriptor.sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
-		info = createGifHandle(&descriptor, env, justDecodeMetaData);
-	}
-	else {
-		fclose(file);
-		info = NULL;
+        return (jlong) createGifHandle(&descriptor, env, justDecodeMetaData);
+	} else {
+		close(fd);
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+        return NULL;
 	}
-
-	return (jlong) (intptr_t) info;
 }
 
 __unused JNIEXPORT void JNICALL
@@ -317,7 +325,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 	}
 	if (info->rewindFunction == streamRewind) {
 		StreamContainer *sc = info->gifFilePtr->UserData;
-		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close", "()V");
+		static jmethodID closeMID = NULL;
+		if (closeMID == NULL) {
+			(*env)->GetMethodID(env, sc->streamCls, "close", "()V");
+		}
 		if (closeMID != NULL)
 			(*env)->CallVoidMethod(env, sc->stream, closeMID);
 		if ((*env)->ExceptionCheck(env))
