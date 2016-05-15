@@ -160,11 +160,12 @@ class ReLinker {
 				zipFile = new ZipFile(apkFile, ZipFile.OPEN_READ);
 				break;
 			} catch (IOException ignored) {
+				//no-op, optionally retried
 			}
 		}
 
 		if (zipFile == null) {
-			throw new RuntimeException("Could not open APK file: " + apkFile.getAbsolutePath());
+			throw new IllegalStateException("Could not open APK file: " + apkFile.getAbsolutePath());
 		}
 		return zipFile;
 	}
@@ -217,6 +218,7 @@ class ReLinker {
 				closeable.close();
 			}
 		} catch (IOException ignored) {
+			//no-op
 		}
 	}
 }

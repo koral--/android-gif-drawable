@@ -22,6 +22,8 @@ import java.io.IOException;
  */
 public class GifTextView extends TextView {
 
+	private boolean mFreezesAnimation;
+
 	/**
 	 * A corresponding superclass constructor wrapper.
 	 *
@@ -73,8 +75,6 @@ public class GifTextView extends TextView {
 		super(context, attrs, defStyle, defStyleRes);
 		init(attrs, defStyle, defStyleRes);
 	}
-
-	private boolean mFreezesAnimation;
 
 	private void init(AttributeSet attrs, int defStyle, int defStyleRes) {
 		if (attrs != null) {

@@ -38,10 +38,8 @@ final class GifViewUtils {
 		final int resId = attrs.getAttributeResourceValue(ANDROID_NS, isSrc ? "src" : "background", 0);
 		if (resId > 0) {
 			final String resourceTypeName = view.getResources().getResourceTypeName(resId);
-			if (SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
-				if (!setResource(view, isSrc, resId)) {
-					return resId;
-				}
+			if (SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName) && !setResource(view, isSrc, resId)) {
+				return resId;
 			}
 		}
 		return 0;

@@ -44,12 +44,23 @@ import java.lang.ref.WeakReference;
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
 
+	private static final ScaleType[] sScaleTypeArray = {
+			ScaleType.MATRIX,
+			ScaleType.FIT_XY,
+			ScaleType.FIT_START,
+			ScaleType.FIT_CENTER,
+			ScaleType.FIT_END,
+			ScaleType.CENTER,
+			ScaleType.CENTER_CROP,
+			ScaleType.CENTER_INSIDE
+	};
 	private ScaleType mScaleType = ScaleType.FIT_CENTER;
 	private final Matrix mTransform = new Matrix();
 	private InputSource mInputSource;
-	private boolean mFreezesAnimation;
 
+	private boolean mFreezesAnimation;
 	private RenderThread mRenderThread;
+
 	private float mSpeedFactor = 1f;
 
 	public GifTextureView(Context context) {
@@ -72,17 +83,6 @@ public class GifTextureView extends TextureView {
 		super(context, attrs, defStyleAttr, defStyleRes);
 		init(attrs, defStyleAttr, defStyleRes);
 	}
-
-	private static final ScaleType[] sScaleTypeArray = {
-			ScaleType.MATRIX,
-			ScaleType.FIT_XY,
-			ScaleType.FIT_START,
-			ScaleType.FIT_CENTER,
-			ScaleType.FIT_END,
-			ScaleType.CENTER,
-			ScaleType.CENTER_CROP,
-			ScaleType.CENTER_INSIDE
-	};
 
 	private void init(AttributeSet attrs, int defStyleAttr, int defStyleRes) {
 		if (attrs != null) {
@@ -233,7 +233,7 @@ public class GifTextureView extends TextureView {
 
 		@Override
 		public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
+			//no-op
 		}
 
 		@Override
@@ -245,6 +245,7 @@ public class GifTextureView extends TextureView {
 
 		@Override
 		public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+			//no-op
 		}
 
 		void dispose(@NonNull final GifTextureView gifTextureView) {

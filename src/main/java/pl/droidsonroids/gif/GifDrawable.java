@@ -78,7 +78,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	private final RenderTask mRenderTask = new RenderTask(this);
 	private final Rect mSrcRect;
 	ScheduledFuture<?> mSchedule;
-	private int mScaledWidth, mScaledHeight;
+	private int mScaledWidth;
+	private int mScaledHeight;
 	private Transform mTransform;
 
 	/**
@@ -214,12 +215,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		Bitmap oldBitmap = null;
 		if (oldDrawable != null) {
 			synchronized (oldDrawable.mNativeInfoHandle) {
-				if (!oldDrawable.mNativeInfoHandle.isRecycled()) {
-					if (oldDrawable.mNativeInfoHandle.getHeight() >= mNativeInfoHandle.getHeight() && oldDrawable.mNativeInfoHandle.getWidth() >= mNativeInfoHandle.getWidth()) {
-						oldDrawable.shutdown();
-						oldBitmap = oldDrawable.mBuffer;
-						oldBitmap.eraseColor(Color.TRANSPARENT);
-					}
+				if (!oldDrawable.mNativeInfoHandle.isRecycled()
+						&& oldDrawable.mNativeInfoHandle.getHeight() >= mNativeInfoHandle.getHeight()
+						&& oldDrawable.mNativeInfoHandle.getWidth() >= mNativeInfoHandle.getWidth()) {
+					oldDrawable.shutdown();
+					oldBitmap = oldDrawable.mBuffer;
+					oldBitmap.eraseColor(Color.TRANSPARENT);
 				}
 			}
 		}
@@ -938,6 +939,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Specify a {@link Transform} implementation to customize how the GIF's current Bitmap is drawn.
+	 *
 	 * @param transform new {@link Transform} or null to remove current one
 	 */
 	public void setTransform(@Nullable Transform transform) {

@@ -29,13 +29,6 @@ import static pl.droidsonroids.gif.InputSource.UriSource;
  */
 public class GifDrawableBuilder {
 	private int mSampleSize = 1;
-
-	/**
-	 * Constructs empty builder.
-	 */
-	public GifDrawableBuilder() {
-	}
-
 	private InputSource mInputSource;
 	private GifDrawable mOldDrawable;
 	private ScheduledThreadPoolExecutor mExecutor;

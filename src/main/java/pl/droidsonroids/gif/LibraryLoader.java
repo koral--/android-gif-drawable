@@ -15,6 +15,9 @@ class LibraryLoader {
 	static final String BASE_LIBRARY_NAME = "pl_droidsonroids_gif";
 	private static Context sAppContext;
 
+	private LibraryLoader() {
+	}
+
 	/**
 	 * Initializes loader with given `Context`. Subsequent calls should have no effect since application Context is retrieved.
 	 * Libraries will not be loaded immediately but only when needed.
@@ -32,7 +35,7 @@ class LibraryLoader {
 				final Method currentApplicationMethod = activityThread.getDeclaredMethod("currentApplication");
 				sAppContext = (Context) currentApplicationMethod.invoke(null);
 			} catch (Exception e) {
-				throw new RuntimeException("LibraryLoader not initialized. Call LibraryLoader.initialize() before using library classes.", e);
+				throw new IllegalStateException("LibraryLoader not initialized. Call LibraryLoader.initialize() before using library classes.", e);
 			}
 		}
 		return sAppContext;
