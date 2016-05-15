@@ -122,12 +122,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
 		return NULL_GIF_INFO;
 	}
-	GifSourceDescriptor descriptor;
-	descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
-	descriptor.rewindFunc = fileRewind;
-	descriptor.startPos = ftell(file);
 	struct stat st;
-	descriptor.sourceLength = stat(filename, &st) == 0 ? st.st_size : -1;
+	GifSourceDescriptor descriptor = {
+			.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error),
+			.rewindFunc = fileRewind,
+			.startPos = ftell(file),
+			.sourceLength = stat(filename, &st) == 0 ? st.st_size : -1
+	};
 	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
 	if (info == NULL) {
 		fclose(file);
@@ -154,11 +155,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 	}
 	container->arrLen = (*env)->GetArrayLength(env, container->buffer);
 	container->pos = 0;
-	GifSourceDescriptor descriptor;
-	descriptor.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error);
-	descriptor.rewindFunc = byteArrayRewind;
-	descriptor.startPos = container->pos;
-	descriptor.sourceLength = container->arrLen;
+	GifSourceDescriptor descriptor = {
+			.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error),
+			.rewindFunc = byteArrayRewind,
+			.startPos = container->pos,
+			.sourceLength = container->arrLen
+	};
 
 	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
 
@@ -188,11 +190,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	container->capacity = capacity;
 	container->pos = 0;
 
-	GifSourceDescriptor descriptor;
-	descriptor.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error);
-	descriptor.rewindFunc = directByteBufferRewindFun;
-	descriptor.startPos = container->pos;
-	descriptor.sourceLength = container->capacity;
+	GifSourceDescriptor descriptor = {
+			.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error),
+			.rewindFunc = directByteBufferRewindFun,
+			.startPos = container->pos,
+			.sourceLength = container->capacity
+	};
 
 	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
 	if (info == NULL) {
@@ -257,11 +260,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	}
 	container->streamCls = streamCls;
 
-	GifSourceDescriptor descriptor;
-	descriptor.GifFileIn = DGifOpen(container, &streamReadFun, &descriptor.Error);
-	descriptor.startPos = 0;
-	descriptor.rewindFunc = streamRewind;
-	descriptor.sourceLength = -1;
+	GifSourceDescriptor descriptor = {
+			.GifFileIn = DGifOpen(container, &streamReadFun, &descriptor.Error),
+			.startPos = 0,
+			.rewindFunc = streamRewind,
+			.sourceLength = -1
+	};
 
 	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
 	if (!(*env)->ExceptionCheck(env)) {
@@ -296,22 +300,23 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		return NULL_GIF_INFO;
 	}
 	if (lseek(fd, offset, SEEK_SET) != -1) {
-        FILE *file = fdopen(fd, "rb");
-        if (file == NULL) {
-            throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
-            return NULL_GIF_INFO;
-        }
-		GifSourceDescriptor descriptor;
-		descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
-		descriptor.rewindFunc = fileRewind;
-		descriptor.startPos = ftell(file);
+		FILE *file = fdopen(fd, "rb");
+		if (file == NULL) {
+			throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+			return NULL_GIF_INFO;
+		}
 		struct stat st;
-		descriptor.sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
-        return (jlong) createGifHandle(&descriptor, env, justDecodeMetaData);
+		GifSourceDescriptor descriptor = {
+				.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error),
+				.rewindFunc = fileRewind,
+				.startPos = ftell(file),
+				.sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1
+		};
+		return (jlong) createGifHandle(&descriptor, env, justDecodeMetaData);
 	} else {
 		close(fd);
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
-        return NULL;
+		return (jlong) (intptr_t) NULL;
 	}
 }
 
