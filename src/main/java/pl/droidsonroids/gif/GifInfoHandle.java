@@ -129,7 +129,7 @@ final class GifInfoHandle {
 
 	private static native int getFrameDuration(long gifInfoPtr, int index);
 
-	private static native int setSampleSize(long gifInfoPtr, int sampleSize);
+	private static native void setSampleSize(long gifInfoPtr, int sampleSize);
 
 	private static native int getWidth(long gifFileInPtr);
 
