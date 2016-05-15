@@ -72,6 +72,7 @@ public class ConditionVariableTest {
 					waiter.resume();
 					conditionVariable.block();
 				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 					waiter.rethrow(e);
 				}
 				waiter.fail("ConditionVariable not blocked");

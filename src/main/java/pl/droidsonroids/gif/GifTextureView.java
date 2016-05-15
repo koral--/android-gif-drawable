@@ -206,6 +206,7 @@ public class GifTextureView extends TextureView {
 				try {
 					isSurfaceValid.block();
 				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 					break;
 				}
 				final SurfaceTexture surfaceTexture = gifTextureView.getSurfaceTexture();
