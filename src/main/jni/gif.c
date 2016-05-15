@@ -299,7 +299,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
 		return NULL_GIF_INFO;
 	}
-	if (lseek(fd, offset, SEEK_SET) != -1) {
+	if (lseek64(fd, offset, SEEK_SET) != -1) {
 		FILE *file = fdopen(fd, "rb");
 		if (file == NULL) {
 			throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
