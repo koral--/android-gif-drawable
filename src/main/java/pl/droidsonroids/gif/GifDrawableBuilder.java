@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import pl.droidsonroids.gif.annotations.Beta;
+
 import static pl.droidsonroids.gif.InputSource.AssetFileDescriptorSource;
 import static pl.droidsonroids.gif.InputSource.AssetSource;
 import static pl.droidsonroids.gif.InputSource.ByteArraySource;
@@ -28,11 +30,11 @@ import static pl.droidsonroids.gif.InputSource.UriSource;
  * by reusing old ones.
  */
 public class GifDrawableBuilder {
-	private int mSampleSize = 1;
 	private InputSource mInputSource;
 	private GifDrawable mOldDrawable;
 	private ScheduledThreadPoolExecutor mExecutor;
 	private boolean mIsRenderingTriggeredOnDraw = true;
+	private final GifOptions mOptions = new GifOptions();
 
 	/**
 	 * If set to a value &gt; 1, requests the decoder to subsample the original
@@ -47,7 +49,7 @@ public class GifDrawableBuilder {
 	 * @param sampleSize the sample size
 	 */
 	public void sampleSize(final int sampleSize) {
-		mSampleSize = sampleSize;
+		mOptions.inSampleSize = sampleSize;
 	}
 
 	/**
@@ -60,7 +62,7 @@ public class GifDrawableBuilder {
 		if (mInputSource == null) {
 			throw new NullPointerException("Source is not set");
 		}
-		return mInputSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw, mSampleSize);
+		return mInputSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw, mOptions);
 	}
 
 	/**
@@ -114,6 +116,21 @@ public class GifDrawableBuilder {
 	 */
 	public GifDrawableBuilder setRenderingTriggeredOnDraw(boolean isRenderingTriggeredOnDraw) {
 		mIsRenderingTriggeredOnDraw = isRenderingTriggeredOnDraw;
+		return this;
+	}
+
+	/**
+	 * Indicates whether the content of this source is opaque. GIF that is known to be opaque can
+	 * take a faster drawing case than non-opaque one. See {@link GifTextureView#setOpaque(boolean)}
+	 * for more information.<br>
+	 * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}.
+	 *
+	 * @param isOpaque whether the content of this source is opaque
+	 * @return this InputSource
+	 */
+	@Beta
+	public GifDrawableBuilder setOpaque(boolean isOpaque) {
+		mOptions.inIsOpaque= isOpaque;
 		return this;
 	}
 

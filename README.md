@@ -168,15 +168,15 @@ Standard controls for a MediaPlayer (like in [VideoView](http://developer.androi
 Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer.android.com/reference/android/widget/MediaController.html) like this:
 ```java
 	@Override
-	protected void onCreate ( Bundle savedInstanceState )
+	protected void onCreate (Bundle savedInstanceState)
 	{
-		super.onCreate( savedInstanceState );
-		GifImageButton gib = new GifImageButton( this );
-		setContentView( gib );
-		gib.setImageResource( R.drawable.sample );
-		final MediaController mc = new MediaController( this );
-		mc.setMediaPlayer( ( GifDrawable ) gib.getDrawable() );
-		mc.setAnchorView( gib );
+		super.onCreate(savedInstanceState);
+		GifImageButton gib = new GifImageButton( this);
+		setContentView(gib);
+		gib.setImageResource(R.drawable.sample);
+		final MediaController mc = new MediaController(this);
+		mc.setMediaPlayer((GifDrawable)gib.getDrawable());
+		mc.setAnchorView(gib);
 		gib.setOnClickListener( new OnClickListener()
 		{
 			@Override

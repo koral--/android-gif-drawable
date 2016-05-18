@@ -1,6 +1,7 @@
 package pl.droidsonroids.gif;
 
 import android.support.annotation.IntRange;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.Buffer;
@@ -29,10 +30,15 @@ public class GifTexImage2D {
 	 * Decoder thread is initially stopped, use {@link #startDecoderThread()} to start it.
 	 *
 	 * @param inputSource source
+	 * @param options null-ok; options controlling parameters like subsampling and opacity
 	 * @throws IOException when creation fails
 	 */
-	public GifTexImage2D(final InputSource inputSource) throws IOException {
+	public GifTexImage2D(final InputSource inputSource, @Nullable GifOptions options) throws IOException {
+		if (options == null) {
+			options = new GifOptions();
+		}
 		mGifInfoHandle = inputSource.open();
+		mGifInfoHandle.setOptions(options.inSampleSize, options.inIsOpaque);
 		mGifInfoHandle.initTexImageDescriptor();
 	}
 

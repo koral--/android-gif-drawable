@@ -366,13 +366,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setSampleSize(__unused JNIEnv *env, jclass __unused class, jlong gifInfo,
-                                                      jint sampleSize) {
+Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jint sampleSize, jboolean isOpaque) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL)
 		return;
-
-	info->sampleSize = (uint_fast16_t) sampleSize;
+	info->isOpaque = isOpaque;
+	if (sampleSize > 1 && sampleSize <= UINT_FAST16_MAX) {
+		info->sampleSize = (uint_fast16_t) sampleSize;
+	}
 	info->gifFilePtr->SHeight /= info->sampleSize;
 	info->gifFilePtr->SWidth /= info->sampleSize;
 	if (info->gifFilePtr->SHeight == 0) {

@@ -178,6 +178,7 @@ public class GifTextureView extends TextureView {
 					return;
 				}
 				mGifInfoHandle = gifTextureView.mInputSource.open();
+				mGifInfoHandle.setOptions(1, gifTextureView.isOpaque());
 			} catch (IOException ex) {
 				mIOException = ex;
 				return;
@@ -215,7 +216,7 @@ public class GifTextureView extends TextureView {
 				}
 				final Surface surface = new Surface(surfaceTexture);
 				try {
-					mGifInfoHandle.bindSurface(surface, mSavedState, gifTextureView.isOpaque());
+					mGifInfoHandle.bindSurface(surface, mSavedState);
 				} finally {
 					surface.release();
 				}

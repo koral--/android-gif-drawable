@@ -17,41 +17,22 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import pl.droidsonroids.gif.annotations.Beta;
+
 /**
  * Abstract class for all input sources, to be used with {@link GifTextureView}
  */
 public abstract class InputSource {
-	private boolean mIsOpaque; //TODO propagate
-
 	InputSource() {
 	}
 
 	abstract GifInfoHandle open() throws IOException;
 
-	final GifDrawable build(final GifDrawable oldDrawable, final ScheduledThreadPoolExecutor executor, final boolean isRenderingAlwaysEnabled, final int sampleSize) throws IOException {
+	final GifDrawable build(final GifDrawable oldDrawable, final ScheduledThreadPoolExecutor executor,
+	                        final boolean isRenderingAlwaysEnabled, final GifOptions options) throws IOException {
 		final GifInfoHandle handle = open();
-		if (sampleSize > 1) {
-			handle.setSampleSize(sampleSize);
-		}
+		handle.setOptions(options.inSampleSize, options.inIsOpaque);
 		return new GifDrawable(handle, oldDrawable, executor, isRenderingAlwaysEnabled);
-	}
-
-	final boolean isOpaque() {
-		return mIsOpaque;
-	}
-
-	/**
-	 * Indicates whether the content of this source is opaque. GIF that is known to be opaque can
-	 * take a faster drawing case than non-opaque one. See {@link GifTextureView#setOpaque(boolean)}
-	 * for more information.<br>
-	 * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}.
-	 *
-	 * @param isOpaque whether the content of this source is opaque
-	 * @return this InputSource
-	 */
-	final InputSource setOpaque(boolean isOpaque) {
-		mIsOpaque = isOpaque;
-		return this;
 	}
 
 	/**

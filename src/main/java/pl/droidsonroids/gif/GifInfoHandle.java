@@ -83,7 +83,7 @@ final class GifInfoHandle {
 
 	private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
-	private static native void bindSurface(long gifInfoPtr, Surface surface, long[] savedState, boolean isOpaque);
+	private static native void bindSurface(long gifInfoPtr, Surface surface, long[] savedState);
 
 	private static native void free(long gifFileInPtr);
 
@@ -129,7 +129,7 @@ final class GifInfoHandle {
 
 	private static native int getFrameDuration(long gifInfoPtr, int index);
 
-	private static native void setSampleSize(long gifInfoPtr, int sampleSize);
+	private static native void setOptions(long gifInfoPtr, int sampleSize, boolean isOpaque);
 
 	private static native int getWidth(long gifFileInPtr);
 
@@ -153,8 +153,8 @@ final class GifInfoHandle {
 		return renderFrame(gifInfoPtr, frameBuffer);
 	}
 
-	void bindSurface(Surface surface, long[] savedState, boolean isOpaque) {
-		bindSurface(gifInfoPtr, surface, savedState, isOpaque);
+	void bindSurface(Surface surface, long[] savedState) {
+		bindSurface(gifInfoPtr, surface, savedState);
 	}
 
 	synchronized void recycle() {
@@ -277,8 +277,8 @@ final class GifInfoHandle {
 		}
 	}
 
-	void setSampleSize(int sampleSize) {
-		setSampleSize(gifInfoPtr, sampleSize);
+	void setOptions(int sampleSize, boolean isOpaque) {
+		setOptions(gifInfoPtr, sampleSize, isOpaque);
 	}
 
 	synchronized int getWidth() {

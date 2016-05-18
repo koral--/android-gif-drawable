@@ -55,7 +55,7 @@ static void releaseSurfaceDescriptor(GifInfo *info, JNIEnv *env) {
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
-                                                    jobject jsurface, jlongArray savedState, jboolean isOpaque) {
+                                                    jobject jsurface, jlongArray savedState) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	SurfaceDescriptor *surfaceDescriptor = info->frameBufferDescriptor;
 	if (surfaceDescriptor == NULL) {
@@ -103,14 +103,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		}
 	}
 
-	const int32_t windowFormat = isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
-	info->isOpaque = isOpaque;
-
+	const int32_t windowFormat = info->isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
 	struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
 	GifFileType *const gifFilePtr = info->gifFilePtr;
-	if (ANativeWindow_setBuffersGeometry(window, (int32_t) gifFilePtr->SWidth,
-	                                     (int32_t) gifFilePtr->SHeight,
-	                                     windowFormat) != 0) {
+	if (ANativeWindow_setBuffersGeometry(window, (int32_t) gifFilePtr->SWidth, (int32_t) gifFilePtr->SHeight, windowFormat) != 0) {
 		ANativeWindow_release(window);
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Buffers geometry setting failed ");
 		return;
