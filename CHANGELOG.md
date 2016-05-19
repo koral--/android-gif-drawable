@@ -1,4 +1,5 @@
 ### 1.1.16
+- `GifOptions` added introducing subsampling and opacity controlling in `GifDrawable` and `GifTexImage2D`
 - Fixed segmentation fault when decoding oversized frames - [#290](https://github.com/koral--/android-gif-drawable/pull/290)
 - Native window redraw narrowed to dirty region only - [#287](https://github.com/koral--/android-gif-drawable/issues/287#issuecomment-215517405)  
 - `View#invalidate()` support added to `MultiCallback` - [#260](https://github.com/koral--/android-gif-drawable/issues/260#issuecomment-201949696)
