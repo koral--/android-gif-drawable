@@ -105,7 +105,7 @@ struct GifInfo {
 	jfloat speedFactor;
 	int32_t stride;
 	jlong sourceLength;
-	jboolean isOpaque;
+	bool isOpaque;
 	void *frameBufferDescriptor;
 };
 

@@ -16,7 +16,7 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
 
 	uint_fast16_t x, y = frame->ImageDesc.Height;
 	const int_fast16_t transpIndex = info->controlBlock[info->currentIndex].TransparentColor;
-	if (info->isOpaque == JNI_TRUE) {
+	if (info->isOpaque) {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
 				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {

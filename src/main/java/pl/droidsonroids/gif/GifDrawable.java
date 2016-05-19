@@ -286,11 +286,14 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * See {@link Drawable#getOpacity()}
 	 *
-	 * @return always {@link PixelFormat#TRANSPARENT}
+	 * @return either {@link PixelFormat#TRANSPARENT} or {@link PixelFormat#OPAQUE} depending on current {@link Paint} and {@link GifOptions} used to construct this Drawable
 	 */
 	@Override
 	public int getOpacity() {
-		return PixelFormat.TRANSPARENT;
+		if (!mNativeInfoHandle.isOpaque() || mPaint.getAlpha() < 255) {
+			return PixelFormat.TRANSPARENT;
+		}
+		return PixelFormat.OPAQUE;
 	}
 
 	/**

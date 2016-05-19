@@ -72,7 +72,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
 	uint32_t sum = 0;
 	for (i = 0; i < idx; i++) {
 		sum += info->controlBlock[i].DelayTime;
-    }
+	}
 
 	long long remainder;
 	if (info->lastFrameRemainder == -1) {
@@ -167,7 +167,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 		if (info->currentIndex == 0)
 			prepareCanvas(pixels, info);
 		while (info->currentIndex < savedIndex) {
-            DDGifSlurp(info, true, false);
+			DDGifSlurp(info, true, false);
 			lastFrameDuration = getBitmap((argb *) pixels, info);
 		}
 	}
@@ -198,8 +198,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_restoreSavedState(JNIEnv *env, jclass __
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getFrameDuration(__unused JNIEnv *env, jclass __unused handleClass,
-                                                         jlong gifInfo, jint index) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getFrameDuration(__unused JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint index) {
 	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
 	return info == NULL ? 0 : (jint) info->controlBlock[index].DelayTime;
+}
+
+__unused JNIEXPORT jboolean JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_isOpaque(__unused JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info != NULL && info->isOpaque) {
+		return JNI_TRUE;
+	}
+	return JNI_FALSE;
 }

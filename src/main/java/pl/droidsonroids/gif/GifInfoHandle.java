@@ -137,6 +137,8 @@ final class GifInfoHandle {
 
 	private static native int getNumberOfFrames(long gifInfoPtr);
 
+	private static native boolean isOpaque(long gifInfoPtr);
+
 	private static native void startDecoderThread(long gifInfoPtr);
 
 	private static native void stopDecoderThread(long gifInfoPtr);
@@ -291,6 +293,10 @@ final class GifInfoHandle {
 
 	synchronized int getNumberOfFrames() {
 		return getNumberOfFrames(gifInfoPtr);
+	}
+
+	synchronized boolean isOpaque() {
+		return isOpaque(gifInfoPtr);
 	}
 
 	void glTexImage2D(int target, int level) {

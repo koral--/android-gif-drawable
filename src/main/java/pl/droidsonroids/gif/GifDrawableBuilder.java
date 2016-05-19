@@ -5,6 +5,8 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.support.annotation.IntRange;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -34,21 +36,14 @@ public class GifDrawableBuilder {
 	private GifDrawable mOldDrawable;
 	private ScheduledThreadPoolExecutor mExecutor;
 	private boolean mIsRenderingTriggeredOnDraw = true;
-	private final GifOptions mOptions = new GifOptions();
+	private GifOptions mOptions = new GifOptions();
 
 	/**
-	 * If set to a value &gt; 1, requests the decoder to subsample the original
-	 * frames, returning a smaller frame buffer to save memory. The sample size is
-	 * the number of pixels in either dimension that correspond to a single
-	 * pixel in the decoded bitmap. For example, inSampleSize == 4 returns
-	 * an image that is 1/4 the width/height of the original, and 1/16 the
-	 * number of pixels. Any value &lt;= 1 is treated the same as 1.
-	 * Unlike {@link android.graphics.BitmapFactory.Options#inSampleSize}
-	 * values which are not powers of 2 are also supported.
-	 *
+	 * Sample size controlling subsampling, see {@link GifOptions#setInSampleSize(int)} for more details.
+	 * Note that this call will overwrite sample size set previously by {@link #options(GifOptions)}
 	 * @param sampleSize the sample size
 	 */
-	public void sampleSize(final int sampleSize) {
+	public void sampleSize(@IntRange(from = 1, to = 0xffff) final int sampleSize) {
 		mOptions.inSampleSize = sampleSize;
 	}
 
@@ -125,12 +120,17 @@ public class GifDrawableBuilder {
 	 * for more information.<br>
 	 * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}.
 	 *
-	 * @param isOpaque whether the content of this source is opaque
-	 * @return this InputSource
+	 * Note that this call will overwrite sample size set previously by {@link #sampleSize(int)}
+	 * @param options null-ok; options controlling parameters like subsampling and opacity
+	 * @return this builder instance, to chain calls
 	 */
 	@Beta
-	public GifDrawableBuilder setOpaque(boolean isOpaque) {
-		mOptions.inIsOpaque= isOpaque;
+	public GifDrawableBuilder options(@Nullable GifOptions options) {
+		if (options == null) {
+			mOptions = new GifOptions();
+		} else {
+			mOptions = options;
+		}
 		return this;
 	}
 

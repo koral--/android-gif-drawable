@@ -52,7 +52,7 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 	info->backupPtr = NULL;
 	info->rewindFunction = descriptor->rewindFunc;
 	info->frameBufferDescriptor = NULL;
-	info->isOpaque = JNI_FALSE;
+	info->isOpaque = false;
 	info->sampleSize = 1;
 
 	DDGifSlurp(info, false, false);

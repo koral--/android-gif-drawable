@@ -103,7 +103,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		}
 	}
 
-	const int32_t windowFormat = info->isOpaque == JNI_TRUE ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
+	const int32_t windowFormat = info->isOpaque ? WINDOW_FORMAT_RGBX_8888 : WINDOW_FORMAT_RGBA_8888;
 	struct ANativeWindow *window = ANativeWindow_fromSurface(env, jsurface);
 	GifFileType *const gifFilePtr = info->gifFilePtr;
 	if (ANativeWindow_setBuffersGeometry(window, (int32_t) gifFilePtr->SWidth, (int32_t) gifFilePtr->SHeight, windowFormat) != 0) {

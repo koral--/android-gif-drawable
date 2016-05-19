@@ -370,7 +370,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass 
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL)
 		return;
-	info->isOpaque = isOpaque;
+	info->isOpaque = isOpaque == JNI_TRUE;
 	if (sampleSize > 1 && sampleSize <= UINT_FAST16_MAX) {
 		info->sampleSize = (uint_fast16_t) sampleSize;
 	}
