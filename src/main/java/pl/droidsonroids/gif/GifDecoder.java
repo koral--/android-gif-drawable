@@ -3,6 +3,7 @@ package pl.droidsonroids.gif;
 import android.graphics.Bitmap;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 
@@ -16,13 +17,27 @@ public class GifDecoder {
 	private final GifInfoHandle mGifInfoHandle;
 
 	/**
-	 * Constructs new GifDecoder
-	 *
+	 * Constructs new GifDecoder.
+	 * Equivalent of {@link #GifDecoder(InputSource, GifOptions)} with null {@code options}
 	 * @param inputSource source
 	 * @throws IOException when creation fails
 	 */
-	public GifDecoder(final InputSource inputSource) throws IOException {
+	public GifDecoder(@NonNull final InputSource inputSource) throws IOException {
+		this(inputSource, null);
+	}
+
+	/**
+	 * Constructs new GifDecoder
+	 *
+	 * @param inputSource source
+	 * @param options     null-ok; options controlling subsampling and opacity
+	 * @throws IOException when creation fails
+	 */
+	public GifDecoder(@NonNull final InputSource inputSource, @Nullable final GifOptions options) throws IOException {
 		mGifInfoHandle = inputSource.open();
+		if (options != null) {
+			mGifInfoHandle.setOptions(options.inSampleSize, options.inIsOpaque);
+		}
 	}
 
 	/**

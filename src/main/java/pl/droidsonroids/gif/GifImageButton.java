@@ -119,6 +119,10 @@ public class GifImageButton extends ImageButton {
 
 	@Override
 	public void onRestoreInstanceState(Parcelable state) {
+		if (!(state instanceof GifViewSavedState)) {
+			super.onRestoreInstanceState(state);
+			return;
+		}
 		GifViewSavedState ss = (GifViewSavedState) state;
 		super.onRestoreInstanceState(ss.getSuperState());
 		ss.restoreState(getDrawable(), 0);

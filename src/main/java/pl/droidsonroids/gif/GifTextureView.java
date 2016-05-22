@@ -445,6 +445,10 @@ public class GifTextureView extends TextureView {
 
 	@Override
 	public void onRestoreInstanceState(Parcelable state) {
+		if (!(state instanceof GifViewSavedState)) {
+			super.onRestoreInstanceState(state);
+			return;
+		}
 		GifViewSavedState ss = (GifViewSavedState) state;
 		super.onRestoreInstanceState(ss.getSuperState());
 		mRenderThread.mSavedState = ss.mStates[0];
