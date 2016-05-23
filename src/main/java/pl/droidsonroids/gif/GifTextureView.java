@@ -25,14 +25,14 @@ import java.lang.ref.WeakReference;
  * ({@link Build.VERSION_CODES#ICE_CREAM_SANDWICH}) and above. GifTextureView can only be used in a
  * hardware accelerated window. When rendered in software, GifTextureView will draw nothing.</p>
  * <p>GIF source can be specified in XML or by calling {@link #setInputSource(InputSource)}</p>
- * <pre>
- *     &lt;pl.droidsonroids.gif.GifTextureView
+ * <pre> {@code
+ *     <pl.droidsonroids.gif.GifTextureView
  *          xmlns:app="http://schemas.android.com/apk/res-auto"
  *          android:id="@+id/gif_texture_view"
  *          android:scaleType="fitEnd"
  *          app:gifSource="@drawable/animation"
  *          android:layout_width="match_parent"
- *          android:layout_height="match_parent" /&gt;
+ *          android:layout_height="match_parent"> }
  * </pre>
  * Note that <b>src</b> attribute comes from app namespace (you can call it whatever you want) not from
  * android one. Drawable, raw, mipmap resources and assets can be specified through XML. If value is a string
@@ -307,7 +307,7 @@ public class GifTextureView extends TextureView {
 	 * Equivalent of {@link GifDrawable#setSpeed(float)}
 	 *
 	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
-	 * @throws IllegalArgumentException if factor&lt;=0
+	 * @throws IllegalArgumentException if {@code factor <= 0}
 	 * @see GifDrawable#setSpeed(float)
 	 */
 	public void setSpeed(@FloatRange(from = 0, fromInclusive = false) float factor) {

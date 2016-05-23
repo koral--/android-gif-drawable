@@ -17,6 +17,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import pl.droidsonroids.gif.annotations.Beta;
 
+import static pl.droidsonroids.gif.GifOptions.UINT16_MAX;
 import static pl.droidsonroids.gif.InputSource.AssetFileDescriptorSource;
 import static pl.droidsonroids.gif.InputSource.AssetSource;
 import static pl.droidsonroids.gif.InputSource.ByteArraySource;
@@ -41,9 +42,10 @@ public class GifDrawableBuilder {
 	/**
 	 * Sample size controlling subsampling, see {@link GifOptions#setInSampleSize(int)} for more details.
 	 * Note that this call will overwrite sample size set previously by {@link #options(GifOptions)}
+	 *
 	 * @param sampleSize the sample size
 	 */
-	public void sampleSize(@IntRange(from = 1, to = 0xffff) final int sampleSize) {
+	public void sampleSize(@IntRange(from = 1, to = UINT16_MAX) final int sampleSize) {
 		mOptions.inSampleSize = sampleSize;
 	}
 
@@ -109,9 +111,20 @@ public class GifDrawableBuilder {
 	 *                                   current one or just after it is rendered
 	 * @return this builder instance, to chain calls
 	 */
-	public GifDrawableBuilder setRenderingTriggeredOnDraw(boolean isRenderingTriggeredOnDraw) {
+	public GifDrawableBuilder renderingTriggeredOnDraw(boolean isRenderingTriggeredOnDraw) {
 		mIsRenderingTriggeredOnDraw = isRenderingTriggeredOnDraw;
 		return this;
+	}
+
+	/**
+	 * Equivalent to {@link #renderingTriggeredOnDraw(boolean)}. This method does not follow naming convention
+	 * and is preserved for backwards compatibility only.
+	 * @param isRenderingTriggeredOnDraw whether rendering of the next frame is scheduled after drawing (default)
+	 *                                   current one or just after it is rendered
+	 * @return this builder instance, to chain calls
+	 */
+	public GifDrawableBuilder setRenderingTriggeredOnDraw(boolean isRenderingTriggeredOnDraw) {
+		return renderingTriggeredOnDraw(isRenderingTriggeredOnDraw);
 	}
 
 	/**
@@ -119,18 +132,15 @@ public class GifDrawableBuilder {
 	 * take a faster drawing case than non-opaque one. See {@link GifTextureView#setOpaque(boolean)}
 	 * for more information.<br>
 	 * Currently it is used only by {@link GifTextureView}, not by {@link GifDrawable}.
-	 *
+	 * <p>
 	 * Note that this call will overwrite sample size set previously by {@link #sampleSize(int)}
+	 *
 	 * @param options null-ok; options controlling parameters like subsampling and opacity
 	 * @return this builder instance, to chain calls
 	 */
 	@Beta
 	public GifDrawableBuilder options(@Nullable GifOptions options) {
-		if (options == null) {
-			mOptions = new GifOptions();
-		} else {
-			mOptions = options;
-		}
+		mOptions.setFrom(options);
 		return this;
 	}
 

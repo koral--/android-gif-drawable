@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import pl.droidsonroids.gif.transforms.CornerRadiusTransform;
 import pl.droidsonroids.gif.transforms.Transform;
 
+import static pl.droidsonroids.gif.GifOptions.UINT16_MAX;
 import static pl.droidsonroids.gif.InvalidationHandler.MSG_TYPE_INVALIDATION;
 
 /**
@@ -77,7 +78,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	private final RenderTask mRenderTask = new RenderTask(this);
 	private final Rect mSrcRect;
-	ScheduledFuture<?> mSchedule;
+	ScheduledFuture<?> mRenderTaskSchedule;
 	private int mScaledWidth;
 	private int mScaledHeight;
 	private Transform mTransform;
@@ -230,7 +231,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		} else {
 			mBuffer = oldBitmap;
 		}
-
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
+			mBuffer.setHasAlpha(!gifInfoHandle.isOpaque());
+		}
 		mSrcRect = new Rect(0, 0, mNativeInfoHandle.getWidth(), mNativeInfoHandle.getHeight());
 		mInvalidationHandler = new InvalidationHandler(this);
 		mRenderTask.doWork();
@@ -286,7 +289,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * See {@link Drawable#getOpacity()}
 	 *
-	 * @return either {@link PixelFormat#TRANSPARENT} or {@link PixelFormat#OPAQUE} depending on current {@link Paint} and {@link GifOptions} used to construct this Drawable
+	 * @return either {@link PixelFormat#TRANSPARENT} or {@link PixelFormat#OPAQUE}
+	 * depending on current {@link Paint} and {@link GifOptions#setInIsOpaque(boolean)} used to construct this Drawable
 	 */
 	@Override
 	public int getOpacity() {
@@ -317,8 +321,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			mNextFrameRenderTime = 0;
 			mInvalidationHandler.sendEmptyMessageAtTime(MSG_TYPE_INVALIDATION, 0);
 		} else {
-			waitForPendingRenderTask();
-			mSchedule = mExecutor.schedule(mRenderTask, Math.max(lastFrameRemainder, 0), TimeUnit.MILLISECONDS);
+			cancelPendingRenderTask();
+			mRenderTaskSchedule = mExecutor.schedule(mRenderTask, Math.max(lastFrameRemainder, 0), TimeUnit.MILLISECONDS);
 		}
 	}
 
@@ -351,13 +355,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			mIsRunning = false;
 		}
 
-		waitForPendingRenderTask();
+		cancelPendingRenderTask();
 		mNativeInfoHandle.saveRemainder();
 	}
 
-	private void waitForPendingRenderTask() {
-		if (mSchedule != null) {
-			mSchedule.cancel(false);
+	private void cancelPendingRenderTask() {
+		if (mRenderTaskSchedule != null) {
+			mRenderTaskSchedule.cancel(false);
 		}
 		mInvalidationHandler.removeMessages(MSG_TYPE_INVALIDATION);
 	}
@@ -388,11 +392,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
-	 * Sets loop count of the animation. Loop count must be in range &lt;0 ,65535&gt;
+	 * Sets loop count of the animation. Loop count must be in range {@code <0 ,65535>}
 	 *
 	 * @param loopCount loop count, 0 means infinity
 	 */
-	public void setLoopCount(@IntRange(from = 0, to = 65535) final int loopCount) {
+	public void setLoopCount(@IntRange(from = 0, to = UINT16_MAX) final int loopCount) {
 		mNativeInfoHandle.setLoopCount(loopCount);
 	}
 
@@ -739,7 +743,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.uptimeMillis());
 			mNextFrameRenderTime = Long.MIN_VALUE;
 			mExecutor.remove(mRenderTask);
-			mSchedule = mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
+			mRenderTaskSchedule = mExecutor.schedule(mRenderTask, renderDelay, TimeUnit.MILLISECONDS);
 		}
 	}
 
@@ -801,7 +805,11 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @return current frame
 	 */
 	public Bitmap getCurrentFrame() {
-		return mBuffer.copy(mBuffer.getConfig(), mBuffer.isMutable());
+		final Bitmap copy = mBuffer.copy(mBuffer.getConfig(), mBuffer.isMutable());
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
+			copy.setHasAlpha(mBuffer.hasAlpha());
+		}
+		return copy;
 	}
 
 	private PorterDuffColorFilter updateTintFilter(ColorStateList tint, PorterDuff.Mode tintMode) {

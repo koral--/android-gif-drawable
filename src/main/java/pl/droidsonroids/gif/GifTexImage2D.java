@@ -47,7 +47,7 @@ public class GifTexImage2D {
 	 *
 	 * @param index index of the frame
 	 * @return duration of the given frame in milliseconds
-	 * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
+	 * @throws IndexOutOfBoundsException if {@code index < 0 || index >= <number of frames>}
 	 */
 	public int getFrameDuration(@IntRange(from = 0) int index) {
 		return mGifInfoHandle.getFrameDuration(index);
@@ -57,7 +57,7 @@ public class GifTexImage2D {
 	 * Seeks to given frame
 	 *
 	 * @param index index of the frame
-	 * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
+	 * @throws IndexOutOfBoundsException if {@code index < 0 || index >= <number of frames>}
 	 */
 	public void seekToFrame(@IntRange(from = 0) int index) {
 		mGifInfoHandle.seekToFrameGL(index);

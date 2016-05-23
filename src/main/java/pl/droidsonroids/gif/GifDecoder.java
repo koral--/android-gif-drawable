@@ -72,7 +72,7 @@ public class GifDecoder {
 	 *
 	 * @param position position to seek to in milliseconds
 	 * @param buffer   the frame buffer
-	 * @throws IllegalArgumentException if <code>position</code>&lt;0 or <code>buffer</code> is recycled
+	 * @throws IllegalArgumentException if {@code position < 0 }or {@code buffer} is recycled
 	 */
 	public void seekToTime(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position, @NonNull final Bitmap buffer) {
 		checkBuffer(buffer);
@@ -84,7 +84,7 @@ public class GifDecoder {
 	 *
 	 * @param frameIndex position to seek to in milliseconds
 	 * @param buffer     the frame buffer
-	 * @throws IllegalArgumentException if <code>frameIndex</code>&lt;0 or <code>buffer</code> is recycled
+	 * @throws IllegalArgumentException if {@code frameIndex < 0} or {@code buffer} is recycled
 	 */
 	public void seekToFrame(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex, @NonNull final Bitmap buffer) {
 		checkBuffer(buffer);
@@ -105,7 +105,7 @@ public class GifDecoder {
 	 *
 	 * @param index index of the frame
 	 * @return duration of the given frame in milliseconds
-	 * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
+	 * @throws IndexOutOfBoundsException if {@code index < 0 || index >= <number of frames>}
 	 */
 	public int getFrameDuration(@IntRange(from = 0) int index) {
 		return mGifInfoHandle.getFrameDuration(index);

@@ -30,7 +30,7 @@ class GifViewSavedState extends View.BaseSavedState {
 			mStates[i] = in.createLongArray();
 	}
 
-	public GifViewSavedState(Parcelable superState, long[] savedState) {
+	GifViewSavedState(Parcelable superState, long[] savedState) {
 		super(superState);
 		mStates = new long[1][];
 		mStates[0] = savedState;
