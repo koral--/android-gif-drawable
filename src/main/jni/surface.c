@@ -191,7 +191,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 					.left = imageDesc.Left,
 					.top = imageDesc.Top,
 					.right = imageDesc.Left + imageDesc.Width,
-					.bottom = imageDesc.Top - imageDesc.Height
+					.bottom = imageDesc.Top + imageDesc.Height
 			};
 			dirtyRectPtr = &dirtyRect;
 		}

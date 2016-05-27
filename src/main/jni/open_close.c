@@ -30,13 +30,15 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
-	info->controlBlock = calloc(sizeof(GraphicsControlBlock), 1);
-	info->controlBlock->DelayTime = DEFAULT_FRAME_DURATION_MS;
+	info->controlBlock = malloc(sizeof(GraphicsControlBlock));
 	if (info->controlBlock == NULL) {
 		DGifCloseFile(descriptor->GifFileIn);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
+	info->controlBlock->DelayTime = DEFAULT_FRAME_DURATION_MS;
+	info->controlBlock->TransparentColor = NO_TRANSPARENT_COLOR;
+	info->controlBlock->DisposalMode = DISPOSAL_UNSPECIFIED;
 	info->destructor = NULL;
 	info->gifFilePtr = descriptor->GifFileIn;
 	info->startPos = descriptor->startPos;
