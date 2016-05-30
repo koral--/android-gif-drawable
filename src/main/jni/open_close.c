@@ -36,9 +36,7 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
-	info->controlBlock->DelayTime = DEFAULT_FRAME_DURATION_MS;
-	info->controlBlock->TransparentColor = NO_TRANSPARENT_COLOR;
-	info->controlBlock->DisposalMode = DISPOSAL_UNSPECIFIED;
+	setGCBDefaults(info->controlBlock);
 	info->destructor = NULL;
 	info->gifFilePtr = descriptor->GifFileIn;
 	info->startPos = descriptor->startPos;
@@ -96,4 +94,10 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 		return NULL;
 	}
 	return info;
+}
+
+void setGCBDefaults(GraphicsControlBlock *gcb) {
+	gcb->DelayTime = DEFAULT_FRAME_DURATION_MS;
+	gcb->TransparentColor = NO_TRANSPARENT_COLOR;
+	gcb->DisposalMode = DISPOSAL_UNSPECIFIED;
 }

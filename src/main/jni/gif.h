@@ -211,4 +211,6 @@ __attribute__ ((visibility ("default"))) JNIEnv *getEnv();
 
 __attribute__ ((visibility ("default"))) uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels);
 
+void setGCBDefaults(GraphicsControlBlock *gcb);
+
 #endif

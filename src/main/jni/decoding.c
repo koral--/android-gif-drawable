@@ -6,7 +6,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 	int ExtFunction;
 	GifFileType *gifFilePtr;
 	gifFilePtr = info->gifFilePtr;
-	uint_fast32_t lastAllocatedGCB = 0;
+	uint_fast32_t lastAllocatedGCBIndex = 0;
 	do {
 		if (DGifGetRecordType(gifFilePtr, &RecordType) == GIF_ERROR)
 			return;
@@ -101,15 +101,15 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 				if (DGifGetExtension(gifFilePtr, &ExtFunction, &ExtData) == GIF_ERROR)
 					return;
 				if (isInitialPass) {
-					if (lastAllocatedGCB < info->gifFilePtr->ImageCount) {
+					if (lastAllocatedGCBIndex < info->gifFilePtr->ImageCount) {
 						GraphicsControlBlock *tmpInfos = reallocarray(info->controlBlock, info->gifFilePtr->ImageCount + 1, sizeof(GraphicsControlBlock));
 						if (tmpInfos == NULL) {
 							gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
 							return;
 						}
-						lastAllocatedGCB = info->gifFilePtr->ImageCount;
+						lastAllocatedGCBIndex = info->gifFilePtr->ImageCount;
 						info->controlBlock = tmpInfos;
-						info->controlBlock[gifFilePtr->ImageCount].DelayTime = DEFAULT_FRAME_DURATION_MS;
+						setGCBDefaults(&info->controlBlock[gifFilePtr->ImageCount]);
 					}
 					if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
 						return;

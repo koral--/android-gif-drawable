@@ -1,7 +1,8 @@
 ### 1.1.17
 - Fixed erroneous `GifDrawableBuilder#options()` argument modification after calling `GifDrawableBuilder#sampleSize()`
 - Javadoc improvements
-- Added passing opacity hint from `GifOptions` to `Bitmap` (framebuffer) in `GifDrawable` 
+- Added passing opacity hint from `GifOptions` to `Bitmap` (framebuffer) in `GifDrawable`
+- Default GCB reworked - fixes possible artifacts - [#305](https://github.com/koral--/android-gif-drawable/issues/305)
 
 ### 1.1.16
 - Saved state which is not instance of `GifViewSavedState` allowed by all the Gif*Views - [#303](https://github.com/koral--/android-gif-drawable/issues/303)
