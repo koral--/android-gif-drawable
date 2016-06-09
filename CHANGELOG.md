@@ -3,6 +3,7 @@
 - Javadoc improvements
 - Added passing opacity hint from `GifOptions` to `Bitmap` (framebuffer) in `GifDrawable`
 - Default GCB reworked - fixes possible artifacts - [#305](https://github.com/koral--/android-gif-drawable/issues/305)
+- Android gradle plugin updated to 2.1.2
 
 ### 1.1.16
 - Saved state which is not instance of `GifViewSavedState` allowed by all the Gif*Views - [#303](https://github.com/koral--/android-gif-drawable/issues/303)
