@@ -34,6 +34,16 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 					if (leftOverflow > 0) {
 						sp->ImageDesc.Left -= leftOverflow;
 					}
+					if (lastAllocatedGCBIndex < info->gifFilePtr->ImageCount) {
+						GraphicsControlBlock *tmpInfos = reallocarray(info->controlBlock, info->gifFilePtr->ImageCount + 1, sizeof(GraphicsControlBlock));
+						if (tmpInfos == NULL) {
+							gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
+							return;
+						}
+						lastAllocatedGCBIndex = info->gifFilePtr->ImageCount;
+						info->controlBlock = tmpInfos;
+						setGCBDefaults(&info->controlBlock[gifFilePtr->ImageCount]);
+					}
 				}
 
 				if (decode) {
@@ -101,7 +111,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 				if (DGifGetExtension(gifFilePtr, &ExtFunction, &ExtData) == GIF_ERROR)
 					return;
 				if (isInitialPass) {
-					if (lastAllocatedGCBIndex < info->gifFilePtr->ImageCount) {
+					if (lastAllocatedGCBIndex < info->gifFilePtr->ImageCount) { //TODO remove duplication if possible
 						GraphicsControlBlock *tmpInfos = reallocarray(info->controlBlock, info->gifFilePtr->ImageCount + 1, sizeof(GraphicsControlBlock));
 						if (tmpInfos == NULL) {
 							gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
