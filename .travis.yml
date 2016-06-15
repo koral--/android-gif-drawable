@@ -23,5 +23,8 @@ before_install:
 script:
   - ./gradlew build jacocoTestReport --info
 
+after_failure:
+ - cat build/outputs/lint-results-debug.xml
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
