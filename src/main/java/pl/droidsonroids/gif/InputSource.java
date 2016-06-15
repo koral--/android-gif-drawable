@@ -17,8 +17,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import pl.droidsonroids.gif.annotations.Beta;
-
 /**
  * Abstract class for all input sources, to be used with {@link GifTextureView}
  */

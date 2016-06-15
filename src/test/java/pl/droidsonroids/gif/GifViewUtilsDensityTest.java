@@ -4,11 +4,15 @@ import android.annotation.TargetApi;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Build;
-import android.test.mock.MockResources;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import static android.util.DisplayMetrics.DENSITY_DEFAULT;
 import static android.util.DisplayMetrics.DENSITY_HIGH;
@@ -19,25 +23,34 @@ import static android.util.DisplayMetrics.DENSITY_XHIGH;
 import static android.util.DisplayMetrics.DENSITY_XXHIGH;
 import static android.util.DisplayMetrics.DENSITY_XXXHIGH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 import static pl.droidsonroids.gif.GifViewUtils.getDensityScale;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+@RunWith(MockitoJUnitRunner.class)
 public class GifViewUtilsDensityTest {
 
-	private static Resources getMockedResources(final int resourceDensity, final int displayDensity) {
-		return new MockResources() {
-			@Override
-			public void getValue(int id, TypedValue outValue, boolean resolveRefs) throws NotFoundException {
-				outValue.density = resourceDensity;
-			}
+	@Mock
+	Resources resources;
 
+	private Resources getMockedResources(final int resourceDensity, final int displayDensity) {
+		doAnswer(new Answer() {
 			@Override
-			public DisplayMetrics getDisplayMetrics() {
-				final DisplayMetrics displayMetrics = new DisplayMetrics();
-				displayMetrics.densityDpi = displayDensity;
-				return displayMetrics;
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				final TypedValue outValue = (TypedValue) invocation.getArguments()[1];
+				outValue.density = resourceDensity;
+				return outValue;
 			}
-		};
+		}).when(resources).getValue(anyInt(), any(TypedValue.class), anyBoolean());
+
+		final DisplayMetrics displayMetrics = new DisplayMetrics();
+		displayMetrics.densityDpi = displayDensity;
+		when(resources.getDisplayMetrics()).thenReturn(displayMetrics);
+		return resources;
 	}
 
 	@Test
