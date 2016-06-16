@@ -22,7 +22,7 @@ project.version = VERSION_NAME
 project.group = GROUP
 
 android {
-	compileSdkVersion 24
+	compileSdkVersion 23
 	buildToolsVersion '24.0.0'
 	compileOptions {
 		sourceCompatibility JavaVersion.VERSION_1_7
