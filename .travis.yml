@@ -12,7 +12,6 @@ jdk:
 before_install:
   - echo y|android update sdk --all --no-ui --force --filter tools
   - echo y|android update sdk --all --no-ui --force --filter platform-tools
-  - echo y|android update sdk --all --no-ui --force --filter platform-tools-preview
   - echo y|android update sdk --all --no-ui --force --filter build-tools-24.0.0
   - echo y|android update sdk --all --no-ui --force --filter android-24
   - echo y|android update sdk --all --no-ui --force --filter extra-android-m2repository
