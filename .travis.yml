@@ -1,6 +1,6 @@
 env:
   global:
-    - NDK_VERSION=r11c
+    - NDK_VERSION=r12
 
 sudo: false
 
