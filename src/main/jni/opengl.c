@@ -5,6 +5,7 @@ typedef struct {
 	struct pollfd eventPollFd;
 	void *frameBuffer;
 	pthread_t slurpThread;
+	pthread_mutex_t renderMutex;
 } TexImageDescriptor;
 
 __unused JNIEXPORT void JNICALL
@@ -27,8 +28,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused env, jc
 	}
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-	void *const pixels = ((TexImageDescriptor *) info->frameBufferDescriptor)->frameBuffer;
+	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
+	void *const pixels = texImageDescriptor->frameBuffer;
+	pthread_mutex_lock(&texImageDescriptor->renderMutex);
 	glTexSubImage2D((GLenum) target, level, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	pthread_mutex_unlock(&texImageDescriptor->renderMutex);
 }
 
 static void *slurp(void *pVoidInfo) {
@@ -37,9 +41,12 @@ static void *slurp(void *pVoidInfo) {
 		long renderStartTime = getRealTime();
 		DDGifSlurp(info, true, false);
 		TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-		if (info->currentIndex == 0)
+		pthread_mutex_lock(&texImageDescriptor->renderMutex);
+		if (info->currentIndex == 0) {
 			prepareCanvas(texImageDescriptor->frameBuffer, info);
+		}
 		const uint_fast32_t frameDuration = getBitmap((argb *) texImageDescriptor->frameBuffer, info);
+		pthread_mutex_unlock(&texImageDescriptor->renderMutex);
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
 		int pollResult = poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
@@ -85,6 +92,7 @@ static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
 	free(texImageDescriptor->frameBuffer);
 	free(texImageDescriptor);
 	info->frameBufferDescriptor = NULL;
+	THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&texImageDescriptor->renderMutex), "Render mutex destroy failed ");
 }
 
 __unused JNIEXPORT void JNICALL
@@ -98,10 +106,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jcla
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
 	}
-    texImageDescriptor->eventPollFd.fd = -1;
-    const GifWord width = info->gifFilePtr->SWidth;
-    const GifWord height = info->gifFilePtr->SHeight;
-    texImageDescriptor->frameBuffer = malloc(width * height * sizeof(argb));
+	texImageDescriptor->eventPollFd.fd = -1;
+	const GifWord width = info->gifFilePtr->SWidth;
+	const GifWord height = info->gifFilePtr->SHeight;
+	texImageDescriptor->frameBuffer = malloc(width * height * sizeof(argb));
 	if (!texImageDescriptor->frameBuffer) {
 		free(texImageDescriptor);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
@@ -109,6 +117,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jcla
 	}
 	info->stride = (int32_t) width;
 	info->frameBufferDescriptor = texImageDescriptor;
+	THROW_ON_NONZERO_RESULT(pthread_mutex_init(&texImageDescriptor->renderMutex, NULL), "Render mutex initialization failed ");
 }
 
 __unused JNIEXPORT void JNICALL

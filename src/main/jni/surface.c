@@ -72,12 +72,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 			free(surfaceDescriptor);
 			return;
 		}
-		const pthread_cond_t condInitializer = PTHREAD_COND_INITIALIZER;
-		surfaceDescriptor->slurpCond = condInitializer;
-		surfaceDescriptor->renderCond = condInitializer;
-		const pthread_mutex_t mutexInitializer = PTHREAD_MUTEX_INITIALIZER;
-		surfaceDescriptor->slurpMutex = mutexInitializer;
-		surfaceDescriptor->renderMutex = mutexInitializer;
+		THROW_ON_NONZERO_RESULT(pthread_cond_init(&surfaceDescriptor->slurpCond, NULL), "Slurp condition variable initialization failed ");
+		THROW_ON_NONZERO_RESULT(pthread_cond_init(&surfaceDescriptor->renderCond, NULL), "Render condition variable initialization failed ");
+		THROW_ON_NONZERO_RESULT(pthread_mutex_init(&surfaceDescriptor->slurpMutex, NULL), "Slurp mutex initialization failed ");
+		THROW_ON_NONZERO_RESULT(pthread_mutex_init(&surfaceDescriptor->renderMutex, NULL), "Render mutex initialization failed ");
 		surfaceDescriptor->surfaceBackupPtr = NULL;
 
 		info->frameBufferDescriptor = surfaceDescriptor;
