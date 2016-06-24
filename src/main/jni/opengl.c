@@ -16,8 +16,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jc
 	}
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-	void *const pixels = ((TexImageDescriptor *) info->frameBufferDescriptor)->frameBuffer;
+    TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
+    void *const pixels = texImageDescriptor->frameBuffer;
+    pthread_mutex_lock(&texImageDescriptor->renderMutex);
 	glTexImage2D((GLenum) target, level, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	pthread_mutex_unlock(&texImageDescriptor->renderMutex);
 }
 
 __unused JNIEXPORT void JNICALL
