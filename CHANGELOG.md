@@ -5,6 +5,9 @@
 - Default GCB reworked - fixes possible artifacts - [#305](https://github.com/koral--/android-gif-drawable/issues/305)
 - Android gradle plugin updated to 2.1.2
 - Gradle wrapper updated to 2.14
+- Tearing in `GifTexImage2D` fixed
+- Compile SDK version updated to 24
+- Build tools version updated to 24
 
 ### 1.1.16
 - Saved state which is not instance of `GifViewSavedState` allowed by all the Gif*Views - [#303](https://github.com/koral--/android-gif-drawable/issues/303)
