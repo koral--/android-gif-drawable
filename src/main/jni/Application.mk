@@ -1,5 +1,5 @@
 APP_ABI := all
-APP_PLATFORM := android-23
+APP_PLATFORM := android-24
 
 ifeq ($(NDK_DEBUG),1)
 	APP_OPTIM := debug
