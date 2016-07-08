@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <limits.h>
 
 /*
  * This is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX

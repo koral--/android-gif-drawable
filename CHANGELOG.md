@@ -1,5 +1,6 @@
 ### 1.1.17
-- Fixed erroneous `GifDrawableBuilder#options()` argument modification after calling `GifDrawableBuilder#sampleSize()`
+- Mutex destroying in `GifTexImage2D` fixed 
+- Erroneous `GifDrawableBuilder#options()` argument modification after calling `GifDrawableBuilder#sampleSize()` fixed
 - Javadoc improvements
 - Added passing opacity hint from `GifOptions` to `Bitmap` (framebuffer) in `GifDrawable`
 - Default GCB reworked - fixes possible artifacts - [#305](https://github.com/koral--/android-gif-drawable/issues/305)
