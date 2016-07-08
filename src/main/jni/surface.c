@@ -17,8 +17,9 @@ static void *slurp(void *pVoidInfo) {
 	SurfaceDescriptor *surfaceDescriptor = info->frameBufferDescriptor;
 	while (1) {
 		pthread_mutex_lock(&surfaceDescriptor->slurpMutex);
-		while (surfaceDescriptor->slurpHelper == 0)
+		while (surfaceDescriptor->slurpHelper == 0) {
 			pthread_cond_wait(&surfaceDescriptor->slurpCond, &surfaceDescriptor->slurpMutex);
+		}
 
 		if (surfaceDescriptor->slurpHelper == 2) {
 			pthread_mutex_unlock(&surfaceDescriptor->slurpMutex);
