@@ -1,3 +1,6 @@
+### 1.1.18
+Nothing yet
+
 ### 1.1.17
 - Mutex destroying in `GifTexImage2D` fixed 
 - Erroneous `GifDrawableBuilder#options()` argument modification after calling `GifDrawableBuilder#sampleSize()` fixed
