@@ -38,7 +38,7 @@ allprojects {
 }
 ```
 #### Gradle, snapshot repository
-Current development builds (build from `dev` branch) are published to OSS snapshot repository. To use them, sepecify repository URL in `repositories` block:
+Current development builds (build from `dev` branch) are published to OSS snapshot repository. To use them, specify repository URL in `repositories` block:
 ```groovy
 repositories {
 	mavenCentral()
@@ -146,9 +146,9 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 ````
 InputStreams are closed automatically in finalizer if GifDrawable is no longer needed 
 so you don't need to explicitly close them. Calling `recycle()` will also close 
-underlaying input source. 
+underlying input source. 
 
-Note that all input sources need to have ability to rewind to the begining. It is required to correctly play animated GIFs 
+Note that all input sources need to have ability to rewind to the beginning. It is required to correctly play animated GIFs 
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
 
 ####Animation control
