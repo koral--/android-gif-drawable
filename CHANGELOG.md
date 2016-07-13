@@ -1,5 +1,5 @@
 ### 1.1.18
-Nothing yet
+- Robolectric version updated to 3.1.1
 
 ### 1.1.17
 - Mutex destroying in `GifTexImage2D` fixed 
