@@ -1,5 +1,8 @@
 ### 1.1.18
 - Robolectric version updated to 3.1.1
+- Gradle wrapper updated to 2.14.1
+- Build tools version updated to 24.0.1
+- Support library dependency version updated to 24.1.0
 
 ### 1.1.17
 - Mutex destroying in `GifTexImage2D` fixed 
