@@ -7,6 +7,9 @@
 - Disposal first frame to previous treated as disposal to background instead of ignoring - [#330](https://github.com/koral--/android-gif-drawable/issues/330)
 - Robolectric version updated to 3.1.2
 - mutex initialization and destroying error checking fixed 
+- Gradle wrapper updated to 2.14.1
+- Build tools version updated to 24.0.1
+- Support library dependency version updated to 24.1.1
 
 ### 1.1.17
 - Mutex destroying in `GifTexImage2D` fixed 
