@@ -35,6 +35,12 @@
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 #endif
 
+#define TEMP_FAILURE_RETRY(exp) ({         \
+    __typeof__(exp) _rc;                   \
+    do {                                   \
+        _rc = (exp);                       \
+    } while (_rc == -1 && errno == EINTR); \
+    _rc; })
 #define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
 #define OOME_MESSAGE "Failed to allocate native memory"
@@ -137,21 +143,21 @@ typedef struct {
 	jlong sourceLength;
 } GifSourceDescriptor;
 
-__attribute__ ((visibility ("default"))) void DetachCurrentThread();
+void DetachCurrentThread();
 
 ColorMapObject *getDefColorMap();
 
 /**
 * @return the real time, in ms
 */
-__attribute__ ((visibility ("default"))) long getRealTime();
+long getRealTime();
 
 /**
 * Frees dynamically allocated memory
 */
 void cleanUp(GifInfo *info);
 
-__attribute__ ((visibility ("default"))) void throwException(JNIEnv *env, enum Exception exception, char *message);
+void throwException(JNIEnv *env, enum Exception exception, char *message);
 
 bool isSourceNull(void *ptr, JNIEnv *env);
 
@@ -175,7 +181,7 @@ static int getComment(GifByteType *Bytes, GifInfo *);
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
-__attribute__ ((visibility ("default"))) void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame);
+void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
@@ -189,7 +195,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
 static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
 
-__attribute__ ((visibility ("default"))) uint_fast32_t getBitmap(argb *bm, GifInfo *info);
+uint_fast32_t getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
@@ -197,19 +203,19 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
 
 void unlockPixels(JNIEnv *env, jobject jbitmap);
 
-__attribute__ ((visibility ("default"))) long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
+long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
 
-__attribute__ ((visibility ("default"))) jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
+jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
 
-__attribute__ ((visibility ("default"))) void prepareCanvas(const argb *bm, GifInfo *info);
+void prepareCanvas(const argb *bm, GifInfo *info);
 
-__attribute__ ((visibility ("default"))) void drawNextBitmap(argb *bm, GifInfo *info);
+void drawNextBitmap(argb *bm, GifInfo *info);
 
 uint_fast32_t getFrameDuration(GifInfo *info);
 
-__attribute__ ((visibility ("default"))) JNIEnv *getEnv();
+JNIEnv *getEnv();
 
-__attribute__ ((visibility ("default"))) uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels);
+uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
 
