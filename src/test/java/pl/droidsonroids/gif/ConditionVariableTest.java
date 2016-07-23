@@ -1,6 +1,5 @@
 package pl.droidsonroids.gif;
 
-
 import net.jodah.concurrentunit.Waiter;
 
 import org.junit.Before;
