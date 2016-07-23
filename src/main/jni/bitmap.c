@@ -67,7 +67,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
 	DDGifSlurp(info, true, false);
 	if (info->currentIndex == 0)
 		prepareCanvas(pixels, info);
-	const uint_fast32_t frameDuration = getBitmap(pixels, info, false);
+	const uint_fast32_t frameDuration = getBitmap(pixels, info);
 	unlockPixels(env, jbitmap);
 	return calculateInvalidationDelay(info, renderStartTime, frameDuration);
 }

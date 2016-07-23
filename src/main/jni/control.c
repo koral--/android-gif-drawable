@@ -76,7 +76,7 @@ uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels) {
 
 	do {
 		DDGifSlurp(info, true, false);
-		drawNextBitmap(pixels, info, false);
+		drawNextBitmap(pixels, info);
 	} while (info->currentIndex++ < desiredIndex);
 	--info->currentIndex;
 	return getFrameDuration(info);

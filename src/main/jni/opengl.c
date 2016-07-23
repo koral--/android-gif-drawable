@@ -48,7 +48,7 @@ static void *slurp(void *pVoidInfo) {
 		if (info->currentIndex == 0) {
 			prepareCanvas(texImageDescriptor->frameBuffer, info);
 		}
-		const uint_fast32_t frameDuration = getBitmap(texImageDescriptor->frameBuffer, info, true);
+		const uint_fast32_t frameDuration = getBitmap(texImageDescriptor->frameBuffer, info);
 		pthread_mutex_unlock(&texImageDescriptor->renderMutex);
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
