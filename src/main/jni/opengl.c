@@ -76,9 +76,8 @@ static void stopDecoderThread(JNIEnv *env, TexImageDescriptor *texImageDescripto
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
 		}
 		errno = pthread_join(texImageDescriptor->slurpThread, NULL);
-		if (errno != 0) {
-			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Slurp thread join failed ");
-		}
+		THROW_ON_NONZERO_RESULT(errno, "Slurp thread join failed ");
+
 		if (close(texImageDescriptor->eventPollFd.fd) != 0 && errno != EINTR) {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd close failed ");
 		}
@@ -91,11 +90,12 @@ static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
 	if (texImageDescriptor == NULL) {
 		return;
 	}
-	stopDecoderThread(env, texImageDescriptor);
-	free(texImageDescriptor->frameBuffer);
-	THROW_ON_NONZERO_RESULT(pthread_mutex_destroy(&texImageDescriptor->renderMutex), "Render mutex destroy failed ");
-	free(texImageDescriptor);
 	info->frameBufferDescriptor = NULL;
+	stopDecoderThread(env, texImageDescriptor);
+	errno = pthread_mutex_destroy(&texImageDescriptor->renderMutex);
+    THROW_ON_NONZERO_RESULT(errno, "Render mutex destroy failed ");
+	free(texImageDescriptor->frameBuffer);
+	free(texImageDescriptor);
 }
 
 __unused JNIEXPORT void JNICALL
