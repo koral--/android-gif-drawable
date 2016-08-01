@@ -10,20 +10,20 @@ public class GifOptionsTest {
 	private GifOptions gifOptions;
 
 	@Before
-	public void setUp(){
+	public void setUp() {
 		gifOptions = new GifOptions();
 	}
 
 	@Test
-	public void testInitialValues(){
-		assertThat(gifOptions.inSampleSize).isEqualTo(1);
+	public void testInitialValues() {
+		assertThat(gifOptions.inSampleSize).isEqualTo((char) 1);
 		assertThat(gifOptions.inIsOpaque).isFalse();
 	}
 
 	@Test
 	public void setInSampleSize() throws Exception {
 		gifOptions.setInSampleSize(2);
-		assertThat(gifOptions.inSampleSize).isEqualTo(2);
+		assertThat(gifOptions.inSampleSize).isEqualTo((char) 2);
 	}
 
 	@Test

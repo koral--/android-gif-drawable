@@ -12,7 +12,7 @@ public class GifDrawableBuilderTest {
 		GifOptions options = new GifOptions();
 		builder.options(options);
 		builder.sampleSize(3);
-		assertThat(options.inSampleSize).isEqualTo(1);
+		assertThat(options.inSampleSize).isEqualTo((char) 1);
 	}
 
 }
