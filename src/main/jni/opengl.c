@@ -48,7 +48,7 @@ static void *slurp(void *pVoidInfo) {
 		if (info->currentIndex == 0) {
 			prepareCanvas(texImageDescriptor->frameBuffer, info);
 		}
-		const uint_fast32_t frameDuration = getBitmap((argb *) texImageDescriptor->frameBuffer, info);
+		const uint_fast32_t frameDuration = getBitmap(texImageDescriptor->frameBuffer, info, true);
 		pthread_mutex_unlock(&texImageDescriptor->renderMutex);
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
@@ -120,7 +120,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jcla
 	}
 	info->stride = (int32_t) width;
 	info->frameBufferDescriptor = texImageDescriptor;
-	THROW_ON_NONZERO_RESULT(pthread_mutex_init(&texImageDescriptor->renderMutex, NULL), "Render mutex initialization failed ");
+	errno = pthread_mutex_init(&texImageDescriptor->renderMutex, NULL);
+	THROW_ON_NONZERO_RESULT(errno, "Render mutex initialization failed ");
 }
 
 __unused JNIEXPORT void JNICALL

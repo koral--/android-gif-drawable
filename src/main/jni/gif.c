@@ -29,10 +29,10 @@ static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t 
 
 static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	DirectByteBufferContainer *dbbc = gif->UserData;
-	if (dbbc->pos + size > dbbc->capacity)
-		size -= dbbc->pos + size - dbbc->capacity;
-	memcpy(bytes, dbbc->bytes + dbbc->pos, (size_t) size);
-	dbbc->pos += size;
+	if (dbbc->position + size > dbbc->capacity)
+		size -= dbbc->position + size - dbbc->capacity;
+	memcpy(bytes, dbbc->bytes + dbbc->position, (size_t) size);
+	dbbc->position += size;
 	return size;
 }
 
@@ -41,10 +41,10 @@ static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_
 	JNIEnv *env = getEnv();
 	if (!env)
 		return 0;
-	if (bac->pos + size > bac->arrLen)
-		size -= bac->pos + size - bac->arrLen;
-	(*env)->GetByteArrayRegion(env, bac->buffer, (jsize) bac->pos, size, (jbyte *) bytes);
-	bac->pos += size;
+	if (bac->position + size > bac->length)
+		size -= bac->position + size - bac->length;
+	(*env)->GetByteArrayRegion(env, bac->buffer, (jsize) bac->position, size, (jbyte *) bytes);
+	bac->position += size;
 	return size;
 }
 
@@ -94,13 +94,13 @@ static int streamRewind(GifInfo *info) {
 
 static int byteArrayRewind(GifInfo *info) {
 	ByteArrayContainer *bac = info->gifFilePtr->UserData;
-	bac->pos = (uint_fast32_t) info->startPos;
+	bac->position = (uint_fast32_t) info->startPos;
 	return 0;
 }
 
 static int directByteBufferRewindFun(GifInfo *info) {
 	DirectByteBufferContainer *dbbc = info->gifFilePtr->UserData;
-	dbbc->pos = info->startPos;
+	dbbc->position = info->startPos;
 	return 0;
 }
 
@@ -153,13 +153,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
-	container->arrLen = (*env)->GetArrayLength(env, container->buffer);
-	container->pos = 0;
+	container->length = (unsigned int)(*env)->GetArrayLength(env, container->buffer);
+	container->position = 0;
 	GifSourceDescriptor descriptor = {
 			.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error),
 			.rewindFunc = byteArrayRewind,
-			.startPos = container->pos,
-			.sourceLength = container->arrLen
+			.startPos = container->position,
+			.sourceLength = container->length
 	};
 
 	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
@@ -188,12 +188,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	}
 	container->bytes = bytes;
 	container->capacity = capacity;
-	container->pos = 0;
+	container->position = 0;
 
 	GifSourceDescriptor descriptor = {
 			.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error),
 			.rewindFunc = directByteBufferRewindFun,
-			.startPos = container->pos,
+			.startPos = container->position,
 			.sourceLength = container->capacity
 	};
 
@@ -366,14 +366,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jint sampleSize, jboolean isOpaque) {
+Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jchar sampleSize, jboolean isOpaque) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL)
 		return;
 	info->isOpaque = isOpaque == JNI_TRUE;
-	if (sampleSize > 1 && sampleSize <= UINT_FAST16_MAX) {
-		info->sampleSize = (uint_fast16_t) sampleSize;
-	}
+	info->sampleSize = (uint_fast16_t) sampleSize;
 	info->gifFilePtr->SHeight /= info->sampleSize;
 	info->gifFilePtr->SWidth /= info->sampleSize;
 	if (info->gifFilePtr->SHeight == 0) {

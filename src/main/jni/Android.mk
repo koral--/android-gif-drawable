@@ -1,4 +1,4 @@
-cflags:= -Wpedantic -std=c11
+cflags:= -Wall -Wextra -std=c11
 extra_ldlibs :=
 
 ifeq ($(NDK_DEBUG),1)

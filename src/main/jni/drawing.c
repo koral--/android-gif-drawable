@@ -134,7 +134,8 @@ void prepareCanvas(const argb *bm, GifInfo *info) {
 	}
 }
 
-void drawNextBitmap(argb *bm, GifInfo *info) {
+void drawNextBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
+	//TODO use drawOnlyDirtyRegion
 	if (info->currentIndex > 0) {
 		disposeFrameIfNeeded(bm, info);
 	}
@@ -159,7 +160,7 @@ uint_fast32_t getFrameDuration(GifInfo *info) {
 	return frameDuration;
 }
 
-uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
-	drawNextBitmap(bm, info);
+uint_fast32_t getBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
+	drawNextBitmap(bm, info, drawOnlyDirtyRegion);
 	return getFrameDuration(info);
 }

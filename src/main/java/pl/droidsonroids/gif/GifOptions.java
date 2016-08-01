@@ -11,9 +11,8 @@ import pl.droidsonroids.gif.annotations.Beta;
  */
 @Beta
 public class GifOptions {
-	static final int UINT16_MAX = 0xFFFF;
 
-	int inSampleSize;
+	char inSampleSize;
 	boolean inIsOpaque;
 
 	public GifOptions() {
@@ -38,8 +37,12 @@ public class GifOptions {
 	 *
 	 * @param inSampleSize the sample size
 	 */
-	public void setInSampleSize(@IntRange(from = 1, to = UINT16_MAX) int inSampleSize) {
-		this.inSampleSize = inSampleSize;
+	public void setInSampleSize(@IntRange(from = 1, to = Character.MAX_VALUE) int inSampleSize) {
+		if (inSampleSize < 1 || inSampleSize > Character.MAX_VALUE) {
+			this.inSampleSize = 1;
+		} else {
+			this.inSampleSize = (char) inSampleSize;
+		}
 	}
 
 	/**

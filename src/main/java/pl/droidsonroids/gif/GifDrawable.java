@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import pl.droidsonroids.gif.transforms.CornerRadiusTransform;
 import pl.droidsonroids.gif.transforms.Transform;
 
-import static pl.droidsonroids.gif.GifOptions.UINT16_MAX;
 import static pl.droidsonroids.gif.InvalidationHandler.MSG_TYPE_INVALIDATION;
 
 /**
@@ -396,7 +395,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 *
 	 * @param loopCount loop count, 0 means infinity
 	 */
-	public void setLoopCount(@IntRange(from = 0, to = UINT16_MAX) final int loopCount) {
+	public void setLoopCount(@IntRange(from = 0, to = Character.MAX_VALUE) final int loopCount) {
 		mNativeInfoHandle.setLoopCount(loopCount);
 	}
 

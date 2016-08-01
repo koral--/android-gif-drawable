@@ -178,7 +178,7 @@ public class GifTextureView extends TextureView {
 					return;
 				}
 				mGifInfoHandle = gifTextureView.mInputSource.open();
-				mGifInfoHandle.setOptions(1, gifTextureView.isOpaque());
+				mGifInfoHandle.setOptions((char) 1, gifTextureView.isOpaque());
 			} catch (IOException ex) {
 				mIOException = ex;
 				return;

@@ -76,7 +76,7 @@ uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels
 
 	do {
 		DDGifSlurp(info, true, false);
-		drawNextBitmap((argb *) pixels, info);
+		drawNextBitmap(pixels, info, false);
 	} while (info->currentIndex++ < desiredIndex);
 	--info->currentIndex;
 	return getFrameDuration(info);
@@ -91,10 +91,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 	}
 
 	unsigned long sum = 0;
-	int desiredIndex;
+	unsigned int desiredIndex;
 	for (desiredIndex = 0; desiredIndex < info->gifFilePtr->ImageCount - 1; desiredIndex++) {
 		unsigned long newSum = sum + info->controlBlock[desiredIndex].DelayTime;
-		if (newSum > desiredPos)
+		if (newSum > (unsigned long) desiredPos)
 			break;
 		sum = newSum;
 	}

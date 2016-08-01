@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import static pl.droidsonroids.gif.GifOptions.UINT16_MAX;
-
 /**
  * Native library wrapper
  */
@@ -97,7 +95,7 @@ final class GifInfoHandle {
 
 	private static native int getLoopCount(long gifFileInPtr);
 
-	private static native void setLoopCount(long gifFileInPtr, int loopCount);
+	private static native void setLoopCount(long gifFileInPtr, char loopCount);
 
 	private static native long getSourceLength(long gifFileInPtr);
 
@@ -105,7 +103,7 @@ final class GifInfoHandle {
 
 	private static native int getCurrentPosition(long gifFileInPtr);
 
-	private static native void seekToTime(long gifFileInPtr, int pos, Bitmap buffer);
+	private static native void seekToTime(long gifFileInPtr, int position, Bitmap buffer);
 
 	private static native void seekToFrame(long gifFileInPtr, int frameNr, Bitmap buffer);
 
@@ -131,7 +129,7 @@ final class GifInfoHandle {
 
 	private static native int getFrameDuration(long gifInfoPtr, int index);
 
-	private static native void setOptions(long gifInfoPtr, int sampleSize, boolean isOpaque);
+	private static native void setOptions(long gifInfoPtr, char sampleSize, boolean isOpaque);
 
 	private static native int getWidth(long gifFileInPtr);
 
@@ -186,12 +184,12 @@ final class GifInfoHandle {
 		return getLoopCount(gifInfoPtr);
 	}
 
-	void setLoopCount(@IntRange(from = 0, to = UINT16_MAX) final int loopCount) {
-		if (loopCount < 0 || loopCount > UINT16_MAX) {
+	void setLoopCount(@IntRange(from = 0, to = Character.MAX_VALUE) final int loopCount) {
+		if (loopCount < 0 || loopCount > Character.MAX_VALUE) {
 			throw new IllegalArgumentException("Loop count of range <0, 65535>");
 		}
 		synchronized (this) {
-			setLoopCount(gifInfoPtr, loopCount);
+			setLoopCount(gifInfoPtr, (char) loopCount);
 		}
 	}
 
@@ -281,7 +279,7 @@ final class GifInfoHandle {
 		}
 	}
 
-	void setOptions(int sampleSize, boolean isOpaque) {
+	void setOptions(char sampleSize, boolean isOpaque) {
 		setOptions(gifInfoPtr, sampleSize, isOpaque);
 	}
 

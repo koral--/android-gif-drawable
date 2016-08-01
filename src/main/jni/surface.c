@@ -213,7 +213,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		surfaceDescriptor->renderHelper = 0;
 		pthread_mutex_unlock(&surfaceDescriptor->renderMutex);
 
-		const uint_fast32_t frameDuration = getBitmap(buffer.bits, info);
+		const uint_fast32_t frameDuration = getBitmap(buffer.bits, info, false);
 
 		pthread_mutex_lock(&surfaceDescriptor->slurpMutex);
 		surfaceDescriptor->slurpHelper = 1;

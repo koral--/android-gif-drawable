@@ -29,7 +29,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getLoopCount(JNIEnv __unused *env, jclas
 
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_setLoopCount(JNIEnv __unused *env, jclass __unused handleClass,
-                                                     jlong gifInfo, jint loopCount) {
+                                                     jlong gifInfo, jchar loopCount) {
 	if (gifInfo != 0)
 		((GifInfo *) (intptr_t) gifInfo)->loopCount = (uint_fast16_t) loopCount;
 }
@@ -168,7 +168,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 			prepareCanvas(pixels, info);
 		while (info->currentIndex < savedIndex) {
 			DDGifSlurp(info, true, false);
-			lastFrameDuration = getBitmap((argb *) pixels, info);
+			lastFrameDuration = getBitmap(pixels, info, false);
 		}
 	}
 

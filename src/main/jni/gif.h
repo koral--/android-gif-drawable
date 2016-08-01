@@ -124,13 +124,13 @@ typedef struct {
 } StreamContainer;
 
 typedef struct {
-	uint_fast32_t pos;
+	uint_fast32_t position;
 	jbyteArray buffer;
-	jsize arrLen;
+	unsigned int length;
 } ByteArrayContainer;
 
 typedef struct {
-	jlong pos;
+	jlong position;
 	jbyte *bytes;
 	jlong capacity;
 } DirectByteBufferContainer;
@@ -195,7 +195,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
 static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
 
-uint_fast32_t getBitmap(argb *bm, GifInfo *info);
+uint_fast32_t getBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion);
 
 bool reset(GifInfo *info);
 
@@ -209,7 +209,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 
 void prepareCanvas(const argb *bm, GifInfo *info);
 
-void drawNextBitmap(argb *bm, GifInfo *info);
+void drawNextBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion);
 
 uint_fast32_t getFrameDuration(GifInfo *info);
 

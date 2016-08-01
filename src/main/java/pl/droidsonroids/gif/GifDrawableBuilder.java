@@ -17,7 +17,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import pl.droidsonroids.gif.annotations.Beta;
 
-import static pl.droidsonroids.gif.GifOptions.UINT16_MAX;
 import static pl.droidsonroids.gif.InputSource.AssetFileDescriptorSource;
 import static pl.droidsonroids.gif.InputSource.AssetSource;
 import static pl.droidsonroids.gif.InputSource.ByteArraySource;
@@ -45,8 +44,8 @@ public class GifDrawableBuilder {
 	 *
 	 * @param sampleSize the sample size
 	 */
-	public void sampleSize(@IntRange(from = 1, to = UINT16_MAX) final int sampleSize) {
-		mOptions.inSampleSize = sampleSize;
+	public void sampleSize(@IntRange(from = 1, to = Character.MAX_VALUE) final int sampleSize) {
+		mOptions.setInSampleSize(sampleSize);
 	}
 
 	/**
