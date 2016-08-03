@@ -12,7 +12,7 @@ jdk:
 before_install:
   - echo y|android update sdk --all --no-ui --force --filter tools
   - echo y|android update sdk --all --no-ui --force --filter platform-tools
-  - echo y|android update sdk --all --no-ui --force --filter build-tools-24.0.0
+  - echo y|android update sdk --all --no-ui --force --filter build-tools-24.0.1
   - echo y|android update sdk --all --no-ui --force --filter android-24
   - echo y|android update sdk --all --no-ui --force --filter extra-android-m2repository
   - wget http://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip
