@@ -40,7 +40,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused env, jc
 
 static void *slurp(void *pVoidInfo) {
 	GifInfo *info = pVoidInfo;
-	while (1) {
+	while (true) {
 		long renderStartTime = getRealTime();
 		DDGifSlurp(info, true, false);
 		TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;

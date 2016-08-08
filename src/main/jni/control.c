@@ -41,7 +41,7 @@ static uint_fast32_t seekBitmap(GifInfo *info, JNIEnv *env, jint desiredIndex, j
 	return duration;
 }
 
-uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels) {
+uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels) {
 	GifFileType *const gifFilePtr = info->gifFilePtr;
 	if (desiredIndex < info->currentIndex || info->currentIndex == 0) {
 		if (!reset(info)) {

@@ -10,54 +10,56 @@ extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
 #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
 #endif
 
-static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
+static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, bool drawOnlyDirtyRegion) {
 	unsigned char *src = info->rasterBits;
 	argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
 
 	uint_fast16_t x, y = frame->ImageDesc.Height;
 	const int_fast16_t transpIndex = info->controlBlock[info->currentIndex].TransparentColor;
-	if (info->isOpaque) {
+    const GifWord frameWidth = frame->ImageDesc.Width;
+    const GifWord padding = info->stride - frameWidth;
+    if (info->isOpaque) {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
-				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
+				for (x = frameWidth; x > 0; x--, src++, dst++) {
 					dst->rgb = cmap->Colors[*src];
 				}
-				dst += info->stride - frame->ImageDesc.Width;
+				dst += padding;
 			}
 		} else {
 			for (; y > 0; y--) {
-				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
+				for (x = frameWidth; x > 0; x--, src++, dst++) {
 					if (*src != transpIndex) {
 						dst->rgb = cmap->Colors[*src];
 					}
 				}
-				dst += info->stride - frame->ImageDesc.Width;
+				dst += padding;
 			}
 		}
 	} else {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
-				MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frame->ImageDesc.Width);
-				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
+				MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frameWidth);
+				for (x = frameWidth; x > 0; x--, src++, dst++) {
 					dst->rgb = cmap->Colors[*src];
 				}
-				dst += info->stride - frame->ImageDesc.Width;
+				dst += padding;
 			}
 		} else {
 			for (; y > 0; y--) {
-				for (x = frame->ImageDesc.Width; x > 0; x--, src++, dst++) {
+				for (x = frameWidth; x > 0; x--, src++, dst++) {
 					if (*src != transpIndex) {
 						dst->rgb = cmap->Colors[*src];
 						dst->alpha = 0xFF;
 					}
 				}
-				dst += info->stride - frame->ImageDesc.Width;
+				dst += padding;
 			}
 		}
 	}
 }
 
-static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, bool drawOnlyDirtyRegion) {
 	ColorMapObject *cmap;
 	if (frame->ImageDesc.ColorMap != NULL)
 		cmap = frame->ImageDesc.ColorMap;// use local color table
@@ -66,7 +68,7 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
 	else
 		cmap = getDefColorMap();
 
-	blitNormal(bm, info, frame, cmap);
+    blitNormal(bm, info, frame, cmap, drawOnlyDirtyRegion);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -82,7 +84,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
 	return false;
 }
 
-static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
+static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
 	GifFileType *fGif = info->gifFilePtr;
 	SavedImage *cur = &fGif->SavedImages[info->currentIndex - 1];
 	SavedImage *next = &fGif->SavedImages[info->currentIndex];
@@ -137,9 +139,9 @@ void prepareCanvas(const argb *bm, GifInfo *info) {
 void drawNextBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
 	//TODO use drawOnlyDirtyRegion
 	if (info->currentIndex > 0) {
-		disposeFrameIfNeeded(bm, info);
+        disposeFrameIfNeeded(bm, info, drawOnlyDirtyRegion);
 	}
-	drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
+    drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex, drawOnlyDirtyRegion);
 }
 
 uint_fast32_t getFrameDuration(GifInfo *info) {

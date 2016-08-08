@@ -142,7 +142,7 @@ DGifGetScreenDesc(GifFileType *GifFile) {
 	GifFile->SBackGroundColor = Buf[1];
 //    GifFile->AspectByte = Buf[2];
 	if (Buf[0] & 0x80) {    /* Do we have global color map? */
-		int i;
+		uint_fast16_t i;
 
 		GifFile->SColorMap = GifMakeMapObject(BitsPerPixel, NULL);
 		if (GifFile->SColorMap == NULL) {
@@ -560,7 +560,7 @@ order the complete the whole image.
 ******************************************************************************/
 static int
 DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, uint_fast32_t LineLen) {
-	int i = 0, j;
+	uint_fast32_t i = 0, j;
 	int CrntCode, EOFCode, ClearCode, CrntPrefix, LastCode, StackPtr;
 	GifByteType *Stack, *Suffix;
 	GifPrefixType *Prefix;

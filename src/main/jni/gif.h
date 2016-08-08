@@ -187,13 +187,13 @@ void throwGifIOException(int errorCode, JNIEnv *env);
 
 GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData);
 
-static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
+static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, bool b);
 
-static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, bool b);
 
 static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
 
-static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
+static void disposeFrameIfNeeded(argb *bm, GifInfo *info, bool b);
 
 uint_fast32_t getBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion);
 
@@ -215,7 +215,7 @@ uint_fast32_t getFrameDuration(GifInfo *info);
 
 JNIEnv *getEnv();
 
-uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, const void *pixels);
+uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
 
