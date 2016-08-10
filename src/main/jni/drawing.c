@@ -16,9 +16,9 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
 
 	uint_fast16_t x, y = frame->ImageDesc.Height;
 	const int_fast16_t transpIndex = info->controlBlock[info->currentIndex].TransparentColor;
-    const GifWord frameWidth = frame->ImageDesc.Width;
-    const GifWord padding = info->stride - frameWidth;
-    if (info->isOpaque) {
+	const GifWord frameWidth = frame->ImageDesc.Width;
+	const GifWord padding = info->stride - frameWidth;
+	if (info->isOpaque) {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
 				for (x = frameWidth; x > 0; x--, src++, dst++) {
@@ -68,7 +68,7 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, bool drawOnlyD
 	else
 		cmap = getDefColorMap();
 
-    blitNormal(bm, info, frame, cmap, drawOnlyDirtyRegion);
+	blitNormal(bm, info, frame, cmap, drawOnlyDirtyRegion);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -101,9 +101,10 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, bool drawOnlyDi
 			return;
 		}
 	}
+
 	argb *backup = info->backupPtr;
 	if (nextTrans || !checkIfCover(next, cur)) {
-		if (curDisposal == DISPOSE_BACKGROUND) {// restore to background (under this image) color
+		if (curDisposal == DISPOSE_BACKGROUND || (info->currentIndex == 1 && curDisposal == DISPOSE_PREVIOUS)) {// restore to background (under this image) color
 			uint32_t *dst = (uint32_t *) GET_ADDR(bm, info->stride, cur->ImageDesc.Left, cur->ImageDesc.Top);
 			uint_fast16_t copyHeight = cur->ImageDesc.Height;
 			for (; copyHeight > 0; copyHeight--) {
@@ -120,7 +121,7 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, bool drawOnlyDi
 	// Save current image if next frame's disposal method == DISPOSE_PREVIOUS
 	if (nextDisposal == DISPOSE_PREVIOUS) {
 		memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
-    }
+	}
 }
 
 void prepareCanvas(const argb *bm, GifInfo *info) {
@@ -130,18 +131,17 @@ void prepareCanvas(const argb *bm, GifInfo *info) {
 				.rgb = gifFilePtr->SColorMap->Colors[gifFilePtr->SBackGroundColor],
 				.alpha = 0xFF
 		};
-		MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * gifFilePtr->SHeight);
+		MEMSET_ARGB((uint32_t *) bm, *(uint32_t * ) & bgColArgb, info->stride * gifFilePtr->SHeight);
 	} else {
 		MEMSET_ARGB((uint32_t *) bm, 0, info->stride * gifFilePtr->SHeight);
 	}
 }
 
 void drawNextBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
-	//TODO use drawOnlyDirtyRegion
 	if (info->currentIndex > 0) {
-        disposeFrameIfNeeded(bm, info, drawOnlyDirtyRegion);
+		disposeFrameIfNeeded(bm, info, drawOnlyDirtyRegion);
 	}
-    drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex, drawOnlyDirtyRegion);
+	drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex, drawOnlyDirtyRegion);
 }
 
 uint_fast32_t getFrameDuration(GifInfo *info) {
