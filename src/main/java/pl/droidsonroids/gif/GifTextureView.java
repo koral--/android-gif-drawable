@@ -100,7 +100,6 @@ public class GifTextureView extends TextureView {
 			super.setOpaque(false);
 		}
 		if (!isInEditMode()) {
-			LibraryLoader.loadLibrary(getContext());
 			mRenderThread = new RenderThread(this);
 			if (mInputSource != null) {
 				mRenderThread.start();
@@ -160,7 +159,7 @@ public class GifTextureView extends TextureView {
 	private static class RenderThread extends Thread implements SurfaceTextureListener {
 
 		final ConditionVariable isSurfaceValid = new ConditionVariable();
-		private GifInfoHandle mGifInfoHandle = GifInfoHandle.NULL_INFO;
+		private GifInfoHandle mGifInfoHandle = new GifInfoHandle();
 		private IOException mIOException;
 		long[] mSavedState;
 		private final WeakReference<GifTextureView> mGifTextureViewReference;
@@ -222,7 +221,7 @@ public class GifTextureView extends TextureView {
 				}
 			}
 			mGifInfoHandle.recycle();
-			mGifInfoHandle = GifInfoHandle.NULL_INFO;
+			mGifInfoHandle = new GifInfoHandle();
 		}
 
 		@Override

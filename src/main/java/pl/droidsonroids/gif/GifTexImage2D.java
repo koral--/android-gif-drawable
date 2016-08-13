@@ -19,10 +19,6 @@ import pl.droidsonroids.gif.annotations.Beta;
  */
 @Beta
 public class GifTexImage2D {
-	static {
-		LibraryLoader.loadLibrary(null);
-	}
-
 	private final GifInfoHandle mGifInfoHandle;
 
 	/**
@@ -73,6 +69,8 @@ public class GifTexImage2D {
 	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexImage2D(int, int, int, int, int, int, int, int, Buffer)}.
 	 * Where <code>Buffer</code> contains pixels of the current frame.
+	 * @param level level-of-detail number
+	 * @param target target texture
 	 */
 	public void glTexImage2D(int target, int level) {
 		mGifInfoHandle.glTexImage2D(target, level);
@@ -81,6 +79,8 @@ public class GifTexImage2D {
 	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexSubImage2D(int, int, int, int, int, int, int, int, Buffer)}.
 	 * Where <code>Buffer</code> contains pixels of the current frame.
+	 * @param level level-of-detail number
+	 * @param target target texture
 	 */
 	public void glTexSubImage2D(int target, int level) {
 		mGifInfoHandle.glTexSubImage2D(target, level);

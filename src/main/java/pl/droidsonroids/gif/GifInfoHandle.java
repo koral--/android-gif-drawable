@@ -17,6 +17,9 @@ import java.nio.ByteBuffer;
  * Native library wrapper
  */
 final class GifInfoHandle {
+	static {
+		LibraryLoader.loadLibrary(null);
+	}
 
 	/**
 	 * Pointer to native structure. Access must be synchronized, heap corruption may occur otherwise
@@ -24,13 +27,7 @@ final class GifInfoHandle {
 	 */
 	private volatile long gifInfoPtr;
 
-	static final GifInfoHandle NULL_INFO = new GifInfoHandle();
-
-	static {
-		LibraryLoader.loadLibrary(null);
-	}
-
-	private GifInfoHandle() {
+	GifInfoHandle() {
 	}
 
 	GifInfoHandle(FileDescriptor fd, boolean justDecodeMetaData) throws GifIOException {
