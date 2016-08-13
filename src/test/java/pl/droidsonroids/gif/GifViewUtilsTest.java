@@ -1,5 +1,6 @@
 package pl.droidsonroids.gif;
 
+import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
 
@@ -18,10 +19,12 @@ public class GifViewUtilsTest {
 
 	@Test
 	public void testFreezesAnimationAttribute() {
+		final Context context = RuntimeEnvironment.application;
 		final AttributeSet attributeSet = Robolectric.buildAttributeSet()
 				.addAttribute(R.attr.freezesAnimation, "true")
 				.build();
-		final GifImageView gifImageView = new GifImageView(RuntimeEnvironment.application, attributeSet);
+
+		final GifImageView gifImageView = new GifImageView(context, attributeSet);
 		assertThat(GifViewUtils.isFreezingAnimation(gifImageView, attributeSet, 0, 0)).isTrue();
 	}
 }

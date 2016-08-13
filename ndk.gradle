@@ -37,22 +37,25 @@ def getNdkBuildCommand() {
 
 android {
     sourceSets.main {
-        jniLibs.srcDir 'src/main/libs' //set .so files location to libs
+        jniLibs.srcDir 'src/main/libs'
         jni.srcDirs = [] //disable automatic ndk-build call
     }
 
-    def srcDir = file('src/main/jni').path
+    def nativeSrcDir = file('src/main/jni').path
 
     task buildNative(type: Exec) {
         environment 'NDK_DEBUG', isDebugBuild() ? '1' : '0'
         commandLine getNdkBuildCommand(),
-                '-C', srcDir,
+                '-C', nativeSrcDir,
                 'all'
+        outputs.dir file('src/main/libs')
+        outputs.dir file('src/main/obj')
+        inputs.dir nativeSrcDir
     }
 
     task cleanNative(type: Exec) {
         commandLine getNdkBuildCommand(),
-                '-C', srcDir,
+                '-C', nativeSrcDir,
                 'clean'
     }
     buildTypes.debug.jniDebuggable isDebugBuild()
@@ -65,5 +68,5 @@ android {
 clean.dependsOn cleanNative
 
 tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn buildNative
+    it.dependsOn buildNative
 }
