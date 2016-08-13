@@ -1,13 +1,6 @@
 #include "gif.h"
 #include <GLES2/gl2.h>
 
-typedef struct {
-	struct pollfd eventPollFd;
-	void *frameBuffer;
-	pthread_t slurpThread;
-	pthread_mutex_t renderMutex;
-} TexImageDescriptor;
-
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jclass __unused handleClass, jlong gifInfo, jint target, jint level) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
@@ -16,11 +9,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jc
 	}
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-    TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-    void *const pixels = texImageDescriptor->frameBuffer;
-    pthread_mutex_lock(&texImageDescriptor->renderMutex);
+	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+	void *const pixels = descriptor->frameBuffer;
+	pthread_mutex_lock(&descriptor->renderMutex);
 	glTexImage2D((GLenum) target, level, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	pthread_mutex_unlock(&texImageDescriptor->renderMutex);
+	pthread_mutex_unlock(&descriptor->renderMutex);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -31,11 +24,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused env, jc
 	}
 	const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 	const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-	void *const pixels = texImageDescriptor->frameBuffer;
-	pthread_mutex_lock(&texImageDescriptor->renderMutex);
+	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+	void *const pixels = descriptor->frameBuffer;
+	pthread_mutex_lock(&descriptor->renderMutex);
 	glTexSubImage2D((GLenum) target, level, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	pthread_mutex_unlock(&texImageDescriptor->renderMutex);
+	pthread_mutex_unlock(&descriptor->renderMutex);
 }
 
 static void *slurp(void *pVoidInfo) {
@@ -43,7 +36,7 @@ static void *slurp(void *pVoidInfo) {
 	while (true) {
 		long renderStartTime = getRealTime();
 		DDGifSlurp(info, true, false);
-		TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
+		FrameBufferDescriptor *texImageDescriptor = info->frameBufferDescriptor;
 		pthread_mutex_lock(&texImageDescriptor->renderMutex);
 		if (info->currentIndex == 0) {
 			prepareCanvas(texImageDescriptor->frameBuffer, info);
@@ -69,33 +62,26 @@ static void *slurp(void *pVoidInfo) {
 	return NULL;
 }
 
-static void stopDecoderThread(JNIEnv *env, TexImageDescriptor *texImageDescriptor) {
-	if (texImageDescriptor->eventPollFd.fd != -1) {
-		const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(texImageDescriptor->eventPollFd.fd, 1));
+static void stopDecoderThread(JNIEnv *env, FrameBufferDescriptor *descriptor) {
+	if (descriptor->eventPollFd.fd != -1) {
+		const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(descriptor->eventPollFd.fd, 1));
 		if (writeResult != 0) {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
 		}
-		errno = pthread_join(texImageDescriptor->slurpThread, NULL);
+		errno = pthread_join(descriptor->slurpThread, NULL);
 		THROW_ON_NONZERO_RESULT(errno, "Slurp thread join failed ");
 
-		if (close(texImageDescriptor->eventPollFd.fd) != 0 && errno != EINTR) {
+		if (close(descriptor->eventPollFd.fd) != 0 && errno != EINTR) {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd close failed ");
 		}
-		texImageDescriptor->eventPollFd.fd = -1;
+		descriptor->eventPollFd.fd = -1;
 	}
 }
 
 static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
-	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-	if (texImageDescriptor == NULL) {
-		return;
-	}
-	info->frameBufferDescriptor = NULL;
-	stopDecoderThread(env, texImageDescriptor);
-	errno = pthread_mutex_destroy(&texImageDescriptor->renderMutex);
-    THROW_ON_NONZERO_RESULT(errno, "Render mutex destroy failed ");
-	free(texImageDescriptor->frameBuffer);
-	free(texImageDescriptor);
+	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+	stopDecoderThread(env, descriptor);
+	releaseFrameBufferDescriptor(info, env);
 }
 
 __unused JNIEXPORT void JNICALL
@@ -104,24 +90,26 @@ Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jcla
 	if (info == NULL) {
 		return;
 	}
-	TexImageDescriptor *texImageDescriptor = malloc(sizeof(TexImageDescriptor));
-	if (!texImageDescriptor) {
+	FrameBufferDescriptor *descriptor = malloc(sizeof(FrameBufferDescriptor));
+	if (!descriptor) {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
 	}
-	texImageDescriptor->eventPollFd.fd = -1;
+	descriptor->eventPollFd.fd = -1;
 	const GifWord width = info->gifFilePtr->SWidth;
 	const GifWord height = info->gifFilePtr->SHeight;
-	texImageDescriptor->frameBuffer = malloc(width * height * sizeof(argb));
-	if (!texImageDescriptor->frameBuffer) {
-		free(texImageDescriptor);
+	descriptor->frameBuffer = malloc(width * height * sizeof(argb));
+	if (!descriptor->frameBuffer) {
+		free(descriptor);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
 	}
 	info->stride = (int32_t) width;
-	info->frameBufferDescriptor = texImageDescriptor;
-	errno = pthread_mutex_init(&texImageDescriptor->renderMutex, NULL);
+	info->frameBufferDescriptor = descriptor;
+	errno = pthread_mutex_init(&descriptor->renderMutex, NULL);
 	THROW_ON_NONZERO_RESULT(errno, "Render mutex initialization failed ");
+	errno = pthread_mutex_init(&descriptor->slurpMutex, NULL);
+	THROW_ON_NONZERO_RESULT(errno, "Slurp mutex initialization failed ");
 }
 
 __unused JNIEXPORT void JNICALL
@@ -130,24 +118,23 @@ Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass _
 	if (info == NULL) {
 		return;
 	}
-	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-	if (texImageDescriptor->eventPollFd.fd != -1) {
+	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+	if (descriptor->eventPollFd.fd != -1) {
 		return;
 	}
 
-	texImageDescriptor->eventPollFd.events = POLL_IN;
-	texImageDescriptor->eventPollFd.fd = eventfd(0, 0);
-	if (texImageDescriptor->eventPollFd.fd == -1) {
-		free(texImageDescriptor);
+	descriptor->eventPollFd.events = POLL_IN;
+	descriptor->eventPollFd.fd = eventfd(0, 0);
+	if (descriptor->eventPollFd.fd == -1) {
+		free(descriptor);
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd creation failed ");
 		return;
 	}
+	info->frameBufferDescriptor = descriptor;
 	info->destructor = releaseTexImageDescriptor;
-	info->frameBufferDescriptor = texImageDescriptor;
 
-	if (pthread_create(&texImageDescriptor->slurpThread, NULL, slurp, info) != 0) {
-		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Slurp thread creation failed ");
-	}
+	errno = pthread_create(&descriptor->slurpThread, NULL, slurp, info);
+	THROW_ON_NONZERO_RESULT(errno, "Slurp thread creation failed ");
 }
 
 __unused JNIEXPORT void JNICALL
@@ -165,7 +152,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrameGL(__unused JNIEnv *env, jcla
 	if (info == NULL) {
 		return;
 	}
-	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-	seek(info, (uint_fast32_t) desiredIndex, texImageDescriptor->frameBuffer);
+	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+	seek(info, (uint_fast32_t) desiredIndex, descriptor->frameBuffer);
 }
 
