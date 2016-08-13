@@ -143,18 +143,6 @@ typedef struct {
 	jlong sourceLength;
 } GifSourceDescriptor;
 
-typedef struct {
-	struct pollfd eventPollFd;
-	void *frameBuffer;
-	uint8_t slurpHelper;
-	pthread_mutex_t slurpMutex;
-	pthread_cond_t slurpCond;
-	uint8_t renderHelper;
-	pthread_mutex_t renderMutex;
-	pthread_cond_t renderCond;
-	pthread_t slurpThread;
-} FrameBufferDescriptor;
-
 void DetachCurrentThread();
 
 ColorMapObject *getDefColorMap();
@@ -230,7 +218,5 @@ JNIEnv *getEnv();
 uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
-
-void releaseFrameBufferDescriptor(GifInfo *info, JNIEnv *env);
 
 #endif

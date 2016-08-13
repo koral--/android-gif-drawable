@@ -1,9 +1,21 @@
 #include "gif.h"
 #include <android/native_window_jni.h>
 
+typedef struct {
+	struct pollfd eventPollFd;
+	void *frameBuffer;
+	uint8_t slurpHelper;
+	pthread_mutex_t slurpMutex;
+	pthread_cond_t slurpCond;
+	uint8_t renderHelper;
+	pthread_mutex_t renderMutex;
+	pthread_cond_t renderCond;
+	pthread_t slurpThread;
+} SurfaceDescriptor;
+
 static void *slurp(void *pVoidInfo) {
 	GifInfo *info = pVoidInfo;
-	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+	SurfaceDescriptor *descriptor = info->frameBufferDescriptor;
 	while (1) {
 		pthread_mutex_lock(&descriptor->slurpMutex);
 		while (descriptor->slurpHelper == 0) {
@@ -25,8 +37,8 @@ static void *slurp(void *pVoidInfo) {
 	}
 }
 
-void releaseFrameBufferDescriptor(GifInfo *info, JNIEnv *env) { //TODO move?
-	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+static void releaseSurfaceDescriptor(GifInfo *info, JNIEnv *env) {
+	SurfaceDescriptor *descriptor = info->frameBufferDescriptor;
 	info->frameBufferDescriptor = NULL;
 	free(descriptor->frameBuffer);
 	if (close(descriptor->eventPollFd.fd) != 0 && errno != EINTR) {
@@ -47,9 +59,9 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
                                                     jobject jsurface, jlongArray savedState) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	FrameBufferDescriptor *descriptor = info->frameBufferDescriptor;
+	SurfaceDescriptor *descriptor = info->frameBufferDescriptor;
 	if (descriptor == NULL) {
-		descriptor = malloc(sizeof(FrameBufferDescriptor));
+		descriptor = malloc(sizeof(SurfaceDescriptor));
 		if (descriptor == NULL) {
 			throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 			return;
@@ -71,7 +83,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		THROW_ON_NONZERO_RESULT(errno, "Render mutex initialization failed ");
 		descriptor->frameBuffer = NULL;
 		info->frameBufferDescriptor = descriptor;
-		info->destructor = releaseFrameBufferDescriptor;
+		info->destructor = releaseSurfaceDescriptor;
 	}
 
 	eventfd_t eventValue;
@@ -236,7 +248,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
 	}
-	FrameBufferDescriptor const *descriptor = info->frameBufferDescriptor;
+	SurfaceDescriptor const *descriptor = info->frameBufferDescriptor;
 	const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(descriptor->eventPollFd.fd, 1));
 	if (writeResult != 0 && errno != EBADF) {
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
