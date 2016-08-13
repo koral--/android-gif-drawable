@@ -100,7 +100,7 @@ public class GifTextureView extends TextureView {
 			super.setOpaque(false);
 		}
 		if (!isInEditMode()) {
-			LibraryLoader.loadLibrary(getContext(), LibraryLoader.BASE_LIBRARY_NAME);
+			LibraryLoader.loadLibrary(getContext());
 			mRenderThread = new RenderThread(this);
 			if (mInputSource != null) {
 				mRenderThread.start();

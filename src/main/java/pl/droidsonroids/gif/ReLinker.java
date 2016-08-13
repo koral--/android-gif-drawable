@@ -38,6 +38,7 @@ import java.util.zip.ZipFile;
  * API 21
  */
 class ReLinker {
+	private static final String MAPPED_BASE_LIB_NAME = System.mapLibraryName(LibraryLoader.BASE_LIBRARY_NAME);
 	private static final String LIB_DIR = "lib";
 	private static final int MAX_TRIES = 5;
 	private static final int COPY_BUFFER_SIZE = 8192;
@@ -53,10 +54,9 @@ class ReLinker {
 	 * <strong>Note: This is a synchronous operation</strong>
 	 */
 	@SuppressLint("UnsafeDynamicallyLoadedCode") //intended fallback of System#loadLibrary()
-	static void loadLibrary(Context context, final String library) {
-		final String libName = System.mapLibraryName(library);
+	static void loadLibrary(Context context) {
 		synchronized (ReLinker.class) {
-			final File workaroundFile = unpackLibrary(context, libName);
+			final File workaroundFile = unpackLibrary(context);
 			System.load(workaroundFile.getAbsolutePath());
 		}
 	}
@@ -66,23 +66,24 @@ class ReLinker {
 	 * IO operations to ensure they succeed.
 	 *
 	 * @param context {@link Context} to describe the location of the installed APK file
-	 * @param libName The name of the library to load
 	 */
-	private static File unpackLibrary(final Context context, final String libName) {
-		File outputFile = new File(context.getDir(LIB_DIR, Context.MODE_PRIVATE), libName + BuildConfig.VERSION_NAME);
+	private static File unpackLibrary(final Context context) {
+		final String outputFileName = MAPPED_BASE_LIB_NAME + BuildConfig.VERSION_NAME;
+		File outputFile = new File(context.getDir(LIB_DIR, Context.MODE_PRIVATE), outputFileName);
 		if (outputFile.isFile()) {
 			return outputFile;
 		}
 
-		final File cachedLibraryFile = new File(context.getCacheDir(), libName + BuildConfig.VERSION_NAME);
+		final File cachedLibraryFile = new File(context.getCacheDir(), outputFileName);
 		if (cachedLibraryFile.isFile()) {
 			return cachedLibraryFile;
 		}
 
+		final String mappedSurfaceLibraryName = System.mapLibraryName(LibraryLoader.SURFACE_LIBRARY_NAME);
 		final FilenameFilter filter = new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String filename) {
-				return filename.startsWith(libName);
+				return filename.startsWith(MAPPED_BASE_LIB_NAME) || filename.startsWith(mappedSurfaceLibraryName);
 			}
 		};
 		clearOldLibraryFiles(outputFile, filter);
@@ -96,9 +97,9 @@ class ReLinker {
 
 			int tries = 0;
 			while (tries++ < MAX_TRIES) {
-				ZipEntry libraryEntry = findLibraryEntry(libName, zipFile);
+				ZipEntry libraryEntry = findLibraryEntry(zipFile);
 				if (libraryEntry == null) {
-					throw new IllegalStateException("Library " + libName + " for supported ABIs not found in APK file");
+					throw new IllegalStateException("Library " + MAPPED_BASE_LIB_NAME + " for supported ABIs not found in APK file");
 				}
 
 				InputStream inputStream = null;
@@ -135,20 +136,20 @@ class ReLinker {
 
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	@SuppressWarnings("deprecation") //required for old API levels
-	private static ZipEntry findLibraryEntry(final String libName, final ZipFile zipFile) {
+	private static ZipEntry findLibraryEntry(final ZipFile zipFile) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			for (final String abi : Build.SUPPORTED_ABIS) {
-				final ZipEntry libraryEntry = getEntry(libName, zipFile, abi);
+				final ZipEntry libraryEntry = getEntry(zipFile, abi);
 				if (libraryEntry != null) {
 					return libraryEntry;
 				}
 			}
 		}
-		return getEntry(libName, zipFile, Build.CPU_ABI);
+		return getEntry(zipFile, Build.CPU_ABI);
 	}
 
-	private static ZipEntry getEntry(final String libName, final ZipFile zipFile, final String abi) {
-		return zipFile.getEntry("lib/" + abi + "/" + libName);
+	private static ZipEntry getEntry(final ZipFile zipFile, final String abi) {
+		return zipFile.getEntry("lib/" + abi + "/" + MAPPED_BASE_LIB_NAME);
 	}
 
 	private static ZipFile openZipFile(final File apkFile) {

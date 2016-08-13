@@ -27,7 +27,7 @@ final class GifInfoHandle {
 	static final GifInfoHandle NULL_INFO = new GifInfoHandle();
 
 	static {
-		LibraryLoader.loadLibrary(null, LibraryLoader.BASE_LIBRARY_NAME);
+		LibraryLoader.loadLibrary(null);
 	}
 
 	private GifInfoHandle() {

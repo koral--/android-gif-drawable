@@ -20,7 +20,7 @@ import pl.droidsonroids.gif.annotations.Beta;
 @Beta
 public class GifTexImage2D {
 	static {
-		LibraryLoader.loadLibrary(null, LibraryLoader.BASE_LIBRARY_NAME);
+		LibraryLoader.loadLibrary(null);
 	}
 
 	private final GifInfoHandle mGifInfoHandle;

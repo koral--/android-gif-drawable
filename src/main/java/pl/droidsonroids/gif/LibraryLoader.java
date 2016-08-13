@@ -1,7 +1,6 @@
 package pl.droidsonroids.gif;
 
 import android.content.Context;
-import android.os.Build;
 import android.support.annotation.NonNull;
 
 import java.lang.reflect.Method;
@@ -11,7 +10,7 @@ import java.lang.reflect.Method;
  * See <a href="https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db">ReLinker</a> for more details.
  */
 class LibraryLoader {
-//	static final String SURFACE_LIBRARY_NAME = "pl_droidsonroids_gif_surface";
+	static final String SURFACE_LIBRARY_NAME = "pl_droidsonroids_gif_surface";
 	static final String BASE_LIBRARY_NAME = "pl_droidsonroids_gif";
 	private static Context sAppContext;
 
@@ -41,14 +40,14 @@ class LibraryLoader {
 		return sAppContext;
 	}
 
-	static void loadLibrary(Context context, final String library) {
+	static void loadLibrary(Context context) {
 		try {
-			System.loadLibrary(library);
+			System.loadLibrary(BASE_LIBRARY_NAME);
 		} catch (final UnsatisfiedLinkError e) {
 			if (context == null) {
 				context = getContext();
 			}
-			ReLinker.loadLibrary(context, library);
+			ReLinker.loadLibrary(context);
 		}
 	}
 }
