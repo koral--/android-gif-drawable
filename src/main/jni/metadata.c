@@ -168,7 +168,7 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 			prepareCanvas(pixels, info);
 		while (info->currentIndex < savedIndex) {
 			DDGifSlurp(info, true, false);
-			lastFrameDuration = getBitmap(pixels, info);
+			lastFrameDuration = getBitmap(pixels, info, false);
 		}
 	}
 

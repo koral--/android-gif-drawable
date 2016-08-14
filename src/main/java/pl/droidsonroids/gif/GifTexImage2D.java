@@ -125,6 +125,10 @@ public class GifTexImage2D {
 		return mGifInfoHandle.getHeight();
 	}
 
+	public void renderFrame(int target, int level) {
+		mGifInfoHandle.renderFrameGL(target, level);
+	}
+
 	@Override
 	protected final void finalize() throws Throwable {
 		try {

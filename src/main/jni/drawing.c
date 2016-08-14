@@ -10,7 +10,7 @@ extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
 #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
 #endif
 
-static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
+static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, bool drawOnlyDirtyRegion) {
 	unsigned char *src = info->rasterBits;
 	argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
 
@@ -59,7 +59,7 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
 	}
 }
 
-static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, bool drawOnlyDirtyRegion) {
 	ColorMapObject *cmap;
 	if (frame->ImageDesc.ColorMap != NULL)
 		cmap = frame->ImageDesc.ColorMap;// use local color table
@@ -68,7 +68,7 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
 	else
 		cmap = getDefColorMap();
 
-    blitNormal(bm, info, frame, cmap);
+	blitNormal(bm, info, frame, cmap, drawOnlyDirtyRegion);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
@@ -81,7 +81,7 @@ static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
 	       <= target->ImageDesc.Top + target->ImageDesc.Height;
 }
 
-static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
+static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
 	GifFileType *fGif = info->gifFilePtr;
 	SavedImage *cur = &fGif->SavedImages[info->currentIndex - 1];
 	SavedImage *next = &fGif->SavedImages[info->currentIndex];
@@ -134,11 +134,11 @@ void prepareCanvas(const argb *bm, GifInfo *info) {
 	}
 }
 
-void drawNextBitmap(argb *bm, GifInfo *info) {
+void drawNextBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
 	if (info->currentIndex > 0) {
-        disposeFrameIfNeeded(bm, info);
+		disposeFrameIfNeeded(bm, info, drawOnlyDirtyRegion);
 	}
-    drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
+	drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex, drawOnlyDirtyRegion);
 }
 
 uint_fast32_t getFrameDuration(GifInfo *info) {
@@ -159,7 +159,7 @@ uint_fast32_t getFrameDuration(GifInfo *info) {
 	return frameDuration;
 }
 
-uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
-    drawNextBitmap(bm, info);
+uint_fast32_t getBitmap(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
+	drawNextBitmap(bm, info, drawOnlyDirtyRegion);
 	return getFrameDuration(info);
 }

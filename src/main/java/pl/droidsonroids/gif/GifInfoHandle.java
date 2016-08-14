@@ -148,6 +148,8 @@ final class GifInfoHandle {
 
 	private static native void initTexImageDescriptor(long gifInfoPtr);
 
+	private static native void renderFrameGL(long gifInfoPtr, int target, int level);
+
 	synchronized long renderFrame(Bitmap frameBuffer) {
 		return renderFrame(gifInfoPtr, frameBuffer);
 	}
@@ -321,5 +323,9 @@ final class GifInfoHandle {
 			throw new IndexOutOfBoundsException("Frame index is out of bounds");
 		}
 		seekToFrameGL(gifInfoPtr, index);
+	}
+
+	void renderFrameGL(int target, int level) {
+		renderFrameGL(gifInfoPtr, target, level);
 	}
 }
