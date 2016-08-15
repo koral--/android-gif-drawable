@@ -47,22 +47,22 @@ static void *slurp(void *pVoidInfo) {
 		long renderStartTime = getRealTime();
         //TODO only advance frame index if cacheAnimation is enabled and frame is cached
 		DDGifSlurp(info, true, false);
-		TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
-		pthread_mutex_lock(&texImageDescriptor->renderMutex);
+		TexImageDescriptor *descriptor = info->frameBufferDescriptor;
+		pthread_mutex_lock(&descriptor->renderMutex);
 		if (info->currentIndex == 0) {
-			prepareCanvas(texImageDescriptor->frameBuffer, info);
+			prepareCanvas(descriptor->frameBuffer, info);
 		}
-		const uint_fast32_t frameDuration = getBitmap(texImageDescriptor->frameBuffer, info, true);
-		pthread_mutex_unlock(&texImageDescriptor->renderMutex);
+		const uint_fast32_t frameDuration = getBitmap(descriptor->frameBuffer, info, false);
+		pthread_mutex_unlock(&descriptor->renderMutex);
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
-		int pollResult = poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
+		int pollResult = poll(&descriptor->eventPollFd, 1, (int) invalidationDelayMillis);
 		eventfd_t eventValue;
 		if (pollResult < 0) {
 			throwException(getEnv(), RUNTIME_EXCEPTION_ERRNO, "Could not poll on eventfd ");
 			break;
 		} else if (pollResult > 0) {
-			const int readResult = TEMP_FAILURE_RETRY(eventfd_read(texImageDescriptor->eventPollFd.fd, &eventValue));
+			const int readResult = TEMP_FAILURE_RETRY(eventfd_read(descriptor->eventPollFd.fd, &eventValue));
 			if (readResult != 0) {
 				throwException(getEnv(), RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");
 			}
@@ -186,9 +186,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrameGL(JNIEnv *__unused env, jcla
 	}
 	TexImageDescriptor *descriptor = info->frameBufferDescriptor;
 	pthread_mutex_lock(&descriptor->renderMutex);
+	const GLenum target = (const GLenum) rawTarget;
 	GLuint *currentTextureName = descriptor->glTextureNames + info->currentIndex;
 	if (*currentTextureName != 0) {
-		glBindTexture(GL_TEXTURE_2D, *currentTextureName);
+		glBindTexture(target, *currentTextureName);
 	} else {
 		GLuint *framebufferName = &descriptor->glFramebufferName;
 		if (*framebufferName == 0) {
@@ -197,7 +198,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrameGL(JNIEnv *__unused env, jcla
 		glGenTextures(1, currentTextureName);//TODO delete
 		const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 		const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
-		const GLenum target = (const GLenum) rawTarget;
+
 		glBindTexture(target, *currentTextureName);
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
