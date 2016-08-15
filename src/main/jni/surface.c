@@ -1,16 +1,20 @@
 #include "gif.h"
 #include <android/native_window_jni.h>
 
+#define HELPER_NOT_READY 0
+#define HELPER_READY 1
+#define HELPER_EXIT 2
+
 typedef struct {
 	struct pollfd eventPollFd;
-	void *frameBuffer;
-	uint8_t slurpHelper;
 	pthread_mutex_t slurpMutex;
 	pthread_cond_t slurpCond;
-	uint8_t renderHelper;
 	pthread_mutex_t renderMutex;
 	pthread_cond_t renderCond;
 	pthread_t slurpThread;
+	void *frameBuffer;
+	u_int8_t renderHelper:1;
+	u_int8_t slurpHelper:2;
 } SurfaceDescriptor;
 
 static void *slurp(void *pVoidInfo) {
@@ -18,20 +22,20 @@ static void *slurp(void *pVoidInfo) {
 	SurfaceDescriptor *descriptor = info->frameBufferDescriptor;
 	while (1) {
 		pthread_mutex_lock(&descriptor->slurpMutex);
-		while (descriptor->slurpHelper == 0) {
+		while (descriptor->slurpHelper == HELPER_NOT_READY) {
 			pthread_cond_wait(&descriptor->slurpCond, &descriptor->slurpMutex);
 		}
 
-		if (descriptor->slurpHelper == 2) {
+		if (descriptor->slurpHelper == HELPER_EXIT) {
 			pthread_mutex_unlock(&descriptor->slurpMutex);
 			DetachCurrentThread();
 			return NULL;
 		}
-		descriptor->slurpHelper = 0;
+		descriptor->slurpHelper = HELPER_NOT_READY;
 		pthread_mutex_unlock(&descriptor->slurpMutex);
 		DDGifSlurp(info, true, false);
 		pthread_mutex_lock(&descriptor->renderMutex);
-		descriptor->renderHelper = 1;
+		descriptor->renderHelper = HELPER_READY;
 		pthread_cond_signal(&descriptor->renderCond);
 		pthread_mutex_unlock(&descriptor->renderMutex);
 	}
@@ -132,8 +136,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 	if (descriptor->frameBuffer) {
 		memcpy(buffer.bits, descriptor->frameBuffer, bufferSize);
 		invalidationDelayMillis = 0;
-		descriptor->renderHelper = 1;
-		descriptor->slurpHelper = 0;
+		descriptor->renderHelper = HELPER_READY;
+		descriptor->slurpHelper = HELPER_NOT_READY;
 	} else {
 		if (savedState != NULL) {
 			invalidationDelayMillis = restoreSavedState(info, env, savedState, buffer.bits);
@@ -141,8 +145,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 				invalidationDelayMillis = 0;
 		} else
 			invalidationDelayMillis = 0;
-		descriptor->renderHelper = 0;
-		descriptor->slurpHelper = 1;
+		descriptor->renderHelper = HELPER_NOT_READY;
+		descriptor->slurpHelper = HELPER_READY;
 	}
 
 	info->lastFrameRemainder = -1;
@@ -210,16 +214,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 			memcpy(buffer.bits, oldBufferBits, bufferSize);
 
 		pthread_mutex_lock(&descriptor->renderMutex);
-		while (descriptor->renderHelper == 0) {
+		while (descriptor->renderHelper == HELPER_NOT_READY) {
 			pthread_cond_wait(&descriptor->renderCond, &descriptor->renderMutex);
 		}
-		descriptor->renderHelper = 0;
+		descriptor->renderHelper = HELPER_NOT_READY;
 		pthread_mutex_unlock(&descriptor->renderMutex);
 
 		const uint_fast32_t frameDuration = getBitmap(buffer.bits, info, false);
 
 		pthread_mutex_lock(&descriptor->slurpMutex);
-		descriptor->slurpHelper = 1;
+		descriptor->slurpHelper = HELPER_READY;
 		pthread_cond_signal(&descriptor->slurpCond);
 		pthread_mutex_unlock(&descriptor->slurpMutex);
 
