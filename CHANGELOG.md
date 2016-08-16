@@ -6,6 +6,7 @@
 - Gradle wrapper updated to 2.14.1
 - Build tools version updated to 24.0.1
 - Support library dependency version updated to 24.1.1
+- `LibraryLoader` visibility fixed - [#333](https://github.com/koral--/android-gif-drawable/issues/333)
 
 ### 1.1.17
 - Mutex destroying in `GifTexImage2D` fixed 
