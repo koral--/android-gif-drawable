@@ -1,4 +1,4 @@
-### 1.1.18
+### 1.2.0
 - Native libraries joined into one file - reduced complexity, minimum API level increased to 9
 - Disposal first frame to previous treated as disposal to background instead of ignoring - [#330](https://github.com/koral--/android-gif-drawable/issues/330)
 - Robolectric version updated to 3.1.2
