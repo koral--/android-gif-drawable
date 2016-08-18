@@ -21,7 +21,7 @@ Bundled GIFLib via JNI is used to render frames. This way should be more efficie
 Insert the following dependency to `build.gradle` file of your project.
 ```groovy
 dependencies {
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.1.17'
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.0'
 }
 ```
 Note that Maven central repository should be defined eg. in top-level `build.gradle` like this:
@@ -45,7 +45,7 @@ repositories {
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }
 dependencies {
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.1.+'
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.+'
 }
 ```
 #### Maven dependency
@@ -220,6 +220,9 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `recycle()` - provided to speed up freeing memory (like in `android.graphics.Bitmap`)
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
+
+##Upgrading from 1.1.17
+1.1.17 is the last version supporting API level 8 (Froyo). Starting from 1.2.0 minimum API level is 9 (Gingerbread).
 
 ##Upgrading from 1.1.13
 Handling of several edge cases has been changed:
