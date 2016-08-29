@@ -87,8 +87,8 @@ static void stopDecoderThread(JNIEnv *env, TexImageDescriptor *descriptor) {
 
 static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
 	TexImageDescriptor *descriptor = info->frameBufferDescriptor;
-	info->frameBufferDescriptor = NULL;
 	stopDecoderThread(env, descriptor);
+	info->frameBufferDescriptor = NULL;
 	free(descriptor->frameBuffer);
 	errno = pthread_mutex_destroy(&descriptor->renderMutex);
 	THROW_ON_NONZERO_RESULT(errno, "Render mutex destroy failed ");

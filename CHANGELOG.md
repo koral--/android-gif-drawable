@@ -1,3 +1,8 @@
+### 1.2.1-SNAPSHOT
+- Build tools version updated to 24.0.2
+- Support library dependency version updated to 24.2.0
+- `GifTexImage2D` releasing race condition fixed
+
 ### 1.2.0
 - Native libraries joined into one file - reduced complexity, minimum API level increased to 9
 - Disposal first frame to previous treated as disposal to background instead of ignoring - [#330](https://github.com/koral--/android-gif-drawable/issues/330)
