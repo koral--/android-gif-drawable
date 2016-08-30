@@ -1,4 +1,4 @@
-### 1.2.1-SNAPSHOT
+### 1.2.1
 - Build tools version updated to 24.0.2
 - Support library dependency version updated to 24.2.0
 - `GifTexImage2D` releasing race condition fixed
