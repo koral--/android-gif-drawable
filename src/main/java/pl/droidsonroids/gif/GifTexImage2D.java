@@ -26,7 +26,7 @@ public class GifTexImage2D {
 	 * Decoder thread is initially stopped, use {@link #startDecoderThread()} to start it.
 	 *
 	 * @param inputSource source
-	 * @param options null-ok; options controlling parameters like subsampling and opacity
+	 * @param options     null-ok; options controlling parameters like subsampling and opacity
 	 * @throws IOException when creation fails
 	 */
 	public GifTexImage2D(final InputSource inputSource, @Nullable GifOptions options) throws IOException {
@@ -69,7 +69,8 @@ public class GifTexImage2D {
 	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexImage2D(int, int, int, int, int, int, int, int, Buffer)}.
 	 * Where <code>Buffer</code> contains pixels of the current frame.
-	 * @param level level-of-detail number
+	 *
+	 * @param level  level-of-detail number
 	 * @param target target texture
 	 */
 	public void glTexImage2D(int target, int level) {
@@ -79,7 +80,8 @@ public class GifTexImage2D {
 	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexSubImage2D(int, int, int, int, int, int, int, int, Buffer)}.
 	 * Where <code>Buffer</code> contains pixels of the current frame.
-	 * @param level level-of-detail number
+	 *
+	 * @param level  level-of-detail number
 	 * @param target target texture
 	 */
 	public void glTexSubImage2D(int target, int level) {
@@ -104,7 +106,9 @@ public class GifTexImage2D {
 	 * See {@link GifDrawable#recycle()}. Decoder thread is stopped automatically.
 	 */
 	public void recycle() {
-		mGifInfoHandle.recycle();
+		if (mGifInfoHandle != null) {
+			mGifInfoHandle.recycle();
+		}
 	}
 
 	/**
