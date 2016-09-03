@@ -124,12 +124,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 	}
 	struct stat st;
 	GifSourceDescriptor descriptor = {
-			.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error),
 			.rewindFunc = fileRewind,
 			.startPos = ftell(file),
 			.sourceLength = stat(filename, &st) == 0 ? st.st_size : -1
 	};
-	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
+	descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
+			GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
 	if (info == NULL) {
 		fclose(file);
 	}
@@ -156,11 +156,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 	container->length = (unsigned int)(*env)->GetArrayLength(env, container->buffer);
 	container->position = 0;
 	GifSourceDescriptor descriptor = {
-			.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error),
 			.rewindFunc = byteArrayRewind,
 			.startPos = container->position,
 			.sourceLength = container->length
 	};
+	descriptor.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error);
 
 	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
 
@@ -191,13 +191,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	container->position = 0;
 
 	GifSourceDescriptor descriptor = {
-			.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error),
 			.rewindFunc = directByteBufferRewindFun,
 			.startPos = container->position,
 			.sourceLength = container->capacity
 	};
+	descriptor.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error);
 
-	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
+			GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
 	if (info == NULL) {
 		free(container);
 	}
@@ -261,11 +261,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	container->streamCls = streamCls;
 
 	GifSourceDescriptor descriptor = {
-			.GifFileIn = DGifOpen(container, &streamReadFun, &descriptor.Error),
 			.startPos = 0,
 			.rewindFunc = streamRewind,
 			.sourceLength = -1
 	};
+	descriptor.GifFileIn = DGifOpen(container, &streamReadFun, &descriptor.Error);
 
 	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
 	if (!(*env)->ExceptionCheck(env)) {
@@ -307,11 +307,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		}
 		struct stat st;
 		GifSourceDescriptor descriptor = {
-				.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error),
 				.rewindFunc = fileRewind,
 				.startPos = ftell(file),
 				.sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1
 		};
+		descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
 		return (jlong) createGifHandle(&descriptor, env, justDecodeMetaData);
 	} else {
 		close(fd);
