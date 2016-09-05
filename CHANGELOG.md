@@ -1,3 +1,7 @@
+### 1.2.2
+- Fixed NPE in `GifTexImage2D` finalizer when constructor threw an exception
+- GifLib error code propagation fixed
+ 
 ### 1.2.1
 - Build tools version updated to 24.0.2
 - Support library dependency version updated to 24.2.0

@@ -102,7 +102,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 	if (info->lastFrameRemainder != -1) {
 		info->lastFrameRemainder = desiredPos - sum;
 		if (desiredIndex == info->gifFilePtr->ImageCount - 1 &&
-		    info->lastFrameRemainder > info->controlBlock[desiredIndex].DelayTime)
+		    info->lastFrameRemainder > (long long)info->controlBlock[desiredIndex].DelayTime)
 			info->lastFrameRemainder = info->controlBlock[desiredIndex].DelayTime;
 	}
 	seekBitmap(info, env, desiredIndex, jbitmap);
