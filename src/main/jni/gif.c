@@ -12,9 +12,9 @@ static struct JavaVMAttachArgs attachArgs = {.version=JNI_VERSION_1_6, .group=NU
 
 JNIEnv *getEnv() {
 	JNIEnv *env;
-
-	if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, &attachArgs) == JNI_OK)
+	if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, &attachArgs) == JNI_OK) {
 		return env;
+	}
 	return NULL;
 }
 
@@ -29,8 +29,9 @@ static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t 
 
 static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	DirectByteBufferContainer *dbbc = gif->UserData;
-	if (dbbc->position + size > dbbc->capacity)
+	if (dbbc->position + size > dbbc->capacity) {
 		size -= dbbc->position + size - dbbc->capacity;
+	}
 	memcpy(bytes, dbbc->bytes + dbbc->position, (size_t) size);
 	dbbc->position += size;
 	return size;
@@ -39,10 +40,12 @@ static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes
 static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	ByteArrayContainer *bac = gif->UserData;
 	JNIEnv *env = getEnv();
-	if (!env)
+	if (env == NULL) {
 		return 0;
-	if (bac->position + size > bac->length)
+	}
+	if (bac->position + size > bac->length) {
 		size -= bac->position + size - bac->length;
+	}
 	(*env)->GetByteArrayRegion(env, bac->buffer, (jsize) bac->position, size, (jbyte *) bytes);
 	bac->position += size;
 	return size;
@@ -51,8 +54,9 @@ static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_
 static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	StreamContainer *sc = gif->UserData;
 	JNIEnv *env = getEnv();
-	if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0)
+	if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0) {
 		return 0;
+	}
 
 	jint len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0, size);
 	if ((*env)->ExceptionCheck(env)) {
@@ -62,15 +66,17 @@ static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fas
 	else if (len > 0) {
 		(*env)->GetByteArrayRegion(env, sc->buffer, 0, len, (jbyte *) bytes);
 	}
-	if ((*env)->MonitorExit(env, sc->stream) != 0)
+	if ((*env)->MonitorExit(env, sc->stream) != 0) {
 		len = 0;
+	}
 
 	return (uint_fast8_t) (len >= 0 ? len : 0);
 }
 
 static int fileRewind(GifInfo *info) {
-	if (fseeko(info->gifFilePtr->UserData, info->startPos, SEEK_SET) == 0)
+	if (fseeko(info->gifFilePtr->UserData, info->startPos, SEEK_SET) == 0) {
 		return 0;
+	}
 	info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 	return -1;
 }
@@ -154,7 +160,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
-	container->length = (unsigned int)(*env)->GetArrayLength(env, container->buffer);
+	container->length = (unsigned int) (*env)->GetArrayLength(env, container->buffer);
 	container->position = 0;
 	GifSourceDescriptor descriptor = {
 			.rewindFunc = byteArrayRewind,
@@ -178,8 +184,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	jbyte *bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
 	if (bytes == NULL || capacity <= 0) {
-		if (!isSourceNull(buffer, env))
+		if (!isSourceNull(buffer, env)) {
 			throwGifIOException(D_GIF_ERR_INVALID_BYTE_BUFFER, env);
+		}
 		return NULL_GIF_INFO;
 	}
 	DirectByteBufferContainer *container = malloc(sizeof(DirectByteBufferContainer));
@@ -304,6 +311,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		FILE *file = fdopen(fd, "rb");
 		if (file == NULL) {
 			throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+			close(fd);
 			return NULL_GIF_INFO;
 		}
 		struct stat st;
@@ -370,8 +378,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jchar sampleSize, jboolean isOpaque) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+	if (info == NULL) {
 		return;
+	}
 	info->isOpaque = isOpaque == JNI_TRUE;
 	info->sampleSize = (uint_fast16_t) sampleSize;
 	info->gifFilePtr->SHeight /= info->sampleSize;
