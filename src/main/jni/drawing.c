@@ -12,12 +12,12 @@ extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
 
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap, bool drawOnlyDirtyRegion) {
 	unsigned char *src = info->rasterBits;
-	argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
+	argb *dst = drawOnlyDirtyRegion ? bm : GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
 
 	uint_fast16_t x, y = frame->ImageDesc.Height;
 	const int_fast16_t transpIndex = info->controlBlock[info->currentIndex].TransparentColor;
 	const GifWord frameWidth = frame->ImageDesc.Width;
-	const GifWord padding = info->stride - frameWidth;
+	const GifWord padding = drawOnlyDirtyRegion ? 0 : info->stride - frameWidth;
 	if (info->isOpaque) {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
@@ -74,14 +74,14 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame, bool drawOnlyD
 // return true if area of 'target' is completely covers area of 'covered'
 static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
 	return target->ImageDesc.Left <= covered->ImageDesc.Left
-	    && covered->ImageDesc.Left + covered->ImageDesc.Width
-	       <= target->ImageDesc.Left + target->ImageDesc.Width
-	    && target->ImageDesc.Top <= covered->ImageDesc.Top
-	    && covered->ImageDesc.Top + covered->ImageDesc.Height
-	       <= target->ImageDesc.Top + target->ImageDesc.Height;
+	       && covered->ImageDesc.Left + covered->ImageDesc.Width
+	          <= target->ImageDesc.Left + target->ImageDesc.Width
+	       && target->ImageDesc.Top <= covered->ImageDesc.Top
+	       && covered->ImageDesc.Top + covered->ImageDesc.Height
+	          <= target->ImageDesc.Top + target->ImageDesc.Height;
 }
 
-static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) {
+static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info, bool drawOnlyDirtyRegion) { //odo handle drawOnlyDirtyRegion
 	GifFileType *fGif = info->gifFilePtr;
 	SavedImage *cur = &fGif->SavedImages[info->currentIndex - 1];
 	SavedImage *next = &fGif->SavedImages[info->currentIndex];
@@ -128,7 +128,7 @@ void prepareCanvas(const argb *bm, GifInfo *info) {
 				.rgb = gifFilePtr->SColorMap->Colors[gifFilePtr->SBackGroundColor],
 				.alpha = 0xFF
 		};
-		MEMSET_ARGB((uint32_t *) bm, *(uint32_t * ) & bgColArgb, info->stride * gifFilePtr->SHeight);
+		MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * gifFilePtr->SHeight);
 	} else {
 		MEMSET_ARGB((uint32_t *) bm, 0, info->stride * gifFilePtr->SHeight);
 	}

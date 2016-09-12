@@ -45,14 +45,18 @@ static void *slurp(void *pVoidInfo) {
 	GifInfo *info = pVoidInfo;
 	while (true) {
 		long renderStartTime = getRealTime();
-        //TODO only advance frame index if cacheAnimation is enabled and frame is cached
+		//TODO only advance frame index if cacheAnimation is enabled and frame is cached
 		DDGifSlurp(info, true, false);
 		TexImageDescriptor *descriptor = info->frameBufferDescriptor;
 		pthread_mutex_lock(&descriptor->renderMutex);
+		GifWord width = info->gifFilePtr->SavedImages[info->currentIndex].ImageDesc.Width;
+		GifWord height = info->gifFilePtr->SavedImages[info->currentIndex].ImageDesc.Height;
+
+		descriptor->frameBuffer = realloc(descriptor->frameBuffer, width * height * sizeof(argb));
 		if (info->currentIndex == 0) {
-			prepareCanvas(descriptor->frameBuffer, info);
+			//prepareCanvas(descriptor->frameBuffer, info); //TODO add cacheAnimation support
 		}
-		const uint_fast32_t frameDuration = getBitmap(descriptor->frameBuffer, info, false);
+		const uint_fast32_t frameDuration = getBitmap(descriptor->frameBuffer, info, true);
 		pthread_mutex_unlock(&descriptor->renderMutex);
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
@@ -189,13 +193,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrameGL(JNIEnv *__unused env, jcla
 	const GLenum target = (const GLenum) rawTarget;
 	GLuint *currentTextureName = descriptor->glTextureNames + info->currentIndex;
 	if (*currentTextureName != 0) {
-		glBindTexture(target, *currentTextureName);
+		glBindTexture(target, *currentTextureName);//TODO draw at correct position
 	} else {
 		GLuint *framebufferName = &descriptor->glFramebufferName;
 		if (*framebufferName == 0) {
-			glGenFramebuffers(1, framebufferName); //TODO delete
+			glGenFramebuffers(1, framebufferName); //TODO glDeleteFramebuffers
 		}
-		glGenTextures(1, currentTextureName);//TODO delete
+		glGenTextures(1, currentTextureName);//TODO glDeleteTextures
+		const GifImageDesc imageDesc = info->gifFilePtr->SavedImages[info->currentIndex].ImageDesc;
+		const GLsizei frameWidth = (const GLsizei) imageDesc.Width;
+		const GLsizei frameHeight = (const GLsizei) imageDesc.Height;
 		const GLsizei width = (const GLsizei) info->gifFilePtr->SWidth;
 		const GLsizei height = (const GLsizei) info->gifFilePtr->SHeight;
 
@@ -203,7 +210,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrameGL(JNIEnv *__unused env, jcla
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, descriptor->frameBuffer);
+		glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		//FIXME full size for frame 0 or clear canvas using gl API
+		glTexSubImage2D(target, 0, imageDesc.Left, imageDesc.Top, frameWidth, frameHeight, GL_RGBA, GL_UNSIGNED_BYTE, descriptor->frameBuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, *framebufferName);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, *currentTextureName, level);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
