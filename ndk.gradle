@@ -31,6 +31,9 @@ def addFlavors() {
 }
 
 def getNdkBuildCommand() {
+    if (android.ndkDirectory==null){
+        throw new GradleException("NDK location is not defined, add 'ndk.dir' property or set ANDROID_NDK_HOME environment variable")
+    }
     def command = "${android.ndkDirectory}/ndk-build"
     Os.isFamily(Os.FAMILY_WINDOWS) ? "${command}.cmd" : command
 }
