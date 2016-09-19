@@ -1,6 +1,9 @@
 ### 1.2.3-SNAPSHOT
 - Added NDK location check to buildscript with user friendly message - [#341](https://github.com/koral--/android-gif-drawable/issues/341)
 - Support library dependency version updated to 24.2.1
+- Android gradle plugin updated to 2.2.0
+- custom ndk buildscript replaced with externalNativeBuild
+- Gradle wrapper updated to 3.1
 
 ### 1.2.2
 - Fixed NPE in `GifTexImage2D` finalizer when constructor threw an exception

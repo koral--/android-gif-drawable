@@ -16,3 +16,4 @@ signing.properties
 CMakeLists.txt
 src/main/obj
 src/main/libs
+.externalNativeBuild/
