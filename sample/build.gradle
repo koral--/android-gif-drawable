@@ -1,0 +1,53 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '24.0.2'
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 24
+        versionCode 1
+        versionName '1.0'
+        applicationId 'pl.droidsonroids.gif.sample'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    signingConfigs {
+        release {
+            storeFile new File("$System.env.HOME/.android/debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            jniDebuggable true
+        }
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4'
+    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4'
+    compile 'com.android.support:design:24.2.1'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile project(':android-gif-drawable')
+    //compile 'pl.droidsonroids.gif:android-gif-drawable:+'
+}

@@ -1,0 +1,54 @@
+apply plugin: 'com.android.library'
+apply plugin: 'jacoco-android'
+apply from: 'gradle-mvn-push.gradle'
+
+repositories {
+	jcenter()
+}
+
+project.version = VERSION_NAME
+project.group = GROUP
+
+android {
+	compileSdkVersion 24
+	buildToolsVersion '24.0.2'
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_7
+		targetCompatibility JavaVersion.VERSION_1_7
+	}
+	defaultConfig {
+		versionName project.version
+		minSdkVersion 9
+		targetSdkVersion 24
+		consumerProguardFiles 'consumer-proguard-rules.pro'
+		externalNativeBuild {
+			ndkBuild {
+				arguments "NDK_DEBUG=${isDebugBuild() ? '1' : '0'}"
+			}
+		}
+	}
+	externalNativeBuild {
+		ndkBuild {
+			path 'src/main/jni/Android.mk'
+		}
+	}
+}
+
+dependencies {
+	provided 'com.android.support:support-annotations:24.2.1'
+	testCompile 'junit:junit:4.12'
+	testCompile 'org.mockito:mockito-core:1.10.19'
+	testCompile 'org.robolectric:robolectric:3.1.2'
+	testCompile 'org.assertj:assertj-core:1.7.1'
+	testCompile 'net.jodah:concurrentunit:0.4.2'
+	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
+}
+
+jacocoAndroidUnitTestReport {
+	html.enabled true
+	xml.enabled true
+}
+
+def isDebugBuild() {
+	!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+}

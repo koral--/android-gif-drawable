@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sources">
+        <item>asset file</item>
+        <item>drawable resource</item>
+        <item>byte array</item>
+        <item>file descriptor</item>
+        <item>file path</item>
+        <item>File</item>
+        <item>AssetFileDescriptor</item>
+        <item>ByteBuffer</item>
+        <item>Uri</item>
+        <item>InputStream</item>
+    </string-array>
+    <string-array name="pages">
+        <item>GIFs loaded from various sources, reused GifDrawables</item>
+        <item>GIFs as compound drawables</item>
+        <item>GIF in TextureView vs ImageView</item>
+        <item>GIF in ImageSpan</item>
+        <item>Basic animation control</item>
+        <item>GifTextureView and HTTP</item>
+        <item>GifTexImage2D</item>
+        <item>About</item>
+    </string-array>
+</resources>

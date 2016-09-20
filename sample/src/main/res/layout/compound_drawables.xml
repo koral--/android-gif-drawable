@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pl.droidsonroids.gif.GifTextView
+    android:gravity="center"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawableStart="@drawable/anim_flag_greenland"
+    android:drawableEnd="@drawable/anim_flag_england"
+    android:drawableLeft="@drawable/anim_flag_greenland"
+    android:drawableRight="@drawable/anim_flag_england"
+    android:drawableTop="@drawable/anim_flag_chile"
+    android:drawableBottom="@drawable/anim_flag_iceland"
+    android:padding="10dp"
+    android:text="@string/compound_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />

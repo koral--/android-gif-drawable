@@ -74,8 +74,8 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 
 ##Usage
 
-###[Sample project](https://github.com/koral--/android-gif-drawable-sample)
-Sample project is under construction. Not all features are covered yet.
+###Sample project
+See `sample` directory. Sample project is under construction. Not all features are covered yet.
 
 ###From XML
 The simplest way is to use `GifImageView` (or `GifImageButton`) like a normal `ImageView`:

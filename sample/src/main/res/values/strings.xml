@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">android-gif-drawable sample</string>
+    <string name="about_text" tools:ignore="TypographyDashes">This is a sample of android-gif-drawable Library:
+        https://github.com/koral--/android-gif-drawable\nUsed icons are public domain or licensed under CC, GFDL.</string>
+    <string name="compound_text">This is a TextView with animated compound drawables</string>
+    <string name="gif_texture_view_stub_api_level">GifTextureView is available in API level 14+</string>
+    <string name="gif_texture_view_stub_acceleration">GifTextureView requires hardware acceleration</string>
+    <string name="gif_texture_view_loading_failed">Could not load GIF: %s. Tap to try again.</string>
+    <string name="reset_animation">Reset animation</string>
+    <string name="animation_running">Animation running</string>
+    <string name="animation_stopped">Animation stopped</string>
+    <string name="toggle_label">Click button below to toggle animation</string>
+    <string name="animation_loop_completed" tools:ignore="PluralsCandidate">Animation loop #%1$d completed</string>
+    <string name="gles2_not_supported">GifTexImage2D requires OpenGL ES 2 or newer</string>
+</resources>
