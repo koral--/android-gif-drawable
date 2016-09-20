@@ -22,12 +22,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
 import android.os.SystemClock;
-import android.support.annotation.DrawableRes;
+import android.support.annotation.AnyRes;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RawRes;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.File;
@@ -91,7 +90,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws IOException          when opening failed
 	 * @throws NullPointerException if res is null
 	 */
-	public GifDrawable(@NonNull Resources res, @DrawableRes @RawRes int id) throws NotFoundException, IOException {
+	public GifDrawable(@NonNull Resources res, @AnyRes int id) throws NotFoundException, IOException {
 		this(res.openRawResourceFd(id));
 		final float densityScale = GifViewUtils.getDensityScale(res, id);
 		mScaledHeight = (int) (mNativeInfoHandle.getHeight() * densityScale);
@@ -434,7 +433,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @return correct drawable or null if creation failed
 	 */
 	@Nullable
-	public static GifDrawable createFromResource(@NonNull Resources res, @DrawableRes @RawRes int resourceId) {
+	public static GifDrawable createFromResource(@NonNull Resources res, @AnyRes int resourceId) {
 		try {
 			return new GifDrawable(res, resourceId);
 		} catch (IOException ignored) {

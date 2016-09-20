@@ -5,10 +5,9 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.support.annotation.DrawableRes;
+import android.support.annotation.AnyRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RawRes;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -21,7 +20,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  * Abstract class for all input sources, to be used with {@link GifTextureView}
  */
 public abstract class InputSource {
-	InputSource() {
+	private InputSource() {
 	}
 
 	abstract GifInfoHandle open() throws IOException;
@@ -210,7 +209,7 @@ public abstract class InputSource {
 		 * @param resources  Resources to read from
 		 * @param resourceId resource id
 		 */
-		public ResourcesSource(@NonNull Resources resources, @DrawableRes @RawRes int resourceId) {
+		public ResourcesSource(@NonNull Resources resources, @AnyRes int resourceId) {
 			mResources = resources;
 			mResourceId = resourceId;
 		}
