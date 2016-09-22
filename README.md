@@ -5,7 +5,7 @@ android-gif-drawable
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-android--gif--drawable-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1147)
 [![Android-Libs](https://img.shields.io/badge/Android--Libs-android--gif--drawable-orange.svg?style=flat)](http://android-libs.com/lib/android-gif-drawable)
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
-[![API](https://img.shields.io/badge/API-8%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=8)
+[![API](https://img.shields.io/badge/API-9%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=9)
 [![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 
 `View`s and `Drawable` for animated GIFs in Android.
@@ -66,8 +66,9 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
 ###Requirements
-+ Android 2.2+ (API level 8+)
++ Android 2.3+ (API level 9+)
 + for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
++ for `GifTexImage2D` OpenGL ES 2.0+
 
 ####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
