@@ -66,8 +66,9 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
 ###Requirements
-+ Android 2.2+ (API level 8+)
++ Android 2.3+ (API level 9+)
 + for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
++ for `GifTexImage2D` OpenGL ES 2.0+
 
 ####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
