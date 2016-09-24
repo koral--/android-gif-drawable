@@ -1,9 +1,9 @@
 package pl.droidsonroids.gif.sample;
 
-import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import pl.droidsonroids.gif.GifTextureView;
 import pl.droidsonroids.gif.InputSource;
 
-@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class HttpFragment extends BaseFragment implements View.OnClickListener {
 
 	private GifTextureView mGifTextureView;

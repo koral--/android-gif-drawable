@@ -16,10 +16,10 @@
 package pl.droidsonroids.gif;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 import java.io.Closeable;
 import java.io.File;
@@ -134,7 +134,7 @@ class ReLinker {
 		return outputFile;
 	}
 
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	@SuppressWarnings("deprecation") //required for old API levels
 	private static ZipEntry findLibraryEntry(final ZipFile zipFile) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

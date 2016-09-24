@@ -720,7 +720,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @param canvas canvas to draw into
 	 */
 	@Override
-	public void draw(Canvas canvas) {
+	public void draw(@NonNull Canvas canvas) {
 		final boolean clearColorFilter;
 		if (mTintFilter != null && mPaint.getColorFilter() == null) {
 			mPaint.setColorFilter(mTintFilter);

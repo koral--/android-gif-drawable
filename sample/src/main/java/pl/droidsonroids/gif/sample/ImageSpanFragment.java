@@ -3,6 +3,7 @@ package pl.droidsonroids.gif.sample;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
 import android.view.LayoutInflater;
@@ -34,17 +35,17 @@ public class ImageSpanFragment extends BaseFragment implements Drawable.Callback
 	}
 
 	@Override
-	public void invalidateDrawable(Drawable who) {
+	public void invalidateDrawable(@NonNull Drawable who) {
 		mTextView.invalidate();
 	}
 
 	@Override
-	public void scheduleDrawable(Drawable who, Runnable what, long when) {
+	public void scheduleDrawable(@NonNull Drawable who, @NonNull Runnable what, long when) {
 		mTextView.postDelayed(what, when);
 	}
 
 	@Override
-	public void unscheduleDrawable(Drawable who, Runnable what) {
+	public void unscheduleDrawable(@NonNull Drawable who, @NonNull Runnable what) {
 		mTextView.removeCallbacks(what);
 	}
 }

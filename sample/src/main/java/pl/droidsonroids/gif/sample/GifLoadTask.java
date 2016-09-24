@@ -1,5 +1,8 @@
 package pl.droidsonroids.gif.sample;
 
+import android.os.Build;
+import android.support.annotation.RequiresApi;
+
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
@@ -11,6 +14,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class GifLoadTask extends FutureTask<ByteBuffer> {
 	private static final String GIF_URL = "https://raw.githubusercontent.com/koral--/android-gif-drawable-sample/cb2d1f42b3045b2790a886d1574d3e74281de743/sample/src/main/assets/Animated-Flag-Hungary.gif";
 	private final WeakReference<HttpFragment> mFragmentReference;

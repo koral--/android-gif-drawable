@@ -1,11 +1,11 @@
 package pl.droidsonroids.gif;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Parcelable;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
 
@@ -65,7 +65,7 @@ public class GifImageButton extends ImageButton {
 	 * @param defStyleRes
 	 * @see ImageButton#ImageButton(Context, AttributeSet, int, int)
 	 */
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	public GifImageButton(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
 		super(context, attrs, defStyle, defStyleRes);
 		postInit(GifViewUtils.initImageView(this, attrs, defStyle, defStyleRes));

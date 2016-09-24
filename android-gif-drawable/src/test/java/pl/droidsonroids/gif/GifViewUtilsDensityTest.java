@@ -1,9 +1,9 @@
 package pl.droidsonroids.gif;
 
-import android.annotation.TargetApi;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static pl.droidsonroids.gif.GifViewUtils.getDensityScale;
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+@RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 @RunWith(MockitoJUnitRunner.class)
 public class GifViewUtilsDensityTest {
 

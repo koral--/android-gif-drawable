@@ -1,12 +1,12 @@
 package pl.droidsonroids.gif;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Parcelable;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
@@ -70,7 +70,7 @@ public class GifTextView extends TextView {
 	 * @param defStyleRes
 	 * @see TextView#TextView(Context, AttributeSet, int, int)
 	 */
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	public GifTextView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
 		super(context, attrs, defStyle, defStyleRes);
 		init(attrs, defStyle, defStyleRes);
@@ -145,7 +145,7 @@ public class GifTextView extends TextView {
 		}
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	@RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
 	public void setCompoundDrawablesRelativeWithIntrinsicBounds(int start, int top, int end, int bottom) {
 		setCompoundDrawablesRelativeWithIntrinsicBounds(getGifOrDefaultDrawable(start), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(end), getGifOrDefaultDrawable(bottom));

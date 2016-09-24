@@ -1,6 +1,5 @@
 package pl.droidsonroids.gif;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Matrix;
@@ -11,6 +10,7 @@ import android.os.Parcelable;
 import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Surface;
@@ -41,7 +41,7 @@ import java.lang.ref.WeakReference;
  * {@link #setOpaque(boolean)}.
  * You can use scale types the same way as in {@link android.widget.ImageView}.</p>
  */
-@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
 
 	private static final ScaleType[] sScaleTypeArray = {
@@ -78,7 +78,7 @@ public class GifTextureView extends TextureView {
 		init(attrs, defStyleAttr, 0);
 	}
 
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	public GifTextureView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
 		super(context, attrs, defStyleAttr, defStyleRes);
 		init(attrs, defStyleAttr, defStyleRes);
