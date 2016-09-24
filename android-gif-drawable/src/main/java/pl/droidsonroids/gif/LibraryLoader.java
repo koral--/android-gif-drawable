@@ -1,5 +1,6 @@
 package pl.droidsonroids.gif;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
@@ -12,6 +13,7 @@ import java.lang.reflect.Method;
 public class LibraryLoader {
 	static final String SURFACE_LIBRARY_NAME = "pl_droidsonroids_gif_surface";
 	static final String BASE_LIBRARY_NAME = "pl_droidsonroids_gif";
+	@SuppressLint("StaticFieldLeak") //workaround for Android bug
 	private static Context sAppContext;
 
 	private LibraryLoader() {
