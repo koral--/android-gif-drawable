@@ -16,7 +16,6 @@ import java.util.concurrent.Executors;
 import pl.droidsonroids.gif.GifTextureView;
 import pl.droidsonroids.gif.InputSource;
 
-@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class HttpFragment extends BaseFragment implements View.OnClickListener {
 
 	private GifTextureView mGifTextureView;
@@ -51,6 +50,7 @@ public class HttpFragment extends BaseFragment implements View.OnClickListener {
 		super.onDestroy();
 	}
 
+	@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	void onGifDownloaded(ByteBuffer buffer) {
 		mGifTextureView.setInputSource(new InputSource.DirectByteBufferSource(buffer));
 	}
@@ -65,11 +65,13 @@ public class HttpFragment extends BaseFragment implements View.OnClickListener {
 
 	}
 
+	@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	private void downloadGif() {
 		mExecutorService.submit(new GifLoadTask(this));
 	}
 
 	@Override
+	@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public void onClick(View v) {
 		downloadGif();
 	}
