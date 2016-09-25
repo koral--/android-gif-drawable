@@ -55,6 +55,7 @@ public class HttpFragment extends BaseFragment implements View.OnClickListener {
 		mGifTextureView.setInputSource(new InputSource.DirectByteBufferSource(buffer));
 	}
 
+	@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	void onDownloadFailed(Exception e) {
 		mGifTextureView.setOnClickListener(HttpFragment.this);
 		if (isDetached()) {
