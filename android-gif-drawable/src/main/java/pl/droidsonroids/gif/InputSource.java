@@ -5,9 +5,10 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.support.annotation.AnyRes;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RawRes;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -209,7 +210,7 @@ public abstract class InputSource {
 		 * @param resources  Resources to read from
 		 * @param resourceId resource id
 		 */
-		public ResourcesSource(@NonNull Resources resources, @AnyRes int resourceId) {
+		public ResourcesSource(@NonNull Resources resources, @RawRes @DrawableRes int resourceId) {
 			mResources = resources;
 			mResourceId = resourceId;
 		}

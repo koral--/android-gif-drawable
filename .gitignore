@@ -13,3 +13,5 @@ local.properties
 build
 
 signing.properties
+
+.externalNativeBuild/

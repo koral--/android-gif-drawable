@@ -7,9 +7,10 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.AnyRes;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RawRes;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -41,7 +42,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws java.io.IOException                             when opening failed
 	 * @throws NullPointerException                            if res is null
 	 */
-	public GifAnimationMetaData(@NonNull Resources res, @AnyRes int id) throws Resources.NotFoundException, IOException {
+	public GifAnimationMetaData(@NonNull Resources res, @RawRes @DrawableRes int id) throws Resources.NotFoundException, IOException {
 		this(res.openRawResourceFd(id));
 	}
 
