@@ -56,15 +56,8 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean 
 	info->sampleSize = 1;
 
 	DDGifSlurp(info, false, false);
-	if (justDecodeMetaData == JNI_TRUE) {
-		info->rasterBits = NULL;
-	} else {
-		info->rasterBits = malloc(
-				descriptor->GifFileIn->SHeight * descriptor->GifFileIn->SWidth * sizeof(GifPixelType));
-		if (info->rasterBits == NULL) {
-			descriptor->GifFileIn->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-		}
-	}
+	info->rasterBits = NULL;
+	info->rasterSize = 0;
 	info->originalHeight = info->gifFilePtr->SHeight;
 	info->originalWidth = info->gifFilePtr->SWidth;
 

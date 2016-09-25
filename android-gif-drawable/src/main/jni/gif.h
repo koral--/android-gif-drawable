@@ -104,6 +104,7 @@ struct GifInfo {
 	argb *backupPtr;
 	long long startPos;
 	unsigned char *rasterBits;
+	uint_fast32_t rasterSize;
 	char *comment;
 	uint_fast16_t loopCount;
 	uint_fast16_t currentLoop;
