@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Drawable.Callback;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.TextView;
 
@@ -41,7 +42,7 @@ public class MultiCallback implements Callback {
 	}
 
 	@Override
-	public void invalidateDrawable(final Drawable who) {
+	public void invalidateDrawable(@NonNull final Drawable who) {
 		for (int i = 0; i < mCallbacks.size(); i++) {
 			final CallbackWeakReference reference = mCallbacks.get(i);
 			final Callback callback = reference.get();
@@ -59,7 +60,7 @@ public class MultiCallback implements Callback {
 	}
 
 	@Override
-	public void scheduleDrawable(final Drawable who, final Runnable what, final long when) {
+	public void scheduleDrawable(@NonNull final Drawable who, @NonNull final Runnable what, final long when) {
 		for (int i = 0; i < mCallbacks.size(); i++) {
 			final CallbackWeakReference reference = mCallbacks.get(i);
 			final Callback callback = reference.get();
@@ -73,7 +74,7 @@ public class MultiCallback implements Callback {
 	}
 
 	@Override
-	public void unscheduleDrawable(final Drawable who, final Runnable what) {
+	public void unscheduleDrawable(@NonNull final Drawable who, @NonNull final Runnable what) {
 		for (int i = 0; i < mCallbacks.size(); i++) {
 			final CallbackWeakReference reference = mCallbacks.get(i);
 			final Callback callback = reference.get();
