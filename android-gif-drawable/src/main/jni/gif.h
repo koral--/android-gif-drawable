@@ -186,7 +186,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame);
 
 void throwGifIOException(int errorCode, JNIEnv *env);
 
-GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData);
+GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env);
 
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
 

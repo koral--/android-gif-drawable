@@ -12,11 +12,11 @@
         android:layout_weight="1">
 
         <TextView
-            android:visibility="gone"
             android:id="@+id/text_textureview_stub"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/gif_texture_view_stub_acceleration"
+            android:visibility="gone"
             tools:ignore="InconsistentLayout"/>
 
         <pl.droidsonroids.gif.GifTextureView

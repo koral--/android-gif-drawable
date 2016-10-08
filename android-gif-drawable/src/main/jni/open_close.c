@@ -14,7 +14,7 @@ void cleanUp(GifInfo *info) {
 	free(info);
 }
 
-GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env, jboolean justDecodeMetaData) {
+GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	if (descriptor->startPos < 0) {
 		descriptor->Error = D_GIF_ERR_NOT_READABLE;
 		DGifCloseFile(descriptor->GifFileIn);

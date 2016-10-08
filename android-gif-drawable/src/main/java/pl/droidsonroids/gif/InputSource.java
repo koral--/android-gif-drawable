@@ -51,7 +51,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws GifIOException {
-			return new GifInfoHandle(byteBuffer, false);
+			return new GifInfoHandle(byteBuffer);
 		}
 	}
 
@@ -73,7 +73,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws GifIOException {
-			return new GifInfoHandle(bytes, false);
+			return new GifInfoHandle(bytes);
 		}
 	}
 
@@ -103,7 +103,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws GifIOException {
-			return new GifInfoHandle(mPath, false);
+			return new GifInfoHandle(mPath);
 		}
 	}
 
@@ -127,7 +127,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws IOException {
-			return GifInfoHandle.openUri(mContentResolver, mUri, false);
+			return GifInfoHandle.openUri(mContentResolver, mUri);
 		}
 	}
 
@@ -151,7 +151,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws IOException {
-			return new GifInfoHandle(mAssetManager.openFd(mAssetName), false);
+			return new GifInfoHandle(mAssetManager.openFd(mAssetName));
 		}
 	}
 
@@ -172,7 +172,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws IOException {
-			return new GifInfoHandle(mFd, false);
+			return new GifInfoHandle(mFd);
 		}
 	}
 
@@ -193,7 +193,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws IOException {
-			return new GifInfoHandle(inputStream, false);
+			return new GifInfoHandle(inputStream);
 		}
 	}
 
@@ -217,7 +217,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws IOException {
-			return new GifInfoHandle(mResources.openRawResourceFd(mResourceId), false);
+			return new GifInfoHandle(mResources.openRawResourceFd(mResourceId));
 		}
 	}
 
@@ -238,7 +238,7 @@ public abstract class InputSource {
 
 		@Override
 		GifInfoHandle open() throws IOException {
-			return new GifInfoHandle(mAssetFileDescriptor, false);
+			return new GifInfoHandle(mAssetFileDescriptor);
 		}
 	}
 

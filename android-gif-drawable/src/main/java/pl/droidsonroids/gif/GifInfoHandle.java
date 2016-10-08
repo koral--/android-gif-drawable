@@ -30,53 +30,53 @@ final class GifInfoHandle {
 	GifInfoHandle() {
 	}
 
-	GifInfoHandle(FileDescriptor fd, boolean justDecodeMetaData) throws GifIOException {
-		gifInfoPtr = openFd(fd, 0, justDecodeMetaData);
+	GifInfoHandle(FileDescriptor fd) throws GifIOException {
+		gifInfoPtr = openFd(fd, 0);
 	}
 
-	GifInfoHandle(byte[] bytes, boolean justDecodeMetaData) throws GifIOException {
-		gifInfoPtr = openByteArray(bytes, justDecodeMetaData);
+	GifInfoHandle(byte[] bytes) throws GifIOException {
+		gifInfoPtr = openByteArray(bytes);
 	}
 
-	GifInfoHandle(ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException {
-		gifInfoPtr = openDirectByteBuffer(buffer, justDecodeMetaData);
+	GifInfoHandle(ByteBuffer buffer) throws GifIOException {
+		gifInfoPtr = openDirectByteBuffer(buffer);
 	}
 
-	GifInfoHandle(String filePath, boolean justDecodeMetaData) throws GifIOException {
-		gifInfoPtr = openFile(filePath, justDecodeMetaData);
+	GifInfoHandle(String filePath) throws GifIOException {
+		gifInfoPtr = openFile(filePath);
 	}
 
-	GifInfoHandle(InputStream stream, boolean justDecodeMetaData) throws GifIOException {
+	GifInfoHandle(InputStream stream) throws GifIOException {
 		if (!stream.markSupported()) {
 			throw new IllegalArgumentException("InputStream does not support marking");
 		}
-		gifInfoPtr = openStream(stream, justDecodeMetaData);
+		gifInfoPtr = openStream(stream);
 	}
 
-	GifInfoHandle(AssetFileDescriptor afd, boolean justDecodeMetaData) throws IOException {
+	GifInfoHandle(AssetFileDescriptor afd) throws IOException {
 		try {
-			gifInfoPtr = openFd(afd.getFileDescriptor(), afd.getStartOffset(), justDecodeMetaData);
+			gifInfoPtr = openFd(afd.getFileDescriptor(), afd.getStartOffset());
 		} finally {
 			afd.close();
 		}
 	}
 
-	static GifInfoHandle openUri(ContentResolver resolver, Uri uri, boolean justDecodeMetaData) throws IOException {
+	static GifInfoHandle openUri(ContentResolver resolver, Uri uri) throws IOException {
 		if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) { //workaround for #128
-			return new GifInfoHandle(uri.getPath(), justDecodeMetaData);
+			return new GifInfoHandle(uri.getPath());
 		}
-		return new GifInfoHandle(resolver.openAssetFileDescriptor(uri, "r"), justDecodeMetaData);
+		return new GifInfoHandle(resolver.openAssetFileDescriptor(uri, "r"));
 	}
 
-	static native long openFd(FileDescriptor fd, long offset, boolean justDecodeMetaData) throws GifIOException;
+	static native long openFd(FileDescriptor fd, long offset) throws GifIOException;
 
-	static native long openByteArray(byte[] bytes, boolean justDecodeMetaData) throws GifIOException;
+	static native long openByteArray(byte[] bytes) throws GifIOException;
 
-	static native long openDirectByteBuffer(ByteBuffer buffer, boolean justDecodeMetaData) throws GifIOException;
+	static native long openDirectByteBuffer(ByteBuffer buffer) throws GifIOException;
 
-	static native long openStream(InputStream stream, boolean justDecodeMetaData) throws GifIOException;
+	static native long openStream(InputStream stream) throws GifIOException;
 
-	static native long openFile(String filePath, boolean justDecodeMetaData) throws GifIOException;
+	static native long openFile(String filePath) throws GifIOException;
 
 	private static native long renderFrame(long gifFileInPtr, Bitmap frameBuffer);
 
@@ -243,6 +243,7 @@ final class GifInfoHandle {
 	}
 
 	@Override
+	@SuppressWarnings("ThrowFromFinallyBlock")
 	protected void finalize() throws Throwable {
 		try {
 			recycle();

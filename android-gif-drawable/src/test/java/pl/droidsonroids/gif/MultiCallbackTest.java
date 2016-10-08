@@ -21,12 +21,19 @@ public class MultiCallbackTest {
 
 	@Mock View view;
 	@Spy Drawable drawable;
+	private Runnable action;
 	private MultiCallback simpleMultiCallback;
 
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 		simpleMultiCallback = new MultiCallback();
+		action = new Runnable() {
+			@Override
+			public void run() {
+				//no-op
+			}
+		};
 	}
 
 	@Test
@@ -41,16 +48,16 @@ public class MultiCallbackTest {
 	public void testScheduleDrawable() {
 		simpleMultiCallback.addView(view);
 		drawable.setCallback(simpleMultiCallback);
-		drawable.scheduleSelf(null, 0);
-		verify(view).scheduleDrawable(drawable, null, 0);
+		drawable.scheduleSelf(action, 0);
+		verify(view).scheduleDrawable(drawable, action, 0);
 	}
 
 	@Test
 	public void testUnscheduleDrawable() {
 		simpleMultiCallback.addView(view);
 		drawable.setCallback(simpleMultiCallback);
-		drawable.unscheduleSelf(null);
-		verify(view).unscheduleDrawable(drawable, null);
+		drawable.unscheduleSelf(action);
+		verify(view).unscheduleDrawable(drawable, action);
 	}
 
 	@Test

@@ -5,6 +5,8 @@
 - custom ndk buildscript replaced with `externalNativeBuild`
 - Gradle wrapper updated to 3.1
 - Build tools version updated to 24.0.3
+- NDK version updated to 13
+- native code optimizations
 
 ### 1.2.2
 - Fixed NPE in `GifTexImage2D` finalizer when constructor threw an exception

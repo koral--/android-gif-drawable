@@ -9,21 +9,18 @@
         android:id="@+id/image_original"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:src="@drawable/ic_launcher"
-        />
+        tools:src="@drawable/ic_launcher"/>
 
     <pl.droidsonroids.gif.GifImageView
         android:id="@+id/image_subsampled"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:src="@drawable/ic_launcher"
-        />
+        tools:src="@drawable/ic_launcher"/>
 
     <TextView
-        android:layout_gravity="bottom"
         android:id="@+id/desc_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="sample source"
-        />
+        android:layout_gravity="bottom"
+        tools:text="sample source"/>
 </LinearLayout>

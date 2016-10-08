@@ -111,8 +111,7 @@ static int directByteBufferRewindFun(GifInfo *info) {
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused class,
-                                                 jstring jfname, jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused class, jstring jfname) {
 	if (isSourceNull(jfname, env)) {
 		return NULL_GIF_INFO;
 	}
@@ -136,7 +135,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 	descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
 	descriptor.startPos = ftell(file);
 
-	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
+	GifInfo *info = createGifHandle(&descriptor, env);
 	if (info == NULL) {
 		fclose(file);
 	}
@@ -144,8 +143,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unused class,
-                                                      jbyteArray bytes, jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unused class, jbyteArray bytes) {
 	if (isSourceNull(bytes, env)) {
 		return NULL_GIF_INFO;
 	}
@@ -169,7 +167,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 	descriptor.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error);
 	descriptor.startPos = container->position;
 
-	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
+	GifInfo *info = createGifHandle(&descriptor, env);
 
 	if (info == NULL) {
 		(*env)->DeleteGlobalRef(env, container->buffer);
@@ -179,8 +177,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass __unused class, jobject buffer,
-                                                             jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass __unused class, jobject buffer) {
 	jbyte *bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
 	if (bytes == NULL || capacity <= 0) {
@@ -205,7 +202,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	descriptor.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error);
 	descriptor.startPos = container->position;
 
-	GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
+	GifInfo *info = createGifHandle(&descriptor, env);
 	if (info == NULL) {
 		free(container);
 	}
@@ -213,8 +210,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream,
-                                                   jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream) {
 	jclass streamCls = (*env)->NewGlobalRef(env, (*env)->GetObjectClass(env, stream));
 	if (streamCls == NULL) {
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
@@ -277,7 +273,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
 	if (!(*env)->ExceptionCheck(env)) {
-		GifInfo *info = createGifHandle(&descriptor, env, justDecodeMetaData);
+		GifInfo *info = createGifHandle(&descriptor, env);
 		return (jlong) (intptr_t) info;
 	} else {
 		(*env)->DeleteGlobalRef(env, streamCls);
@@ -289,8 +285,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused handleClass, jobject jfd, jlong offset,
-                                               jboolean justDecodeMetaData) {
+Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused handleClass, jobject jfd, jlong offset) {
 	if (isSourceNull(jfd, env)) {
 		return NULL_GIF_INFO;
 	}
@@ -322,7 +317,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
 		descriptor.startPos = ftell(file);
 
-		return (jlong) createGifHandle(&descriptor, env, justDecodeMetaData);
+		return (jlong) createGifHandle(&descriptor, env);
 	} else {
 		close(fd);
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);

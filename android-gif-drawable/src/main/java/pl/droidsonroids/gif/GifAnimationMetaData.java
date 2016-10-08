@@ -69,7 +69,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws NullPointerException if filePath is null
 	 */
 	public GifAnimationMetaData(@NonNull String filePath) throws IOException {
-		this(new GifInfoHandle(filePath, true));
+		this(new GifInfoHandle(filePath));
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws NullPointerException     if stream is null
 	 */
 	public GifAnimationMetaData(@NonNull InputStream stream) throws IOException {
-		this(new GifInfoHandle(stream, true));
+		this(new GifInfoHandle(stream));
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws IOException          when opening failed
 	 */
 	public GifAnimationMetaData(@NonNull AssetFileDescriptor afd) throws IOException {
-		this(new GifInfoHandle(afd, true));
+		this(new GifInfoHandle(afd));
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws NullPointerException if fd is null
 	 */
 	public GifAnimationMetaData(@NonNull FileDescriptor fd) throws IOException {
-		this(new GifInfoHandle(fd, true));
+		this(new GifInfoHandle(fd));
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws NullPointerException if bytes are null
 	 */
 	public GifAnimationMetaData(@NonNull byte[] bytes) throws IOException {
-		this(new GifInfoHandle(bytes, true));
+		this(new GifInfoHandle(bytes));
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws NullPointerException if buffer is null
 	 */
 	public GifAnimationMetaData(@NonNull ByteBuffer buffer) throws IOException {
-		this(new GifInfoHandle(buffer, true));
+		this(new GifInfoHandle(buffer));
 	}
 
 	/**
@@ -153,7 +153,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @throws IOException if resolution fails or destination is not a GIF.
 	 */
 	public GifAnimationMetaData(@Nullable ContentResolver resolver, @NonNull Uri uri) throws IOException {
-		this(GifInfoHandle.openUri(resolver, uri, true));
+		this(GifInfoHandle.openUri(resolver, uri));
 	}
 
 	private GifAnimationMetaData(final GifInfoHandle gifInfoHandle) {

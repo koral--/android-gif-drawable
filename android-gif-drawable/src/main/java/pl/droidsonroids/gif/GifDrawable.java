@@ -121,7 +121,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if filePath is null
 	 */
 	public GifDrawable(@NonNull String filePath) throws IOException {
-		this(new GifInfoHandle(filePath, false), null, null, true);
+		this(new GifInfoHandle(filePath), null, null, true);
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException     if stream is null
 	 */
 	public GifDrawable(@NonNull InputStream stream) throws IOException {
-		this(new GifInfoHandle(stream, false), null, null, true);
+		this(new GifInfoHandle(stream), null, null, true);
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws IOException          when opening failed
 	 */
 	public GifDrawable(@NonNull AssetFileDescriptor afd) throws IOException {
-		this(new GifInfoHandle(afd, false), null, null, true);
+		this(new GifInfoHandle(afd), null, null, true);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if fd is null
 	 */
 	public GifDrawable(@NonNull FileDescriptor fd) throws IOException {
-		this(new GifInfoHandle(fd, false), null, null, true);
+		this(new GifInfoHandle(fd), null, null, true);
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if bytes are null
 	 */
 	public GifDrawable(@NonNull byte[] bytes) throws IOException {
-		this(new GifInfoHandle(bytes, false), null, null, true);
+		this(new GifInfoHandle(bytes), null, null, true);
 	}
 
 	/**
@@ -192,7 +192,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws NullPointerException if buffer is null
 	 */
 	public GifDrawable(@NonNull ByteBuffer buffer) throws IOException {
-		this(new GifInfoHandle(buffer, false), null, null, true);
+		this(new GifInfoHandle(buffer), null, null, true);
 	}
 
 	/**
@@ -205,7 +205,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws IOException if resolution fails or destination is not a GIF.
 	 */
 	public GifDrawable(@Nullable ContentResolver resolver, @NonNull Uri uri) throws IOException {
-		this(GifInfoHandle.openUri(resolver, uri, false), null, null, true);
+		this(GifInfoHandle.openUri(resolver, uri), null, null, true);
 	}
 
 	GifDrawable(GifInfoHandle gifInfoHandle, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingTriggeredOnDraw) {
