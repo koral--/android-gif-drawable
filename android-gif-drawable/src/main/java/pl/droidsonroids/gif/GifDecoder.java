@@ -94,7 +94,7 @@ public class GifDecoder {
 	/**
 	 * See {@link GifDrawable#getAllocationByteCount()}
 	 *
-	 * @return size of the allocated memory used to store pixels of this object
+	 * @return possible size of the memory needed to store pixels of this object
 	 */
 	public long getAllocationByteCount() {
 		return mGifInfoHandle.getAllocationByteCount();

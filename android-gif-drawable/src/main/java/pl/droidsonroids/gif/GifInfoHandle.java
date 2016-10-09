@@ -57,7 +57,11 @@ final class GifInfoHandle {
 		try {
 			gifInfoPtr = openFd(afd.getFileDescriptor(), afd.getStartOffset());
 		} finally {
-			afd.close();
+			try {
+				afd.close();
+			} catch (IOException ignored) {
+				//no-op
+			}
 		}
 	}
 
@@ -109,6 +113,8 @@ final class GifInfoHandle {
 	private static native long restoreRemainder(long gifFileInPtr);
 
 	private static native long getAllocationByteCount(long gifFileInPtr);
+
+	private static native long getMetadataByteCount(long gifFileInPtr);
 
 	private static native int getNativeErrorCode(long gifFileInPtr);
 
@@ -236,6 +242,10 @@ final class GifInfoHandle {
 
 	synchronized long getAllocationByteCount() {
 		return getAllocationByteCount(gifInfoPtr);
+	}
+
+	synchronized long getMetadataByteCount() {
+		return getMetadataByteCount(gifInfoPtr);
 	}
 
 	synchronized boolean isRecycled() {

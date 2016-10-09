@@ -1,17 +1,16 @@
 #include "gif.h"
 
 __unused JNIEXPORT jstring JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused handleClass,
-                                                   jlong gifInfo) {
-	if (gifInfo == 0) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return NULL;
 	}
-	return (*env)->NewStringUTF(env, ((GifInfo *) (intptr_t) gifInfo)->comment);
+	return (*env)->NewStringUTF(env, info->comment);
 }
 
 __unused JNIEXPORT jboolean JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass,
-                                                             jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
 	if (info != NULL && info->loopCount != 0 && info->currentLoop == info->loopCount)
 		return JNI_TRUE;
@@ -20,27 +19,28 @@ Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *en
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getLoopCount(JNIEnv __unused *env, jclass __unused handleClass,
-                                                     jlong gifInfo) {
-	if (gifInfo == 0)
+Java_pl_droidsonroids_gif_GifInfoHandle_getLoopCount(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return 0;
+	}
 	return (jint) ((GifInfo *) (intptr_t) gifInfo)->loopCount;
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setLoopCount(JNIEnv __unused *env, jclass __unused handleClass,
-                                                     jlong gifInfo, jchar loopCount) {
-	if (gifInfo != 0)
-		((GifInfo *) (intptr_t) gifInfo)->loopCount = (uint_fast16_t) loopCount;
+Java_pl_droidsonroids_gif_GifInfoHandle_setLoopCount(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo, jchar loopCount) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info != NULL) {
+		info->loopCount = loopCount;
+	}
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclass __unused handleClass,
-                                                    jlong gifInfo) {
-	if (gifInfo == 0) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return 0;
 	}
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	uint_fast32_t i;
 	jint sum = 0;
 	for (i = 0; i < info->gifFilePtr->ImageCount; i++)
@@ -49,21 +49,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclas
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jclass __unused handleClass,
-                                                        jlong gifInfo) {
-	if (gifInfo == 0) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return -1;
 	}
 	return ((GifInfo *) (intptr_t) gifInfo)->sourceLength;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
-                                                           jclass __unused handleClass, jlong gifInfo) {
-	if (gifInfo == 0) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return 0;
 	}
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	const uint_fast32_t idx = info->currentIndex;
 	if (info->gifFilePtr->ImageCount == 1) {
 		return 0;
@@ -88,49 +87,76 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused  env,
-                                                               jclass __unused handleClass, jlong gifInfo) {
-	if (gifInfo == 0) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getMetadataByteCount(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return 0;
 	}
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	GifWord pxCount = info->originalWidth + info->originalHeight;
-	size_t sum = pxCount * sizeof(char);
-	if (info->backupPtr != NULL)
-		sum += pxCount * sizeof(argb);
-	return (jlong) sum;
+
+	size_t size = sizeof(GifInfo) + sizeof(GifFileType);
+	size += info->gifFilePtr->ImageCount * (sizeof(GraphicsControlBlock) + sizeof(SavedImage));
+	size += info->comment != NULL ? strlen(info->comment) : 0;
+	return (jlong) size;
+}
+
+__unused JNIEXPORT jlong JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
+		return 0;
+	}
+
+	bool isBackupBitmapUsed = info->backupPtr != NULL;
+	if (!isBackupBitmapUsed) {
+		uint_fast32_t i;
+		for (i = 1; i < info->gifFilePtr->ImageCount; i++) {
+			if (info->controlBlock[i].DisposalMode == DISPOSE_PREVIOUS) {
+				isBackupBitmapUsed = true;
+				break;
+			}
+		}
+	}
+
+	size_t size = info->rasterSize * sizeof(GifPixelType);
+	if (isBackupBitmapUsed) {
+		size += info->stride * info->gifFilePtr->SHeight * sizeof(argb);
+	}
+	return (jlong) size;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getNativeErrorCode(JNIEnv *__unused  env,
-                                                           jclass __unused handleClass, jlong gifInfo) {
-	if (gifInfo == 0)
+Java_pl_droidsonroids_gif_GifInfoHandle_getNativeErrorCode(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return 0;
+	}
 	return ((GifInfo *) (intptr_t) gifInfo)->gifFilePtr->Error;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentLoop(JNIEnv __unused *env, jclass __unused handleClass,
-                                                       jlong gifInfo) {
-	if (gifInfo == 0)
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentLoop(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return 0;
+	}
 	return (jint) ((GifInfo *) (intptr_t) gifInfo)->currentLoop;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentFrameIndex(JNIEnv __unused *env, jclass __unused handleClass,
-                                                             jlong gifInfo) {
-	if (gifInfo == 0)
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentFrameIndex(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
+	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+	if (info == NULL) {
 		return -1;
+	}
 	return (jint) ((GifInfo *) (intptr_t) gifInfo)->currentIndex;
 }
 
 __unused JNIEXPORT jlongArray JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unused handleClass,
-                                                      jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL)
+	if (info == NULL) {
 		return NULL;
+	}
 
 	const jlongArray state = (*env)->NewLongArray(env, 4);
 	if (state == NULL) {

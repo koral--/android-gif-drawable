@@ -7,6 +7,8 @@
 - Build tools version updated to 24.0.3
 - NDK version updated to 13
 - native code optimizations
+- fixed `GifDrawable#getAllocationByteCount()` to return value consistent with docs (taking optional dispose to previous into account)
+- added `GifDrawable#getMetadataByteCount()` - [#348](https://github.com/koral--/android-gif-drawable/issues/348)
 
 ### 1.2.2
 - Fixed NPE in `GifTexImage2D` finalizer when constructor threw an exception
