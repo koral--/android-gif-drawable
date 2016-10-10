@@ -668,7 +668,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * Returns the maximum possible size of the allocated memory used to store pixels and metadata of this object.
 	 * It counts length of all frame buffers. Returned value does not change over time.
 	 *
-	 * @return maximum possible size of the allocated memory used to store pixels and metadata of this object
+	 * @return maximum possible size of the allocated memory needed to store metadata of this object
 	 */
 	public long getMetadataAllocationByteCount() {
 		return mNativeInfoHandle.getMetadataByteCount();

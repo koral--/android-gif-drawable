@@ -216,18 +216,18 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	}
 
 	/**
-	 * See {@link GifDrawable#getMetadataAllocationByteCount()}
+	 * See {@link GifDrawable#getAllocationByteCount()}
 	 *
-	 * @return possible size of the memory needed to store pixels of this object
+	 * @return possible size of the memory needed to store pixels
 	 */
 	public long getAllocationByteCount() {
 		return mPixelsBytesCount;
 	}
 
 	/**
-	 * See{@link GifDrawable#getAllocationByteCount()}
+	 * See{@link GifDrawable#getMetadataAllocationByteCount()}
 	 *
-	 * @return maximum possible size of the allocated memory used to store pixels and metadata of this object
+	 * @return maximum possible size of the allocated memory needed to store metadata
 	 */
 	public long getMetadataAllocationByteCount() {
 		return mMetadataBytesCount;
