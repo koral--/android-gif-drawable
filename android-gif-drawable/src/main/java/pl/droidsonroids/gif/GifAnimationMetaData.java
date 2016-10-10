@@ -32,6 +32,8 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	private final int mHeight;
 	private final int mWidth;
 	private final int mImageCount;
+	private final long mPixelsBytesCount;
+	private final long mMetadataBytesCount;
 
 	/**
 	 * Retrieves from resource.
@@ -162,6 +164,8 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 		mWidth = gifInfoHandle.getWidth();
 		mHeight = gifInfoHandle.getHeight();
 		mImageCount = gifInfoHandle.getNumberOfFrames();
+		mMetadataBytesCount = gifInfoHandle.getMetadataByteCount();
+		mPixelsBytesCount = gifInfoHandle.getAllocationByteCount();
 		gifInfoHandle.recycle();
 	}
 
@@ -211,6 +215,24 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 		return mImageCount > 1 && mDuration > 0;
 	}
 
+	/**
+	 * See {@link GifDrawable#getMetadataAllocationByteCount()}
+	 *
+	 * @return possible size of the memory needed to store pixels of this object
+	 */
+	public long getAllocationByteCount() {
+		return mPixelsBytesCount;
+	}
+
+	/**
+	 * See{@link GifDrawable#getAllocationByteCount()}
+	 *
+	 * @return maximum possible size of the allocated memory used to store pixels and metadata of this object
+	 */
+	public long getMetadataAllocationByteCount() {
+		return mMetadataBytesCount;
+	}
+
 	@Override
 	public String toString() {
 		final String loopCount = mLoopCount == 0 ? "Infinity" : Integer.toString(mLoopCount);
@@ -230,6 +252,8 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 		dest.writeInt(mHeight);
 		dest.writeInt(mWidth);
 		dest.writeInt(mImageCount);
+		dest.writeLong(mMetadataBytesCount);
+		dest.writeLong(mPixelsBytesCount);
 	}
 
 	private GifAnimationMetaData(Parcel in) {
@@ -238,6 +262,8 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 		mHeight = in.readInt();
 		mWidth = in.readInt();
 		mImageCount = in.readInt();
+		mMetadataBytesCount = in.readLong();
+		mPixelsBytesCount = in.readLong();
 	}
 
 	public static final Parcelable.Creator<GifAnimationMetaData> CREATOR = new Parcelable.Creator<GifAnimationMetaData>() {

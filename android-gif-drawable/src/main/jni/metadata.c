@@ -106,6 +106,23 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused 
 		return 0;
 	}
 
+	size_t size = info->rasterSize;
+	if (size == 0) {
+		uint_fast32_t rasterSize = 0;
+		uint_fast32_t i;
+		for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
+			GifImageDesc imageDesc = info->gifFilePtr->SavedImages[i].ImageDesc;
+			int_fast32_t widthOverflow = imageDesc.Width - info->originalWidth;
+			int_fast32_t heightOverflow = imageDesc.Height - info->originalHeight;
+			uint_fast32_t newRasterSize = imageDesc.Width * imageDesc.Height;
+			if (newRasterSize > rasterSize || widthOverflow > 0 || heightOverflow > 0) {
+				rasterSize = newRasterSize;
+			}
+		}
+		size = rasterSize;
+	}
+	size *= sizeof(GifPixelType);
+
 	bool isBackupBitmapUsed = info->backupPtr != NULL;
 	if (!isBackupBitmapUsed) {
 		uint_fast32_t i;
@@ -117,10 +134,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused 
 		}
 	}
 
-	size_t size = info->rasterSize * sizeof(GifPixelType);
 	if (isBackupBitmapUsed) {
-		size += info->stride * info->gifFilePtr->SHeight * sizeof(argb);
+		int32_t stride = info->stride > 0 ? info->stride : (int32_t) info->gifFilePtr->SWidth;
+		size += stride * info->gifFilePtr->SHeight * sizeof(argb);
 	}
+
 	return (jlong) size;
 }
 
