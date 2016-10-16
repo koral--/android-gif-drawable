@@ -92,7 +92,7 @@ public enum GifError {
 	/**
 	 * Input source rewind has failed, animation is stopped.
 	 */
-	REWIND_FAILED(1004, "Input source rewind has failed, animation is stopped"),
+	REWIND_FAILED(1004, "Input source rewind failed, animation stopped"),
 	/**
 	 * Invalid and/or indirect byte buffer specified.
 	 */

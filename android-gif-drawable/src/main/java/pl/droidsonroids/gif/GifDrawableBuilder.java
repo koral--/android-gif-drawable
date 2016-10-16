@@ -43,9 +43,11 @@ public class GifDrawableBuilder {
 	 * Note that this call will overwrite sample size set previously by {@link #options(GifOptions)}
 	 *
 	 * @param sampleSize the sample size
+	 * @return this builder instance, to chain calls
 	 */
-	public void sampleSize(@IntRange(from = 1, to = Character.MAX_VALUE) final int sampleSize) {
+	public GifDrawableBuilder sampleSize(@IntRange(from = 1, to = Character.MAX_VALUE) final int sampleSize) {
 		mOptions.setInSampleSize(sampleSize);
+		return this;
 	}
 
 	/**
