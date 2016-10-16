@@ -30,10 +30,16 @@
     </FrameLayout>
 
     <pl.droidsonroids.gif.GifImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:adjustViewBounds="true"
+        android:maxWidth="180dp"
+        android:minHeight="100dp"
+        android:minWidth="100dp"
+        android:maxHeight="180dp"
+        android:scaleType="fitCenter"
         android:id="@+id/gifImageView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
         android:src="@drawable/anim_flag_iceland"
         app:freezesAnimation="true"/>
 </LinearLayout>
