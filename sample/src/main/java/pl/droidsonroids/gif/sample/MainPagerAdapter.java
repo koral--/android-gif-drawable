@@ -16,35 +16,36 @@ class MainPagerAdapter extends FragmentStatePagerAdapter {
 
 	@Override
 	public Fragment getItem(int position) {
-		switch (position) {
-			case 0:
-				return new GifSourcesFragment();
-			case 1:
-				return new GifTextViewFragment();
-			case 2:
-				return new GifTextureFragment();
-			case 3:
-				return new ImageSpanFragment();
-			case 4:
-				return new AnimationControlFragment();
-			case 5:
-				return new HttpFragment();
-			case 6:
-				return new TexturePlaceholderFragment();
-			case 7:
-				return new GifTexImage2DFragment();
-			case 8:
-				return new AnimatedSelectorFragment();
-			case 9:
-				return new AboutFragment();
-			default:
-				throw new IndexOutOfBoundsException("Invalid page index");
-		}
+//		switch (position) {
+//			case 0:
+//				return new GifSourcesFragment();
+//			case 1:
+//				return new GifTextViewFragment();
+//			case 2:
+//				return new GifTextureFragment();
+//			case 3:
+//				return new ImageSpanFragment();
+//			case 4:
+//				return new AnimationControlFragment();
+//			case 5:
+//				return new HttpFragment();
+//			case 6:
+//				return new TexturePlaceholderFragment();
+//			case 7:
+//				return new GifTexImage2DFragment();
+//			case 8:
+//				return new AnimatedSelectorFragment();
+//			case 9:
+//				return new AboutFragment();
+//			default:
+//				throw new IndexOutOfBoundsException("Invalid page index");
+//		}
+		return new ImageSpanFragment();
 	}
 
 	@Override
 	public int getCount() {
-		return mPageTitles.length;
+		return 1;
 	}
 
 	@Override

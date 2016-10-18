@@ -128,19 +128,19 @@ int directByteBufferRewind(GifInfo *info) {
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused class, jstring jfname) {
 	if (isSourceNull(jfname, env)) {
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 
 	const char *const filename = (*env)->GetStringUTFChars(env, jfname, NULL);
 	if (filename == NULL) {
 		throwException(env, RUNTIME_EXCEPTION_BARE, "GetStringUTFChars failed");
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	FILE *file = fopen(filename, "rb");
 	if (file == NULL) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		(*env)->ReleaseStringUTFChars(env, jfname, filename);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	(*env)->ReleaseStringUTFChars(env, jfname, filename);
 
@@ -157,18 +157,18 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unused class, jbyteArray bytes) {
 	if (isSourceNull(bytes, env)) {
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	ByteArrayContainer *container = malloc(sizeof(ByteArrayContainer));
 	if (container == NULL) {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	container->buffer = (*env)->NewGlobalRef(env, bytes);
 	if (container->buffer == NULL) {
 		free(container);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	container->length = (unsigned int) (*env)->GetArrayLength(env, container->buffer);
 	container->position = 0;
@@ -196,12 +196,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 		if (!isSourceNull(buffer, env)) {
 			throwGifIOException(D_GIF_ERR_INVALID_BYTE_BUFFER, env, false);
 		}
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	DirectByteBufferContainer *container = malloc(sizeof(DirectByteBufferContainer));
 	if (container == NULL) {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	container->bytes = bytes;
 	container->capacity = capacity;
@@ -226,7 +226,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	jclass streamCls = (*env)->NewGlobalRef(env, (*env)->GetObjectClass(env, stream));
 	if (streamCls == NULL) {
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	static jmethodID markMID = NULL;
 	if (markMID == NULL) {
@@ -243,26 +243,26 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 	if (markMID == NULL || readMID == NULL || resetMID == NULL) {
 		(*env)->DeleteGlobalRef(env, streamCls);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 
 	StreamContainer *container = malloc(sizeof(StreamContainer));
 	if (container == NULL) {
 		(*env)->DeleteGlobalRef(env, streamCls);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 
 	container->buffer = (*env)->NewByteArray(env, STREAM_BUFFER_SIZE);
 	if (container->buffer == NULL) {
 		(*env)->DeleteGlobalRef(env, streamCls);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	container->buffer = (*env)->NewGlobalRef(env, container->buffer);
 	if (container->buffer == NULL) {
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 
 	container->readMID = readMID;
@@ -272,7 +272,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 		free(container);
 		(*env)->DeleteGlobalRef(env, streamCls);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	container->streamCls = streamCls;
 
@@ -296,14 +296,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 		(*env)->DeleteGlobalRef(env, container->stream);
 		(*env)->DeleteGlobalRef(env, container->buffer);
 		free(container);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 }
 
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused handleClass, jobject jfd, jlong offset) {
 	if (isSourceNull(jfd, env)) {
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	jclass fdClass = (*env)->GetObjectClass(env, jfd);
 	static jfieldID fdClassDescriptorFieldID = NULL;
@@ -311,20 +311,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass, "descriptor", "I");
 	}
 	if (fdClassDescriptorFieldID == NULL) {
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	const jint oldFd = (*env)->GetIntField(env, jfd, fdClassDescriptorFieldID);
 	const int fd = dup(oldFd);
 	if (fd == -1) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 	if (lseek64(fd, offset, SEEK_SET) != -1) {
 		FILE *file = fdopen(fd, "rb");
 		if (file == NULL) {
 			throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 			close(fd);
-			return NULL_GIF_INFO;
+			return NULL_JLONG_POINTER;
 		}
 		struct stat st;
 		const long sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
@@ -333,11 +333,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		if (info == NULL) {
 			close(fd);
 		}
-		return (jlong) info;
+		return (jlong) (intptr_t) info;
 	} else {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		close(fd);
-		return NULL_GIF_INFO;
+		return NULL_JLONG_POINTER;
 	}
 }
 
