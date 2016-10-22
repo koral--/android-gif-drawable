@@ -1,20 +1,21 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.3'
-
-    defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 24
-        versionCode 1
-        versionName '1.0'
-        applicationId 'pl.droidsonroids.gif.sample'
-    }
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    defaultConfig {
+        versionName project.version
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
+        versionCode 1
+        versionName '1.0'
+        applicationId 'pl.droidsonroids.gif.sample'
     }
 
     signingConfigs {
@@ -46,8 +47,8 @@ dependencies {
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4'
     testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4'
-    compile 'com.android.support:design:24.2.1'
-    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:design:25.0.0'
+    compile 'com.android.support:appcompat-v7:25.0.0'
     compile project(':android-gif-drawable')
     //compile 'pl.droidsonroids.gif:android-gif-drawable:+'
 }
