@@ -12,6 +12,9 @@ extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
 
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
 	unsigned char *src = info->rasterBits;
+	if (src == NULL) {
+		return;
+	}
 	argb *dst = GET_ADDR(bm, info->stride, frame->ImageDesc.Left, frame->ImageDesc.Top);
 
 	uint_fast16_t x, y = frame->ImageDesc.Height;
@@ -68,17 +71,16 @@ static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame) {
 	else
 		cmap = getDefColorMap();
 
-    blitNormal(bm, info, frame, cmap);
+	blitNormal(bm, info, frame, cmap);
 }
 
 // return true if area of 'target' is completely covers area of 'covered'
 static bool checkIfCover(const SavedImage *target, const SavedImage *covered) {
 	return target->ImageDesc.Left <= covered->ImageDesc.Left
-	    && covered->ImageDesc.Left + covered->ImageDesc.Width
-	       <= target->ImageDesc.Left + target->ImageDesc.Width
-	    && target->ImageDesc.Top <= covered->ImageDesc.Top
-	    && covered->ImageDesc.Top + covered->ImageDesc.Height
-	       <= target->ImageDesc.Top + target->ImageDesc.Height;
+	       && covered->ImageDesc.Left + covered->ImageDesc.Width <= target->ImageDesc.Left + target->ImageDesc.Width
+	       && target->ImageDesc.Top <= covered->ImageDesc.Top
+	       && covered->ImageDesc.Top + covered->ImageDesc.Height
+	          <= target->ImageDesc.Top + target->ImageDesc.Height;
 }
 
 static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
@@ -128,7 +130,7 @@ void prepareCanvas(const argb *bm, GifInfo *info) {
 				.rgb = gifFilePtr->SColorMap->Colors[gifFilePtr->SBackGroundColor],
 				.alpha = 0xFF
 		};
-		MEMSET_ARGB((uint32_t *) bm, *(uint32_t * ) & bgColArgb, info->stride * gifFilePtr->SHeight);
+		MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * gifFilePtr->SHeight);
 	} else {
 		MEMSET_ARGB((uint32_t *) bm, 0, info->stride * gifFilePtr->SHeight);
 	}
@@ -136,9 +138,9 @@ void prepareCanvas(const argb *bm, GifInfo *info) {
 
 void drawNextBitmap(argb *bm, GifInfo *info) {
 	if (info->currentIndex > 0) {
-        disposeFrameIfNeeded(bm, info);
+		disposeFrameIfNeeded(bm, info);
 	}
-    drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
+	drawFrame(bm, info, info->gifFilePtr->SavedImages + info->currentIndex);
 }
 
 uint_fast32_t getFrameDuration(GifInfo *info) {
@@ -160,6 +162,6 @@ uint_fast32_t getFrameDuration(GifInfo *info) {
 }
 
 uint_fast32_t getBitmap(argb *bm, GifInfo *info) {
-    drawNextBitmap(bm, info);
+	drawNextBitmap(bm, info);
 	return getFrameDuration(info);
 }

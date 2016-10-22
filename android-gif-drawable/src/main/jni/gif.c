@@ -57,20 +57,25 @@ static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fas
 	if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0) {
 		return 0;
 	}
+	jint length;
+	jint totalLength = 0;
+	do {
+		length = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, totalLength, size - totalLength);
+		if ((*env)->ExceptionCheck(env)) {
+			(*env)->ExceptionClear(env);
+			break;
+		} else {
+			totalLength += length;
+		}
+	} while (totalLength < size && length >= 0);
 
-	jint len = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, 0, size);
-	if ((*env)->ExceptionCheck(env)) {
-		(*env)->ExceptionClear(env);
-		len = 0;
-	}
-	else if (len > 0) {
-		(*env)->GetByteArrayRegion(env, sc->buffer, 0, len, (jbyte *) bytes);
-	}
+	(*env)->GetByteArrayRegion(env, sc->buffer, 0, totalLength, (jbyte *) bytes);
+
 	if ((*env)->MonitorExit(env, sc->stream) != 0) {
-		len = 0;
+		totalLength = 0;
 	}
 
-	return (uint_fast8_t) (len >= 0 ? len : 0);
+	return (uint_fast8_t) (totalLength >= 0 ? totalLength : 0);
 }
 
 static int fileRewind(GifInfo *info) {
