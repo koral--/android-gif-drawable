@@ -23,9 +23,9 @@ import static android.util.DisplayMetrics.DENSITY_XHIGH;
 import static android.util.DisplayMetrics.DENSITY_XXHIGH;
 import static android.util.DisplayMetrics.DENSITY_XXXHIGH;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static pl.droidsonroids.gif.GifViewUtils.getDensityScale;
@@ -38,10 +38,10 @@ public class GifViewUtilsDensityTest {
 	Resources resources;
 
 	private Resources getMockedResources(final int resourceDensity, final int displayDensity) {
-		doAnswer(new Answer() {
+		doAnswer(new Answer<TypedValue>() {
 			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				final TypedValue outValue = (TypedValue) invocation.getArguments()[1];
+			public TypedValue answer(InvocationOnMock invocation) throws Throwable {
+				final TypedValue outValue = invocation.getArgument(1);
 				outValue.density = resourceDensity;
 				return outValue;
 			}

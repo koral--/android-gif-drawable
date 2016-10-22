@@ -16,3 +16,9 @@ ext {
 			buildTools: '25.0.0',
 	]
 }
+
+subprojects.each {
+	it.tasks.withType(JavaCompile) {
+		options.compilerArgs << '-Xlint'
+	}
+}
