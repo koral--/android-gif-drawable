@@ -8,14 +8,19 @@ sudo: true
 language:
   - android
 
+licenses:
+  - 'android-sdk-preview-license-52d11cd2'
+  - 'android-sdk-license-.+'
+  - 'google-gdk-license-.+'
+
 jdk:
   - oraclejdk8
 
 before_install:
   - echo y|android update sdk --all --no-ui --force --filter tools
   - echo y|android update sdk --all --no-ui --force --filter platform-tools
-  - echo y|android update sdk --all --no-ui --force --filter build-tools-24.0.3
-  - echo y|android update sdk --all --no-ui --force --filter android-24
+  - echo y|android update sdk --all --no-ui --force --filter build-tools-25.0.0
+  - echo y|android update sdk --all --no-ui --force --filter android-25
   - echo y|android update sdk --all --no-ui --force --filter extra-android-m2repository
   - wget http://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip
   - unzip android-ndk-$NDK_VERSION-linux-x86_64.zip |grep -v inflating
@@ -33,6 +38,7 @@ after_success:
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+
 cache:
   directories:
     - $HOME/.gradle/caches/
