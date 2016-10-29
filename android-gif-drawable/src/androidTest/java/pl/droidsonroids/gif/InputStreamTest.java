@@ -22,17 +22,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class InputStreamTest {
 
 	@Rule
-	public MockWebServer mockWebServer = new MockWebServer();
+	public MockWebServer mMockWebServer = new MockWebServer();
 
 	@Test
-	public void test() throws Exception {
+	public void testGifDrawableCreationFromInputStream() throws Exception {
 		final InputStream originalStream = InstrumentationRegistry.getContext().getResources().openRawResource(R.raw.test);
-		mockWebServer.enqueue(new MockResponse().setChunkedBody(new Buffer().readFrom(originalStream), 1 << 8));
+		mMockWebServer.enqueue(new MockResponse().setChunkedBody(new Buffer().readFrom(originalStream), 1 << 8));
 
-		final URL url = new URL(mockWebServer.url("/").toString());
+		final URL url = new URL(mMockWebServer.url("/").toString());
 		final BufferedInputStream responseStream = new BufferedInputStream(url.openConnection().getInputStream(), 1 << 16);
 
 		final GifDrawable gifDrawable = new GifDrawable(responseStream);
 		assertThat(gifDrawable.getError()).isEqualTo(GifError.NO_ERROR);
+		assertThat(gifDrawable.getIntrinsicWidth()).isEqualTo(278);
+		assertThat(gifDrawable.getIntrinsicHeight()).isEqualTo(183);
 	}
 }

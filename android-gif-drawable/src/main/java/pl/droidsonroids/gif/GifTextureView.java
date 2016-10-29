@@ -218,6 +218,7 @@ public class GifTextureView extends TextureView {
 					mGifInfoHandle.bindSurface(surface, mSavedState);
 				} finally {
 					surface.release();
+					surfaceTexture.release();
 				}
 			}
 			mGifInfoHandle.recycle();
