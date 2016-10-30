@@ -19,6 +19,7 @@
         <item>GIF in ImageSpan</item>
         <item>Basic animation control</item>
         <item>GifTextureView and HTTP</item>
+        <item>GifTextureView placeholder</item>
         <item>GifTexImage2D</item>
         <item>About</item>
     </string-array>

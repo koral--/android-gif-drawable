@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
@@ -19,6 +20,8 @@ import android.widget.ImageView.ScaleType;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+
+import pl.droidsonroids.gif.annotations.Beta;
 
 /**
  * <p>{@link TextureView} which can display animated GIFs. Available on API level 14
@@ -250,16 +253,17 @@ public class GifTextureView extends TextureView {
 			//no-op
 		}
 
-		void dispose(@NonNull final GifTextureView gifTextureView) {
+		void dispose(@NonNull final GifTextureView gifTextureView, @Nullable final PlaceholderDrawListener drawer) {
 			isSurfaceValid.close();
-			gifTextureView.setSuperSurfaceTextureListener(null);
+			final SurfaceTextureListener listener = drawer != null ? new PlaceholderDrawingSurfaceTextureListener(drawer) : null;
+			gifTextureView.setSuperSurfaceTextureListener(listener);
 			mGifInfoHandle.postUnbindSurface();
 			interrupt();
 		}
 	}
 
-	private void setSuperSurfaceTextureListener(RenderThread renderThread) {
-		super.setSurfaceTextureListener(renderThread);
+	private void setSuperSurfaceTextureListener(SurfaceTextureListener listener) {
+		super.setSurfaceTextureListener(listener);
 	}
 
 	/**
@@ -281,7 +285,7 @@ public class GifTextureView extends TextureView {
 
 	@Override
 	protected void onDetachedFromWindow() {
-		mRenderThread.dispose(this);
+		mRenderThread.dispose(this, null);
 		super.onDetachedFromWindow();
 		final SurfaceTexture surfaceTexture = getSurfaceTexture();
 		if (surfaceTexture != null) {
@@ -290,12 +294,25 @@ public class GifTextureView extends TextureView {
 	}
 
 	/**
-	 * Sets the source of the animation. Pass null to remove current source.
+	 * Sets the source of the animation. Pass {@code null} to remove current source.
+	 * Equivalent of {@code setInputSource(inputSource, null)}.
 	 *
 	 * @param inputSource new animation source, may be null
 	 */
 	public synchronized void setInputSource(@Nullable InputSource inputSource) {
-		mRenderThread.dispose(this);
+		setInputSource(inputSource, null);
+	}
+
+	/**
+	 * Sets the source of the animation and optionally placeholder drawer. Pass {@code null inputSource} to remove current source.
+	 * {@code placeholderDrawListener} is overwritten on {@code setInputSource(inputSource)} call.
+	 *
+	 * @param inputSource       new animation source, may be null
+	 * @param placeholderDrawListener placeholder draw listener, may be null
+	 */
+	@Beta
+	public synchronized void setInputSource(@Nullable InputSource inputSource, @Nullable PlaceholderDrawListener placeholderDrawListener) {
+		mRenderThread.dispose(this, placeholderDrawListener);
 		mInputSource = inputSource;
 		mRenderThread = new RenderThread(this);
 		if (inputSource != null) {
@@ -304,7 +321,7 @@ public class GifTextureView extends TextureView {
 	}
 
 	/**
-	 * Equivalent of {@link GifDrawable#setSpeed(float)}
+	 * Equivalent of {@link GifDrawable#setSpeed(float)}.
 	 *
 	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
 	 * @throws IllegalArgumentException if {@code factor <= 0}
@@ -462,5 +479,21 @@ public class GifTextureView extends TextureView {
 	 */
 	public void setFreezesAnimation(boolean freezesAnimation) {
 		mFreezesAnimation = freezesAnimation;
+	}
+
+	/**
+	 * This listener can be used to be notified when the {@link GifTextureView} content placeholder can be drawn.
+	 * Placeholder is displayed before proper input source is loaded and remains visible when input source loading fails.
+	 */
+	@Beta
+	public interface PlaceholderDrawListener {
+		/**
+		 * Called when surface is ready and placeholder has to be drawn.
+		 * It may occur more than once (eg. if {@code View} visibility is toggled before input source is loaded)
+		 * or never (eg. when {@code View} is never visible).<br/>
+		 * Note that it is an error to use {@code canvas} after this method return.
+		 * @param canvas canvas to draw into
+		 */
+		void onDrawPlaceholder(Canvas canvas);
 	}
 }

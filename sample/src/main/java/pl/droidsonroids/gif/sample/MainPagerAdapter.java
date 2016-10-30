@@ -30,8 +30,10 @@ class MainPagerAdapter extends FragmentStatePagerAdapter {
 			case 5:
 				return new HttpFragment();
 			case 6:
-				return new GifTexImage2DFragment();
+				return new TexturePlaceholderFragment();
 			case 7:
+				return new GifTexImage2DFragment();
+			case 8:
 				return new AboutFragment();
 			default:
 				throw new IndexOutOfBoundsException("Invalid page index");
