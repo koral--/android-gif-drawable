@@ -490,7 +490,7 @@ public class GifTextureView extends TextureView {
 		/**
 		 * Called when surface is ready and placeholder has to be drawn.
 		 * It may occur more than once (eg. if {@code View} visibility is toggled before input source is loaded)
-		 * or never (eg. when {@code View} is never visible).<br/>
+		 * or never (eg. when {@code View} is never visible).<br>
 		 * Note that it is an error to use {@code canvas} after this method return.
 		 * @param canvas canvas to draw into
 		 */
