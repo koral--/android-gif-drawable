@@ -220,7 +220,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * {@code Bitmap} in {@code GifDrawable} may be allocated at the time of creation or existing one may be reused if {@link GifDrawableBuilder#with(GifDrawable)}
 	 * is used.
 	 *
-	 * @return possible size of the memory needed to store pixels
+	 * @return possible size of the memory needed to store pixels excluding backing {@link android.graphics.Bitmap}
 	 */
 	public long getAllocationByteCount() {
 		return mPixelsBytesCount;

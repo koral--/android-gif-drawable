@@ -1,14 +1,14 @@
 ### 1.2.3-SNAPSHOT
-- Added NDK location check to buildscript with user friendly message - [#341](https://github.com/koral--/android-gif-drawable/issues/341)
 - Support library dependency version updated to 25.0.0
 - Android gradle plugin updated to 2.2.2
-- custom ndk buildscript replaced with `externalNativeBuild`
+- custom NDK buildscript replaced with `externalNativeBuild`
 - Gradle wrapper updated to 3.1
 - Build tools version updated to 25
-- NDK version updated to 13
+- NDK version updated to 13b
 - native code optimizations
 - fixed `GifDrawable#getAllocationByteCount()` to return value consistent with docs (taking optional dispose to previous into account)
 - added `GifDrawable#getMetadataByteCount()` - [#348](https://github.com/koral--/android-gif-drawable/issues/348)
+- added `GifAnimationMetadata#getMetadataByteCount()` - [#342](https://github.com/koral--/android-gif-drawable/issues/342#issuecomment-252519140)
 - compile and target SDK versions bumped to 25
 
 ### 1.2.2
