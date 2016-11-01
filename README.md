@@ -274,6 +274,8 @@ This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.3 and [
 
 [NativeScript Plugin by Brad Martin](https://github.com/bradmartin/nativescript-gif) available on [NPM](https://www.npmjs.com/package/nativescript-gif)
 
+[Sketch](https://github.com/xiaopansky/Sketch) Powerful and comprehensive image loader on Android, with support for GIF, gesture zooming, block display super large image.
+
 Want to include your project here? [Fill an issue](https://github.com/koral--/android-gif-drawable/issues/new)
 
 ##License
