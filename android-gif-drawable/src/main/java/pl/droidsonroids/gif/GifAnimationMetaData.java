@@ -248,6 +248,8 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 		if (sampleSize < 1 || sampleSize > Character.MAX_VALUE) {
 			throw new IllegalStateException("Sample size " + sampleSize + " out of range <1, " + Character.MAX_VALUE + ">");
 		}
+
+		final int sampleSizeFactor = sampleSize * sampleSize;
 		final long bufferSize;
 		if (buffer != null) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -256,9 +258,9 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 				bufferSize = buffer.getRowBytes() * buffer.getHeight();
 			}
 		} else {
-			bufferSize = mWidth * mHeight * 4;
+			bufferSize = (mWidth * mHeight * 4) / sampleSizeFactor;
 		}
-		return (mPixelsBytesCount + bufferSize) / (sampleSize * sampleSize);
+		return (mPixelsBytesCount / sampleSizeFactor) + bufferSize;
 	}
 
 	/**
