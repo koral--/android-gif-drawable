@@ -20,5 +20,7 @@ public class AllocationByteCountTest {
 		final GifDrawable drawable = new GifDrawable(resources, R.raw.test);
 		final GifAnimationMetaData metaData = new GifAnimationMetaData(resources, R.raw.test);
 		assertThat(drawable.getFrameByteCount() + metaData.getAllocationByteCount()).isEqualTo(drawable.getAllocationByteCount());
+		assertThat(metaData.getDrawableAllocationByteCount(null, 1)).isEqualTo(drawable.getAllocationByteCount());
+		assertThat(metaData.getDrawableAllocationByteCount(drawable.getCurrentFrame(), 1)).isEqualTo(drawable.getAllocationByteCount());
 	}
 }

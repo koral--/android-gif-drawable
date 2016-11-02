@@ -4,10 +4,13 @@ import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
@@ -220,13 +223,42 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * {@code Bitmap} in {@code GifDrawable} may be allocated at the time of creation or existing one may be reused if {@link GifDrawableBuilder#with(GifDrawable)}
 	 * is used.
 	 * This method assumes no subsampling (sample size = 1).<br>
-	 * To calculate allocation byte count of {@link GifDrawable} created from the same input source (without bitmap reusing) the following formula can be used:<br>
-	 * {@code (<allocation byte count> + (<width> * <height> * 4)) / <sample size> ^ 2}
+	 * To calculate allocation byte count of {@link GifDrawable} created from the same input source {@link #getDrawableAllocationByteCount(Bitmap, int)}
+	 * can be used.
 	 *
 	 * @return possible size of the memory needed to store pixels excluding backing {@link android.graphics.Bitmap} and assuming no subsampling
 	 */
 	public long getAllocationByteCount() {
 		return mPixelsBytesCount;
+	}
+
+	/**
+	 * Like {@link #getAllocationByteCount()} but includes also backing {@link android.graphics.Bitmap} and takes sample size into account.
+	 *
+	 * @param buffer     backing bitmap to be reused, must use {@link android.graphics.Bitmap.Config#ARGB_8888}, pass {@code null} if there is no one
+	 * @param sampleSize sample size, pass {@code 1} if not using subsampling
+	 * @return possible size of the memory needed to store pixels
+	 * @throws IllegalArgumentException if {@code buffer} is not {@code null} and has config other than {@link android.graphics.Bitmap.Config#ARGB_8888}
+	 *                                  or sample size out of range
+	 */
+	public long getDrawableAllocationByteCount(@Nullable Bitmap buffer, @IntRange(from = 1, to = Character.MAX_VALUE) int sampleSize) {
+		if (buffer != null && buffer.getConfig() != Bitmap.Config.ARGB_8888) {
+			throw new IllegalArgumentException("Unsupported bitmap config " + buffer.getConfig());
+		}
+		if (sampleSize < 1 || sampleSize > Character.MAX_VALUE) {
+			throw new IllegalStateException("Sample size " + sampleSize + " out of range <1, " + Character.MAX_VALUE + ">");
+		}
+		final long bufferSize;
+		if (buffer != null) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+				bufferSize = buffer.getAllocationByteCount();
+			} else {
+				bufferSize = buffer.getRowBytes() * buffer.getHeight();
+			}
+		} else {
+			bufferSize = mWidth * mHeight * 4;
+		}
+		return (mPixelsBytesCount + bufferSize) / (sampleSize * sampleSize);
 	}
 
 	/**
