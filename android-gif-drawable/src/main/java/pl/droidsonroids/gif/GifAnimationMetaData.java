@@ -235,27 +235,23 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	/**
 	 * Like {@link #getAllocationByteCount()} but includes also backing {@link android.graphics.Bitmap} and takes sample size into account.
 	 *
-	 * @param buffer     backing bitmap to be reused, must use {@link android.graphics.Bitmap.Config#ARGB_8888}, pass {@code null} if there is no one
-	 * @param sampleSize sample size, pass {@code 1} if not using subsampling
+	 * @param oldDrawable optional old drawable to be reused, pass {@code null} if there is no one
+	 * @param sampleSize  sample size, pass {@code 1} if not using subsampling
 	 * @return possible size of the memory needed to store pixels
-	 * @throws IllegalArgumentException if {@code buffer} is not {@code null} and has config other than {@link android.graphics.Bitmap.Config#ARGB_8888}
-	 *                                  or sample size out of range
+	 * @throws IllegalArgumentException if sample size out of range
 	 */
-	public long getDrawableAllocationByteCount(@Nullable Bitmap buffer, @IntRange(from = 1, to = Character.MAX_VALUE) int sampleSize) {
-		if (buffer != null && buffer.getConfig() != Bitmap.Config.ARGB_8888) {
-			throw new IllegalArgumentException("Unsupported bitmap config " + buffer.getConfig());
-		}
+	public long getDrawableAllocationByteCount(@Nullable GifDrawable oldDrawable, @IntRange(from = 1, to = Character.MAX_VALUE) int sampleSize) {
 		if (sampleSize < 1 || sampleSize > Character.MAX_VALUE) {
 			throw new IllegalStateException("Sample size " + sampleSize + " out of range <1, " + Character.MAX_VALUE + ">");
 		}
 
 		final int sampleSizeFactor = sampleSize * sampleSize;
 		final long bufferSize;
-		if (buffer != null) {
+		if (oldDrawable != null && !oldDrawable.mBuffer.isRecycled()) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-				bufferSize = buffer.getAllocationByteCount();
+				bufferSize = oldDrawable.mBuffer.getAllocationByteCount();
 			} else {
-				bufferSize = buffer.getRowBytes() * buffer.getHeight();
+				bufferSize = oldDrawable.getFrameByteCount();
 			}
 		} else {
 			bufferSize = (mWidth * mHeight * 4) / sampleSizeFactor;
