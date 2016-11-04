@@ -31,7 +31,7 @@ before_script:
   - echo n | android create avd --force --name test --target android-24 --abi armeabi-v7a --tag default
   - emulator -avd test -no-window -gpu off &
   - android-wait-for-emulator
-  - adb shell wm dismis-keyguard
+  - adb shell wm dismiss-keyguard
 
 before_install:
   - echo y|android update sdk --all --no-ui --force --filter tools
