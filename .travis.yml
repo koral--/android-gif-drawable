@@ -13,8 +13,24 @@ licenses:
   - 'android-sdk-license-.+'
   - 'google-gdk-license-.+'
 
+android:
+  components:
+    - tools # to get the new `repository-11.xml`
+    - tools # see https://github.com/travis-ci/travis-ci/issues/6040#issuecomment-219367943)
+    - platform-tools
+    - build-tools-25.0.0
+    - android-25
+    - extra-android-m2repository
+    - sys-img-x86-google_apis-25
+
 jdk:
   - oraclejdk8
+
+before_script:
+  - echo n | android create avd --force --name test --target android-25 --abi google_apis/x86
+  - emulator -avd test -no-audio -no-window -gpu off &
+  - android-wait-for-emulator
+  - adb shell wm dismis-keyguard
 
 before_install:
   - echo y|android update sdk --all --no-ui --force --filter tools
@@ -22,13 +38,14 @@ before_install:
   - echo y|android update sdk --all --no-ui --force --filter build-tools-25.0.0
   - echo y|android update sdk --all --no-ui --force --filter android-25
   - echo y|android update sdk --all --no-ui --force --filter extra-android-m2repository
+  - echo y|android update sdk --all --no-ui --force --filter sys-img-x86-google_apis-25
   - wget http://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip
   - unzip android-ndk-$NDK_VERSION-linux-x86_64.zip |grep -v inflating
   - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:
-  - ./gradlew build :android-gif-drawable:jacocoTestReport --info
+  - ./gradlew build connectedCheck :android-gif-drawable:jacocoTestReport --info
 
 after_failure:
  - cat android-gif-drawable/build/outputs/lint-results-debug.xml

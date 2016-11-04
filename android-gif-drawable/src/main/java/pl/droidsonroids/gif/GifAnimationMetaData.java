@@ -22,6 +22,8 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import pl.droidsonroids.gif.annotations.Beta;
+
 /**
  * Lightweight version of {@link pl.droidsonroids.gif.GifDrawable} used to retrieve metadata of GIF only,
  * without having to allocate the memory for its pixels.
@@ -239,6 +241,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	 * @return possible size of the memory needed to store pixels
 	 * @throws IllegalArgumentException if sample size out of range
 	 */
+	@Beta
 	public long getDrawableAllocationByteCount(@Nullable GifDrawable oldDrawable, @IntRange(from = 1, to = Character.MAX_VALUE) int sampleSize) {
 		if (sampleSize < 1 || sampleSize > Character.MAX_VALUE) {
 			throw new IllegalStateException("Sample size " + sampleSize + " out of range <1, " + Character.MAX_VALUE + ">");
