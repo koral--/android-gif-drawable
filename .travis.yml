@@ -22,14 +22,14 @@ android:
     - android-25
     - android-24
     - extra-android-m2repository
-    - sys-img-arm64-v8a-android-24
+    - sys-img-armeabi-v7a-android-24
 
 jdk:
   - oraclejdk8
 
 before_script:
-  - echo n | android create avd --force --name test --target android-24 --abi arm64-v8a --tag default
-  - emulator -avd test -no-audio -no-window -gpu off &
+  - echo n | android create avd --force --name test --target android-24 --abi armeabi-v7a --tag default
+  - emulator64-arm -avd test -no-audio -no-window -gpu off &
   - android-wait-for-emulator
   - adb shell wm dismis-keyguard
 
