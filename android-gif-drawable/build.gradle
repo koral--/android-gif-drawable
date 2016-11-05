@@ -1,0 +1,64 @@
+apply plugin: 'com.android.library'
+apply plugin: 'jacoco-android'
+apply from: 'gradle-mvn-push.gradle'
+
+repositories {
+	jcenter()
+}
+
+project.version = VERSION_NAME
+project.group = GROUP
+
+android {
+	compileSdkVersion versions.compileSdk
+	buildToolsVersion versions.buildTools
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_7
+		targetCompatibility JavaVersion.VERSION_1_7
+	}
+
+	defaultConfig {
+		versionName project.version
+		minSdkVersion versions.minSdk
+		targetSdkVersion versions.targetSdk
+		consumerProguardFiles 'consumer-proguard-rules.pro'
+		testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+		externalNativeBuild {
+			ndkBuild {
+				arguments "NDK_DEBUG=${isDebugBuild() ? '1' : '0'}"
+			}
+		}
+	}
+	externalNativeBuild {
+		ndkBuild {
+			path 'src/main/jni/Android.mk'
+		}
+	}
+}
+
+dependencies {
+	provided 'com.android.support:support-annotations:25.0.0'
+	testCompile 'junit:junit:4.12'
+	testCompile 'org.mockito:mockito-core:2.2.9'
+	testCompile 'org.robolectric:robolectric:3.1.4'
+	testCompile 'org.assertj:assertj-core:1.7.1'
+	testCompile 'net.jodah:concurrentunit:0.4.2'
+	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
+	androidTestCompile 'junit:junit:4.12'
+	androidTestCompile 'org.assertj:assertj-core:1.7.1'
+	androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.4.1'
+	androidTestCompile 'com.android.support:support-annotations:25.0.0'
+	androidTestCompile 'com.android.support.test:runner:0.5'
+	androidTestCompile 'com.android.support.test:rules:0.5'
+	androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+}
+
+jacocoAndroidUnitTestReport {
+	html.enabled true
+	xml.enabled true
+}
+
+def isDebugBuild() {
+	!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+}

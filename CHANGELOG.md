@@ -1,3 +1,17 @@
+### 1.2.3-SNAPSHOT
+- Support library dependency version updated to 25.0.0
+- Android gradle plugin updated to 2.2.2
+- custom NDK buildscript replaced with `externalNativeBuild`
+- Gradle wrapper updated to 3.1
+- Build tools version updated to 25
+- compile and target SDK versions bumped to 25
+- NDK version updated to 13b
+- native code optimizations
+- fixed `GifDrawable#getAllocationByteCount()` to return value consistent with docs (taking optional dispose to previous into account)
+- added `GifDrawable#getMetadataByteCount()` - [#348](https://github.com/koral--/android-gif-drawable/issues/348)
+- added `GifAnimationMetadata#getMetadataByteCount()` - [#342](https://github.com/koral--/android-gif-drawable/issues/342#issuecomment-252519140)
+- added `GifAnimationMetadata#getDrawableAllocationByteCount()` - [#342](https://github.com/koral--/android-gif-drawable/issues/342#issuecomment-252519140)
+
 ### 1.2.2
 - Fixed NPE in `GifTexImage2D` finalizer when constructor threw an exception
 - GifLib error code propagation fixed

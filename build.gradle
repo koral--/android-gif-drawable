@@ -2,51 +2,23 @@ buildscript {
 	repositories {
 		jcenter()
 	}
-
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.1.3'
+		classpath 'com.android.tools.build:gradle:2.2.2'
 		classpath 'com.dicedmelon.gradle:jacoco-android:0.1.1'
 	}
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'jacoco-android'
-apply from: 'gradle-mvn-push.gradle'
-apply from: 'ndk.gradle'
-
-repositories {
-	jcenter()
+ext {
+	versions = [
+			compileSdk: 25,
+			targetSdk : 25,
+			minSdk    : 9,
+			buildTools: '25.0.0',
+	]
 }
 
-project.version = VERSION_NAME
-project.group = GROUP
-
-android {
-	compileSdkVersion 24
-	buildToolsVersion '24.0.2'
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_7
-		targetCompatibility JavaVersion.VERSION_1_7
+subprojects.each {
+	it.tasks.withType(JavaCompile) {
+		options.compilerArgs << '-Xlint'
 	}
-	defaultConfig {
-		versionName project.version
-		minSdkVersion 9
-		targetSdkVersion 24
-		consumerProguardFiles 'consumer-proguard-rules.pro'
-	}
-}
-
-dependencies {
-	provided 'com.android.support:support-annotations:24.2.0'
-	testCompile 'junit:junit:4.12'
-	testCompile 'org.mockito:mockito-core:1.10.19'
-	testCompile 'org.robolectric:robolectric:3.1.2'
-	testCompile 'org.assertj:assertj-core:1.7.1'
-	testCompile 'net.jodah:concurrentunit:0.4.2'
-	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
-}
-
-jacocoAndroidUnitTestReport {
-	html.enabled true
-	xml.enabled true
 }

@@ -21,7 +21,7 @@ Bundled GIFLib via JNI is used to render frames. This way should be more efficie
 Insert the following dependency to `build.gradle` file of your project.
 ```groovy
 dependencies {
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.2'
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.3'
 }
 ```
 Note that Maven central repository should be defined eg. in top-level `build.gradle` like this:
@@ -75,8 +75,8 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 
 ##Usage
 
-###[Sample project](https://github.com/koral--/android-gif-drawable-sample)
-Sample project is under construction. Not all features are covered yet.
+###Sample project
+See `sample` directory. Sample project is under construction. Not all features are covered yet.
 
 ###From XML
 The simplest way is to use `GifImageView` (or `GifImageButton`) like a normal `ImageView`:
