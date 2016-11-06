@@ -164,11 +164,11 @@ bool isSourceNull(void *ptr, JNIEnv *env);
 
 static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
+static uint_fast8_t directByteBufferRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
+static uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
+static uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
 static int fileRewind(GifInfo *info);
 
@@ -176,7 +176,7 @@ static int streamRewind(GifInfo *info);
 
 static int byteArrayRewind(GifInfo *info);
 
-static int directByteBufferRewindFun(GifInfo *info);
+static int directByteBufferRewind(GifInfo *info);
 
 static int getComment(GifByteType *Bytes, GifInfo *);
 

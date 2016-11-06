@@ -27,7 +27,7 @@ static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t 
 	return (uint_fast8_t) fread(bytes, 1, size, file);
 }
 
-static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+static uint_fast8_t directByteBufferRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	DirectByteBufferContainer *dbbc = gif->UserData;
 	if (dbbc->position + size > dbbc->capacity) {
 		size -= dbbc->position + size - dbbc->capacity;
@@ -37,7 +37,7 @@ static uint_fast8_t directByteBufferReadFun(GifFileType *gif, GifByteType *bytes
 	return size;
 }
 
-static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+static uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	ByteArrayContainer *bac = gif->UserData;
 	JNIEnv *env = getEnv();
 	if (env == NULL) {
@@ -51,14 +51,14 @@ static uint_fast8_t byteArrayReadFun(GifFileType *gif, GifByteType *bytes, uint_
 	return size;
 }
 
-static uint_fast8_t streamReadFun(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+static uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	StreamContainer *sc = gif->UserData;
 	JNIEnv *env = getEnv();
 	if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0) {
 		return 0;
 	}
-	jint length;
 	jint totalLength = 0;
+	jint length;
 	do {
 		length = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, totalLength, size - totalLength);
 		if ((*env)->ExceptionCheck(env)) {
@@ -109,7 +109,7 @@ static int byteArrayRewind(GifInfo *info) {
 	return 0;
 }
 
-static int directByteBufferRewindFun(GifInfo *info) {
+static int directByteBufferRewind(GifInfo *info) {
 	DirectByteBufferContainer *dbbc = info->gifFilePtr->UserData;
 	dbbc->position = info->startPos;
 	return 0;
@@ -169,7 +169,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 			.rewindFunc = byteArrayRewind,
 			.sourceLength = container->length
 	};
-	descriptor.GifFileIn = DGifOpen(container, &byteArrayReadFun, &descriptor.Error);
+	descriptor.GifFileIn = DGifOpen(container, &byteArrayRead, &descriptor.Error);
 	descriptor.startPos = container->position;
 
 	GifInfo *info = createGifHandle(&descriptor, env);
@@ -201,10 +201,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	container->position = 0;
 
 	GifSourceDescriptor descriptor = {
-			.rewindFunc = directByteBufferRewindFun,
+			.rewindFunc = directByteBufferRewind,
 			.sourceLength = container->capacity
 	};
-	descriptor.GifFileIn = DGifOpen(container, &directByteBufferReadFun, &descriptor.Error);
+	descriptor.GifFileIn = DGifOpen(container, &directByteBufferRead, &descriptor.Error);
 	descriptor.startPos = container->position;
 
 	GifInfo *info = createGifHandle(&descriptor, env);
@@ -246,7 +246,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 		return NULL_GIF_INFO;
 	}
 
-	container->buffer = (*env)->NewByteArray(env, 256);
+	container->buffer = (*env)->NewByteArray(env, 8192);
 	if (container->buffer == NULL) {
 		(*env)->DeleteGlobalRef(env, streamCls);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
@@ -273,7 +273,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 			.startPos = 0,
 			.sourceLength = -1
 	};
-	descriptor.GifFileIn = DGifOpen(container, &streamReadFun, &descriptor.Error);
+	descriptor.GifFileIn = DGifOpen(container, &streamRead, &descriptor.Error);
 	descriptor.rewindFunc = streamRewind;
 
 	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
@@ -368,7 +368,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 		}
 		free(bac);
 	}
-	else if (info->rewindFunction == directByteBufferRewindFun) {
+	else if (info->rewindFunction == directByteBufferRewind) {
 		free(info->gifFilePtr->UserData);
 	}
 	info->gifFilePtr->UserData = NULL;
@@ -401,30 +401,6 @@ Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass 
 		sp->ImageDesc.Left /= info->sampleSize;
 		sp->ImageDesc.Top /= info->sampleSize;
 	}
-}
-
-__unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getWidth(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
-		return 0;
-	return (jint) info->gifFilePtr->SWidth;
-}
-
-__unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getHeight(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
-		return 0;
-	return (jint) info->gifFilePtr->SHeight;
-}
-
-__unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getNumberOfFrames(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
-		return 0;
-	return (jint) info->gifFilePtr->ImageCount;
 }
 
 __unused JNIEXPORT jint JNICALL

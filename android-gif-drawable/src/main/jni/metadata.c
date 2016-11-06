@@ -255,3 +255,27 @@ Java_pl_droidsonroids_gif_GifInfoHandle_isOpaque(__unused JNIEnv *env, jclass __
 	}
 	return JNI_FALSE;
 }
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getWidth(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
+	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+	if (info == NULL)
+		return 0;
+	return (jint) info->gifFilePtr->SWidth;
+}
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getHeight(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
+	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+	if (info == NULL)
+		return 0;
+	return (jint) info->gifFilePtr->SHeight;
+}
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getNumberOfFrames(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
+	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+	if (info == NULL)
+		return 0;
+	return (jint) info->gifFilePtr->ImageCount;
+}
