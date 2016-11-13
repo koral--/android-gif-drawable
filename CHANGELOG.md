@@ -1,4 +1,4 @@
-### 1.2.3-SNAPSHOT
+### 1.2.3
 - Support library dependency version updated to 25.0.0
 - Android gradle plugin updated to 2.2.2
 - custom NDK buildscript replaced with `externalNativeBuild`
