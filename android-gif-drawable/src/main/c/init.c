@@ -1,19 +1,5 @@
 #include "gif.h"
 
-void cleanUp(GifInfo *info) {
-	free(info->backupPtr);
-	info->backupPtr = NULL;
-	free(info->controlBlock);
-	info->controlBlock = NULL;
-	free(info->rasterBits);
-	info->rasterBits = NULL;
-	free(info->comment);
-	info->comment = NULL;
-
-	DGifCloseFile(info->gifFilePtr);
-	free(info);
-}
-
 GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	if (descriptor->startPos < 0) {
 		descriptor->Error = D_GIF_ERR_NOT_READABLE;
@@ -93,4 +79,32 @@ void setGCBDefaults(GraphicsControlBlock *gcb) {
 	gcb->DelayTime = DEFAULT_FRAME_DURATION_MS;
 	gcb->TransparentColor = NO_TRANSPARENT_COLOR;
 	gcb->DisposalMode = DISPOSAL_UNSPECIFIED;
+}
+
+__unused JNIEXPORT void JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jchar sampleSize, jboolean isOpaque) {
+	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
+	if (info == NULL) {
+		return;
+	}
+	info->isOpaque = isOpaque == JNI_TRUE;
+	info->sampleSize = (uint_fast16_t) sampleSize;
+	info->gifFilePtr->SHeight /= info->sampleSize;
+	info->gifFilePtr->SWidth /= info->sampleSize;
+	if (info->gifFilePtr->SHeight == 0) {
+		info->gifFilePtr->SHeight = 1;
+	}
+	if (info->gifFilePtr->SWidth == 0) {
+		info->gifFilePtr->SWidth = 1;
+	}
+
+	SavedImage *sp;
+	uint_fast32_t i;
+	for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
+		sp = &info->gifFilePtr->SavedImages[i];
+		sp->ImageDesc.Width /= info->sampleSize;
+		sp->ImageDesc.Height /= info->sampleSize;
+		sp->ImageDesc.Left /= info->sampleSize;
+		sp->ImageDesc.Top /= info->sampleSize;
+	}
 }

@@ -1,6 +1,6 @@
 PROJECT_NAME           = android-gif-drawable
 RECURSIVE              = YES
-INPUT                  = src/main/jni
+INPUT                  = src/main/c
 OUTPUT_DIRECTORY       = build/doxygen
 #JAVADOC_AUTOBRIEF      = YES
 OPTIMIZE_OUTPUT_FOR_C  = YES

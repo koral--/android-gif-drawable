@@ -1,4 +1,4 @@
-cflags:= -Wall -Wextra -std=c11
+cflags:= -Wall -Weverything -std=c11
 extra_ldlibs :=
 
 ifeq ($(NDK_DEBUG),1)
@@ -21,7 +21,6 @@ LOCAL_SRC_FILES := \
 	metadata.c \
 	memset32_neon.S \
 	bitmap.c \
-	open_close.c \
 	decoding.c \
 	exception.c \
 	time.c \
@@ -29,6 +28,9 @@ LOCAL_SRC_FILES := \
 	memset.arm.S \
     surface.c \
 	opengl.c \
+	jni.c \
+	init.c \
+	dispose.c \
 	giflib/dgif_lib.c \
 	giflib/gifalloc.c \
 	giflib/openbsd-reallocarray.c \

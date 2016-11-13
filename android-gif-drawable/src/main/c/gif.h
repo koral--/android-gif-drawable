@@ -170,13 +170,13 @@ static uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fas
 
 static uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
 
-static int fileRewind(GifInfo *info);
+int fileRewind(GifInfo *info);
 
-static int streamRewind(GifInfo *info);
+int streamRewind(GifInfo *info);
 
-static int byteArrayRewind(GifInfo *info);
+int byteArrayRewind(GifInfo *info);
 
-static int directByteBufferRewind(GifInfo *info);
+int directByteBufferRewind(GifInfo *info);
 
 static int getComment(GifByteType *Bytes, GifInfo *);
 

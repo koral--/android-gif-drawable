@@ -1,33 +1,13 @@
 #include "gif.h"
 
-static ColorMapObject *defaultCmap;
 static const jlong NULL_GIF_INFO = (jlong) (intptr_t) NULL;
 
-/**
-* Global VM reference, initialized in JNI_OnLoad
-*/
-static JavaVM *g_jvm;
-
-static struct JavaVMAttachArgs attachArgs = {.version=JNI_VERSION_1_6, .group=NULL, .name="GifIOThread"};
-
-JNIEnv *getEnv() {
-	JNIEnv *env;
-	if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, &attachArgs) == JNI_OK) {
-		return env;
-	}
-	return NULL;
-}
-
-void DetachCurrentThread() {
-	(*g_jvm)->DetachCurrentThread(g_jvm);
-}
-
-static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	FILE *file = (FILE *) gif->UserData;
 	return (uint_fast8_t) fread(bytes, 1, size, file);
 }
 
-static uint_fast8_t directByteBufferRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+uint_fast8_t directByteBufferRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	DirectByteBufferContainer *dbbc = gif->UserData;
 	if (dbbc->position + size > dbbc->capacity) {
 		size -= dbbc->position + size - dbbc->capacity;
@@ -37,7 +17,7 @@ static uint_fast8_t directByteBufferRead(GifFileType *gif, GifByteType *bytes, u
 	return size;
 }
 
-static uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	ByteArrayContainer *bac = gif->UserData;
 	JNIEnv *env = getEnv();
 	if (env == NULL) {
@@ -51,7 +31,7 @@ static uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fas
 	return size;
 }
 
-static uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	StreamContainer *sc = gif->UserData;
 	JNIEnv *env = getEnv();
 	if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0) {
@@ -78,7 +58,7 @@ static uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_
 	return (uint_fast8_t) (totalLength >= 0 ? totalLength : 0);
 }
 
-static int fileRewind(GifInfo *info) {
+int fileRewind(GifInfo *info) {
 	if (fseeko(info->gifFilePtr->UserData, info->startPos, SEEK_SET) == 0) {
 		return 0;
 	}
@@ -86,7 +66,7 @@ static int fileRewind(GifInfo *info) {
 	return -1;
 }
 
-static int streamRewind(GifInfo *info) {
+int streamRewind(GifInfo *info) {
 	GifFileType *gif = info->gifFilePtr;
 	StreamContainer *sc = gif->UserData;
 	JNIEnv *env = getEnv();
@@ -103,13 +83,13 @@ static int streamRewind(GifInfo *info) {
 	return 0;
 }
 
-static int byteArrayRewind(GifInfo *info) {
+int byteArrayRewind(GifInfo *info) {
 	ByteArrayContainer *bac = info->gifFilePtr->UserData;
 	bac->position = (uint_fast32_t) info->startPos;
 	return 0;
 }
 
-static int directByteBufferRewind(GifInfo *info) {
+int directByteBufferRewind(GifInfo *info) {
 	DirectByteBufferContainer *dbbc = info->gifFilePtr->UserData;
 	dbbc->position = info->startPos;
 	return 0;
@@ -328,113 +308,4 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
 		return (jlong) (intptr_t) NULL;
 	}
-}
-
-__unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
-		return;
-	if (info->destructor != NULL) {
-		info->destructor(info, env);
-	}
-	if (info->rewindFunction == streamRewind) {
-		StreamContainer *sc = info->gifFilePtr->UserData;
-		static jmethodID closeMID = NULL;
-		if (closeMID == NULL) {
-			(*env)->GetMethodID(env, sc->streamCls, "close", "()V");
-		}
-		if (closeMID != NULL)
-			(*env)->CallVoidMethod(env, sc->stream, closeMID);
-		if ((*env)->ExceptionCheck(env))
-			(*env)->ExceptionClear(env);
-
-		(*env)->DeleteGlobalRef(env, sc->streamCls);
-		(*env)->DeleteGlobalRef(env, sc->stream);
-
-		if (sc->buffer != NULL) {
-			(*env)->DeleteGlobalRef(env, sc->buffer);
-		}
-
-		free(sc);
-	}
-	else if (info->rewindFunction == fileRewind) {
-		fclose(info->gifFilePtr->UserData);
-	}
-	else if (info->rewindFunction == byteArrayRewind) {
-		ByteArrayContainer *bac = info->gifFilePtr->UserData;
-		if (bac->buffer != NULL) {
-			(*env)->DeleteGlobalRef(env, bac->buffer);
-		}
-		free(bac);
-	}
-	else if (info->rewindFunction == directByteBufferRewind) {
-		free(info->gifFilePtr->UserData);
-	}
-	info->gifFilePtr->UserData = NULL;
-	cleanUp(info);
-}
-
-__unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jchar sampleSize, jboolean isOpaque) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL) {
-		return;
-	}
-	info->isOpaque = isOpaque == JNI_TRUE;
-	info->sampleSize = (uint_fast16_t) sampleSize;
-	info->gifFilePtr->SHeight /= info->sampleSize;
-	info->gifFilePtr->SWidth /= info->sampleSize;
-	if (info->gifFilePtr->SHeight == 0) {
-		info->gifFilePtr->SHeight = 1;
-	}
-	if (info->gifFilePtr->SWidth == 0) {
-		info->gifFilePtr->SWidth = 1;
-	}
-
-	SavedImage *sp;
-	uint_fast32_t i;
-	for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
-		sp = &info->gifFilePtr->SavedImages[i];
-		sp->ImageDesc.Width /= info->sampleSize;
-		sp->ImageDesc.Height /= info->sampleSize;
-		sp->ImageDesc.Left /= info->sampleSize;
-		sp->ImageDesc.Top /= info->sampleSize;
-	}
-}
-
-__unused JNIEXPORT jint JNICALL
-JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
-	g_jvm = vm;
-	JNIEnv *env;
-	if ((*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-		return JNI_ERR;
-	}
-
-	defaultCmap = GifMakeMapObject(8, NULL);
-	if (defaultCmap != NULL) {
-		uint_fast16_t iColor;
-		for (iColor = 1; iColor < 256; iColor++) {
-			defaultCmap->Colors[iColor].Red = (GifByteType) iColor;
-			defaultCmap->Colors[iColor].Green = (GifByteType) iColor;
-			defaultCmap->Colors[iColor].Blue = (GifByteType) iColor;
-		}
-	}
-	else
-		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
-
-	struct timespec ts;
-	if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {
-		//sanity check here instead of on each clock_gettime() call
-		throwException(env, RUNTIME_EXCEPTION_BARE, "CLOCK_MONOTONIC_RAW is not present");
-	}
-	return JNI_VERSION_1_6;
-}
-
-__unused JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *__unused vm, void *__unused reserved) {
-	GifFreeMapObject(defaultCmap);
-}
-
-ColorMapObject *getDefColorMap() {
-	return defaultCmap;
 }
