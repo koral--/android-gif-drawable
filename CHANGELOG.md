@@ -1,4 +1,8 @@
-### 1.2.3-SNAPSHOT
+### 1.2.4-SNAPSHOT
+- Added errno text to GifIOException messages, fixes #340
+- Added missing file descriptor closing in case of open fail
+
+### 1.2.3
 - Support library dependency version updated to 25.0.0
 - Android gradle plugin updated to 2.2.2
 - custom NDK buildscript replaced with `externalNativeBuild`
