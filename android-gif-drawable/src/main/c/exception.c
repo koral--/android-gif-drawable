@@ -34,8 +34,9 @@ inline void throwException(JNIEnv *env, enum Exception exception, char *message)
 	}
 
 	jclass exClass = (*env)->FindClass(env, exceptionClassName);
-	if (exClass != NULL)
+	if (exClass != NULL) {
 		(*env)->ThrowNew(env, exClass, message);
+	}
 }
 
 inline bool isSourceNull(void *ptr, JNIEnv *env) {
@@ -45,17 +46,28 @@ inline bool isSourceNull(void *ptr, JNIEnv *env) {
 	return true;
 }
 
-void throwGifIOException(int errorCode, JNIEnv *env) {
+void throwGifIOException(int gifErrorCode, JNIEnv *env, bool readErrno) {
 //nullchecks just to prevent segfaults, LinkageError will be thrown if GifIOException cannot be instantiated
-	if ((*env)->ExceptionCheck(env) == JNI_TRUE)
+	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 		return;
+	}
 	jclass exClass = (*env)->FindClass(env, "pl/droidsonroids/gif/GifIOException");
-	if (exClass == NULL)
+	if (exClass == NULL) {
 		return;
-	jmethodID mid = (*env)->GetMethodID(env, exClass, "<init>", "(I)V");
-	if (mid == NULL)
+	}
+	jmethodID mid = (*env)->GetMethodID(env, exClass, "<init>", "(ILjava/lang/String;)V");
+	if (mid == NULL) {
 		return;
-	jobject exception = (*env)->NewObject(env, exClass, mid, errorCode);
-	if (exception != NULL)
+	}
+	jstring errnoJString = NULL;
+	if (readErrno) {
+		char errnoMessage[NL_TEXTMAX];
+		if (strerror_r(errno, errnoMessage, NL_TEXTMAX) == 0) {
+			errnoJString = (*env)->NewStringUTF(env, errnoMessage);
+		}
+	}
+	jobject exception = (*env)->NewObject(env, exClass, mid, gifErrorCode, errnoJString);
+	if (exception != NULL) {
 		(*env)->Throw(env, exception);
+	}
 }

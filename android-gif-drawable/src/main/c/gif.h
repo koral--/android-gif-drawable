@@ -184,9 +184,9 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
 
 void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame);
 
-void throwGifIOException(int errorCode, JNIEnv *env);
+void throwGifIOException(int gifErrorCode, JNIEnv *env, bool readErrno);
 
-GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env);
+GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env);
 
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
 
@@ -219,5 +219,7 @@ JNIEnv *getEnv();
 uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
+
+static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long sourceLength);
 
 #endif

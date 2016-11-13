@@ -1,12 +1,13 @@
 #include "gif.h"
 
-GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env) {
+GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	if (descriptor->startPos < 0) {
 		descriptor->Error = D_GIF_ERR_NOT_READABLE;
-		DGifCloseFile(descriptor->GifFileIn);
 	}
 	if (descriptor->Error != 0 || descriptor->GifFileIn == NULL) {
-		throwGifIOException(descriptor->Error, env);
+		bool readErrno = descriptor->rewindFunc == fileRewind && (descriptor->Error == D_GIF_ERR_NOT_READABLE || descriptor->Error == D_GIF_ERR_READ_FAILED);
+		throwGifIOException(descriptor->Error, env, readErrno);
+		DGifCloseFile(descriptor->GifFileIn);
 		return NULL;
 	}
 
@@ -49,7 +50,7 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env) {
 
 	if (descriptor->GifFileIn->SWidth < 1 || descriptor->GifFileIn->SHeight < 1) {
 		DGifCloseFile(descriptor->GifFileIn);
-		throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env);
+		throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env, false);
 		return NULL;
 	}
 	if (descriptor->GifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
@@ -63,13 +64,12 @@ GifInfo *createGifHandle(GifSourceDescriptor *descriptor, JNIEnv *env) {
 
 	if (descriptor->GifFileIn->ImageCount == 0) {
 		descriptor->Error = D_GIF_ERR_NO_FRAMES;
-	}
-	else if (descriptor->GifFileIn->Error == D_GIF_ERR_REWIND_FAILED) {
+	} else if (descriptor->GifFileIn->Error == D_GIF_ERR_REWIND_FAILED) {
 		descriptor->Error = D_GIF_ERR_REWIND_FAILED;
 	}
 	if (descriptor->Error != 0) {
 		cleanUp(info);
-		throwGifIOException(descriptor->Error, env);
+		throwGifIOException(descriptor->Error, env, false);
 		return NULL;
 	}
 	return info;

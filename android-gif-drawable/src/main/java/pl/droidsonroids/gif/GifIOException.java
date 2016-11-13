@@ -17,20 +17,25 @@ public class GifIOException extends IOException {
 	@NonNull
 	public final GifError reason;
 
-	private GifIOException(@NonNull GifError reason) {
-		super(reason.getFormattedDescription());
-		this.reason = reason;
+	private final String mErrnoMessage;
+
+	@Override
+	public String getMessage() {
+		if (mErrnoMessage == null) {
+			return reason.getFormattedDescription();
+		}
+		return reason.getFormattedDescription() + ": " + mErrnoMessage;
 	}
 
-	@SuppressWarnings("WeakerAccess")
-		//invoked from native code
-	GifIOException(int errorCode) {
-		this(GifError.fromCode(errorCode));
+	private GifIOException(int errorCode, String errnoMessage) {
+		reason = GifError.fromCode(errorCode);
+		mErrnoMessage = errnoMessage;
 	}
 
 	static GifIOException fromCode(final int nativeErrorCode) {
-		if (nativeErrorCode == GifError.NO_ERROR.errorCode)
+		if (nativeErrorCode == GifError.NO_ERROR.errorCode) {
 			return null;
-		return new GifIOException(nativeErrorCode);
+		}
+		return new GifIOException(nativeErrorCode, null);
 	}
 }

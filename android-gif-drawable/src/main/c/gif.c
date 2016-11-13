@@ -107,20 +107,17 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 		return NULL_GIF_INFO;
 	}
 	FILE *file = fopen(filename, "rb");
-	(*env)->ReleaseStringUTFChars(env, jfname, filename);
 	if (file == NULL) {
-		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
+		(*env)->ReleaseStringUTFChars(env, jfname, filename);
 		return NULL_GIF_INFO;
 	}
-	struct stat st;
-	GifSourceDescriptor descriptor = {
-			.rewindFunc = fileRewind,
-			.sourceLength = stat(filename, &st) == 0 ? st.st_size : -1
-	};
-	descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
-	descriptor.startPos = ftell(file);
+	(*env)->ReleaseStringUTFChars(env, jfname, filename);
 
-	GifInfo *info = createGifHandle(&descriptor, env);
+	struct stat st;
+	const long sourceLength = stat(filename, &st) == 0 ? st.st_size : -1;
+
+	GifInfo * const info = createGifInfoFromFile(env, file, sourceLength);
 	if (info == NULL) {
 		fclose(file);
 	}
@@ -152,7 +149,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 	descriptor.GifFileIn = DGifOpen(container, &byteArrayRead, &descriptor.Error);
 	descriptor.startPos = container->position;
 
-	GifInfo *info = createGifHandle(&descriptor, env);
+	GifInfo *info = createGifInfo(&descriptor, env);
 
 	if (info == NULL) {
 		(*env)->DeleteGlobalRef(env, container->buffer);
@@ -167,7 +164,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
 	if (bytes == NULL || capacity <= 0) {
 		if (!isSourceNull(buffer, env)) {
-			throwGifIOException(D_GIF_ERR_INVALID_BYTE_BUFFER, env);
+			throwGifIOException(D_GIF_ERR_INVALID_BYTE_BUFFER, env, false);
 		}
 		return NULL_GIF_INFO;
 	}
@@ -187,7 +184,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 	descriptor.GifFileIn = DGifOpen(container, &directByteBufferRead, &descriptor.Error);
 	descriptor.startPos = container->position;
 
-	GifInfo *info = createGifHandle(&descriptor, env);
+	GifInfo *info = createGifInfo(&descriptor, env);
 	if (info == NULL) {
 		free(container);
 	}
@@ -258,7 +255,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
 	if (!(*env)->ExceptionCheck(env)) {
-		GifInfo *info = createGifHandle(&descriptor, env);
+		GifInfo *info = createGifInfo(&descriptor, env);
 		return (jlong) (intptr_t) info;
 	} else {
 		(*env)->DeleteGlobalRef(env, streamCls);
@@ -282,30 +279,41 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 	if (fdClassDescriptorFieldID == NULL) {
 		return NULL_GIF_INFO;
 	}
-	const int fd = dup((*env)->GetIntField(env, jfd, fdClassDescriptorFieldID));
+	const jint oldFd = (*env)->GetIntField(env, jfd, fdClassDescriptorFieldID);
+	const int fd = dup(oldFd);
 	if (fd == -1) {
-		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		return NULL_GIF_INFO;
 	}
 	if (lseek64(fd, offset, SEEK_SET) != -1) {
 		FILE *file = fdopen(fd, "rb");
 		if (file == NULL) {
-			throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
+			throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 			close(fd);
 			return NULL_GIF_INFO;
 		}
 		struct stat st;
-		GifSourceDescriptor descriptor = {
-				.rewindFunc = fileRewind,
-				.sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1
-		};
-		descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
-		descriptor.startPos = ftell(file);
+		const long sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
 
-		return (jlong) createGifHandle(&descriptor, env);
+		GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
+		if (info == NULL) {
+			close(fd);
+		}
+		return (jlong) info;
 	} else {
+		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		close(fd);
-		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env);
 		return (jlong) (intptr_t) NULL;
 	}
+}
+
+static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long sourceLength) {
+	GifSourceDescriptor descriptor = {
+			.rewindFunc = fileRewind,
+			.sourceLength = sourceLength
+	};
+	descriptor.GifFileIn = DGifOpen(file, &fileRead, &descriptor.Error);
+	descriptor.startPos = ftell(file);
+
+	return createGifInfo(&descriptor, env);
 }

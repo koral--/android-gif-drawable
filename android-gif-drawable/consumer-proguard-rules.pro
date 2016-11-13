@@ -1,1 +1,1 @@
--keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}
+-keep public class pl.droidsonroids.gif.GifIOException{<init>(int, java.lang.String);}

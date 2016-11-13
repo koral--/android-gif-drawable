@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AllocationByteCountTest {
 
 	@Test
-	public void testAllocationByteCountConsistency() throws Exception {
+	public void allocationByteCountIsConsistent() throws Exception {
 		final Resources resources = InstrumentationRegistry.getContext().getResources();
 		final GifDrawable drawable = new GifDrawable(resources, R.raw.test);
 		final GifAnimationMetaData metaData = new GifAnimationMetaData(resources, R.raw.test);

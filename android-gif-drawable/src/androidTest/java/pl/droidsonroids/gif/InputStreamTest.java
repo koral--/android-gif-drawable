@@ -25,7 +25,7 @@ public class InputStreamTest {
 	public MockWebServer mMockWebServer = new MockWebServer();
 
 	@Test
-	public void testGifDrawableCreationFromInputStream() throws Exception {
+	public void gifDrawableCreatedFromInputStream() throws Exception {
 		final InputStream originalStream = InstrumentationRegistry.getContext().getResources().openRawResource(R.raw.test);
 		mMockWebServer.enqueue(new MockResponse().setChunkedBody(new Buffer().readFrom(originalStream), 1 << 8));
 
