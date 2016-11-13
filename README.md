@@ -222,6 +222,10 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.2.3
+Meaningful only if consumer proguard rules (bundled with library) are **not** used (they are used by default by Gradle).
++ Proguard rule has changed to `-keep public class pl.droidsonroids.gif.GifIOException{<init>(int, java.lang.String);}` 
+
 ##Upgrading from 1.1.17
 1.1.17 is the last version supporting API level 8 (Froyo). Starting from 1.2.0 minimum API level is 9 (Gingerbread).
 

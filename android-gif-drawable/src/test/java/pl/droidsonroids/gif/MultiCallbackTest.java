@@ -1,7 +1,6 @@
 package pl.droidsonroids.gif;
 
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.view.View;
 
 import org.junit.Before;
@@ -11,12 +10,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import static org.mockito.Mockito.verify;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = Build.VERSION_CODES.M, constants = BuildConfig.class, manifest = Config.NONE)
 public class MultiCallbackTest {
 
 	@Mock View view;
