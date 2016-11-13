@@ -117,7 +117,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 	struct stat st;
 	const long sourceLength = stat(filename, &st) == 0 ? st.st_size : -1;
 
-	GifInfo * const info = createGifInfoFromFile(env, file, sourceLength);
+	GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
 	if (info == NULL) {
 		fclose(file);
 	}
@@ -247,11 +247,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	container->streamCls = streamCls;
 
 	GifSourceDescriptor descriptor = {
+			.rewindFunc = streamRewind,
 			.startPos = 0,
 			.sourceLength = -1
 	};
 	descriptor.GifFileIn = DGifOpen(container, &streamRead, &descriptor.Error);
-	descriptor.rewindFunc = streamRewind;
 
 	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
 	if (!(*env)->ExceptionCheck(env)) {

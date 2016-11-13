@@ -14,10 +14,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 		if (closeMID == NULL) {
 			(*env)->GetMethodID(env, sc->streamCls, "close", "()V");
 		}
-		if (closeMID != NULL)
+		if (closeMID != NULL) {
 			(*env)->CallVoidMethod(env, sc->stream, closeMID);
-		if ((*env)->ExceptionCheck(env))
+		}
+		if ((*env)->ExceptionCheck(env)) {
 			(*env)->ExceptionClear(env);
+		}
 
 		(*env)->DeleteGlobalRef(env, sc->streamCls);
 		(*env)->DeleteGlobalRef(env, sc->stream);
