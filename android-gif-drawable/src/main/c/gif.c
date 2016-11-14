@@ -41,13 +41,15 @@ uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size)
 	jint length;
 	do {
 		length = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, totalLength, size - totalLength);
-		if ((*env)->ExceptionCheck(env)) {
-			(*env)->ExceptionClear(env);
-			break;
-		} else {
+		if (length > 0) {
 			totalLength += length;
+		} else {
+			if ((*env)->ExceptionCheck(env)) {
+				(*env)->ExceptionClear(env);
+			}
+			break;
 		}
-	} while (totalLength < size && length >= 0);
+	} while (totalLength < size);
 
 	(*env)->GetByteArrayRegion(env, sc->buffer, 0, totalLength, (jbyte *) bytes);
 
