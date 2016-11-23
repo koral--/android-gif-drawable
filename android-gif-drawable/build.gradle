@@ -38,17 +38,17 @@ android {
 }
 
 dependencies {
-	provided 'com.android.support:support-annotations:25.0.0'
+	provided 'com.android.support:support-annotations:25.0.1'
 	testCompile 'junit:junit:4.12'
-	testCompile 'org.mockito:mockito-core:2.2.15'
+	testCompile 'org.mockito:mockito-core:2.2.21'
 	testCompile 'org.robolectric:robolectric:3.1.4'
 	testCompile 'org.assertj:assertj-core:1.7.1'
 	testCompile 'net.jodah:concurrentunit:0.4.2'
 	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
 	androidTestCompile 'junit:junit:4.12'
 	androidTestCompile 'org.assertj:assertj-core:1.7.1'
-	androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.4.1'
-	androidTestCompile 'com.android.support:support-annotations:25.0.0'
+	androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.4.2'
+	androidTestCompile 'com.android.support:support-annotations:25.0.1'
 	androidTestCompile 'com.android.support.test:runner:0.5'
 	androidTestCompile 'com.android.support.test:rules:0.5'
 }

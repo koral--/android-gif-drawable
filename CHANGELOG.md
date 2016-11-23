@@ -1,6 +1,10 @@
 ### 1.2.4-SNAPSHOT
 - Added errno text to GifIOException messages, fixes #340
 - Added missing file descriptor closing in case of open fail
+- Support library dependency version updated to 25.0.1
+- Gradle wrapper updated to 3.2.1
+- mockito updated to 2.2.21
+- mockwebserver updated to 3.4.2
 
 ### 1.2.3
 - Support library dependency version updated to 25.0.0
