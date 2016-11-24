@@ -16,7 +16,7 @@ import java.util.concurrent.FutureTask;
 
 @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class GifLoadTask extends FutureTask<ByteBuffer> {
-	private static final String GIF_URL = "https://raw.githubusercontent.com/koral--/android-gif-drawable-sample/cb2d1f42b3045b2790a886d1574d3e74281de743/sample/src/main/assets/Animated-Flag-Hungary.gif";
+	private static final String GIF_URL = "https://cloud.githubusercontent.com/assets/22596215/20508152/c41379ae-b01c-11e6-9d12-45edcf8afc0c.gif";
 	private final WeakReference<HttpFragment> mFragmentReference;
 
 	GifLoadTask(HttpFragment httpFragment) {
