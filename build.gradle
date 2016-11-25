@@ -13,7 +13,7 @@ ext {
 			compileSdk: 25,
 			targetSdk : 25,
 			minSdk    : 9,
-			buildTools: '25.0.0',
+			buildTools: '25.0.1',
 	]
 }
 
