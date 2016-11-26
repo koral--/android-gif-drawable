@@ -77,6 +77,7 @@
 * Decoding error - invalid and/or indirect byte buffer specified
 */
 #define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
+#define STREAM_BUFFER_SIZE  8192
 
 enum Exception {
 	RUNTIME_EXCEPTION_ERRNO, RUNTIME_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION
@@ -122,6 +123,8 @@ typedef struct {
 	jmethodID readMID;
 	jmethodID resetMID;
 	jbyteArray buffer;
+	jint bufferPosition;
+	bool markCalled;
 } StreamContainer;
 
 typedef struct {

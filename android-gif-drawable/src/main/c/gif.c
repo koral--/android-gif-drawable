@@ -31,12 +31,7 @@ uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t si
 	return size;
 }
 
-uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
-	StreamContainer *sc = gif->UserData;
-	JNIEnv *env = getEnv();
-	if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0) {
-		return 0;
-	}
+static jint bufferUpTo(JNIEnv *env, StreamContainer *sc, size_t size) {
 	jint totalLength = 0;
 	jint length;
 	do {
@@ -50,14 +45,48 @@ uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size)
 			break;
 		}
 	} while (totalLength < size);
+	return totalLength;
+}
 
-	(*env)->GetByteArrayRegion(env, sc->buffer, 0, totalLength, (jbyte *) bytes);
-
-	if ((*env)->MonitorExit(env, sc->stream) != 0) {
-		totalLength = 0;
+uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
+	StreamContainer *sc = gif->UserData;
+	JNIEnv *env = getEnv();
+	if (env == NULL || (*env)->MonitorEnter(env, sc->stream) != 0) {
+		return 0;
 	}
 
-	return (uint_fast8_t) (totalLength >= 0 ? totalLength : 0);
+	if (sc->bufferPosition == 0) {
+		size_t bufferSize = sc->markCalled ? STREAM_BUFFER_SIZE : size;
+		jint readLen = bufferUpTo(env, sc, bufferSize);
+		if (readLen < size) {
+			size = (uint_fast8_t) readLen;
+		}
+		(*env)->GetByteArrayRegion(env, sc->buffer, 0, size, (jbyte *) bytes);
+		if (sc->markCalled) {
+			sc->bufferPosition += size;
+		}
+	} else if (sc->bufferPosition + size <= STREAM_BUFFER_SIZE) {
+		(*env)->GetByteArrayRegion(env, sc->buffer, sc->bufferPosition, size, (jbyte *) bytes);
+		sc->bufferPosition += size;
+	} else {
+		jint tailSize = STREAM_BUFFER_SIZE - sc->bufferPosition;
+		(*env)->GetByteArrayRegion(env, sc->buffer, sc->bufferPosition, tailSize, (jbyte *) bytes);
+		bytes += tailSize;
+		jint readLen = bufferUpTo(env, sc, STREAM_BUFFER_SIZE);
+		jint headSize = size - tailSize;
+		if (readLen < headSize) {
+			size = (uint_fast8_t) readLen;
+			headSize = readLen;
+		}
+		(*env)->GetByteArrayRegion(env, sc->buffer, 0, headSize, (jbyte *) bytes);
+		sc->bufferPosition = headSize;
+	}
+
+	if ((*env)->MonitorExit(env, sc->stream) != 0) {
+		return 0;
+	}
+
+	return (uint_fast8_t) size;
 }
 
 int fileRewind(GifInfo *info) {
@@ -72,6 +101,7 @@ int streamRewind(GifInfo *info) {
 	GifFileType *gif = info->gifFilePtr;
 	StreamContainer *sc = gif->UserData;
 	JNIEnv *env = getEnv();
+	sc->bufferPosition = 0;
 	if (env == NULL) {
 		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 		return -1;
@@ -225,7 +255,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 		return NULL_GIF_INFO;
 	}
 
-	container->buffer = (*env)->NewByteArray(env, 8192);
+	container->buffer = (*env)->NewByteArray(env, STREAM_BUFFER_SIZE);
 	if (container->buffer == NULL) {
 		(*env)->DeleteGlobalRef(env, streamCls);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
@@ -253,9 +283,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 			.startPos = 0,
 			.sourceLength = -1
 	};
+	container->bufferPosition = 0;
+	container->markCalled = false;
 	descriptor.GifFileIn = DGifOpen(container, &streamRead, &descriptor.Error);
 
 	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
+	container->markCalled = true;
+	container->bufferPosition = 0;
 	if (!(*env)->ExceptionCheck(env)) {
 		GifInfo *info = createGifInfo(&descriptor, env);
 		return (jlong) (intptr_t) info;
