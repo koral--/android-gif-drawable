@@ -8,6 +8,7 @@
         android:glEsVersion="0x00020000"
         android:required="false"/>
     <application
+        android:extractNativeLibs="false"
         android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"

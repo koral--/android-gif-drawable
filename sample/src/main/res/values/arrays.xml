@@ -21,6 +21,7 @@
         <item>GifTextureView and HTTP</item>
         <item>GifTextureView placeholder</item>
         <item>GifTexImage2D</item>
+        <item>Animated selector</item>
         <item>About</item>
     </string-array>
 </resources>
