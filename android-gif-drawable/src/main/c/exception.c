@@ -5,10 +5,12 @@
 #define NULL_POINTER_EXCEPTION_CLASS_NAME "java/lang/NullPointerException"
 
 inline void throwException(JNIEnv *env, enum Exception exception, char *message) {
-	if ((*env)->ExceptionCheck(env) == JNI_TRUE)
+	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 		return;
-	if (errno == ENOMEM)
+	}
+	if (errno == ENOMEM) {
 		exception = OUT_OF_MEMORY_ERROR;
+	}
 
 	const char *exceptionClassName;
 	switch (exception) {
@@ -40,8 +42,9 @@ inline void throwException(JNIEnv *env, enum Exception exception, char *message)
 }
 
 inline bool isSourceNull(void *ptr, JNIEnv *env) {
-	if (ptr != NULL)
+	if (ptr != NULL) {
 		return false;
+	}
 	throwException(env, NULL_POINTER_EXCEPTION, "Input source is null");
 	return true;
 }

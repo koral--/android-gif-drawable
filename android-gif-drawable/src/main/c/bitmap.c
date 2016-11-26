@@ -11,8 +11,9 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
 	}
 
 	const int lockPixelsResult = AndroidBitmap_lockPixels(env, jbitmap, pixels);
-	if (lockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS)
+	if (lockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS) {
 		return 0;
+	}
 
 	char *message;
 	switch (lockPixelsResult) {
@@ -36,8 +37,9 @@ int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
 
 void unlockPixels(JNIEnv *env, jobject jbitmap) {
 	const int unlockPixelsResult = AndroidBitmap_unlockPixels(env, jbitmap);
-	if (unlockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS)
+	if (unlockPixelsResult == ANDROID_BITMAP_RESULT_SUCCESS) {
 		return;
+	}
 	char *message;
 	switch (unlockPixelsResult) {
 		case ANDROID_BITMAP_RESULT_BAD_PARAMETER:
@@ -53,8 +55,7 @@ void unlockPixels(JNIEnv *env, jobject jbitmap) {
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass,
-                                                    jlong gifInfo, jobject jbitmap) {
+Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL)
 		return -1;
@@ -65,8 +66,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
 		return 0;
 	}
 	DDGifSlurp(info, true, false);
-	if (info->currentIndex == 0)
+	if (info->currentIndex == 0) {
 		prepareCanvas(pixels, info);
+	}
 	const uint_fast32_t frameDuration = getBitmap(pixels, info);
 	unlockPixels(env, jbitmap);
 	return calculateInvalidationDelay(info, renderStartTime, frameDuration);

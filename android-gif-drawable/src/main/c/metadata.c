@@ -12,10 +12,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused 
 __unused JNIEXPORT jboolean JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info != NULL && info->loopCount != 0 && info->currentLoop == info->loopCount)
+	if (info != NULL && info->loopCount != 0 && info->currentLoop == info->loopCount) {
 		return JNI_TRUE;
-	else
-		return JNI_FALSE;
+	}
+	return JNI_FALSE;
 }
 
 __unused JNIEXPORT jint JNICALL
@@ -79,8 +79,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
 		if (remainder < 0) { //in case of if frame hasn't been rendered until nextStartTime passed
 			remainder = 0;
 		}
-	}
-	else {
+	} else {
 		remainder = info->lastFrameRemainder;
 	}
 	return (jint) (sum - remainder); //2^31-1[ms]>596[h] so jint is enough
@@ -259,23 +258,26 @@ Java_pl_droidsonroids_gif_GifInfoHandle_isOpaque(__unused JNIEnv *env, jclass __
 __unused JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_getWidth(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+	if (info == NULL) {
 		return 0;
+	}
 	return (jint) info->gifFilePtr->SWidth;
 }
 
 __unused JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_getHeight(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+	if (info == NULL) {
 		return 0;
+	}
 	return (jint) info->gifFilePtr->SHeight;
 }
 
 __unused JNIEXPORT jint JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_getNumberOfFrames(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+	if (info == NULL) {
 		return 0;
+	}
 	return (jint) info->gifFilePtr->ImageCount;
 }

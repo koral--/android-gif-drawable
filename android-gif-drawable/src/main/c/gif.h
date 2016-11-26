@@ -1,5 +1,4 @@
-#ifndef _GIF
-#define _GIF
+#pragma once
 
 #define _GNU_SOURCE 1
 #ifdef __clang__
@@ -224,5 +223,3 @@ uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 void setGCBDefaults(GraphicsControlBlock *gcb);
 
 static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long sourceLength);
-
-#endif

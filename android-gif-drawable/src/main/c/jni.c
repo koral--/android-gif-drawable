@@ -36,9 +36,9 @@ JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
 			defaultCmap->Colors[iColor].Green = (GifByteType) iColor;
 			defaultCmap->Colors[iColor].Blue = (GifByteType) iColor;
 		}
-	}
-	else
+	} else {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+	}
 
 	struct timespec ts;
 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {

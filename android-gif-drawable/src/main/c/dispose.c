@@ -3,8 +3,9 @@
 __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+	if (info == NULL) {
 		return;
+	}
 	if (info->destructor != NULL) {
 		info->destructor(info, env);
 	}

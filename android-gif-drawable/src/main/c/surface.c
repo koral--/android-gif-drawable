@@ -89,7 +89,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 	eventfd_t eventValue;
 	int pollResult;
 
-	while (1) {
+	while (true) {
 		pollResult = TEMP_FAILURE_RETRY(poll(&descriptor->eventPollFd, 1, 0));
 		if (pollResult == 0)
 			break;
@@ -164,7 +164,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		return;
 	}
 
-	while (1) {
+	while (true) {
 		pollResult = TEMP_FAILURE_RETRY(poll(&descriptor->eventPollFd, 1, (int) invalidationDelayMillis));
 		long renderingStartTime = getRealTime();
 

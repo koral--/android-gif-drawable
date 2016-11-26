@@ -1,8 +1,9 @@
 #include "gif.h"
 
 bool reset(GifInfo *info) {
-	if (info->rewindFunction(info) != 0)
+	if (info->rewindFunction(info) != 0) {
 		return false;
+	}
 	info->nextStartTime = 0;
 	info->currentLoop = 0;
 	info->currentIndex = 0;
@@ -11,14 +12,11 @@ bool reset(GifInfo *info) {
 }
 
 __unused JNIEXPORT jboolean JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_reset(JNIEnv *__unused  env, jclass  __unused class,
-                                              jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_reset(JNIEnv *__unused  env, jclass  __unused class, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
-		return JNI_FALSE;
-
-	if (reset(info))
+	if (info != NULL && reset(info)) {
 		return JNI_TRUE;
+	}
 	return JNI_FALSE;
 }
 
@@ -26,8 +24,9 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_setSpeedFactor(JNIEnv __unused *env, jclass __unused handleClass,
                                                        jlong gifInfo, jfloat factor) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+	if (info == NULL) {
 		return;
+	}
 	info->speedFactor = factor;
 }
 
@@ -102,7 +101,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 	if (info->lastFrameRemainder != -1) {
 		info->lastFrameRemainder = desiredPos - sum;
 		if (desiredIndex == info->gifFilePtr->ImageCount - 1 &&
-		    info->lastFrameRemainder > (long long)info->controlBlock[desiredIndex].DelayTime)
+		    info->lastFrameRemainder > (long long) info->controlBlock[desiredIndex].DelayTime)
 			info->lastFrameRemainder = info->controlBlock[desiredIndex].DelayTime;
 	}
 	seekBitmap(info, env, desiredIndex, jbitmap);

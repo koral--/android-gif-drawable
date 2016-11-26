@@ -22,14 +22,16 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 	gifFilePtr = info->gifFilePtr;
 	uint_fast32_t lastAllocatedGCBIndex = 0;
 	do {
-		if (DGifGetRecordType(gifFilePtr, &RecordType) == GIF_ERROR)
+		if (DGifGetRecordType(gifFilePtr, &RecordType) == GIF_ERROR) {
 			return;
+		}
 		bool isInitialPass = !decode && !exitAfterFrame;
 		switch (RecordType) {
 			case IMAGE_DESC_RECORD_TYPE:
 
-				if (DGifGetImageDesc(gifFilePtr, isInitialPass) == GIF_ERROR)
+				if (DGifGetImageDesc(gifFilePtr, isInitialPass) == GIF_ERROR) {
 					return;
+				}
 
 				if (isInitialPass) {
 					int_fast32_t widthOverflow = gifFilePtr->Image.Width - gifFilePtr->SWidth;
@@ -130,9 +132,8 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 					if (DGifGetExtensionNext(gifFilePtr, &ExtData) == GIF_ERROR) {
 						return;
 					}
-					if (isInitialPass) {
-						if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR)
-							return;
+					if (isInitialPass && readExtensions(ExtFunction, ExtData, info) == GIF_ERROR) {
+						return;
 					}
 				}
 				break;
@@ -149,12 +150,14 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 }
 
 static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) {
-	if (ExtData == NULL)
+	if (ExtData == NULL) {
 		return GIF_OK;
+	}
 	if (ExtFunction == GRAPHICS_EXT_FUNC_CODE) {
 		GraphicsControlBlock *GCB = &info->controlBlock[info->gifFilePtr->ImageCount];
-		if (DGifExtensionToGCB(ExtData[0], ExtData + 1, GCB) == GIF_ERROR)
+		if (DGifExtensionToGCB(ExtData[0], ExtData + 1, GCB) == GIF_ERROR) {
 			return GIF_ERROR;
+		}
 
 		GCB->DelayTime = GCB->DelayTime > 1 ? GCB->DelayTime * 10 : DEFAULT_FRAME_DURATION_MS;
 	}
@@ -168,8 +171,9 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
 		char const *string = (char const *) (ExtData + 1);
 		if (strncmp("NETSCAPE2.0", string, ExtData[0]) == 0
 		    || strncmp("ANIMEXTS1.0", string, ExtData[0]) == 0) {
-			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData) == GIF_ERROR)
+			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData) == GIF_ERROR) {
 				return GIF_ERROR;
+			}
 			if (ExtData[0] == 3 && ExtData[1] == 1) {
 				info->loopCount = (uint_fast16_t) (ExtData[2] + (ExtData[3] << 8));
 			}
