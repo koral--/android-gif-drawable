@@ -3,6 +3,7 @@ package pl.droidsonroids.gif.sample;
 import android.content.res.XmlResourceParser;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -17,7 +18,6 @@ import pl.droidsonroids.gif.GifDrawable;
 
 public class AnimatedSelectorFragment extends BaseFragment {
 
-
 	@SuppressWarnings("deprecation")
 	@Nullable
 	@Override
@@ -26,11 +26,13 @@ public class AnimatedSelectorFragment extends BaseFragment {
 		final View buttonJava = rootView.findViewById(R.id.button_java);
 		buttonJava.setBackgroundDrawable(getJavaAnimatedBackground());
 
-		final View buttonXML = rootView.findViewById(R.id.button_xml);
-		try {
-			buttonXML.setBackgroundDrawable(getXMLAnimatedBackground());
-		} catch (XmlPullParserException | IOException e) {
-			throw new RuntimeException(e);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+			final View buttonXML = rootView.findViewById(R.id.button_xml);
+			try {
+				buttonXML.setBackgroundDrawable(getXMLAnimatedBackground());
+			} catch (XmlPullParserException | IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		return rootView;
