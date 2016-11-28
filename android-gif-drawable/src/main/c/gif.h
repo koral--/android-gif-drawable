@@ -42,8 +42,11 @@
     _rc; })
 #define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
 #define GET_ADDR(bm, width, left, top) bm + top * width + left
+
 #define OOME_MESSAGE "Failed to allocate native memory"
 #define DEFAULT_FRAME_DURATION_MS 100
+#define STREAM_BUFFER_SIZE  8192
+#define NULL_GIF_INFO (jlong) (intptr_t) NULL;
 
 /**
  * Some gif files are not strictly follow 89a.
@@ -76,7 +79,6 @@
 * Decoding error - invalid and/or indirect byte buffer specified
 */
 #define D_GIF_ERR_INVALID_BYTE_BUFFER    1005
-#define STREAM_BUFFER_SIZE  8192
 
 enum Exception {
 	RUNTIME_EXCEPTION_ERRNO, RUNTIME_EXCEPTION_BARE, OUT_OF_MEMORY_ERROR, NULL_POINTER_EXCEPTION

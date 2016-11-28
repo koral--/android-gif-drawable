@@ -1,7 +1,5 @@
 #include "gif.h"
 
-static const jlong NULL_GIF_INFO = (jlong) (intptr_t) NULL;
-
 uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	FILE *file = (FILE *) gif->UserData;
 	return (uint_fast8_t) fread(bytes, 1, size, file);
@@ -339,7 +337,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 	} else {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		close(fd);
-		return (jlong) (intptr_t) NULL;
+		return NULL_GIF_INFO;
 	}
 }
 
