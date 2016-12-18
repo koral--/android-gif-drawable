@@ -3,7 +3,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.2.2'
+		classpath 'com.android.tools.build:gradle:2.2.3'
 		classpath 'com.dicedmelon.gradle:jacoco-android:0.1.1'
 	}
 }
@@ -13,7 +13,7 @@ ext {
 			compileSdk: 25,
 			targetSdk : 25,
 			minSdk    : 9,
-			buildTools: '25.0.1',
+			buildTools: '25.0.2',
 	]
 }
 
