@@ -1,6 +1,7 @@
 buildscript {
 	repositories {
 		jcenter()
+		mavenCentral()
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:2.2.3'
@@ -17,8 +18,12 @@ ext {
 	]
 }
 
-subprojects.each {
-	it.tasks.withType(JavaCompile) {
+subprojects {
+	tasks.withType(JavaCompile) {
 		options.compilerArgs << '-Xlint'
+	}
+	repositories {
+		jcenter()
+		mavenCentral()
 	}
 }

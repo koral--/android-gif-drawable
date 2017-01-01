@@ -1,13 +1,13 @@
+plugins {
+	id 'com.jfrog.bintray' version '1.7.3'
+}
+
 apply plugin: 'com.android.library'
 apply plugin: 'jacoco-android'
 apply from: 'gradle-mvn-push.gradle'
 
-repositories {
-	jcenter()
-}
-
-project.version = VERSION_NAME
-project.group = GROUP
+version = VERSION_NAME
+group = GROUP
 
 android {
 	compileSdkVersion versions.compileSdk
@@ -56,6 +56,17 @@ dependencies {
 jacocoAndroidUnitTestReport {
 	html.enabled true
 	xml.enabled true
+}
+
+bintray {
+	user = POM_DEVELOPER_ID
+	key = BINTRAY_API_KEY
+	pkg {
+		repo = 'maven'
+		name = "$group:$POM_ARTIFACT_ID"
+		licenses = ['MIT']
+	}
+	configurations = ['archives']
 }
 
 def isDebugBuild() {
