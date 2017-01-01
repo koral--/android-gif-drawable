@@ -5,47 +5,47 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.style.ImageSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.EditText;
 
 import pl.droidsonroids.gif.GifDrawable;
 
 public class ImageSpanFragment extends BaseFragment implements Drawable.Callback {
 
-	private TextView mTextView;
+	private EditText mEditText;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		mTextView = new TextView(getActivity());
+		mEditText = new EditText(getActivity());
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			mTextView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-			mTextView.setTextIsSelectable(true);
+			mEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		}
 		final GifDrawable gifDrawable = GifDrawable.createFromResource(getResources(), R.drawable.anim_flag_england);
 		final SpannableStringBuilder ssb = new SpannableStringBuilder("test\ufffc");
 		assert gifDrawable != null;
 		gifDrawable.setBounds(0, 0, gifDrawable.getIntrinsicWidth(), gifDrawable.getIntrinsicHeight());
 		gifDrawable.setCallback(this);
-		ssb.setSpan(new ImageSpan(gifDrawable), ssb.length() - 1, ssb.length(), 0);
-		mTextView.setText(ssb);
-		return mTextView;
+		ssb.setSpan(new ImageSpan(gifDrawable), ssb.length() - 1, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+		mEditText.getText().insert(0, ssb);
+		return mEditText;
 	}
 
 	@Override
 	public void invalidateDrawable(@NonNull Drawable who) {
-		mTextView.invalidate();
+		mEditText.invalidate();
 	}
 
 	@Override
 	public void scheduleDrawable(@NonNull Drawable who, @NonNull Runnable what, long when) {
-		mTextView.postDelayed(what, when);
+		mEditText.postDelayed(what, when);
 	}
 
 	@Override
 	public void unscheduleDrawable(@NonNull Drawable who, @NonNull Runnable what) {
-		mTextView.removeCallbacks(what);
+		mEditText.removeCallbacks(what);
 	}
 }
