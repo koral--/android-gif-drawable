@@ -41,7 +41,7 @@ dependencies {
 	provided 'com.android.support:support-annotations:25.1.0'
 	testCompile 'junit:junit:4.12'
 	testCompile 'org.mockito:mockito-core:2.5.5'
-	testCompile 'org.robolectric:robolectric:3.2.1'
+	testCompile 'org.robolectric:robolectric:3.1.4'
 	testCompile 'org.assertj:assertj-core:1.7.1'
 	testCompile 'net.jodah:concurrentunit:0.4.2'
 	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
