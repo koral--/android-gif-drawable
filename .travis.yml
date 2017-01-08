@@ -35,12 +35,12 @@ before_script:
 
 before_install:
   - wget http://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip
-  - unzip android-ndk-$NDK_VERSION-linux-x86_64.zip |grep -v inflating
+  - unzip android-ndk-$NDK_VERSION-linux-x86_64.zip > /dev/null
   - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION
   - export PATH=${PATH}:${ANDROID_NDK_HOME}
 
 script:
-  - ./gradlew build connectedCheck :android-gif-drawable:jacocoTestReport --info
+  - ./gradlew build connectedCheck :android-gif-drawable:jacocoTestReport
 
 after_failure:
  - cat android-gif-drawable/build/outputs/lint-results-debug.xml
