@@ -16,6 +16,9 @@ android {
         versionCode 1
         versionName '1.0'
         applicationId 'pl.droidsonroids.gif.sample'
+        jackOptions {
+            enabled true
+        }
     }
 
     signingConfigs {
