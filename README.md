@@ -116,10 +116,9 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 		//resource (drawable or raw)
 		GifDrawable gifFromResource = new GifDrawable( getResources(), R.drawable.anim );
 		
-		//URI
-		Context mContext = getApplicationContext();
-		ContentResolver contentResolver = mContext.getContentResolver();
-		GifDrawable gifFromURI = new GifDrawable( contentResolver, GifURI );
+		//Uri
+		ContentResolver contentResolver = ... //can be null for file:// Uris
+		GifDrawable gifFromUri = new GifDrawable( contentResolver, gifUri );
 
 		//byte array
 		byte[] rawGifBytes = ...
