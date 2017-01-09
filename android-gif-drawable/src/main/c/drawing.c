@@ -126,11 +126,12 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 void prepareCanvas(const argb *bm, GifInfo *info) {
 	GifFileType *const gifFilePtr = info->gifFilePtr;
 	if (gifFilePtr->SColorMap && info->controlBlock->TransparentColor == NO_TRANSPARENT_COLOR) {
-		argb bgColArgb = {
-				.rgb = gifFilePtr->SColorMap->Colors[gifFilePtr->SBackGroundColor],
-				.alpha = 0xFF
-		};
-		MEMSET_ARGB((uint32_t *) bm, *(uint32_t *) &bgColArgb, info->stride * gifFilePtr->SHeight);
+		const GifColorType backgroundRGB = gifFilePtr->SColorMap->Colors[gifFilePtr->SBackGroundColor];
+		argb *pixel;
+		for (pixel = (argb *) bm; pixel < bm + (info->stride * info->gifFilePtr->SHeight); pixel++) {
+			pixel->alpha = 0xFF;
+			pixel->rgb = backgroundRGB;
+		}
 	} else {
 		MEMSET_ARGB((uint32_t *) bm, 0, info->stride * gifFilePtr->SHeight);
 	}

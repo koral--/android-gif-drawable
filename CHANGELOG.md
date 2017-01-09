@@ -3,9 +3,10 @@
 - Added missing file descriptor closing in case of open fail
 - Support library dependency version updated to 25.1.0
 - Gradle wrapper updated to 3.3
-- mockito updated to 2.5.5
+- Mockito updated to 2.5.5
 - mockwebserver updated to 3.5.0
 - Build tools version updated to 25.0.2
+- fixed clearing canvas with background color
 
 ### 1.2.3
 - Support library dependency version updated to 25.0.0
