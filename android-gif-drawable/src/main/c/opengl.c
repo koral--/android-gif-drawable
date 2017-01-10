@@ -115,7 +115,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jcla
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return;
 	}
-	info->stride = (int32_t) width;
+	info->stride = (uint32_t) width;
 	info->frameBufferDescriptor = descriptor;
 	errno = pthread_mutex_init(&descriptor->renderMutex, NULL);
 	THROW_ON_NONZERO_RESULT(errno, "Render mutex initialization failed ");
