@@ -1,3 +1,6 @@
+### 1.2.5-SNAPSHOT
+Nothing yet
+
 ### 1.2.4
 - Added errno text to GifIOException messages, fixes - [#340](https://github.com/koral--/android-gif-drawable/issues/340)
 - Added missing file descriptor closing in case of open fail
