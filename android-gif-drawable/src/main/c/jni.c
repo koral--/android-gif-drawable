@@ -19,7 +19,6 @@ void DetachCurrentThread() {
 	(*g_jvm)->DetachCurrentThread(g_jvm);
 }
 
-
 __unused JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *__unused reserved) {
 	g_jvm = vm;

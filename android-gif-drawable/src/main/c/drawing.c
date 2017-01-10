@@ -42,7 +42,7 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
 	} else {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
-				MEMSET_ARGB((uint32_t *) dst, UINT32_MAX, frameWidth);
+				MEMSET_ARGB((uint32_t *) dst, UINT_MAX, frameWidth);
 				for (x = frameWidth; x > 0; x--, src++, dst++) {
 					dst->rgb = cmap->Colors[*src];
 				}

@@ -127,7 +127,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 	}
 	const size_t bufferSize = buffer.stride * buffer.height * sizeof(argb);
 
-	info->stride = buffer.stride;
+	info->stride = (uint32_t) buffer.stride;
 	long long invalidationDelayMillis;
 	if (descriptor->frameBuffer) {
 		memcpy(buffer.bits, descriptor->frameBuffer, bufferSize);

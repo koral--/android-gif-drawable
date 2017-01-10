@@ -112,7 +112,7 @@ struct GifInfo {
 	uint_fast16_t currentLoop;
 	RewindFunc rewindFunction;
 	jfloat speedFactor;
-	int32_t stride;
+	uint32_t stride;
 	jlong sourceLength;
 	bool isOpaque;
 	void *frameBufferDescriptor;
