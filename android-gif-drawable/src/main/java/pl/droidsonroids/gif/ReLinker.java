@@ -16,7 +16,6 @@
 package pl.droidsonroids.gif;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
@@ -134,18 +133,23 @@ class ReLinker {
 		return outputFile;
 	}
 
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-	@SuppressWarnings("deprecation") //required for old API levels
 	private static ZipEntry findLibraryEntry(final ZipFile zipFile) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			for (final String abi : Build.SUPPORTED_ABIS) {
-				final ZipEntry libraryEntry = getEntry(zipFile, abi);
-				if (libraryEntry != null) {
-					return libraryEntry;
-				}
+		for (final String abi : getSupportedABIs()) {
+			final ZipEntry libraryEntry = getEntry(zipFile, abi);
+			if (libraryEntry != null) {
+				return libraryEntry;
 			}
 		}
-		return getEntry(zipFile, Build.CPU_ABI);
+		return null;
+	}
+
+	@SuppressWarnings("deprecation") //required on API < 21
+	private static String[] getSupportedABIs() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			return Build.SUPPORTED_ABIS;
+		} else {
+			return new String[]{Build.CPU_ABI, Build.CPU_ABI2};
+		}
 	}
 
 	private static ZipEntry getEntry(final ZipFile zipFile, final String abi) {
