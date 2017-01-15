@@ -1,5 +1,8 @@
 ### 1.2.5-SNAPSHOT
-Nothing yet
+- Fixed loading native library for additional ABIs on API level < 21 - [#379](https://github.com/koral--/android-gif-drawable/issues/379)
+- Robolectric version updated to 3.2.2
+- Mockito updated to 2.6.2
+- Gradle wrapper regenerated with 3.3
 
 ### 1.2.4
 - Added errno text to GifIOException messages, fixes - [#340](https://github.com/koral--/android-gif-drawable/issues/340)
