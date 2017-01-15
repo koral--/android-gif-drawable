@@ -36,6 +36,8 @@ class MainPagerAdapter extends FragmentStatePagerAdapter {
 			case 8:
 				return new AnimatedSelectorFragment();
 			case 9:
+				return new DrawableContainerFragment();
+			case 10:
 				return new AboutFragment();
 			default:
 				throw new IndexOutOfBoundsException("Invalid page index");

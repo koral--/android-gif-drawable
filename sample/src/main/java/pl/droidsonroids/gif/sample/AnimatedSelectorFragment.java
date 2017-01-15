@@ -31,7 +31,7 @@ public class AnimatedSelectorFragment extends BaseFragment {
 			try {
 				buttonXML.setBackgroundDrawable(getXMLAnimatedBackground());
 			} catch (XmlPullParserException | IOException e) {
-				throw new RuntimeException(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
