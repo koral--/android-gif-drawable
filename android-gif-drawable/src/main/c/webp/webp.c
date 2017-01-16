@@ -16,7 +16,7 @@ static void ClearPreviousPic(WebPAnimation *animation) {
 	animation->pic = NULL;
 }
 
-static int Decode(WebPAnimation *animation) {   // Fills kParams.curr_frame
+static int Decode(WebPAnimation *animation) {
 	const WebPIterator *const curr = &animation->curr_frame;
 	WebPDecoderConfig *const config = &animation->config;
 	WebPDecBuffer *const output_buffer = &config->output;
@@ -29,26 +29,13 @@ static int Decode(WebPAnimation *animation) {   // Fills kParams.curr_frame
 		fprintf(stderr, "Decoding of frame #%d failed!\n", curr->frame_num);
 	} else {
 		animation->pic = output_buffer;
-		if (animation->use_color_profile) {
 //			TODO? ok = ApplyColorProfile(&kParams.iccp.chunk, output_buffer);
 //			if (!ok) {
 //				fprintf(stderr, "Applying color profile to frame #%d failed!\n",
 //				        curr->frame_num);
 //			}
-		}
 	}
 	return ok;
-}
-
-static void ClearParams(WebPAnimation *animation) {
-	//TODO
-//	ClearPreviousPic(animation);
-//	WebPDataClear(&animation->data);
-//	WebPDemuxReleaseIterator(&kParams.curr_frame);
-//	WebPDemuxReleaseIterator(&kParams.prev_frame);
-//	WebPDemuxReleaseChunkIterator(&kParams.iccp);
-//	WebPDemuxDelete(kParams.dmux);
-//	kParams.dmux = NULL;
 }
 
 WebPAnimation *openFd(JNIEnv *env, const int fd, const long fileSize, jlong offset) {
@@ -75,12 +62,13 @@ WebPAnimation *openFd(JNIEnv *env, const int fd, const long fileSize, jlong offs
 	animation->canvas_width = WebPDemuxGetI(demuxer, WEBP_FF_CANVAS_WIDTH);
 	animation->canvas_height = WebPDemuxGetI(demuxer, WEBP_FF_CANVAS_HEIGHT);
 	animation->frame_count = WebPDemuxGetI(demuxer, WEBP_FF_FRAME_COUNT);
-
+	animation->frame_buffer = calloc(animation->canvas_width * animation->canvas_height, 4);
+	animation->frame_buffer_stride = animation->canvas_width * 4;
+	//FIXME handle OOME
 
 	WebPInitDecoderConfig(&animation->config);
 	animation->config.options.dithering_strength = 50;
 	animation->config.options.alpha_dithering_strength = 100;
-	animation->bg_color = WebPDemuxGetI(animation->dmux, WEBP_FF_BACKGROUND_COLOR);
 	animation->loop_count = (int) WebPDemuxGetI(animation->dmux, WEBP_FF_LOOP_COUNT);
 
 	//todo move to render?
@@ -186,9 +174,13 @@ Java_pl_droidsonroids_gif_WebpInfoHandle_getHeight(JNIEnv *env, jclass type, jlo
 	return animation != NULL ? animation->canvas_height : 0;
 }
 
+static inline uint8_t *getBufferAddress(uint8_t *addr, int stride, int left, int top) {
+	return addr + top * stride + left * 4;
+}
+
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_WebpInfoHandle_glTexSubImage2D(JNIEnv *env, jclass type, jlong infoPtr, jint target, jint level) {
-	usleep(1000000);
+	usleep(500000);
 	WebPAnimation *animation = (WebPAnimation *) infoPtr;
 	if (animation == NULL) {
 		return;
@@ -199,21 +191,23 @@ Java_pl_droidsonroids_gif_WebpInfoHandle_glTexSubImage2D(JNIEnv *env, jclass typ
 	WebPIterator *const prev = &animation->prev_frame;
 	if (pic == NULL) return;
 
+	if (curr->frame_num == 1) {
+		memset(animation->frame_buffer, 0, (size_t) animation->frame_buffer_stride * animation->canvas_height);
+	}
+	
+	if (prev->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND) {
+		uint8_t *dst = getBufferAddress(animation->frame_buffer, animation->frame_buffer_stride, curr->x_offset, curr->y_offset);
+		int y;
+		for (y = 0; y < pic->height; y++) {
+			memset(dst, 0, (size_t) animation->frame_buffer_stride);
+			dst += animation->frame_buffer_stride;
+		}
+	}
 
 	if (prev->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ||
 	    curr->blend_method == WEBP_MUX_NO_BLEND) {
-
 		if (prev->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND) {
 			// Clear the previous frame rectangle.
-			//TODO optimize
-			void *pVoid = malloc(prev->width * prev->height * 4);
-			uint32_t *pixel;
-			for (pixel = pVoid; pixel < pVoid + (prev->width * prev->height * 4); pixel++) {
-				*pixel = animation->bg_color;
-			}
-			glTexSubImage2D((GLenum) target, level, prev->x_offset, prev->y_offset, prev->width, prev->height, GL_RGBA, GL_UNSIGNED_BYTE, pVoid);
-			free(pVoid);
-
 		} else {  // curr->blend_method == WEBP_MUX_NO_BLEND.
 			// We simulate no-blending behavior by first clearing the current frame
 			// rectangle (to a checker-board) and then alpha-blending against it.
@@ -221,6 +215,16 @@ Java_pl_droidsonroids_gif_WebpInfoHandle_glTexSubImage2D(JNIEnv *env, jclass typ
 		}
 	}
 
+	uint8_t *dst = getBufferAddress(animation->frame_buffer, animation->frame_buffer_stride, curr->x_offset, curr->y_offset);
+	uint8_t *src = pic->u.RGBA.rgba;
+	int y;
+	for (y = 0; y < pic->height; y++) {
+		memcpy(dst, src, (size_t) pic->width * 4);
+		dst += animation->frame_buffer_stride;
+		src += pic->u.RGBA.stride;
+	}
+
+	glTexSubImage2D((GLenum) target, level, 0, 0, animation->canvas_width, animation->canvas_height, GL_RGBA, GL_UNSIGNED_BYTE, animation->frame_buffer);
+
 	*prev = *curr;
-	glTexSubImage2D((GLenum) target, level, curr->x_offset, curr->y_offset, pic->width, pic->height, GL_RGBA, GL_UNSIGNED_BYTE, pic->u.RGBA.rgba);
 }

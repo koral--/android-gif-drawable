@@ -80,7 +80,7 @@ public class WebPFragment extends BaseFragment {
 		try {
 			GifOptions options = new GifOptions();
 			options.setInIsOpaque(true);
-			@RawRes @DrawableRes final int resourceId = R.drawable.chile;
+			@RawRes @DrawableRes final int resourceId = R.drawable.blend;
 			mWebpInfoHandle = new WebpInfoHandle(getResources().openRawResourceFd(resourceId));
 		} catch (IOException e) {
 			throw new IllegalStateException(e);

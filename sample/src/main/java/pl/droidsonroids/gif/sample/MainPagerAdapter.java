@@ -40,7 +40,7 @@ class MainPagerAdapter extends FragmentStatePagerAdapter {
 //			default:
 //				throw new IndexOutOfBoundsException("Invalid page index");
 //		}
-		return new ImageSpanFragment();
+		return new WebPFragment();
 	}
 
 	@Override

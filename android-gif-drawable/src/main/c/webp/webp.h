@@ -5,7 +5,7 @@
 
 typedef struct WebPAnimation WebPAnimation;
 
-struct WebPAnimation{
+struct WebPAnimation {
 	WebPDemuxer *dmux;
 	void *source;
 	size_t source_length;
@@ -14,23 +14,19 @@ struct WebPAnimation{
 	int has_color_profile;
 	int done;
 	int decoding_error;
-	int print_info;
-	int only_deltas;
-	int use_color_profile;
 
-	int canvas_width, canvas_height;
+	uint32_t canvas_width, canvas_height;
 	int loop_count; //todo uint32_t?
-	uint32_t bg_color;
 
-	const char* file_name;
 	WebPData data;
 	WebPDecoderConfig config;
-	const WebPDecBuffer* pic;
+	const WebPDecBuffer *pic;
 	WebPIterator curr_frame;
 	WebPIterator prev_frame;
 	WebPChunkIterator iccp;
-	int viewport_width, viewport_height;
-	int frame_count;
+	uint32_t frame_count;
+	void* frame_buffer;
+	int frame_buffer_stride;//TODO size_t?
 };
 
 WebPAnimation *openFd(JNIEnv *env, const int fd, const long fileSize, jlong demuxer);

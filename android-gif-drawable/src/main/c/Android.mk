@@ -49,6 +49,7 @@ demux_srcs := \
 dsp_dec_srcs := \
     libwebp/src/dsp/alpha_processing.c \
     libwebp/src/dsp/alpha_processing_mips_dsp_r2.c \
+    libwebp/src/dsp/alpha_processing_neon.$(NEON) \
     libwebp/src/dsp/alpha_processing_sse2.c \
     libwebp/src/dsp/alpha_processing_sse41.c \
     libwebp/src/dsp/argb.c \
