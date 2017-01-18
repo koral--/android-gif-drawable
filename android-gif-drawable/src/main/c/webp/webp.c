@@ -90,26 +90,25 @@ WebPAnimation *openFd(JNIEnv *env, const int fd, const long fileSize, jlong offs
 	return animation;
 }
 
-static void decode_callback(WebPAnimation *animation) {
+static int decode_callback(WebPAnimation *animation) {
+	int duration = -1;
 	if (!animation->done) {
-		int duration = 0;
-		if (animation->dmux != NULL) {
-			WebPIterator *const curr = &animation->curr_frame;
-			if (!WebPDemuxNextFrame(curr)) {
-				WebPDemuxReleaseIterator(curr);
-				if (WebPDemuxGetFrame(animation->dmux, 1, curr)) {
-					--animation->loop_count;
-					animation->done = (animation->loop_count == 0);
-					if (animation->done) return;
-					ClearPreviousFrame(animation);
-				} else {
-					animation->decoding_error = 1;
-					animation->done = 1;
-					return;
-				}
+		WebPIterator *const curr = &animation->curr_frame;
+		if (!WebPDemuxNextFrame(curr)) {
+			WebPDemuxReleaseIterator(curr);
+			if (WebPDemuxGetFrame(animation->dmux, 1, curr)) {
+				--animation->loop_count;
+				animation->done = (animation->loop_count == 0);
+				if (animation->done)
+					return duration;
+				ClearPreviousFrame(animation);
+			} else {
+				animation->decoding_error = 1;
+				animation->done = 1;
+				return duration;
 			}
-			duration = curr->duration;
 		}
+		duration = curr->duration;
 		if (!Decode(animation)) {
 			animation->decoding_error = 1;
 			animation->done = 1;
@@ -117,6 +116,7 @@ static void decode_callback(WebPAnimation *animation) {
 			//TODO Ok
 		}
 	}
+	return duration;
 }
 
 JNIEXPORT jlong JNICALL
@@ -228,12 +228,15 @@ static void BlendPixelRowNonPremult(uint32_t *const src,
 
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_WebpInfoHandle_glTexSubImage2D(JNIEnv *env, jclass type, jlong infoPtr, jint target, jint level) {
-	usleep(500000);
 	WebPAnimation *animation = (WebPAnimation *) infoPtr;
 	if (animation == NULL) {
 		return;
 	}
-	decode_callback(animation);
+	int frame_duration = decode_callback(animation);
+	if (frame_duration < 0) {
+		return;
+	}
+	usleep(frame_duration * 1000);
 	const WebPDecBuffer *const pic = animation->pic;
 	const WebPIterator *const curr = &animation->curr_frame;
 	WebPIterator *const prev = &animation->prev_frame;
