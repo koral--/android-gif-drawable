@@ -67,6 +67,7 @@ dsp_dec_srcs := \
     libwebp/src/dsp/filters.c \
     libwebp/src/dsp/filters_mips_dsp_r2.c \
     libwebp/src/dsp/filters_msa.c \
+    libwebp/src/dsp/filters_neon.$(NEON) \
     libwebp/src/dsp/filters_sse2.c \
     libwebp/src/dsp/lossless.c \
     libwebp/src/dsp/lossless_mips_dsp_r2.c \

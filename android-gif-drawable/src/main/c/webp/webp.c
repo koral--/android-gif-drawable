@@ -178,6 +178,54 @@ static inline uint8_t *getBufferAddress(uint8_t *addr, int stride, int left, int
 	return addr + top * stride + left * 4;
 }
 
+// Blend a single channel of 'src' over 'dst', given their alpha channel values.
+// 'src' and 'dst' are assumed to be NOT pre-multiplied by alpha.
+static uint8_t BlendChannelNonPremult(uint32_t src, uint8_t src_a,
+                                      uint32_t dst, uint8_t dst_a,
+                                      uint32_t scale, int shift) {
+	const uint8_t src_channel = (src >> shift) & 0xff;
+	const uint8_t dst_channel = (dst >> shift) & 0xff;
+	const uint32_t blend_unscaled = src_channel * src_a + dst_channel * dst_a;
+
+	return (blend_unscaled * scale) >> 24;
+}
+
+
+static uint32_t BlendPixelNonPremult(uint32_t src, uint32_t dst) {
+	const uint8_t src_a = (src >> 24) & 0xff;
+
+	if (src_a == 0) {
+		return dst;
+	} else {
+		const uint8_t dst_a = (dst >> 24) & 0xff;
+		// This is the approximate integer arithmetic for the actual formula:
+		// dst_factor_a = (dst_a * (255 - src_a)) / 255.
+		const uint8_t dst_factor_a = (dst_a * (256 - src_a)) >> 8;
+		const uint8_t blend_a = src_a + dst_factor_a;
+		const uint32_t scale = (1UL << 24) / blend_a;
+
+		const uint8_t blend_r =
+				BlendChannelNonPremult(src, src_a, dst, dst_factor_a, scale, 0);
+		const uint8_t blend_g =
+				BlendChannelNonPremult(src, src_a, dst, dst_factor_a, scale, 8);
+		const uint8_t blend_b =
+				BlendChannelNonPremult(src, src_a, dst, dst_factor_a, scale, 16);
+
+		return (blend_r << 0) |
+		       (blend_g << 8) |
+		       (blend_b << 16) |
+		       ((uint32_t) blend_a << 24);
+	}
+}
+
+static void BlendPixelRowNonPremult(uint32_t *const src,
+                                    uint32_t *const dst, int num_pixels) {
+	int i;
+	for (i = 0; i < num_pixels; ++i) {
+		dst[i] = BlendPixelNonPremult(src[i], dst[i]);
+	}
+}
+
 JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_WebpInfoHandle_glTexSubImage2D(JNIEnv *env, jclass type, jlong infoPtr, jint target, jint level) {
 	usleep(500000);
@@ -193,9 +241,7 @@ Java_pl_droidsonroids_gif_WebpInfoHandle_glTexSubImage2D(JNIEnv *env, jclass typ
 
 	if (curr->frame_num == 1) {
 		memset(animation->frame_buffer, 0, (size_t) animation->frame_buffer_stride * animation->canvas_height);
-	}
-	
-	if (prev->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND) {
+	} else if (prev->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND) {
 		uint8_t *dst = getBufferAddress(animation->frame_buffer, animation->frame_buffer_stride, curr->x_offset, curr->y_offset);
 		int y;
 		for (y = 0; y < pic->height; y++) {
@@ -204,24 +250,23 @@ Java_pl_droidsonroids_gif_WebpInfoHandle_glTexSubImage2D(JNIEnv *env, jclass typ
 		}
 	}
 
-	if (prev->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ||
-	    curr->blend_method == WEBP_MUX_NO_BLEND) {
-		if (prev->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND) {
-			// Clear the previous frame rectangle.
-		} else {  // curr->blend_method == WEBP_MUX_NO_BLEND.
-			// We simulate no-blending behavior by first clearing the current frame
-			// rectangle (to a checker-board) and then alpha-blending against it.
-			//TODO handle
-		}
-	}
-
 	uint8_t *dst = getBufferAddress(animation->frame_buffer, animation->frame_buffer_stride, curr->x_offset, curr->y_offset);
 	uint8_t *src = pic->u.RGBA.rgba;
+
 	int y;
-	for (y = 0; y < pic->height; y++) {
-		memcpy(dst, src, (size_t) pic->width * 4);
-		dst += animation->frame_buffer_stride;
-		src += pic->u.RGBA.stride;
+	if (curr->blend_method == WEBP_MUX_NO_BLEND || curr->frame_num == 1) {
+		for (y = 0; y < pic->height; y++) {
+			memcpy(dst, src, (size_t) pic->width * 4);
+			dst += animation->frame_buffer_stride;
+			src += pic->u.RGBA.stride;
+		}
+	} else {
+		// Blend transparent pixels with pixels in previous canvas.
+		for (y = 0; y < pic->height; ++y) {
+			BlendPixelRowNonPremult((uint32_t *) src, (uint32_t *) dst, pic->width);
+			dst += animation->frame_buffer_stride;
+			src += pic->u.RGBA.stride;
+		}
 	}
 
 	glTexSubImage2D((GLenum) target, level, 0, 0, animation->canvas_width, animation->canvas_height, GL_RGBA, GL_UNSIGNED_BYTE, animation->frame_buffer);
