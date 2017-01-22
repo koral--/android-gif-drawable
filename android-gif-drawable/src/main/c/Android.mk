@@ -27,16 +27,16 @@ endif
 LOCAL_PATH := $(call my-dir)
 
 dec_srcs := \
-    libwebp/src/dec/alpha.c \
-    libwebp/src/dec/buffer.c \
-    libwebp/src/dec/frame.c \
-    libwebp/src/dec/idec.c \
-    libwebp/src/dec/io.c \
-    libwebp/src/dec/quant.c \
-    libwebp/src/dec/tree.c \
-    libwebp/src/dec/vp8.c \
-    libwebp/src/dec/vp8l.c \
-    libwebp/src/dec/webp.c \
+    libwebp/src/dec/alpha_dec.c \
+    libwebp/src/dec/buffer_dec.c \
+    libwebp/src/dec/frame_dec.c \
+    libwebp/src/dec/idec_dec.c \
+    libwebp/src/dec/io_dec.c \
+    libwebp/src/dec/quant_dec.c \
+    libwebp/src/dec/tree_dec.c \
+    libwebp/src/dec/vp8_dec.c \
+    libwebp/src/dec/vp8l_dec.c \
+    libwebp/src/dec/webp_dec.c \
 
 demux_srcs := \
     libwebp/src/demux/anim_decode.c \
@@ -108,29 +108,29 @@ dsp_enc_srcs := \
     libwebp/src/dsp/lossless_enc_sse41.c \
 
 enc_srcs := \
-    libwebp/src/enc/alpha.c \
-    libwebp/src/enc/analysis.c \
-    libwebp/src/enc/backward_references.c \
-    libwebp/src/enc/config.c \
-    libwebp/src/enc/cost.c \
-    libwebp/src/enc/delta_palettization.c \
-    libwebp/src/enc/filter.c \
-    libwebp/src/enc/frame.c \
-    libwebp/src/enc/histogram.c \
-    libwebp/src/enc/iterator.c \
-    libwebp/src/enc/near_lossless.c \
-    libwebp/src/enc/picture.c \
-    libwebp/src/enc/picture_csp.c \
-    libwebp/src/enc/picture_psnr.c \
-    libwebp/src/enc/picture_rescale.c \
-    libwebp/src/enc/picture_tools.c \
-    libwebp/src/enc/predictor.c \
-    libwebp/src/enc/quant.c \
-    libwebp/src/enc/syntax.c \
-    libwebp/src/enc/token.c \
-    libwebp/src/enc/tree.c \
-    libwebp/src/enc/vp8l.c \
-    libwebp/src/enc/webpenc.c \
+    libwebp/src/enc/alpha_enc.c \
+    libwebp/src/enc/analysis_enc.c \
+    libwebp/src/enc/backward_references_enc.c \
+    libwebp/src/enc/config_enc.c \
+    libwebp/src/enc/cost_enc.c \
+    libwebp/src/enc/delta_palettization_enc.c \
+    libwebp/src/enc/filter_enc.c \
+    libwebp/src/enc/frame_enc.c \
+    libwebp/src/enc/histogram_enc.c \
+    libwebp/src/enc/iterator_enc.c \
+    libwebp/src/enc/near_lossless_enc.c \
+    libwebp/src/enc/picture_enc.c \
+    libwebp/src/enc/picture_csp_enc.c \
+    libwebp/src/enc/picture_psnr_enc.c \
+    libwebp/src/enc/picture_rescale_enc.c \
+    libwebp/src/enc/picture_tools_enc.c \
+    libwebp/src/enc/predictor_enc.c \
+    libwebp/src/enc/quant_enc.c \
+    libwebp/src/enc/syntax_enc.c \
+    libwebp/src/enc/token_enc.c \
+    libwebp/src/enc/tree_enc.c \
+    libwebp/src/enc/vp8l_enc.c \
+    libwebp/src/enc/webp_enc.c \
 
 mux_srcs := \
     libwebp/src/mux/anim_encode.c \
@@ -139,20 +139,20 @@ mux_srcs := \
     libwebp/src/mux/muxread.c \
 
 utils_dec_srcs := \
-    libwebp/src/utils/bit_reader.c \
-    libwebp/src/utils/color_cache.c \
-    libwebp/src/utils/filters.c \
-    libwebp/src/utils/huffman.c \
-    libwebp/src/utils/quant_levels_dec.c \
-    libwebp/src/utils/random.c \
-    libwebp/src/utils/rescaler.c \
-    libwebp/src/utils/thread.c \
+    libwebp/src/utils/bit_reader_utils.c \
+    libwebp/src/utils/color_cache_utils.c \
+    libwebp/src/utils/filters_utils.c \
+    libwebp/src/utils/huffman_utils.c \
+    libwebp/src/utils/quant_levels_dec_utils.c \
+    libwebp/src/utils/random_utils.c \
+    libwebp/src/utils/rescaler_utils.c \
+    libwebp/src/utils/thread_utils.c \
     libwebp/src/utils/utils.c \
 
 utils_enc_srcs := \
-    libwebp/src/utils/bit_writer.c \
-    libwebp/src/utils/huffman_encode.c \
-    libwebp/src/utils/quant_levels.c \
+    libwebp/src/utils/bit_writer_utils.c \
+    libwebp/src/utils/huffman_encode_utils.c \
+    libwebp/src/utils/quant_levels_utils.c \
 
 ################################################################################
 # libwebpdecoder
@@ -225,6 +225,7 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_MODULE := pl_droidsonroids_gif
 LOCAL_LDLIBS := -ljnigraphics -landroid -lGLESv2 $(extra_ldlibs)
+LOCAL_CFLAGS := -Weverything
 
 LOCAL_SRC_FILES := \
 	drawing.c \
