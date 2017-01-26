@@ -29,7 +29,9 @@
 #include "giflib/gif_lib.h"
 
 #ifdef DEBUG
+
 #include <android/log.h>
+
 #define  LOG_TAG    "libgif"
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 #endif
@@ -91,11 +93,11 @@ typedef struct {
 
 typedef struct GifInfo GifInfo;
 
-typedef int
-(*RewindFunc)(GifInfo *);
+typedef int (*RewindFunc)(GifInfo *);
 
 struct GifInfo {
 	void (*destructor)(GifInfo *, JNIEnv *);
+
 	GifFileType *gifFilePtr;
 	GifWord originalWidth, originalHeight;
 	uint_fast16_t sampleSize;
