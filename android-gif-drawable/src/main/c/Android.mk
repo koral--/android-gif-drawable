@@ -225,7 +225,7 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_MODULE := pl_droidsonroids_gif
 LOCAL_LDLIBS := -ljnigraphics -landroid -lGLESv2 $(extra_ldlibs)
-LOCAL_CFLAGS := -Weverything
+LOCAL_CFLAGS := -Weverything -std=c11
 
 LOCAL_SRC_FILES := \
 	drawing.c \

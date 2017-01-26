@@ -27,10 +27,10 @@ android {
 		externalNativeBuild {
 			ndkBuild {
 				if (isDebugBuild()) {
-					cFlags '-Wall', '-std=c11', '-DDEBUG'
+					cFlags '-DDEBUG'
 					arguments 'NDK_DEBUG=1'
 				} else {
-					cFlags '-std=c11', '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
+					cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
 					arguments 'NDK_DEBUG=0'
 				}
 			}
