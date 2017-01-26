@@ -46,7 +46,7 @@ android {
 dependencies {
 	provided 'com.android.support:support-annotations:25.1.0'
 	testCompile 'junit:junit:4.12'
-	testCompile 'org.mockito:mockito-core:2.6.2'
+	testCompile 'org.mockito:mockito-core:2.6.8'
 	testCompile 'org.robolectric:robolectric:3.2.2'
 	testCompile 'org.assertj:assertj-core:1.7.1'
 	testCompile 'net.jodah:concurrentunit:0.4.2'
