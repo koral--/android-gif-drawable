@@ -28,6 +28,19 @@ typedef jlong (*GetAllocationByteCount)(void *descriptor);
 typedef jint (*GetFrameDuration)(void *descriptor, jint index);
 
 typedef struct Animation {
+	RenderBitmap renderBitmap;
+	Reset reset;
+	SeekToTime seekToTime;
+	SeekToFrame seekToFrame;
+	Release release;
+	SetOptions setOptions;
+	GetComment getComment;
+	GetDuration getDuration;
+	GetCurrentPosition getCurrentPosition;
+	GetMetadataByteCount getMetadataByteCount;
+	GetAllocationByteCount getAllocationByteCount;
+	GetFrameDuration getFrameDuration;
+
 	float speedFactor;
 	uint_fast16_t sampleSize;
 	long long lastFrameRemainder;
