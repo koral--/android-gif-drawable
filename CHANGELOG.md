@@ -1,4 +1,4 @@
-### 1.2.5-SNAPSHOT
+### 1.2.5
 - Unneeded debugging symbols removed, fixes - [#383](https://github.com/koral--/android-gif-drawable/issues/383)
 - Fixed loading native library for additional ABIs on API level < 21 - [#379](https://github.com/koral--/android-gif-drawable/issues/379)
 - Robolectric version updated to 3.2.2
