@@ -78,3 +78,11 @@ bintray {
 def isDebugBuild() {
 	!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
 }
+
+task archiveSymbols(type: Tar) {
+	from new File(buildDir, 'intermediates/ndkBuild/release/obj/local')
+	baseName = "$POM_ARTIFACT_ID-symbols"
+	destinationDir = new File(buildDir, 'libs')
+	extension = 'tar.gz'
+	compression = Compression.GZIP
+}
