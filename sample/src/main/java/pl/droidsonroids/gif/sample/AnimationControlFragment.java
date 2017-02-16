@@ -1,11 +1,18 @@
 package pl.droidsonroids.gif.sample;
 
+import android.content.res.Resources;
+import android.graphics.Canvas;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.RawRes;
 import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ToggleButton;
+
+import java.io.IOException;
 
 import pl.droidsonroids.gif.AnimationListener;
 import pl.droidsonroids.gif.GifDrawable;
@@ -13,7 +20,7 @@ import pl.droidsonroids.gif.GifImageView;
 
 public class AnimationControlFragment extends BaseFragment implements View.OnClickListener, AnimationListener {
 
-	private GifDrawable gifDrawable;
+	private FrameLimitingGifDrawable gifDrawable;
 	private ToggleButton toggleButton;
 
 	@Override
@@ -23,7 +30,13 @@ public class AnimationControlFragment extends BaseFragment implements View.OnCli
 		view.findViewById(R.id.btn_reset).setOnClickListener(this);
 		toggleButton = (ToggleButton) view.findViewById(R.id.btn_toggle);
 		toggleButton.setOnClickListener(this);
-		gifDrawable = (GifDrawable) gifImageView.getDrawable();
+		try {
+			gifDrawable = new FrameLimitingGifDrawable(getResources(), R.drawable.led7);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		gifDrawable.setLastFrameIndex(8);
+		gifImageView.setImageDrawable(gifDrawable);
 
 		resetAnimation();
 		return view;
@@ -70,6 +83,28 @@ public class AnimationControlFragment extends BaseFragment implements View.OnCli
 		final View view = getView();
 		if (view != null) {
 			Snackbar.make(view, getString(R.string.animation_loop_completed, loopNumber), Snackbar.LENGTH_SHORT).show();
+		}
+	}
+
+	static class FrameLimitingGifDrawable extends GifDrawable {
+
+		int lastFrameIndex;
+
+		public FrameLimitingGifDrawable(@NonNull Resources res, @RawRes @DrawableRes int id) throws Resources.NotFoundException, IOException {
+			super(res, id);
+			lastFrameIndex = getNumberOfFrames() - 1;
+		}
+
+		@Override
+		public void draw(@NonNull Canvas canvas) {
+			super.draw(canvas);
+			if (getCurrentFrameIndex() >= lastFrameIndex) {
+				stop();
+			}
+		}
+
+		public void setLastFrameIndex(int lastFrameIndex) {
+			this.lastFrameIndex = lastFrameIndex;
 		}
 	}
 }
