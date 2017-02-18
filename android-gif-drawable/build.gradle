@@ -42,6 +42,19 @@ android {
 		}
 	}
 	testBuildType 'release'
+	signingConfigs {
+		release {
+			storeFile new File("$System.env.HOME/.android/debug.keystore")
+			storePassword 'android'
+			keyAlias 'androiddebugkey'
+			keyPassword 'android'
+		}
+	}
+	buildTypes {
+		release {
+			signingConfig signingConfigs.release
+		}
+	}
 }
 
 dependencies {
