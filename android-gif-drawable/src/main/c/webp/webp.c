@@ -39,7 +39,6 @@ static int Decode(WebPAnimation *animation) {
 }
 
 WebPAnimation *openFd(JNIEnv *env, const int fd, const long fileSize, jlong offset) {
-
 	off64_t pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
 	size_t length = (size_t) (fileSize + offset - pa_offset);
 	void *source = mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd, pa_offset);

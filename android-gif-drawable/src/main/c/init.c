@@ -1,32 +1,32 @@
 #include "gif.h"
 
-GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
-	if (descriptor->startPos < 0) {
+GifInfo *createGifInfo(SourceDescriptor *descriptor, JNIEnv *env, GifFileType *gifFileIn) {
+	if (descriptor->headerEndPosition < 0) {
 		descriptor->Error = D_GIF_ERR_NOT_READABLE;
 	}
-	if (descriptor->Error != 0 || descriptor->GifFileIn == NULL) {
+	if (descriptor->Error != 0 || gifFileIn == NULL) {
 		bool readErrno = descriptor->rewindFunc == fileRewind && (descriptor->Error == D_GIF_ERR_NOT_READABLE || descriptor->Error == D_GIF_ERR_READ_FAILED);
 		throwGifIOException(descriptor->Error, env, readErrno);
-		DGifCloseFile(descriptor->GifFileIn);
+		DGifCloseFile(gifFileIn);
 		return NULL;
 	}
 
 	GifInfo *info = malloc(sizeof(GifInfo));
 	if (info == NULL) {
-		DGifCloseFile(descriptor->GifFileIn);
+		DGifCloseFile(gifFileIn);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
 	info->controlBlock = malloc(sizeof(GraphicsControlBlock));
 	if (info->controlBlock == NULL) {
-		DGifCloseFile(descriptor->GifFileIn);
+		DGifCloseFile(gifFileIn);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
 	setGCBDefaults(info->controlBlock);
 	info->destructor = NULL;
-	info->gifFilePtr = descriptor->GifFileIn;
-	info->startPos = descriptor->startPos;
+	info->gifFilePtr = gifFileIn;
+	info->startPos = descriptor->headerEndPosition;
 	info->currentIndex = 0;
 	info->nextStartTime = 0;
 	info->lastFrameRemainder = -1;
@@ -48,23 +48,23 @@ GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	info->originalHeight = info->gifFilePtr->SHeight;
 	info->originalWidth = info->gifFilePtr->SWidth;
 
-	if (descriptor->GifFileIn->SWidth < 1 || descriptor->GifFileIn->SHeight < 1) {
-		DGifCloseFile(descriptor->GifFileIn);
+	if (gifFileIn->SWidth < 1 || gifFileIn->SHeight < 1) {
+		DGifCloseFile(gifFileIn);
 		throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env, false);
 		return NULL;
 	}
-	if (descriptor->GifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
+	if (gifFileIn->Error == D_GIF_ERR_NOT_ENOUGH_MEM) {
 		cleanUp(info);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
 #if defined(STRICT_FORMAT_89A)
-	descriptor->Error = descriptor->GifFileIn->Error;
+	descriptor->Error = gifFileIn->Error;
 #endif
 
-	if (descriptor->GifFileIn->ImageCount == 0) {
+	if (gifFileIn->ImageCount == 0) {
 		descriptor->Error = D_GIF_ERR_NO_FRAMES;
-	} else if (descriptor->GifFileIn->Error == D_GIF_ERR_REWIND_FAILED) {
+	} else if (gifFileIn->Error == D_GIF_ERR_REWIND_FAILED) {
 		descriptor->Error = D_GIF_ERR_REWIND_FAILED;
 	}
 	if (descriptor->Error != 0) {

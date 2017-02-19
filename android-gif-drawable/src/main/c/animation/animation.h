@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <jni.h>
 
 typedef long long (*RenderBitmap)(void *descriptor, void *pixels);
 
@@ -21,11 +20,11 @@ typedef int (*GetDuration)(void *descriptor);
 
 typedef long long (*GetCurrentPosition)(void *descriptor);
 
-typedef jlong (*GetMetadataByteCount)(void *descriptor);
+typedef long (*GetMetadataByteCount)(void *descriptor);
 
-typedef jlong (*GetAllocationByteCount)(void *descriptor);
+typedef long (*GetAllocationByteCount)(void *descriptor);
 
-typedef jint (*GetFrameDuration)(void *descriptor, jint index);
+typedef int (*GetFrameDuration)(void *descriptor, int index);
 
 typedef struct Animation {
 	RenderBitmap renderBitmap;
@@ -48,9 +47,10 @@ typedef struct Animation {
 	uint_fast32_t currentFrameIndex;
 	uint_fast16_t loopCount;
 	uint_fast16_t currentLoopIndex;
-	jlong sourceLength;
+	long sourceLength;
 	bool isOpaque;
 	uint_fast32_t canvasWidth;
 	uint_fast32_t canvasHeight;
 	uint_fast32_t numberOfFrames;
+	void *data;
 } Animation;

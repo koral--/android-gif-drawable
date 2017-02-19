@@ -10,6 +10,14 @@ extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
 #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
 #endif
 
+static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
+
+static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
+
+static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
+
+static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
+
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
 	unsigned char *src = info->rasterBits;
 	if (src == NULL) {

@@ -115,7 +115,7 @@ struct GifInfo {
 	RewindFunc rewindFunction;
 	jfloat speedFactor;
 	uint32_t stride;
-	jlong sourceLength;
+	long long sourceLength;
 	bool isOpaque;
 	void *frameBufferDescriptor;
 };
@@ -127,7 +127,7 @@ typedef struct {
 	jmethodID resetMID;
 	jbyteArray buffer;
 	jint bufferPosition;
-	bool markCalled;
+	bool headerRead;
 } StreamContainer;
 
 typedef struct {
@@ -143,12 +143,11 @@ typedef struct {
 } DirectByteBufferContainer;
 
 typedef struct {
-	GifFileType *GifFileIn;
 	int Error;
-	long long startPos;
+	long long headerEndPosition;
 	RewindFunc rewindFunc;
-	jlong sourceLength;
-} GifSourceDescriptor;
+	long long sourceLength;
+} SourceDescriptor;
 
 void DetachCurrentThread();
 
@@ -168,14 +167,6 @@ void throwException(JNIEnv *env, enum Exception exception, char *message);
 
 bool isSourceNull(void *ptr, JNIEnv *env);
 
-static uint_fast8_t fileRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
-
-static uint_fast8_t directByteBufferRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
-
-static uint_fast8_t byteArrayRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
-
-static uint_fast8_t streamRead(GifFileType *gif, GifByteType *bytes, uint_fast8_t size);
-
 int fileRewind(GifInfo *info);
 
 int streamRewind(GifInfo *info);
@@ -184,23 +175,11 @@ int byteArrayRewind(GifInfo *info);
 
 int directByteBufferRewind(GifInfo *info);
 
-static int getComment(GifByteType *Bytes, GifInfo *);
-
-static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
-
 void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame);
 
 void throwGifIOException(int gifErrorCode, JNIEnv *env, bool readErrno);
 
-GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env);
-
-static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap);
-
-static void drawFrame(argb *bm, GifInfo *info, SavedImage *frame);
-
-static bool checkIfCover(const SavedImage *target, const SavedImage *covered);
-
-static void disposeFrameIfNeeded(argb *bm, GifInfo *info);
+GifInfo *createGifInfo(SourceDescriptor *descriptor, JNIEnv *env, GifFileType *gifFileIn);
 
 uint_fast32_t getBitmap(argb *bm, GifInfo *info);
 
@@ -225,5 +204,3 @@ JNIEnv *getEnv();
 uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
-
-static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long sourceLength);

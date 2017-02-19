@@ -1,5 +1,9 @@
 #include "gif.h"
 
+static int getComment(GifByteType *Bytes, GifInfo *);
+
+static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info);
+
 static bool updateGCB(GifInfo *info, uint_fast32_t *lastAllocatedGCBIndex) {
 	if (*lastAllocatedGCBIndex < info->gifFilePtr->ImageCount) {
 		GraphicsControlBlock *tmpInfos = reallocarray(info->controlBlock, info->gifFilePtr->ImageCount + 1, sizeof(GraphicsControlBlock));
