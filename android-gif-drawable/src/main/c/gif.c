@@ -1,3 +1,4 @@
+#include <animation/animation.h>
 #include "gif.h"
 
 #define WEBP_RIFF_HEADER_SIZE 12
@@ -342,22 +343,33 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 			close(fd);
 			return NULL_JLONG_POINTER;
 		}
+
+		Animation *animation = calloc(1, sizeof(Animation));
+		if (animation == NULL) {
+			throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+			close(fd);
+			return NULL_JLONG_POINTER;
+		}
+
 		struct stat st;
 		const long sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
-
 		bool isFileWebP = isWebP(fd);
 		lseek(fd, -WEBP_RIFF_HEADER_SIZE, SEEK_CUR);
 
-		void *info;
 		if (isFileWebP) {
 			//TODO
 		} else {
-			info = createGifInfoFromFile(env, file, sourceLength);
+			GifInfo *gifInfo = createGifInfoFromFile(env, file, sourceLength);
+			animation->data = gifInfo;
+			animation->canvasHeight = gifInfo->gifFilePtr->SHeight;
+			animation->canvasWidth = gifInfo->gifFilePtr->SWidth;
+			animation->getAllocationByteCount = getGifAllocationByteCount;
+			//TODO
 		}
-		if (info == NULL) {
+		if (animation->data == NULL) {
 			close(fd);
 		}
-		return (jlong) (intptr_t) info;
+		return (jlong) (intptr_t) animation;
 	} else {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		close(fd);

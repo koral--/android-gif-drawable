@@ -22,7 +22,7 @@ typedef long long (*GetCurrentPosition)(void *descriptor);
 
 typedef long (*GetMetadataByteCount)(void *descriptor);
 
-typedef long (*GetAllocationByteCount)(void *descriptor);
+typedef size_t (*GetAllocationByteCount)(void *descriptor);
 
 typedef int (*GetFrameDuration)(void *descriptor, int index);
 

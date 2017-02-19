@@ -98,13 +98,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getMetadataByteCount(JNIEnv *__unused  e
 	return (jlong) size;
 }
 
-__unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
-		return 0;
-	}
-
+size_t getGifAllocationByteCount(void *descriptor) {
+	GifInfo *info = descriptor;
 	size_t size = info->rasterSize;
 	if (size == 0) {
 		uint_fast32_t rasterSize = 0;
@@ -138,7 +133,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused 
 		size += stride * info->gifFilePtr->SHeight * sizeof(argb);
 	}
 
-	return (jlong) size;
+	return size;
+}
+__unused JNIEXPORT jlong JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused  env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return 0;
+	}
+	return (jlong) animation->getAllocationByteCount(animation->data);
 }
 
 __unused JNIEXPORT jint JNICALL

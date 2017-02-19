@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <sys/eventfd.h>
 #include "giflib/gif_lib.h"
+#include "animation/animation.h"
 
 #ifdef DEBUG
 
@@ -204,3 +205,5 @@ JNIEnv *getEnv();
 uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
+
+size_t getGifAllocationByteCount(void *descriptor);
