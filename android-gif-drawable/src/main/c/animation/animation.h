@@ -1,45 +1,38 @@
 #pragma once
 
 #include <stdint.h>
+#include "../gif.h"
 
-typedef long long (*RenderBitmap)(void *descriptor, void *pixels);
+typedef struct AnimationInterface {
+	uint_fast32_t (*RenderBitmap)(Animation *animation, void *pixels, uint_fast32_t frameIndex);
 
-typedef bool (*Reset)(void *descriptor);
+	bool (*Reset)(Animation *animation);
 
-typedef int (*SeekToTime)(void *descriptor, long desiredPosition);
+	int (*SeekToTime)(Animation *animation, long desiredPosition);
 
-typedef int (*SeekToFrame)(void *descriptor, uint_fast32_t desiredIndex);
+	int (*SeekToFrame)(Animation *animation, uint_fast32_t desiredIndex);
 
-typedef void (*Release)(void *descriptor);
+	void (*Release)(Animation *animation);
 
-typedef void (*SetOptions)(void *descriptor, char sampleSize, bool isOpaque);
+	void (*SetOptions)(Animation *animation, char sampleSize, bool isOpaque);
 
-typedef char *(*GetComment)(void *descriptor);
+	char *(*GetComment)(Animation *animation);
 
-typedef int (*GetDuration)(void *descriptor);
+	uint_fast32_t (*GetDuration)(Animation *animation, uint_fast32_t frameIndex);
 
-typedef long long (*GetCurrentPosition)(void *descriptor);
+	long long (*GetCurrentPosition)(Animation *animation);
 
-typedef long (*GetMetadataByteCount)(void *descriptor);
+	size_t (*GetMetadataByteCount)(Animation *animation);
 
-typedef size_t (*GetAllocationByteCount)(void *descriptor);
+	size_t (*GetAllocationByteCount)(Animation *animation);
 
-typedef int (*GetFrameDuration)(void *descriptor, int index);
+	int (*GetFrameDuration)(Animation *animation, int index);
+
+	int (*GetErrorCode)(Animation *animation);
+} AnimationInterface;
 
 typedef struct Animation {
-	RenderBitmap renderBitmap;
-	Reset reset;
-	SeekToTime seekToTime;
-	SeekToFrame seekToFrame;
-	Release release;
-	SetOptions setOptions;
-	GetComment getComment;
-	GetDuration getDuration;
-	GetCurrentPosition getCurrentPosition;
-	GetMetadataByteCount getMetadataByteCount;
-	GetAllocationByteCount getAllocationByteCount;
-	GetFrameDuration getFrameDuration;
-
+	AnimationInterface functions;
 	float speedFactor;
 	uint_fast16_t sampleSize;
 	long long lastFrameRemainder;
@@ -52,5 +45,6 @@ typedef struct Animation {
 	uint_fast32_t canvasWidth;
 	uint_fast32_t canvasHeight;
 	uint_fast32_t numberOfFrames;
+	uint32_t stride;
 	void *data;
 } Animation;

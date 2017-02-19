@@ -1,180 +1,147 @@
 #include "gif.h"
+#include "bitmap.h"
 
 __unused JNIEXPORT jstring JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return NULL;
 	}
-	return (*env)->NewStringUTF(env, info->comment);
+	char *comment = animation->functions.GetComment(animation);
+	return (*env)->NewStringUTF(env, comment);
 }
 
 __unused JNIEXPORT jboolean JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info != NULL && info->loopCount != 0 && info->currentLoop == info->loopCount) {
+Java_pl_droidsonroids_gif_GifInfoHandle_isAnimationCompleted(JNIEnv __unused *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return JNI_FALSE;
+	}
+	if (animation->loopCount != 0 && animation->currentLoopIndex == animation->loopCount) {
 		return JNI_TRUE;
 	}
 	return JNI_FALSE;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getLoopCount(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
-		return 0;
+Java_pl_droidsonroids_gif_GifInfoHandle_getLoopCount(JNIEnv __unused *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return NULL;
 	}
-	return (jint) ((GifInfo *) (intptr_t) gifInfo)->loopCount;
+	return (jint) animation->loopCount;
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setLoopCount(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo, jchar loopCount) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info != NULL) {
-		info->loopCount = loopCount;
+Java_pl_droidsonroids_gif_GifInfoHandle_setLoopCount(JNIEnv __unused *env, jclass __unused handleClass, jlong animationPtr, jchar loopCount) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return;
 	}
+	animation->loopCount = loopCount;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
-		return 0;
+Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return NULL;
 	}
 	uint_fast32_t i;
-	jint sum = 0;
-	for (i = 0; i < info->gifFilePtr->ImageCount; i++)
-		sum += info->controlBlock[i].DelayTime;
-	return sum;
+	uint_fast32_t sum = 0;
+	for (i = 0; i < animation->numberOfFrames; i++) {
+		sum += animation->functions.GetDuration(animation, i);
+	}
+	return (jint) sum;
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getSourceLength(JNIEnv __unused *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return -1;
 	}
-	return ((GifInfo *) (intptr_t) gifInfo)->sourceLength;
+	return animation->sourceLength;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return 0;
 	}
-	const uint_fast32_t idx = info->currentIndex;
-	if (info->gifFilePtr->ImageCount == 1) {
+	if (animation->numberOfFrames == 1) {
 		return 0;
 	}
+
 	uint_fast32_t i;
 	uint32_t sum = 0;
-	for (i = 0; i < idx; i++) {
-		sum += info->controlBlock[i].DelayTime;
+	for (i = 0; i < animation->currentFrameIndex; i++) {
+		sum += animation->functions.GetDuration(animation, i);
 	}
 
 	long long remainder;
-	if (info->lastFrameRemainder == -1) {
-		remainder = info->nextStartTime - getRealTime();
+	if (animation->lastFrameRemainder == -1) {
+		remainder = animation->nextStartTime - getRealTime();
 		if (remainder < 0) { //in case of if frame hasn't been rendered until nextStartTime passed
 			remainder = 0;
 		}
 	} else {
-		remainder = info->lastFrameRemainder;
+		remainder = animation->lastFrameRemainder;
 	}
 	return (jint) (sum - remainder); //2^31-1[ms]>596[h] so jint is enough
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getMetadataByteCount(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getMetadataByteCount(JNIEnv *__unused  env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return 0;
 	}
 
-	size_t size = sizeof(GifInfo) + sizeof(GifFileType);
-	size += info->gifFilePtr->ImageCount * (sizeof(GraphicsControlBlock) + sizeof(SavedImage));
-	size += info->comment != NULL ? strlen(info->comment) : 0;
-	return (jlong) size;
+	return (jlong) animation->functions.GetMetadataByteCount(animation);
 }
 
-size_t getGifAllocationByteCount(void *descriptor) {
-	GifInfo *info = descriptor;
-	size_t size = info->rasterSize;
-	if (size == 0) {
-		uint_fast32_t rasterSize = 0;
-		uint_fast32_t i;
-		for (i = 0; i < info->gifFilePtr->ImageCount; i++) {
-			GifImageDesc imageDesc = info->gifFilePtr->SavedImages[i].ImageDesc;
-			int_fast32_t widthOverflow = imageDesc.Width - info->originalWidth;
-			int_fast32_t heightOverflow = imageDesc.Height - info->originalHeight;
-			uint_fast32_t newRasterSize = imageDesc.Width * imageDesc.Height;
-			if (newRasterSize > rasterSize || widthOverflow > 0 || heightOverflow > 0) {
-				rasterSize = newRasterSize;
-			}
-		}
-		size = rasterSize;
-	}
-	size *= sizeof(GifPixelType);
-
-	bool isBackupBitmapUsed = info->backupPtr != NULL;
-	if (!isBackupBitmapUsed) {
-		uint_fast32_t i;
-		for (i = 1; i < info->gifFilePtr->ImageCount; i++) {
-			if (info->controlBlock[i].DisposalMode == DISPOSE_PREVIOUS) {
-				isBackupBitmapUsed = true;
-				break;
-			}
-		}
-	}
-
-	if (isBackupBitmapUsed) {
-		int32_t stride = info->stride > 0 ? info->stride : (int32_t) info->gifFilePtr->SWidth;
-		size += stride * info->gifFilePtr->SHeight * sizeof(argb);
-	}
-
-	return size;
-}
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused  env, jclass __unused handleClass, jlong animationPtr) {
 	Animation *const animation = (Animation *) (intptr_t) animationPtr;
 	if (animation == NULL) {
 		return 0;
 	}
-	return (jlong) animation->getAllocationByteCount(animation->data);
+	return (jlong) animation->functions.GetAllocationByteCount(animation);
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getNativeErrorCode(JNIEnv *__unused  env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getNativeErrorCode(JNIEnv *__unused  env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return 0;
 	}
-	return ((GifInfo *) (intptr_t) gifInfo)->gifFilePtr->Error;
+	return animation->functions.GetErrorCode(animation);
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentLoop(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentLoop(JNIEnv __unused *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return 0;
 	}
-	return (jint) ((GifInfo *) (intptr_t) gifInfo)->currentLoop;
+	return (jint) animation->currentLoopIndex;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentFrameIndex(JNIEnv __unused *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentFrameIndex(JNIEnv __unused *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return -1;
 	}
-	return (jint) ((GifInfo *) (intptr_t) gifInfo)->currentIndex;
+	return (jint) animation->currentFrameIndex;
 }
 
 __unused JNIEXPORT jlongArray JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return NULL;
 	}
 
@@ -183,14 +150,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getSavedState(JNIEnv *env, jclass __unus
 		throwException(env, RUNTIME_EXCEPTION_BARE, "Could not create state array");
 		return NULL;
 	}
-	jlong nativeState[4] = {(jlong) info->currentIndex, (jlong) info->currentLoop, info->lastFrameRemainder};
-	memcpy(nativeState + 3, &info->speedFactor, sizeof(info->speedFactor));
+	jlong nativeState[4] = {(jlong) animation->currentFrameIndex, (jlong) animation->currentLoopIndex, animation->lastFrameRemainder};
+	memcpy(nativeState + 3, &animation->speedFactor, sizeof(animation->speedFactor));
 	(*env)->SetLongArrayRegion(env, state, 0, 4, nativeState);
 	return state;
 }
 
-jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels) {
-	if (info->gifFilePtr->ImageCount == 1) {
+long long restoreSavedState(Animation *animation, JNIEnv *env, jlongArray state, void *pixels) {
+	if (animation->numberOfFrames == 1) {
 		return -1;
 	}
 
@@ -200,10 +167,10 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 	const uint_fast32_t savedIndex = (uint_fast32_t) nativeState[0];
 	const uint_fast8_t savedLoop = (uint_fast8_t) nativeState[1];
 
-	if (savedIndex >= info->gifFilePtr->ImageCount || info->currentLoop > info->loopCount)
+	if (savedIndex >= animation->numberOfFrames || animation->currentLoopIndex > animation->loopCount)
 		return -1;
 
-	if (savedIndex < info->currentIndex && !reset(info)) {
+	if (savedIndex < animation->currentFrameIndex && !reset(info)) {
 		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 		return -1;
 	}
@@ -214,73 +181,81 @@ jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixel
 			prepareCanvas(pixels, info);
 		while (info->currentIndex < savedIndex) {
 			DDGifSlurp(info, true, false);
-			lastFrameDuration = getBitmap(pixels, info);
+			lastFrameDuration = getBitmap(pixels, animation);
 		}
 	}
 
-	info->currentLoop = savedLoop;
-	info->lastFrameRemainder = nativeState[2];
-	memcpy(&info->speedFactor, nativeState + 3, sizeof(info->speedFactor));
+	animation->currentLoopIndex = savedLoop;
+	animation->lastFrameRemainder = nativeState[2];
+	memcpy(&animation->speedFactor, nativeState + 3, sizeof(animation->speedFactor));
 
-	if (info->lastFrameRemainder == -1) {
-		uint_fast32_t duration = (uint_fast32_t) (lastFrameDuration * info->speedFactor);
-		info->nextStartTime = getRealTime() + duration;
-		return (jint) duration;
+	if (animation->lastFrameRemainder == -1) {
+		long long duration = (long long) (lastFrameDuration * animation->speedFactor);
+		animation->nextStartTime = getRealTime() + duration;
+		return duration;
 	}
 	return -1;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_restoreSavedState(JNIEnv *env, jclass __unused handleClass,
-                                                          jlong gifInfo, jlongArray state, jobject jbitmap) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
+Java_pl_droidsonroids_gif_GifInfoHandle_restoreSavedState(JNIEnv *env, jclass __unused handleClass, jlong animationPtr, jlongArray state, jobject jbitmap) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return NULL;
+	}
 	void *pixels;
-	if (info == NULL || lockPixels(env, jbitmap, info, &pixels) != 0) {
+	if (lockPixels(env, jbitmap, animation, &pixels) != 0) {
 		return -1;
 	}
-	const jint invalidationDelay = restoreSavedState(info, env, state, pixels);
+	const long long invalidationDelay = restoreSavedState(animation, env, state, pixels);
 	unlockPixels(env, jbitmap);
-	return invalidationDelay;
+	return (jint) invalidationDelay;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getFrameDuration(__unused JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint index) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	return info == NULL ? 0 : (jint) info->controlBlock[index].DelayTime;
+Java_pl_droidsonroids_gif_GifInfoHandle_getFrameDuration(__unused JNIEnv *env, jclass __unused handleClass, jlong animationPtr, jint index) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return 0;
+	}
+	return (jint) animation->functions.GetDuration(animation, (uint_fast32_t) index);
 }
 
 __unused JNIEXPORT jboolean JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_isOpaque(__unused JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
-	GifInfo *const info = ((GifInfo *) (intptr_t) gifInfo);
-	if (info != NULL && info->isOpaque) {
+Java_pl_droidsonroids_gif_GifInfoHandle_isOpaque(__unused JNIEnv *env, jclass __unused handleClass, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
+		return JNI_FALSE;
+	}
+	if (animation->isOpaque) {
 		return JNI_TRUE;
 	}
 	return JNI_FALSE;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getWidth(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getWidth(__unused JNIEnv *env, jclass __unused class, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return 0;
 	}
-	return (jint) info->gifFilePtr->SWidth;
+	return (jint) animation->canvasWidth;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getHeight(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getHeight(__unused JNIEnv *env, jclass __unused class, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return 0;
 	}
-	return (jint) info->gifFilePtr->SHeight;
+	return (jint) animation->canvasHeight;
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_getNumberOfFrames(__unused JNIEnv *env, jclass __unused class, jlong gifInfo) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL) {
+Java_pl_droidsonroids_gif_GifInfoHandle_getNumberOfFrames(__unused JNIEnv *env, jclass __unused class, jlong animationPtr) {
+	Animation *const animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return 0;
 	}
-	return (jint) info->gifFilePtr->ImageCount;
+	return (jint) animation->numberOfFrames;
 }

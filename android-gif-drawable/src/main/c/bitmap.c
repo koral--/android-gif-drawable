@@ -1,10 +1,11 @@
 #include "gif.h"
 #include <android/bitmap.h>
+#include "bitmap.h"
 
-int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels) {
+int lockPixels(JNIEnv *env, jobject jbitmap, Animation *animation, void **pixels) {
 	AndroidBitmapInfo bitmapInfo;
 	if (AndroidBitmap_getInfo(env, jbitmap, &bitmapInfo) == ANDROID_BITMAP_RESULT_SUCCESS)
-		info->stride = bitmapInfo.width;
+		animation->stride = bitmapInfo.width;
 	else {
 		throwException(env, RUNTIME_EXCEPTION_BARE, "Could not get bitmap info");
 		return -2;
@@ -54,22 +55,29 @@ void unlockPixels(JNIEnv *env, jobject jbitmap) {
 	throwException(env, RUNTIME_EXCEPTION_BARE, message);
 }
 
+uint_fast32_t renderGifBitmap(Animation *animation, void *pixels, uint_fast32_t frameIndex) {
+	GifInfo *info = animation->data;
+	DDGifSlurp(info, true, false);
+	if (frameIndex == 0) {
+		prepareCanvas(pixels, info);
+	}
+	return getBitmap(pixels, info);
+}
+
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jobject jbitmap) {
-	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL)
+Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass, jlong animationPtr, jobject jbitmap) {
+	Animation *animation = (Animation *) (intptr_t) animationPtr;
+	if (animation == NULL) {
 		return -1;
+	}
 
 	long renderStartTime = getRealTime();
 	void *pixels;
-	if (lockPixels(env, jbitmap, info, &pixels) != 0) {
+	if (lockPixels(env, jbitmap, animation, &pixels) != 0) {
 		return 0;
 	}
-	DDGifSlurp(info, true, false);
-	if (info->currentIndex == 0) {
-		prepareCanvas(pixels, info);
-	}
-	const uint_fast32_t frameDuration = getBitmap(pixels, info);
+
+	const uint_fast32_t frameDuration = animation->renderBitmap(animation->data, pixels, animation->currentFrameIndex);
 	unlockPixels(env, jbitmap);
 	return calculateInvalidationDelay(info, renderStartTime, frameDuration);
 }

@@ -1,10 +1,10 @@
-#include "gif.h"
+#include "time.h"
 
-long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration) {
+long long calculateInvalidationDelay(Animation *animation, long renderStartTime, uint_fast32_t frameDuration) {
 	if (frameDuration) {
 		long long invalidationDelay = frameDuration;
-		if (info->speedFactor != 1.0) {
-			invalidationDelay /= info->speedFactor;
+		if (animation->speedFactor != 1.0) {
+			invalidationDelay /= animation->speedFactor;
 		}
 		const long renderingTime = getRealTime() - renderStartTime;
 		if (renderingTime >= invalidationDelay) {
@@ -12,7 +12,7 @@ long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_f
 		} else {
 			invalidationDelay -= renderingTime;
 		}
-		info->nextStartTime = renderStartTime + invalidationDelay;
+		animation->nextStartTime = renderStartTime + invalidationDelay;
 		return invalidationDelay;
 	}
 	return -1;

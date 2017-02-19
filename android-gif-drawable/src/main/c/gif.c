@@ -1,5 +1,6 @@
 #include <animation/animation.h>
-#include "gif.h"
+#include "bitmap.h"
+#include "gif/metadata.h"
 
 #define WEBP_RIFF_HEADER_SIZE 12
 
@@ -16,6 +17,15 @@ static uint_fast8_t readGifStream(GifFileType *gif, GifByteType *bytes, uint_fas
 static jint bufferUpTo(JNIEnv *env, StreamContainer *sc, size_t size);
 
 static bool isWebP(int fd);
+
+static struct AnimationInterface gifAnimationInterface = {
+		.RenderBitmap = renderGifBitmap,
+		.GetAllocationByteCount = getGifAllocationByteCount,
+		.GetComment = getGifComment,
+		.GetDuration = getGifDuration,
+		.GetMetadataByteCount = getGifMetadataByteCount,
+		.GetErrorCode = getGifErrorCode,
+};
 
 uint_fast8_t readGifFile(GifFileType *gif, GifByteType *bytes, uint_fast8_t size) {
 	FILE *file = (FILE *) gif->UserData;
@@ -363,8 +373,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 			animation->data = gifInfo;
 			animation->canvasHeight = gifInfo->gifFilePtr->SHeight;
 			animation->canvasWidth = gifInfo->gifFilePtr->SWidth;
-			animation->getAllocationByteCount = getGifAllocationByteCount;
-			//TODO
+			animation->functions = gifAnimationInterface;
 		}
 		if (animation->data == NULL) {
 			close(fd);

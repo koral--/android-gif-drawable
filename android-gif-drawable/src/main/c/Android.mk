@@ -244,6 +244,7 @@ LOCAL_SRC_FILES := \
 	init.c \
 	dispose.c \
 	webp/webp.c \
+	gif/metadata.c \
 	giflib/dgif_lib.c \
 	giflib/gifalloc.c \
 	giflib/openbsd-reallocarray.c \

@@ -11,7 +11,6 @@
 
 #include <unistd.h>
 #include <jni.h>
-#include <time.h>
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -104,7 +103,6 @@ struct GifInfo {
 	uint_fast16_t sampleSize;
 	long long lastFrameRemainder;
 	long long nextStartTime;
-	uint_fast32_t currentIndex;
 	GraphicsControlBlock *controlBlock;
 	argb *backupPtr;
 	long long startPos;
@@ -115,7 +113,6 @@ struct GifInfo {
 	uint_fast16_t currentLoop;
 	RewindFunc rewindFunction;
 	jfloat speedFactor;
-	uint32_t stride;
 	long long sourceLength;
 	bool isOpaque;
 	void *frameBufferDescriptor;
@@ -155,11 +152,6 @@ void DetachCurrentThread();
 ColorMapObject *getDefColorMap();
 
 /**
-* @return the real time, in ms
-*/
-long getRealTime();
-
-/**
 * Frees dynamically allocated memory
 */
 void cleanUp(GifInfo *info);
@@ -186,13 +178,7 @@ uint_fast32_t getBitmap(argb *bm, GifInfo *info);
 
 bool reset(GifInfo *info);
 
-int lockPixels(JNIEnv *env, jobject jbitmap, GifInfo *info, void **pixels);
-
-void unlockPixels(JNIEnv *env, jobject jbitmap);
-
-long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_fast32_t frameDuration);
-
-jint restoreSavedState(GifInfo *info, JNIEnv *env, jlongArray state, void *pixels);
+long long restoreSavedState(Animation *animation, JNIEnv *env, jlongArray state, void *pixels);
 
 void prepareCanvas(const argb *bm, GifInfo *info);
 
@@ -205,5 +191,3 @@ JNIEnv *getEnv();
 uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
-
-size_t getGifAllocationByteCount(void *descriptor);
