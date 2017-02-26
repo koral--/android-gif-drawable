@@ -7,7 +7,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getComment(JNIEnv *env, jclass __unused 
 	if (animation == NULL) {
 		return NULL;
 	}
-	char *comment = animation->functions.GetComment(animation);
+	char *comment = animation->functions->GetComment(animation);
 	return (*env)->NewStringUTF(env, comment);
 }
 
@@ -50,7 +50,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getDuration(JNIEnv *__unused  env, jclas
 	uint_fast32_t i;
 	uint_fast32_t sum = 0;
 	for (i = 0; i < animation->numberOfFrames; i++) {
-		sum += animation->functions.GetDuration(animation, i);
+		sum += animation->functions->GetDuration(animation, i);
 	}
 	return (jint) sum;
 }
@@ -77,7 +77,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getCurrentPosition(JNIEnv *__unused env,
 	uint_fast32_t i;
 	uint32_t sum = 0;
 	for (i = 0; i < animation->currentFrameIndex; i++) {
-		sum += animation->functions.GetDuration(animation, i);
+		sum += animation->functions->GetDuration(animation, i);
 	}
 
 	long long remainder;
@@ -99,7 +99,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getMetadataByteCount(JNIEnv *__unused  e
 		return 0;
 	}
 
-	return (jlong) animation->functions.GetMetadataByteCount(animation);
+	return (jlong) animation->functions->GetMetadataByteCount(animation);
 }
 
 __unused JNIEXPORT jlong JNICALL
@@ -108,7 +108,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getAllocationByteCount(JNIEnv *__unused 
 	if (animation == NULL) {
 		return 0;
 	}
-	return (jlong) animation->functions.GetAllocationByteCount(animation);
+	return (jlong) animation->functions->GetAllocationByteCount(animation);
 }
 
 __unused JNIEXPORT jint JNICALL
@@ -117,7 +117,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getNativeErrorCode(JNIEnv *__unused  env
 	if (animation == NULL) {
 		return 0;
 	}
-	return animation->functions.GetErrorCode(animation);
+	return animation->functions->GetErrorCode(animation);
 }
 
 __unused JNIEXPORT jint JNICALL
@@ -218,7 +218,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_getFrameDuration(__unused JNIEnv *env, j
 	if (animation == NULL) {
 		return 0;
 	}
-	return (jint) animation->functions.GetDuration(animation, (uint_fast32_t) index);
+	return (jint) animation->functions->GetDuration(animation, (uint_fast32_t) index);
 }
 
 __unused JNIEXPORT jboolean JNICALL

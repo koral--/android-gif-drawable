@@ -373,7 +373,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 			animation->data = gifInfo;
 			animation->canvasHeight = gifInfo->gifFilePtr->SHeight;
 			animation->canvasWidth = gifInfo->gifFilePtr->SWidth;
-			animation->functions = gifAnimationInterface;
+			animation->functions = &gifAnimationInterface;
 		}
 		if (animation->data == NULL) {
 			close(fd);

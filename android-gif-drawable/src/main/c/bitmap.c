@@ -77,7 +77,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused
 		return 0;
 	}
 
-	const uint_fast32_t frameDuration = animation->renderBitmap(animation->data, pixels, animation->currentFrameIndex);
+	const uint_fast32_t frameDuration = animation->functions->RenderBitmap(animation, pixels, animation->currentFrameIndex);
 	unlockPixels(env, jbitmap);
-	return calculateInvalidationDelay(info, renderStartTime, frameDuration);
+	return calculateInvalidationDelay(animation, renderStartTime, frameDuration);
 }
