@@ -1,5 +1,7 @@
 ### 1.2.6-SNAPSHOT
-Nothing yet
+- Mockito updated to 2.7.11
+- Gradle wrapper regenerated with 3.4
+- Support library dependency version updated to 25.2.0
 
 ### 1.2.5
 - Unneeded debugging symbols removed, fixes - [#383](https://github.com/koral--/android-gif-drawable/issues/383)
