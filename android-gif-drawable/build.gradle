@@ -25,7 +25,8 @@ android {
 		consumerProguardFiles 'consumer-proguard-rules.pro'
 		testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
 		externalNativeBuild {
-			ndkBuild {
+			cmake {
+				arguments "-DANDROID_PLATFORM=android-$versions.minSdk"
 				if (isDebugBuild()) {
 					cFlags '-Wall', '-Weverything', '-std=c11', '-DDEBUG'
 					arguments 'NDK_DEBUG=1'
@@ -90,7 +91,7 @@ bintray {
 }
 
 def isDebugBuild() {
-	!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+	false//!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
 }
 
 task archiveSymbols(type: Tar) {
