@@ -21,7 +21,6 @@
  *    code which was specified as a count of bytes. More verbose comments
  *    to aid future maintenance.
  */
-#ifdef __arm__
 .text
 .align 4
 .syntax unified
@@ -88,4 +87,3 @@ arm_memset32:
 .Lfinish:
 	pop         {pc}
 	.fnend
-#endif

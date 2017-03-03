@@ -1,14 +1,14 @@
 #include "gif.h"
 
-#if defined (__arm__)
-extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
-#define MEMSET_ARGB(dst, value, count) arm_memset32(dst, value, (int) count)
-#elif defined (__ARM_ARCH_7A__)
-extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
-#define MEMSET_ARGB(dst, value, count) memset32_neon(dst, value, (int) count)
-#else
+//#if defined (__arm__)
+//extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
+//#define MEMSET_ARGB(dst, value, count) arm_memset32(dst, value, (int) count)
+//#elif defined (__ARM_ARCH_7A__)
+//extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
+//#define MEMSET_ARGB(dst, value, count) memset32_neon(dst, value, (int) count)
+//#else
 #define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
-#endif
+//#endif
 
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
 	unsigned char *src = info->rasterBits;

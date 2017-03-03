@@ -4,7 +4,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  ***************************************************************************/
-#ifdef __ARM_ARCH_7A__
+
 .syntax unified
 .code 32
 .fpu neon
@@ -111,4 +111,3 @@ str		r1, [r0, #0]
 bx		lr
 
 .end
-#endif
