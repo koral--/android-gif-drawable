@@ -27,9 +27,9 @@ android {
 		externalNativeBuild {
 			cmake {
 				arguments "-DANDROID_PLATFORM=android-$versions.minSdk"
-				cFlags '-std=c11'
+				cFlags '-std=c11', '-Weverything', '-Wall'
 				if (isDebugBuild()) {
-					cFlags '-DDEBUG', '-Weverything', '-Wall'
+					cFlags '-DDEBUG'
 				} else {
 					cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
 				}
@@ -90,7 +90,7 @@ bintray {
 }
 
 def isDebugBuild() {
-	false//!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+	!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
 }
 
 task archiveSymbols(type: Tar) {

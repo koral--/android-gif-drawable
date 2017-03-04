@@ -8,10 +8,14 @@ sudo: true
 language:
   - android
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libstdc++-4.9-dev
+
 licenses:
-  - 'android-sdk-preview-license-52d11cd2'
-  - 'android-sdk-license-.+'
-  - 'google-gdk-license-.+'
   - '*'
 
 android:
@@ -35,6 +39,8 @@ before_script:
   - adb shell wm dismiss-keyguard
 
 before_install:
+  - mkdir -p $ANDROID_HOME/licenses
+  - echo 8933bad161af4178b1185d1a37fbf41ea5269c55 > $ANDROID_HOME/licenses/android-sdk-license
   - wget http://dl.google.com/android/repository/android-ndk-$NDK_VERSION-linux-x86_64.zip
   - unzip android-ndk-$NDK_VERSION-linux-x86_64.zip > /dev/null
   - export ANDROID_NDK_HOME=`pwd`/android-ndk-$NDK_VERSION
@@ -43,8 +49,9 @@ before_install:
 script:
   - ./gradlew build connectedCheck :android-gif-drawable:jacocoTestReport
 
-after_failure:
+after_script:
  - cat android-gif-drawable/build/outputs/lint-results-debug.xml
+ - adb logcat -d
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
