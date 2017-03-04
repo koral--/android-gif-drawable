@@ -1,6 +1,6 @@
 env:
   global:
-    - NDK_VERSION=r13b
+    - NDK_VERSION=r14
     - MALLOC_ARENA_MAX=2
 
 sudo: true
@@ -12,6 +12,7 @@ licenses:
   - 'android-sdk-preview-license-52d11cd2'
   - 'android-sdk-license-.+'
   - 'google-gdk-license-.+'
+  - '*'
 
 android:
   components:
