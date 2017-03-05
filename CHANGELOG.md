@@ -1,12 +1,14 @@
 ### 1.2.6-SNAPSHOT
-- Mockito updated to 2.7.11
+- native build system changed to cmake, fixes unnecessary removed actions - [#389](https://github.com/koral--/android-gif-drawable/issues/389)
+- Robolectric version updated to 3.3
+- Mockito updated to 2.7.13
 - Gradle wrapper regenerated with 3.4
 - Support library dependency version updated to 25.2.0
 
 ### 1.2.5
 - Unneeded debugging symbols removed, fixes - [#383](https://github.com/koral--/android-gif-drawable/issues/383)
 - Fixed loading native library for additional ABIs on API level < 21 - [#379](https://github.com/koral--/android-gif-drawable/issues/379)
-- Robolectric version updated to 3.2.2
+- Robolectric updated to 3.2.2
 - Mockito updated to 2.7.0
 - Gradle wrapper regenerated with 3.3
 - Support library dependency version updated to 25.1.1
