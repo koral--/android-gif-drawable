@@ -9,7 +9,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import pl.droidsonroids.gif.MultiCallback.CallbackWeakReference;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CallbackWeakReferenceTest {

@@ -1,6 +1,7 @@
 ### 1.2.6-SNAPSHOT
 - native build system changed to cmake, fixes unnecessary removed actions - [#389](https://github.com/koral--/android-gif-drawable/issues/389)
-- Robolectric version updated to 3.3
+- Robolectric updated to 3.3
+- Assertj updated to 3.6.2
 - Mockito updated to 2.7.13
 - Gradle wrapper regenerated with 3.4
 - Support library dependency version updated to 25.2.0

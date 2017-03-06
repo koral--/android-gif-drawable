@@ -62,7 +62,7 @@ dependencies {
 	testCompile 'junit:junit:4.12'
 	testCompile 'org.mockito:mockito-core:2.7.13'
 	testCompile 'org.robolectric:robolectric:3.3'
-	testCompile 'org.assertj:assertj-core:1.7.1'
+	testCompile 'org.assertj:assertj-core:3.6.2'
 	testCompile 'net.jodah:concurrentunit:0.4.2'
 	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
 	androidTestCompile 'junit:junit:4.12'
