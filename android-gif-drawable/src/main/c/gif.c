@@ -228,18 +228,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
-	static jmethodID markMID = NULL;
-	if (markMID == NULL) {
-		markMID = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
-	}
-	static jmethodID readMID = NULL;
-	if (readMID == NULL) {
-		readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
-	}
-	static jmethodID resetMID = NULL;
-	if (resetMID == NULL) {
-		resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
-	}
+
+	jmethodID markMID = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
+	jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
+	jmethodID resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
 
 	if (markMID == NULL || readMID == NULL || resetMID == NULL) {
 		(*env)->DeleteGlobalRef(env, streamCls);

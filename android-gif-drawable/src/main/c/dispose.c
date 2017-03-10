@@ -11,13 +11,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 	}
 	if (info->rewindFunction == streamRewind) {
 		StreamContainer *sc = info->gifFilePtr->UserData;
-		static jmethodID closeMID = NULL;
-		if (closeMID == NULL) {
-			(*env)->GetMethodID(env, sc->streamCls, "close", "()V");
-		}
-		if (closeMID != NULL) {
-			(*env)->CallVoidMethod(env, sc->stream, closeMID);
-		}
+
+		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close", "()V");
+		(*env)->CallVoidMethod(env, sc->stream, closeMID);
+
 		if ((*env)->ExceptionCheck(env)) {
 			(*env)->ExceptionClear(env);
 		}
