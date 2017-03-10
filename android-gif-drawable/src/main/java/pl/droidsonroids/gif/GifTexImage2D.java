@@ -125,6 +125,15 @@ public class GifTexImage2D {
 		return mGifInfoHandle.getHeight();
 	}
 
+	/**
+	 * See {@link GifDrawable#getDuration()}
+	 *
+	 * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
+	 */
+	public int getDuration() {
+		return mGifInfoHandle.getDuration();
+	}
+
 	@Override
 	@SuppressWarnings("ThrowFromFinallyBlock")
 	protected final void finalize() throws Throwable {
