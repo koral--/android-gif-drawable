@@ -1,9 +1,12 @@
 ### 1.2.6-SNAPSHOT
-- native build system changed to cmake, fixes unnecessary removed actions - [#389](https://github.com/koral--/android-gif-drawable/issues/389)
-- Robolectric updated to 3.3
+- Native build system changed to cmake, fixes unnecessary removed actions - [#389](https://github.com/koral--/android-gif-drawable/issues/389)
+- JNI method ids obtaining fixed - [#391](https://github.com/koral--/android-gif-drawable/issues/391)
+- Fixed source InputStream closing on recycle
+- Added `GifTexImage2D#getDuration()`   
+- Robolectric updated to 3.3.1
 - Assertj updated to 3.6.2
-- Mockito updated to 2.7.13
-- Gradle wrapper regenerated with 3.4
+- Mockito updated to 2.7.15
+- Gradle wrapper regenerated with 3.4.1
 - Support library dependency version updated to 25.2.0
 
 ### 1.2.5
