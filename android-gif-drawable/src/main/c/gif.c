@@ -33,7 +33,7 @@ static jint bufferUpTo(JNIEnv *env, StreamContainer *sc, size_t size) {
 	jint totalLength = 0;
 	jint length;
 	do {
-		length = (*env)->CallIntMethod(env, sc->stream, sc->readMID, sc->buffer, totalLength, size - totalLength);
+		length = (*env)->CallIntMethod(env, sc->stream, sc->readMethodID, sc->buffer, totalLength, size - totalLength);
 		if (length > 0) {
 			totalLength += length;
 		} else {
@@ -104,7 +104,7 @@ int streamRewind(GifInfo *info) {
 		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
 		return -1;
 	}
-	(*env)->CallVoidMethod(env, sc->stream, sc->resetMID);
+	(*env)->CallVoidMethod(env, sc->stream, sc->resetMethodID);
 	if ((*env)->ExceptionCheck(env)) {
 		(*env)->ExceptionClear(env);
 		info->gifFilePtr->Error = D_GIF_ERR_REWIND_FAILED;
@@ -223,50 +223,45 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream) {
-	jclass streamCls = (*env)->NewGlobalRef(env, (*env)->GetObjectClass(env, stream));
-	if (streamCls == NULL) {
-		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
-		return NULL_GIF_INFO;
-	}
-
-	jmethodID markMID = (*env)->GetMethodID(env, streamCls, "mark", "(I)V");
-	jmethodID readMID = (*env)->GetMethodID(env, streamCls, "read", "([BII)I");
-	jmethodID resetMID = (*env)->GetMethodID(env, streamCls, "reset", "()V");
-
-	if (markMID == NULL || readMID == NULL || resetMID == NULL) {
-		(*env)->DeleteGlobalRef(env, streamCls);
-		return NULL_GIF_INFO;
-	}
-
 	StreamContainer *container = malloc(sizeof(StreamContainer));
 	if (container == NULL) {
-		(*env)->DeleteGlobalRef(env, streamCls);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL_GIF_INFO;
 	}
 
-	container->buffer = (*env)->NewByteArray(env, STREAM_BUFFER_SIZE);
+	container->buffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, STREAM_BUFFER_SIZE));
 	if (container->buffer == NULL) {
-		(*env)->DeleteGlobalRef(env, streamCls);
+		free(container);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL_GIF_INFO;
 	}
-	container->buffer = (*env)->NewGlobalRef(env, container->buffer);
-	if (container->buffer == NULL) {
+
+	jclass streamClass = (*env)->GetObjectClass(env, stream);
+	if (streamClass == NULL) {
+		free(container);
+		(*env)->DeleteGlobalRef(env, container->buffer);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
 
-	container->readMID = readMID;
-	container->resetMID = resetMID;
+	jmethodID markMethodID = (*env)->GetMethodID(env, streamClass, "mark", "(I)V");
+	container->readMethodID = (*env)->GetMethodID(env, streamClass, "read", "([BII)I");
+	container->resetMethodID = (*env)->GetMethodID(env, streamClass, "reset", "()V");
+	container->closeMethodID = (*env)->GetMethodID(env, streamClass, "close", "()V");
+
+	if (markMethodID == NULL || container->readMethodID == NULL || container->resetMethodID == NULL || container->closeMethodID == NULL) {
+		free(container);
+		(*env)->DeleteGlobalRef(env, container->buffer);
+		return NULL_GIF_INFO;
+	}
+
 	container->stream = (*env)->NewGlobalRef(env, stream);
 	if (container->stream == NULL) {
 		free(container);
-		(*env)->DeleteGlobalRef(env, streamCls);
+		(*env)->DeleteGlobalRef(env, container->buffer);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
-	container->streamCls = streamCls;
 
 	GifSourceDescriptor descriptor = {
 			.rewindFunc = streamRewind,
@@ -277,14 +272,14 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	container->markCalled = false;
 	descriptor.GifFileIn = DGifOpen(container, &streamRead, &descriptor.Error);
 
-	(*env)->CallVoidMethod(env, stream, markMID, LONG_MAX);
-	container->markCalled = true;
-	container->bufferPosition = 0;
+	(*env)->CallVoidMethod(env, stream, markMethodID, LONG_MAX);
+
 	if (!(*env)->ExceptionCheck(env)) {
 		GifInfo *info = createGifInfo(&descriptor, env);
+		container->markCalled = true;
+		container->bufferPosition = 0;
 		return (jlong) (intptr_t) info;
 	} else {
-		(*env)->DeleteGlobalRef(env, streamCls);
 		(*env)->DeleteGlobalRef(env, container->stream);
 		(*env)->DeleteGlobalRef(env, container->buffer);
 		free(container);

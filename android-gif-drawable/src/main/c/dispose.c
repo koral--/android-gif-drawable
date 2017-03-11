@@ -10,23 +10,18 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 		info->destructor(info, env);
 	}
 	if (info->rewindFunction == streamRewind) {
-		StreamContainer *sc = info->gifFilePtr->UserData;
+		StreamContainer *streamContainer = info->gifFilePtr->UserData;
 
-		jmethodID closeMID = (*env)->GetMethodID(env, sc->streamCls, "close", "()V");
-		(*env)->CallVoidMethod(env, sc->stream, closeMID);
+		(*env)->CallVoidMethod(env, streamContainer->stream, streamContainer->closeMethodID);
 
 		if ((*env)->ExceptionCheck(env)) {
 			(*env)->ExceptionClear(env);
 		}
 
-		(*env)->DeleteGlobalRef(env, sc->streamCls);
-		(*env)->DeleteGlobalRef(env, sc->stream);
+		(*env)->DeleteGlobalRef(env, streamContainer->stream);
+		(*env)->DeleteGlobalRef(env, streamContainer->buffer);
 
-		if (sc->buffer != NULL) {
-			(*env)->DeleteGlobalRef(env, sc->buffer);
-		}
-
-		free(sc);
+		free(streamContainer);
 	}
 	else if (info->rewindFunction == fileRewind) {
 		fclose(info->gifFilePtr->UserData);

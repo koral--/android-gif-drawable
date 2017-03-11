@@ -120,9 +120,9 @@ struct GifInfo {
 
 typedef struct {
 	jobject stream;
-	jclass streamCls;
-	jmethodID readMID;
-	jmethodID resetMID;
+	jmethodID readMethodID;
+	jmethodID resetMethodID;
+	jmethodID closeMethodID;
 	jbyteArray buffer;
 	jint bufferPosition;
 	bool markCalled;
