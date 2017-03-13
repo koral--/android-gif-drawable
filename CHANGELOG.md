@@ -1,4 +1,4 @@
-### 1.2.6-SNAPSHOT
+### 1.2.6
 - Native build system changed to cmake, fixes unnecessary removed actions - [#389](https://github.com/koral--/android-gif-drawable/issues/389)
 - JNI method ids obtaining fixed - [#391](https://github.com/koral--/android-gif-drawable/issues/391)
 - Fixed source InputStream closing on recycle
