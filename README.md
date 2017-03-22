@@ -65,20 +65,20 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
-###Requirements
+### Requirements
 + Android 2.3+ (API level 9+)
 + for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
 + for `GifTexImage2D` OpenGL ES 2.0+
 
-####Building from source
+#### Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
 
-##Usage
+## Usage
 
-###Sample project
+### Sample project
 See `sample` directory. Sample project is under construction. Not all features are covered yet.
 
-###From XML
+### From XML
 The simplest way is to use `GifImageView` (or `GifImageButton`) like a normal `ImageView`:
 ```xml
 <pl.droidsonroids.gif.GifImageView
@@ -104,7 +104,7 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
     />
 ```
 
-###From Java code
+### From Java code
 `GifImageView`, `GifImageButton` and `GifTextView` have also hooks for setters implemented. So animated GIFs can be set by calling `setImageResource(int resId)` and `setBackgroundResource(int resId)`
 
 `GifDrawable` can be constructed directly from various sources:
@@ -156,7 +156,7 @@ underlying input source.
 Note that all input sources need to have ability to rewind to the beginning. It is required to correctly play animated GIFs 
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
 
-####Animation control
+#### Animation control
 `GifDrawable` implements an `Animatable` and `MediaPlayerControl` so you can use its methods and more:
 
 + `stop()` - stops the animation, can be called from any thread
@@ -168,7 +168,7 @@ Note that all input sources need to have ability to rewind to the beginning. It 
 + `getDuration()` - returns duration of one loop of the animation
 + `getCurrentPosition()` - returns elapsed time from the beginning of a current loop of animation
 
-#####Using [MediaPlayerControl](http://developer.android.com/reference/android/widget/MediaController.MediaPlayerControl.html)
+##### Using [MediaPlayerControl](http://developer.android.com/reference/android/widget/MediaController.MediaPlayerControl.html)
 Standard controls for a MediaPlayer (like in [VideoView](http://developer.android.com/reference/android/widget/VideoView.html)) can be used to control GIF animation and show its current progress.
 
 Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer.android.com/reference/android/widget/MediaController.html) like this:
@@ -194,7 +194,7 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 	}
 ```
 
-####Retrieving GIF metadata
+#### Retrieving GIF metadata
 
 + `getLoopCount()` - returns a loop count as defined in `NETSCAPE 2.0` extension
 + `getNumberOfFrames()` - returns number of frames (at least 1)
@@ -204,7 +204,7 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 + `getInputSourceByteCount()` - returns length (in bytes) of the backing input data
 + `toString()` - returns human readable information about image size and number of frames (intended for debugging purpose)
 
-####Associating single `GifDrawable` instance with multiple `View`s
+#### Associating single `GifDrawable` instance with multiple `View`s
 
 Normally single `GifDrawable` instance associated with multiple `View`s will animate only on the last one.
 To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, eg.:
@@ -220,64 +220,64 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
     gifDrawable.setCallback(multiCallback);
 ```
 
-####Advanced
+#### Advanced
  
 + `recycle()` - provided to speed up freeing memory (like in `android.graphics.Bitmap`)
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
-##Upgrading from 1.2.3
+## Upgrading from 1.2.3
 Meaningful only if consumer proguard rules (bundled with library) are **not** used (they are used by default by Gradle).
 + Proguard rule has changed to `-keep public class pl.droidsonroids.gif.GifIOException{<init>(int, java.lang.String);}` 
 
-##Upgrading from 1.1.17
+## Upgrading from 1.1.17
 1.1.17 is the last version supporting API level 8 (Froyo). Starting from 1.2.0 minimum API level is 9 (Gingerbread).
 
-##Upgrading from 1.1.13
+## Upgrading from 1.1.13
 Handling of several edge cases has been changed:
 + `GifDrawable#getNumberOfFrames()` now returns 0 when `GifDrawable` is recycled
 + Information included in result of `GifDrawable#toString()` when `GifDrawable` is recycled now contains zeroes only
 
-##Upgrading from 1.1.10
+## Upgrading from 1.1.10
 It is recommended (but not required) to call `LibraryLoader.initialize()` before using `GifDrawable`. `Context` is needed in some cases
 when native libraries cannot be extracted normally. See [ReLinker](https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db)
 for more details. 
 If `LibraryLoader.initialize()` was not called and normal library loading fails, `Context` will be tried to be retrieved in fall back way which may not always work.   
 
-##Upgrading from 1.1.9
+## Upgrading from 1.1.9
 `int` parameter `loopNumber` has been added to `AnimationListener#onAnimationCompleted()`.
 
-##Upgrading from 1.1.8
-####Proguard configuration not needed
+## Upgrading from 1.1.8
+#### Proguard configuration not needed
 Proguard configuration is now bundled with the library, you don't need to specify it yourself.
 
-##Upgrading from 1.1.3
+## Upgrading from 1.1.3
 `src` XML attribute in `GifTextureView` has been renamed to `gifSource` to avoid possible conflicts with other libraries.
 
-##Upgrading from 1.0.x
-####Proguard configuration update
+## Upgrading from 1.0.x
+#### Proguard configuration update
 Proguard configuration has changed to:
 ```
 -keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}
 -keep class pl.droidsonroids.gif.GifInfoHandle{<init>(long,int,int,int);}
 ```
 
-####Drawable recycling behavior change
+#### Drawable recycling behavior change
 `GifDrawable` now uses `android.graphics.Bitmap` as frame buffer. Trying to access pixels (including drawing)
  of recycled `GifDrawable` will cause `IllegalStateException` like in `Bitmap`.
 
-####Minimum SDK version changed
+#### Minimum SDK version changed
 Minimum API level is now 8 (Android 2.2).
 
-####Rendering moved to background thread
+#### Rendering moved to background thread
 Rendering is performed in background thread running independently from main thread so animation is running
 even if drawable is not drawn. However rendering is not running if drawable is not visible, see [#setVisible()](http://developer.android.com/reference/android/graphics/drawable/Drawable.html#setVisible(boolean, boolean)).
 That method can be used to control drawable visibility in cases when it is not already handled by Android framework.
 
-##References
+## References
 This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.3 and [SKIA](https://code.google.com/p/skia/).
 
-###Projects using android-gif-drawable
+### Projects using android-gif-drawable
 [ImageFactory](https://github.com/Doctoror/ImageFactory)
 
 [NativeScript Plugin by Brad Martin](https://github.com/bradmartin/nativescript-gif) available on [NPM](https://www.npmjs.com/package/nativescript-gif)
@@ -286,7 +286,7 @@ This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.3 and [
 
 Want to include your project here? [Fill an issue](https://github.com/koral--/android-gif-drawable/issues/new)
 
-##License
+## License
 
 MIT License<br>
 See [LICENSE](LICENSE) file.
