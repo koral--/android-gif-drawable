@@ -41,8 +41,8 @@ allprojects {
 Current development builds (build from `dev` branch) are published to OSS snapshot repository. To use them, specify repository URL in `repositories` block:
 ```groovy
 repositories {
-	mavenCentral()
-	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }
 dependencies {
     compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.+'
@@ -52,10 +52,10 @@ dependencies {
 
 ```xml
 <dependency>
-	<groupId>pl.droidsonroids.gif</groupId>
-	<artifactId>android-gif-drawable</artifactId>
-	<version>insert latest version here</version>
-	<type>aar</type>
+    <groupId>pl.droidsonroids.gif</groupId>
+    <artifactId>android-gif-drawable</artifactId>
+    <version>insert latest version here</version>
+    <type>aar</type>
 </dependency>
 ```
 #### Eclipse
@@ -110,44 +110,43 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 `GifDrawable` can be constructed directly from various sources:
 
 ```java
-		//asset file
-		GifDrawable gifFromAssets = new GifDrawable( getAssets(), "anim.gif" );
+//asset file
+GifDrawable gifFromAssets = new GifDrawable( getAssets(), "anim.gif" );
 		
-		//resource (drawable or raw)
-		GifDrawable gifFromResource = new GifDrawable( getResources(), R.drawable.anim );
+//resource (drawable or raw)
+GifDrawable gifFromResource = new GifDrawable( getResources(), R.drawable.anim );
 		
-		//Uri
-		ContentResolver contentResolver = ... //can be null for file:// Uris
-		GifDrawable gifFromUri = new GifDrawable( contentResolver, gifUri );
+//Uri
+ContentResolver contentResolver = ... //can be null for file:// Uris
+GifDrawable gifFromUri = new GifDrawable( contentResolver, gifUri );
 
-		//byte array
-		byte[] rawGifBytes = ...
-		GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );
+//byte array
+byte[] rawGifBytes = ...
+GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );
 		
-		//FileDescriptor
-		FileDescriptor fd = new RandomAccessFile( "/path/anim.gif", "r" ).getFD();
-		GifDrawable gifFromFd = new GifDrawable( fd );
+//FileDescriptor
+FileDescriptor fd = new RandomAccessFile( "/path/anim.gif", "r" ).getFD();
+GifDrawable gifFromFd = new GifDrawable( fd );
 		
-		//file path
-		GifDrawable gifFromPath = new GifDrawable( "/path/anim.gif" );
+//file path
+GifDrawable gifFromPath = new GifDrawable( "/path/anim.gif" );
 		
-		//file
-		File gifFile = new File(getFilesDir(),"anim.gif");
-		GifDrawable gifFromFile = new GifDrawable(gifFile);
+//file
+File gifFile = new File(getFilesDir(),"anim.gif");
+GifDrawable gifFromFile = new GifDrawable(gifFile);
 		
-		//AssetFileDescriptor
-		AssetFileDescriptor afd = getAssets().openFd( "anim.gif" );
-		GifDrawable gifFromAfd = new GifDrawable( afd );
+//AssetFileDescriptor
+AssetFileDescriptor afd = getAssets().openFd( "anim.gif" );
+GifDrawable gifFromAfd = new GifDrawable( afd );
 				
-		//InputStream (it must support marking)
-		InputStream sourceIs = ...
-		BufferedInputStream bis = new BufferedInputStream( sourceIs, GIF_LENGTH );
-		GifDrawable gifFromStream = new GifDrawable( bis );
+//InputStream (it must support marking)
+InputStream sourceIs = ...
+BufferedInputStream bis = new BufferedInputStream( sourceIs, GIF_LENGTH );
+GifDrawable gifFromStream = new GifDrawable( bis );
 		
-		//direct ByteBuffer
-		ByteBuffer rawGifBytes = ...
-		GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );
-		
+//direct ByteBuffer
+ByteBuffer rawGifBytes = ...
+GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );	
 ````
 InputStreams are closed automatically in finalizer if GifDrawable is no longer needed 
 so you don't need to explicitly close them. Calling `recycle()` will also close 
@@ -173,25 +172,22 @@ Standard controls for a MediaPlayer (like in [VideoView](http://developer.androi
 
 Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer.android.com/reference/android/widget/MediaController.html) like this:
 ```java
-	@Override
-	protected void onCreate (Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
-		GifImageButton gib = new GifImageButton( this);
-		setContentView(gib);
-		gib.setImageResource(R.drawable.sample);
-		final MediaController mc = new MediaController(this);
-		mc.setMediaPlayer((GifDrawable)gib.getDrawable());
-		mc.setAnchorView(gib);
-		gib.setOnClickListener( new OnClickListener()
-		{
-			@Override
-			public void onClick ( View v )
-			{
-				mc.show();
-			}
-		} );
-	}
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    GifImageButton gib = new GifImageButton(this);
+    setContentView(gib);
+    gib.setImageResource(R.drawable.sample);
+    final MediaController mc = new MediaController(this);
+    mc.setMediaPlayer((GifDrawable) gib.getDrawable());
+    mc.setAnchorView(gib);
+    gib.setOnClickListener(new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            mc.show();
+        }
+   });
+}
 ```
 
 #### Retrieving GIF metadata
@@ -209,15 +205,15 @@ Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer
 Normally single `GifDrawable` instance associated with multiple `View`s will animate only on the last one.
 To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, eg.:
 ```java
-	MultiCallback multiCallback = new MultiCallback();
+MultiCallback multiCallback = new MultiCallback();
 
-    imageView.setImageDrawable(gifDrawable);
-    multiCallback.addView(imageView);
+imageView.setImageDrawable(gifDrawable);
+multiCallback.addView(imageView);
 
-    anotherImageView.setImageDrawable(gifDrawable);
-    multiCallback.addView(anotherImageView);
+anotherImageView.setImageDrawable(gifDrawable);
+multiCallback.addView(anotherImageView);
 
-    gifDrawable.setCallback(multiCallback);
+gifDrawable.setCallback(multiCallback);
 ```
 
 #### Advanced
