@@ -259,4 +259,47 @@ public abstract class GifDrawableInit<T extends GifDrawableInit<T>> {
         mInputSource = new InputSource.ResourcesSource(resources, resourceId);
         return self();
     }
+
+    /**
+     * Getter for the input source.
+     *
+     * @return Current {@link InputSource} or null if it wasn't set.
+     */
+    public InputSource getInputSource() {
+        return mInputSource;
+    }
+
+    /**
+     * Getter for the old drawable.
+     *
+     * @return Instance of the old {@link GifDrawable} or null if it wasn't set.
+     */
+    public GifDrawable getOldDrawable() {
+        return mOldDrawable;
+    }
+
+    /**
+     * Getter for the executor.
+     *
+     * @return {@link ScheduledThreadPoolExecutor} or null if it wasn't set.
+     */
+    public ScheduledThreadPoolExecutor getExecutor() {
+        return mExecutor;
+    }
+
+    /**
+     * @return True if rendering of the next frame is scheduled after drawing, false otherwise.
+     */
+    public boolean isRenderingTriggeredOnDraw() {
+        return mIsRenderingTriggeredOnDraw;
+    }
+
+    /**
+     * Getter for the GIF options.
+     *
+     * @return {@link GifOptions}.
+     */
+    public GifOptions getOptions() {
+        return mOptions;
+    }
 }
