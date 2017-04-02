@@ -208,6 +208,25 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		this(GifInfoHandle.openUri(resolver, uri), null, null, true);
 	}
 
+	/**
+	 * Creates drawable from {@link InputSource}.
+	 *
+	 * @param inputSource The {@link InputSource} concrete subclass used to construct {@link GifDrawable}.
+	 * @param oldDrawable The old drawable that will be reused to save the memory. Can be null.
+	 * @param executor The executor for rendering tasks. Can be null.
+	 * @param isRenderingTriggeredOnDraw True if rendering of the next frame is scheduled after drawing current one, false otherwise.
+	 * @param options Options controlling various GIF parameters.
+	 * @throws IOException if input source is invalid.
+	 */
+	protected GifDrawable(@NonNull InputSource inputSource,
+						  @Nullable GifDrawable oldDrawable,
+						  @Nullable ScheduledThreadPoolExecutor executor,
+						  boolean isRenderingTriggeredOnDraw,
+						  @NonNull GifOptions options) throws IOException {
+
+		this(inputSource.createHandleWith(options), oldDrawable, executor, isRenderingTriggeredOnDraw);
+	}
+
 	GifDrawable(GifInfoHandle gifInfoHandle, final GifDrawable oldDrawable, ScheduledThreadPoolExecutor executor, boolean isRenderingTriggeredOnDraw) {
 		mIsRenderingTriggeredOnDraw = isRenderingTriggeredOnDraw;
 		mExecutor = executor != null ? executor : GifRenderingExecutor.getInstance();
