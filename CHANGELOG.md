@@ -1,3 +1,9 @@
+### 1.2.7-SNAPSHOT
+- Robolectric updated to 3.3.2
+- Support library dependency version updated to 25.3.1
+- Mockito updated to 2.7.15
+- `GifDrawable` subclassing simplified - [#399](https://github.com/koral--/android-gif-drawable/pull/399)
+
 ### 1.2.6
 - Native build system changed to cmake, fixes unnecessary removed actions - [#389](https://github.com/koral--/android-gif-drawable/issues/389)
 - JNI method ids obtaining fixed - [#391](https://github.com/koral--/android-gif-drawable/issues/391)
