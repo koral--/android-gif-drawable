@@ -1,4 +1,4 @@
-### 1.2.7-SNAPSHOT
+### 1.2.7
 - `GifDrawable` subclassing simplified - [#399](https://github.com/koral--/android-gif-drawable/pull/399)
 - Malformed input support improved - [#394](https://github.com/koral--/android-gif-drawable/issues/394)
 - `GifTextureView` animation freezing fixed - [#392](https://github.com/koral--/android-gif-drawable/issues/392)
