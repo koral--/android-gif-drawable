@@ -99,8 +99,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 				throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");
 				return;
 			}
-		}
-		else {
+		} else {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not poll on eventfd ");
 			return;
 		}
@@ -184,19 +183,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		}
 		oldBufferBits = buffer.bits;
 
-		struct ARect *dirtyRectPtr;
-		if (info->currentIndex == 0) {
-			dirtyRectPtr = NULL;
-		} else {
-			const GifImageDesc imageDesc = gifFilePtr->SavedImages[info->currentIndex].ImageDesc;
-			struct ARect dirtyRect = {
-					.left = imageDesc.Left,
-					.top = imageDesc.Top,
-					.right = imageDesc.Left + imageDesc.Width,
-					.bottom = imageDesc.Top + imageDesc.Height
-			};
-			dirtyRectPtr = &dirtyRect;
-		}
+		const GifImageDesc imageDesc = gifFilePtr->SavedImages[info->currentIndex].ImageDesc;
+		struct ARect dirtyRect = {
+				.left = imageDesc.Left,
+				.top = imageDesc.Top,
+				.right = imageDesc.Left + imageDesc.Width,
+				.bottom = imageDesc.Top + imageDesc.Height
+		};
+
+		struct ARect *dirtyRectPtr = (info->currentIndex == 0) ? NULL : &dirtyRect;
+
 		if (ANativeWindow_lock(window, &buffer, dirtyRectPtr) != 0) {
 #ifdef DEBUG
 			LOGE("Window lock failed %d", errno);
