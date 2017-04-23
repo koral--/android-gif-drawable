@@ -42,7 +42,7 @@ before_script:
   - adb shell wm dismiss-keyguard
 
 script:
-  - ./gradlew build connectedCheck :android-gif-drawable:jacocoTestReport
+  - ./gradlew build connectedCheck :android-gif-drawable:jacocoTestReport --scan
 
 after_script:
  - cat android-gif-drawable/build/outputs/lint-results-debug.xml

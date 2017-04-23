@@ -9,12 +9,22 @@ buildscript {
 	}
 }
 
+plugins {
+	id 'com.gradle.build-scan' version '1.6'
+}
+
+buildScan {
+	licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+	licenseAgree = 'yes'
+}
+
 ext {
 	versions = [
-			compileSdk: 25,
-			targetSdk : 25,
-			minSdk    : 9,
-			buildTools: '25.0.2',
+			compileSdk    : 25,
+			targetSdk     : 25,
+			minSdk        : 9,
+			buildTools    : '25.0.2',
+			androidSupport: '25.3.1'
 	]
 }
 
