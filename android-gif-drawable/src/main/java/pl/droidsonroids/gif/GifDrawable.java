@@ -211,18 +211,18 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Creates drawable from {@link InputSource}.
 	 *
-	 * @param inputSource The {@link InputSource} concrete subclass used to construct {@link GifDrawable}.
-	 * @param oldDrawable The old drawable that will be reused to save the memory. Can be null.
-	 * @param executor The executor for rendering tasks. Can be null.
+	 * @param inputSource                The {@link InputSource} concrete subclass used to construct {@link GifDrawable}.
+	 * @param oldDrawable                The old drawable that will be reused to save the memory. Can be null.
+	 * @param executor                   The executor for rendering tasks. Can be null.
 	 * @param isRenderingTriggeredOnDraw True if rendering of the next frame is scheduled after drawing current one, false otherwise.
-	 * @param options Options controlling various GIF parameters.
+	 * @param options                    Options controlling various GIF parameters.
 	 * @throws IOException if input source is invalid.
 	 */
 	protected GifDrawable(@NonNull InputSource inputSource,
-						  @Nullable GifDrawable oldDrawable,
-						  @Nullable ScheduledThreadPoolExecutor executor,
-						  boolean isRenderingTriggeredOnDraw,
-						  @NonNull GifOptions options) throws IOException {
+	                      @Nullable GifDrawable oldDrawable,
+	                      @Nullable ScheduledThreadPoolExecutor executor,
+	                      boolean isRenderingTriggeredOnDraw,
+	                      @NonNull GifOptions options) throws IOException {
 
 		this(inputSource.createHandleWith(options), oldDrawable, executor, isRenderingTriggeredOnDraw);
 	}
@@ -727,7 +727,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @throws IllegalArgumentException if x, y exceed the drawable's bounds
 	 * @throws IllegalStateException    if drawable is recycled
 	 */
-	public int getPixel(int x, int y) {
+	public int getPixel(@IntRange(from = 0) int x, @IntRange(from = 0) int y) {
 		if (x >= mNativeInfoHandle.getWidth()) { //need to check explicitly because reused bitmap may be larger
 			throw new IllegalArgumentException("x must be < width");
 		}
