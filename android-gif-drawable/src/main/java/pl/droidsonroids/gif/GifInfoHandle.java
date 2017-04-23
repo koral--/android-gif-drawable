@@ -278,13 +278,9 @@ final class GifInfoHandle {
 		return restoreSavedState(gifInfoPtr, savedState, mBuffer);
 	}
 
-	int getFrameDuration(@IntRange(from = 0) final int index) {
-		synchronized (this) {
-			if (index < 0 || index >= getNumberOfFrames(gifInfoPtr)) {
-				throw new IndexOutOfBoundsException("Frame index is out of bounds");
-			}
-			return getFrameDuration(gifInfoPtr, index);
-		}
+	synchronized int getFrameDuration(@IntRange(from = 0) final int index) {
+		throwIfFrameIndexOutOfBounds(index);
+		return getFrameDuration(gifInfoPtr, index);
 	}
 
 	void setOptions(char sampleSize, boolean isOpaque) {
@@ -328,9 +324,14 @@ final class GifInfoHandle {
 	}
 
 	void seekToFrameGL(@IntRange(from = 0) final int index) {
-		if (index < 0 || index >= getNumberOfFrames(gifInfoPtr)) {
-			throw new IndexOutOfBoundsException("Frame index is out of bounds");
-		}
+		throwIfFrameIndexOutOfBounds(index);
 		seekToFrameGL(gifInfoPtr, index);
+	}
+
+	private void throwIfFrameIndexOutOfBounds(@IntRange(from = 0) final int index) {
+		final float numberOfFrames = getNumberOfFrames(gifInfoPtr);
+		if (index < 0 || index >= numberOfFrames) {
+			throw new IndexOutOfBoundsException("Frame index is not in range <0;" + numberOfFrames + '>');
+		}
 	}
 }
