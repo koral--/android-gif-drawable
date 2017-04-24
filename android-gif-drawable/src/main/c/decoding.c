@@ -23,14 +23,14 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 	uint_fast32_t lastAllocatedGCBIndex = 0;
 	do {
 		if (DGifGetRecordType(gifFilePtr, &RecordType) == GIF_ERROR) {
-			return;
+			break;
 		}
 		bool isInitialPass = !decode && !exitAfterFrame;
 		switch (RecordType) {
 			case IMAGE_DESC_RECORD_TYPE:
 
 				if (DGifGetImageDesc(gifFilePtr, isInitialPass) == GIF_ERROR) {
-					return;
+					break;
 				}
 
 				if (isInitialPass) {
@@ -51,7 +51,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 						sp->ImageDesc.Left -= leftOverflow;
 					}
 					if (!updateGCB(info, &lastAllocatedGCBIndex)) {
-						return;
+						break;
 					}
 				}
 
@@ -63,7 +63,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 						void *tmpRasterBits = reallocarray(info->rasterBits, newRasterSize, sizeof(GifPixelType));
 						if (tmpRasterBits == NULL) {
 							gifFilePtr->Error = D_GIF_ERR_NOT_ENOUGH_MEM;
-							return;
+							break;
 						}
 						info->rasterBits = tmpRasterBits;
 						info->rasterSize = newRasterSize;
@@ -80,11 +80,11 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 						for (i = 0; i < 4; i++)
 							for (j = InterlacedOffset[i]; j < gifFilePtr->Image.Height; j += InterlacedJumps[i]) {
 								if (DGifGetLine(gifFilePtr, info->rasterBits + j * gifFilePtr->Image.Width, gifFilePtr->Image.Width) == GIF_ERROR)
-									return;
+									break;
 							}
 					} else {
 						if (DGifGetLine(gifFilePtr, info->rasterBits, gifFilePtr->Image.Width * gifFilePtr->Image.Height) == GIF_ERROR) {
-							return;
+							break;
 						}
 					}
 
@@ -109,7 +109,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 				} else {
 					do {
 						if (DGifGetCodeNext(gifFilePtr, &ExtData) == GIF_ERROR) {
-							return;
+							break;
 						}
 					} while (ExtData != NULL);
 					if (exitAfterFrame) {
@@ -120,20 +120,20 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 
 			case EXTENSION_RECORD_TYPE:
 				if (DGifGetExtension(gifFilePtr, &ExtFunction, &ExtData) == GIF_ERROR) {
-					return;
+					break;
 				}
 				if (isInitialPass) {
 					updateGCB(info, &lastAllocatedGCBIndex);
 					if (readExtensions(ExtFunction, ExtData, info) == GIF_ERROR) {
-						return;
+						break;
 					}
 				}
 				while (ExtData != NULL) {
 					if (DGifGetExtensionNext(gifFilePtr, &ExtData) == GIF_ERROR) {
-						return;
+						break;
 					}
 					if (isInitialPass && readExtensions(ExtFunction, ExtData, info) == GIF_ERROR) {
-						return;
+						break;
 					}
 				}
 				break;

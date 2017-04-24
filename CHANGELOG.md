@@ -1,3 +1,13 @@
+### 1.2.7
+- `GifDrawable` subclassing simplified - [#399](https://github.com/koral--/android-gif-drawable/pull/399)
+- Malformed input support improved - [#394](https://github.com/koral--/android-gif-drawable/issues/394)
+- `GifTextureView` animation freezing fixed - [#392](https://github.com/koral--/android-gif-drawable/issues/392)
+- Android Support library updated to 25.3.1
+- Android gradle plugin updated to 2.3.1
+- Gradle wrapper regenerated with 3.5
+- Mockito updated to 2.7.22
+- Robolectric updated to 3.3.2
+
 ### 1.2.6
 - Native build system changed to cmake, fixes unnecessary removed actions - [#389](https://github.com/koral--/android-gif-drawable/issues/389)
 - JNI method ids obtaining fixed - [#391](https://github.com/koral--/android-gif-drawable/issues/391)
