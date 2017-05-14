@@ -97,7 +97,7 @@ def isDebugBuild() {
 }
 
 task archiveSymbols(type: Tar) {
-	from new File(buildDir, 'intermediates/ndkBuild/release/obj/local')
+	from new File(buildDir, 'intermediates/cmake/release/obj')
 	baseName = "$POM_ARTIFACT_ID-symbols"
 	destinationDir = new File(buildDir, 'libs')
 	extension = 'tar.gz'
