@@ -2,6 +2,7 @@ package pl.droidsonroids.gif;
 
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
@@ -24,25 +25,23 @@ final class GifViewUtils {
 	private GifViewUtils() {
 	}
 
-	static InitResult initImageView(ImageView view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+	static GifImageViewAttributes initImageView(ImageView view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
 		if (attrs != null && !view.isInEditMode()) {
-			final int sourceResId = getResourceId(view, attrs, true);
-			final int backgroundResId = getResourceId(view, attrs, false);
-			final boolean freezesAnimation = isFreezingAnimation(view, attrs, defStyleAttr, defStyleRes);
-			return new InitResult(sourceResId, backgroundResId, freezesAnimation);
+			final GifImageViewAttributes viewAttributes = new GifImageViewAttributes(view, attrs, defStyleAttr, defStyleRes);
+			final int loopCount = viewAttributes.mLoopCount;
+			if (loopCount >= 0) {
+				applyLoopCount(loopCount, view.getDrawable());
+				applyLoopCount(loopCount, view.getBackground());
+			}
+			return viewAttributes;
 		}
-		return new InitResult(0, 0, false);
+		return new GifImageViewAttributes();
 	}
 
-	private static int getResourceId(ImageView view, AttributeSet attrs, final boolean isSrc) {
-		final int resId = attrs.getAttributeResourceValue(ANDROID_NS, isSrc ? "src" : "background", 0);
-		if (resId > 0) {
-			final String resourceTypeName = view.getResources().getResourceTypeName(resId);
-			if (SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName) && !setResource(view, isSrc, resId)) {
-				return resId;
-			}
+	static void applyLoopCount(final int loopCount, final Drawable drawable) {
+		if (drawable instanceof GifDrawable) {
+			((GifDrawable) drawable).setLoopCount(loopCount);
 		}
-		return 0;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -64,13 +63,6 @@ final class GifViewUtils {
 			}
 		}
 		return false;
-	}
-
-	static boolean isFreezingAnimation(View view, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-		final TypedArray gifViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
-		boolean freezesAnimation = gifViewAttributes.getBoolean(R.styleable.GifView_freezesAnimation, false);
-		gifViewAttributes.recycle();
-		return freezesAnimation;
 	}
 
 	static boolean setGifImageUri(ImageView imageView, Uri uri) {
@@ -105,16 +97,49 @@ final class GifViewUtils {
 		return 1f;
 	}
 
-	static class InitResult {
+	static class GifViewAttributes {
+		boolean freezesAnimation;
+		int mLoopCount;
+
+		GifViewAttributes(final View view, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+			final TypedArray gifViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);
+			freezesAnimation = gifViewAttributes.getBoolean(R.styleable.GifView_freezesAnimation, false);
+			mLoopCount = gifViewAttributes.getInt(R.styleable.GifView_loopCount, -1);
+			gifViewAttributes.recycle();
+		}
+
+		GifViewAttributes() {
+			freezesAnimation = false;
+			mLoopCount = -1;
+		}
+	}
+
+	static class GifImageViewAttributes extends GifViewAttributes {
 		final int mSourceResId;
 		final int mBackgroundResId;
-		final boolean mFreezesAnimation;
 
-		InitResult(int sourceResId, int backgroundResId, boolean freezesAnimation) {
-
-			mSourceResId = sourceResId;
-			mBackgroundResId = backgroundResId;
-			mFreezesAnimation = freezesAnimation;
+		GifImageViewAttributes(final ImageView view, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+			super(view, attrs, defStyleAttr, defStyleRes);
+			mSourceResId = getResourceId(view, attrs, true);
+			mBackgroundResId = getResourceId(view, attrs, false);
 		}
+
+		GifImageViewAttributes() {
+			super();
+			mSourceResId = 0;
+			mBackgroundResId = 0;
+		}
+
+		private static int getResourceId(ImageView view, AttributeSet attrs, final boolean isSrc) {
+			final int resId = attrs.getAttributeResourceValue(ANDROID_NS, isSrc ? "src" : "background", 0);
+			if (resId > 0) {
+				final String resourceTypeName = view.getResources().getResourceTypeName(resId);
+				if (SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName) && !setResource(view, isSrc, resId)) {
+					return resId;
+				}
+			}
+			return 0;
+		}
+
 	}
 }
