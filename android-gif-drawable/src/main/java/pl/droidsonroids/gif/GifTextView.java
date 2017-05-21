@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 public class GifTextView extends TextView {
 
-	private boolean mFreezesAnimation;
+	private GifViewUtils.GifViewAttributes viewAttributes;
 
 	/**
 	 * A corresponding superclass constructor wrapper.
@@ -107,8 +107,25 @@ public class GifTextView extends TextView {
 				setCompoundDrawablesWithIntrinsicBounds(left, top, right, bottom);
 			}
 			setBackgroundInternal(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "background", 0)));
+			viewAttributes = new GifViewUtils.GifViewAttributes(this, attrs, defStyle, defStyleRes);
+			applyGifViewAttributes();
 		}
-		mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyle, defStyleRes);
+		viewAttributes = new GifViewUtils.GifViewAttributes();
+	}
+
+	private void applyGifViewAttributes() {
+		if (viewAttributes.mLoopCount < 0) {
+			return;
+		}
+		for (final Drawable drawable : getCompoundDrawables()) {
+			GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, drawable);
+		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+			for (final Drawable drawable : getCompoundDrawablesRelative()) {
+				GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, drawable);
+			}
+		}
+		GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, getBackground());
 	}
 
 	@SuppressWarnings("deprecation") // setBackgroundDrawable
@@ -131,7 +148,8 @@ public class GifTextView extends TextView {
 			return null;
 		}
 		final Resources resources = getResources();
-		if (!isInEditMode() && "drawable".equals(resources.getResourceTypeName(resId))) {
+		final String resourceTypeName = resources.getResourceTypeName(resId);
+		if (!isInEditMode() && GifViewUtils.SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
 			try {
 				return new GifDrawable(resources, resId);
 			} catch (IOException | NotFoundException ignored) {
@@ -176,7 +194,7 @@ public class GifTextView extends TextView {
 	@Override
 	public Parcelable onSaveInstanceState() {
 		Drawable[] savedDrawables = new Drawable[7];
-		if (mFreezesAnimation) {
+		if (viewAttributes.freezesAnimation) {
 			Drawable[] compoundDrawables = getCompoundDrawables();
 			System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
 
@@ -219,6 +237,6 @@ public class GifTextView extends TextView {
 	 * @param freezesAnimation whether animation position is saved
 	 */
 	public void setFreezesAnimation(boolean freezesAnimation) {
-		mFreezesAnimation = freezesAnimation;
+		viewAttributes.freezesAnimation = freezesAnimation;
 	}
 }
