@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion versions.compileSdk
@@ -15,9 +17,6 @@ android {
         targetSdkVersion versions.targetSdk
         versionCode 1
         applicationId 'pl.droidsonroids.gif.sample'
-        jackOptions {
-            enabled true
-        }
     }
 
     signingConfigs {
@@ -49,6 +48,7 @@ dependencies {
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
     compile "com.android.support:design:$versions.androidSupport"
     compile "com.android.support:appcompat-v7:$versions.androidSupport"
+	compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     compile project(':android-gif-drawable')
-    //compile 'pl.droidsonroids.gif:android-gif-drawable:+'
+	//compile 'pl.droidsonroids.gif:android-gif-drawable:+'
 }
