@@ -6,5 +6,6 @@
     </declare-styleable>
     <declare-styleable name="GifView">
         <attr name="freezesAnimation" format="boolean"/>
+        <attr name="loopCount" format="integer"/>
     </declare-styleable>
 </resources>

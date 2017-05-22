@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+
+    <pl.droidsonroids.gif.GifImageButton
+        android:src="@raw/test"
+        android:background="@raw/test"
+        android:id="@+id/imageButton"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:freezesAnimation="true"
+        app:loopCount="2"/>
+
+    <pl.droidsonroids.gif.GifImageView
+        android:src="@raw/test"
+        android:background="@raw/test"
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:freezesAnimation="true"
+        app:loopCount="3"/>
+
+    <pl.droidsonroids.gif.GifTextView
+        android:background="@raw/test"
+        android:drawableLeft="@raw/test"
+        android:drawableRight="@raw/test"
+        android:drawableTop="@raw/test"
+        android:drawableBottom="@raw/test"
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:freezesAnimation="true"
+        app:loopCount="4"/>
+</FrameLayout>
