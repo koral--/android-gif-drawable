@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import pl.droidsonroids.gif.GifDrawable
 import pl.droidsonroids.gif.GifDrawableBuilder
+import pl.droidsonroids.gif.sample.R
 
 internal class GifSourcesAdapter(context: Context) : RecyclerView.Adapter<GifSourceItemHolder>() {
 

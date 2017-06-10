@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.AssetManager
 import android.net.Uri
 import pl.droidsonroids.gif.GifDrawableBuilder
+import pl.droidsonroids.gif.sample.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -47,7 +48,8 @@ internal class GifSourcesResolver(context: Context) {
 			-> builder.from(contentResolver, Uri.parse("file:///" + fileForUri.absolutePath))
 			9 //InputStream
 			-> builder.from(assetManager.open("Animated-Flag-Delaware.gif", AssetManager.ACCESS_RANDOM))
-			else -> throw IndexOutOfBoundsException("Invalid source index")
+			else
+			-> throw IndexOutOfBoundsException("Invalid source index")
 		}
 	}
 }
