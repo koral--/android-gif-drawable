@@ -20,7 +20,7 @@ class MainActivity : FragmentActivity() {
 		refWatcher = LeakCanary.install(application)
 		super.onCreate(savedInstanceState)
 		setContentView(R.layout.activity_main)
-		(findViewById(R.id.main_pager) as ViewPager).adapter = MainPagerAdapter(this)
+		findViewById<ViewPager>(R.id.main_pager).adapter = MainPagerAdapter(this)
 	}
 
 }
