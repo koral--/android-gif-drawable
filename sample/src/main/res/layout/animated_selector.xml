@@ -14,7 +14,7 @@
         android:text="@string/animated_selector_description"/>
 
     <Button
-        android:id="@+id/button_xml"
+        android:id="@+id/buttonXML"
         android:background="@drawable/selector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,7 +22,7 @@
         android:text="@string/xml_selector"/>
 
     <Button
-        android:id="@+id/button_java"
+        android:id="@+id/buttonKotlin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
