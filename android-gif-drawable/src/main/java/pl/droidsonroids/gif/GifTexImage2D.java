@@ -12,10 +12,13 @@ import pl.droidsonroids.gif.annotations.Beta;
  * Provides support for animated GIFs in OpenGL.
  * There are 2 possible usages:
  * <ol>
- * <li>Rendering GIF automatically according to its timing to internal frame buffer in the background thread,
- * and requesting frame to be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexImage2D(int, int)}</li>
- * <li>Manual frame advancing. See {@link #seekToFrame(int)} (int)}</li>
+ * <li>Automatic animation according to timing defined in GIF file - {@link #startDecoderThread()} and {@link #stopDecoderThread()}.</li>
+ * <li>Manual frame advancing - {@link #seekToFrame(int)}.</li>
  * </ol>
+ * Note that call {@link #seekToFrame(int)} while decoder thread is running will cause frame change
+ * but it can be immediately changed again by decoder thread.
+ * <br>
+ * Current frame can be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexImage2D(int, int)}.
  */
 @Beta
 public class GifTexImage2D {
