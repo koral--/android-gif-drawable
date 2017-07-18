@@ -33,7 +33,7 @@ GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	info->comment = NULL;
 	info->loopCount = 1;
 	info->currentLoop = 0;
-	info->speedFactor = 1.0;
+	info->speedFactor = 1.0f;
 	info->sourceLength = descriptor->sourceLength;
 
 	info->backupPtr = NULL;

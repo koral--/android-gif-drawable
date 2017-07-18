@@ -224,4 +224,4 @@ uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
 
-static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long sourceLength);
+static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long long sourceLength);
