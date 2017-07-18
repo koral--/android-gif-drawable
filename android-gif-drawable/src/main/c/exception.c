@@ -31,6 +31,7 @@ inline void throwException(JNIEnv *env, enum Exception exception, char *message)
 			}
 			message = fullMessage;
 			break;
+		case RUNTIME_EXCEPTION_BARE:
 		default:
 			exceptionClassName = RUNTIME_EXCEPTION_CLASS_NAME;
 	}
