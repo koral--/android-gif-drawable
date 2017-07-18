@@ -314,7 +314,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 			return NULL_GIF_INFO;
 		}
 		struct stat st;
-		const long sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
+		const long long sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
 
 		GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
 		if (info == NULL) {
@@ -328,7 +328,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused hand
 	}
 }
 
-static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long sourceLength) {
+static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long long sourceLength) {
 	GifSourceDescriptor descriptor = {
 			.rewindFunc = fileRewind,
 			.sourceLength = sourceLength
