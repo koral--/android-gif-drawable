@@ -10,6 +10,7 @@ two modules will be linked.  Preserve this property!
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <io.h>
