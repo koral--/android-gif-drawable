@@ -175,7 +175,11 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
 				return GIF_ERROR;
 			}
 			if (ExtData[0] == 3 && ExtData[1] == 1) {
-				info->loopCount = (uint_fast16_t) (ExtData[2] + (ExtData[3] << 8));
+				uint_fast16_t loopCount = (uint_fast16_t) (ExtData[2] + (ExtData[3] << 8));
+				if (loopCount) {
+					loopCount++;
+				}
+				info->loopCount = loopCount;
 			}
 		}
 	}
