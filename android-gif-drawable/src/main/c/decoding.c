@@ -174,7 +174,7 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
 			if (DGifGetExtensionNext(info->gifFilePtr, &ExtData) == GIF_ERROR) {
 				return GIF_ERROR;
 			}
-			if (ExtData[0] == 3 && ExtData[1] == 1) {
+			if (ExtData && ExtData[0] == 3 && ExtData[1] == 1) {
 				uint_fast16_t loopCount = (uint_fast16_t) (ExtData[2] + (ExtData[3] << 8));
 				if (loopCount) {
 					loopCount++;
