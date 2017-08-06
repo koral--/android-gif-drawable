@@ -203,6 +203,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL_GIF_INFO;
 	}
+	container->bufferRef = (*env)->NewGlobalRef(env, buffer);
 	container->bytes = bytes;
 	container->capacity = capacity;
 	container->position = 0;
