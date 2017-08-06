@@ -22,19 +22,16 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 		(*env)->DeleteGlobalRef(env, streamContainer->buffer);
 
 		free(streamContainer);
-	}
-	else if (info->rewindFunction == fileRewind) {
+	} else if (info->rewindFunction == fileRewind) {
 		fclose(info->gifFilePtr->UserData);
-	}
-	else if (info->rewindFunction == byteArrayRewind) {
-		ByteArrayContainer *bac = info->gifFilePtr->UserData;
-		if (bac->buffer != NULL) {
-			(*env)->DeleteGlobalRef(env, bac->buffer);
-		}
-		free(bac);
-	}
-	else if (info->rewindFunction == directByteBufferRewind) {
-		free(info->gifFilePtr->UserData);
+	} else if (info->rewindFunction == byteArrayRewind) {
+		ByteArrayContainer *container = info->gifFilePtr->UserData;
+		(*env)->DeleteGlobalRef(env, container->buffer);
+		free(container);
+	} else if (info->rewindFunction == directByteBufferRewind) {
+		DirectByteBufferContainer *container = info->gifFilePtr->UserData;
+		(*env)->DeleteGlobalRef(env, container->bufferRef);
+		free(container);
 	}
 	info->gifFilePtr->UserData = NULL;
 	cleanUp(info);

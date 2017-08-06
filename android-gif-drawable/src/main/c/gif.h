@@ -138,6 +138,7 @@ typedef struct {
 	jlong position;
 	jbyte *bytes;
 	jlong capacity;
+	jobject bufferRef;
 } DirectByteBufferContainer;
 
 typedef struct {
