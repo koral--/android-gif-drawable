@@ -5,8 +5,9 @@
 - Android gradle plugin updated to 2.3.3
 - Gradle wrapper regenerated with 4.0.1
 - NDK version updated to r15b
-- Fixed segmentation fault for GIFs with 0-sized block in application extension - [#433](https://github.com/koral--/android-gif-drawable/issues/433) 
-- Loop count interpretation fixed - [#430](https://github.com/koral--/android-gif-drawable/issues/430) 
+- Fixed segmentation fault for GIFs with 0-sized block in application extension - [#433](https://github.com/koral--/android-gif-drawable/pull/433) 
+- Fixed Loop count interpretation - [#430](https://github.com/koral--/android-gif-drawable/pull/430) 
+- Fixed direct byte buffer input source handling - [#434](https://github.com/koral--/android-gif-drawable/issues/434) 
 
 ### 1.2.7
 - `GifDrawable` subclassing simplified - [#399](https://github.com/koral--/android-gif-drawable/pull/399)
