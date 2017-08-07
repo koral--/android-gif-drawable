@@ -119,7 +119,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 
 	if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
 #ifdef DEBUG
-		LOGE("Window lock failed %d", errno);
+		LOGE("Full window lock failed %d", errno);
 #endif
 		ANativeWindow_release(window);
 		return;
@@ -195,7 +195,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 
 		if (ANativeWindow_lock(window, &buffer, dirtyRectPtr) != 0) {
 #ifdef DEBUG
-			LOGE("Window lock failed %d", errno);
+			LOGE("Partial window lock failed %d", errno);
 #endif
 			break;
 		}

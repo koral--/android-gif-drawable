@@ -1,3 +1,14 @@
+### 1.2.8-SNAPSHOT
+- `app:loopCount` XML attribute added to `GifImageView`, `GifImageButton`, `GifTextView` and `GifTextureView` - [#176](https://github.com/koral--/android-gif-drawable/issues/176)
+- Added `mipmap` resources support in XML attributes of `GifTextView`
+- Android Support library updated to 25.4.1
+- Android gradle plugin updated to 2.3.3
+- Gradle wrapper regenerated with 4.0.1
+- NDK version updated to r15b
+- Fixed segmentation fault for GIFs with 0-sized block in application extension - [#433](https://github.com/koral--/android-gif-drawable/pull/433) 
+- Fixed Loop count interpretation - [#430](https://github.com/koral--/android-gif-drawable/pull/430) 
+- Fixed direct byte buffer input source handling - [#434](https://github.com/koral--/android-gif-drawable/issues/434) 
+
 ### 1.2.7
 - `GifDrawable` subclassing simplified - [#399](https://github.com/koral--/android-gif-drawable/pull/399)
 - Malformed input support improved - [#394](https://github.com/koral--/android-gif-drawable/issues/394)

@@ -71,8 +71,8 @@ public class GifImageButton extends ImageButton {
 		postInit(GifViewUtils.initImageView(this, attrs, defStyle, defStyleRes));
 	}
 
-	private void postInit(GifViewUtils.InitResult result) {
-		mFreezesAnimation = result.mFreezesAnimation;
+	private void postInit(GifViewUtils.GifImageViewAttributes result) {
+		mFreezesAnimation = result.freezesAnimation;
 		if (result.mSourceResId > 0) {
 			super.setImageResource(result.mSourceResId);
 		}

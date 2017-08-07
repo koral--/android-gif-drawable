@@ -60,11 +60,9 @@ public class GifTextureView extends TextureView {
 	private ScaleType mScaleType = ScaleType.FIT_CENTER;
 	private final Matrix mTransform = new Matrix();
 	private InputSource mInputSource;
-
-	private boolean mFreezesAnimation;
 	private RenderThread mRenderThread;
-
 	private float mSpeedFactor = 1f;
+	private GifViewUtils.GifViewAttributes viewAttributes;
 
 	public GifTextureView(Context context) {
 		super(context);
@@ -98,9 +96,10 @@ public class GifTextureView extends TextureView {
 			mInputSource = findSource(textureViewAttributes);
 			super.setOpaque(textureViewAttributes.getBoolean(R.styleable.GifTextureView_isOpaque, false));
 			textureViewAttributes.recycle();
-			mFreezesAnimation = GifViewUtils.isFreezingAnimation(this, attrs, defStyleAttr, defStyleRes);
+			viewAttributes = new GifViewUtils.GifViewAttributes(this, attrs, defStyleAttr, defStyleRes);
 		} else {
 			super.setOpaque(false);
+			viewAttributes = new GifViewUtils.GifViewAttributes();
 		}
 		if (!isInEditMode()) {
 			mRenderThread = new RenderThread(this);
@@ -181,6 +180,9 @@ public class GifTextureView extends TextureView {
 				}
 				mGifInfoHandle = gifTextureView.mInputSource.open();
 				mGifInfoHandle.setOptions((char) 1, gifTextureView.isOpaque());
+				if (gifTextureView.viewAttributes.mLoopCount >= 0) {
+					mGifInfoHandle.setLoopCount(gifTextureView.viewAttributes.mLoopCount);
+				}
 			} catch (IOException ex) {
 				mIOException = ex;
 				return;
@@ -221,7 +223,6 @@ public class GifTextureView extends TextureView {
 					mGifInfoHandle.bindSurface(surface, mSavedState);
 				} finally {
 					surface.release();
-					surfaceTexture.release();
 				}
 			}
 			mGifInfoHandle.recycle();
@@ -245,7 +246,8 @@ public class GifTextureView extends TextureView {
 		public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
 			isSurfaceValid.close();
 			mGifInfoHandle.postUnbindSurface();
-			return false;
+			interrupt();
+			return true;
 		}
 
 		@Override
@@ -307,12 +309,17 @@ public class GifTextureView extends TextureView {
 	 * Sets the source of the animation and optionally placeholder drawer. Pass {@code null inputSource} to remove current source.
 	 * {@code placeholderDrawListener} is overwritten on {@code setInputSource(inputSource)} call.
 	 *
-	 * @param inputSource       new animation source, may be null
+	 * @param inputSource             new animation source, may be null
 	 * @param placeholderDrawListener placeholder draw listener, may be null
 	 */
 	@Beta
 	public synchronized void setInputSource(@Nullable InputSource inputSource, @Nullable PlaceholderDrawListener placeholderDrawListener) {
 		mRenderThread.dispose(this, placeholderDrawListener);
+		try {
+			mRenderThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		mInputSource = inputSource;
 		mRenderThread = new RenderThread(this);
 		if (inputSource != null) {
@@ -457,7 +464,7 @@ public class GifTextureView extends TextureView {
 	@Override
 	public Parcelable onSaveInstanceState() {
 		mRenderThread.mSavedState = mRenderThread.mGifInfoHandle.getSavedState();
-		return new GifViewSavedState(super.onSaveInstanceState(), mFreezesAnimation ? mRenderThread.mSavedState : null);
+		return new GifViewSavedState(super.onSaveInstanceState(), viewAttributes.freezesAnimation ? mRenderThread.mSavedState : null);
 	}
 
 	@Override
@@ -478,7 +485,7 @@ public class GifTextureView extends TextureView {
 	 * @param freezesAnimation whether animation position is saved
 	 */
 	public void setFreezesAnimation(boolean freezesAnimation) {
-		mFreezesAnimation = freezesAnimation;
+		viewAttributes.freezesAnimation = freezesAnimation;
 	}
 
 	/**
@@ -492,6 +499,7 @@ public class GifTextureView extends TextureView {
 		 * It may occur more than once (eg. if {@code View} visibility is toggled before input source is loaded)
 		 * or never (eg. when {@code View} is never visible).<br>
 		 * Note that it is an error to use {@code canvas} after this method return.
+		 *
 		 * @param canvas canvas to draw into
 		 */
 		void onDrawPlaceholder(Canvas canvas);

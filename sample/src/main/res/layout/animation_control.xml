@@ -14,18 +14,18 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:labelFor="@+id/btn_toggle"
+        android:labelFor="@+id/toggleButton"
         android:text="@string/toggle_label"/>
 
     <ToggleButton
-        android:id="@+id/btn_toggle"
+        android:id="@+id/buttonToggle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textOff="@string/animation_stopped"
         android:textOn="@string/animation_running"/>
 
     <Button
-        android:id="@+id/btn_reset"
+        android:id="@+id/buttonReset"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/reset_animation"/>

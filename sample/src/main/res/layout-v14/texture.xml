@@ -12,7 +12,7 @@
         android:layout_weight="1">
 
         <TextView
-            android:id="@+id/text_textureview_stub"
+            android:id="@+id/textTextureViewStub"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/gif_texture_view_stub_acceleration"
