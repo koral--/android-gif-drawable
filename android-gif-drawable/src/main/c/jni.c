@@ -7,7 +7,7 @@ static JavaVM *g_jvm;
 static struct JavaVMAttachArgs attachArgs = {.version=JNI_VERSION_1_6, .group=NULL, .name="GifIOThread"};
 static ColorMapObject *defaultCmap;
 
-JNIEnv *getEnv() {
+JNIEnv *getEnv(void) {
 	JNIEnv *env;
 	if ((*g_jvm)->AttachCurrentThread(g_jvm, &env, &attachArgs) == JNI_OK) {
 		return env;
@@ -15,7 +15,7 @@ JNIEnv *getEnv() {
 	return NULL;
 }
 
-void DetachCurrentThread() {
+void DetachCurrentThread(void) {
 	(*g_jvm)->DetachCurrentThread(g_jvm);
 }
 
@@ -51,6 +51,6 @@ __unused JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *__unused vm, void *__unused
 	GifFreeMapObject(defaultCmap);
 }
 
-ColorMapObject *getDefColorMap() {
+ColorMapObject *getDefColorMap(void) {
 	return defaultCmap;
 }

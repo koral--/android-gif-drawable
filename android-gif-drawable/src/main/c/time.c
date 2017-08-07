@@ -18,7 +18,7 @@ long long calculateInvalidationDelay(GifInfo *info, long renderStartTime, uint_f
 	return -1;
 }
 
-long getRealTime() {
+long getRealTime(void) {
 	struct timespec ts; //result not checked since CLOCK_MONOTONIC_RAW availability is checked in JNI_ONLoad
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
 	return ts.tv_sec * 1000L + ts.tv_nsec / 1000000L;
