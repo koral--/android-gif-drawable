@@ -23,7 +23,6 @@
             android:id="@+id/gifTextureView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:loopCount="1"
             app:freezesAnimation="true"
             app:gifSource="@drawable/anim_flag_iceland"
             app:isOpaque="false"

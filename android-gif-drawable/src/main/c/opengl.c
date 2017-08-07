@@ -53,11 +53,11 @@ static void *slurp(void *pVoidInfo) {
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
 		int pollResult = poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
-		eventfd_t eventValue;
 		if (pollResult < 0) {
 			throwException(getEnv(), RUNTIME_EXCEPTION_ERRNO, "Could not poll on eventfd ");
 			break;
 		} else if (pollResult > 0) {
+			eventfd_t eventValue;
 			const int readResult = TEMP_FAILURE_RETRY(eventfd_read(texImageDescriptor->eventPollFd.fd, &eventValue));
 			if (readResult != 0) {
 				throwException(getEnv(), RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");

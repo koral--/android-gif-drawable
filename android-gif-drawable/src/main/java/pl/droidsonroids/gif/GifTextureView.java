@@ -223,7 +223,6 @@ public class GifTextureView extends TextureView {
 					mGifInfoHandle.bindSurface(surface, mSavedState);
 				} finally {
 					surface.release();
-					surfaceTexture.release();
 				}
 			}
 			mGifInfoHandle.recycle();
@@ -247,7 +246,8 @@ public class GifTextureView extends TextureView {
 		public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
 			isSurfaceValid.close();
 			mGifInfoHandle.postUnbindSurface();
-			return false;
+			interrupt();
+			return true;
 		}
 
 		@Override
@@ -315,6 +315,11 @@ public class GifTextureView extends TextureView {
 	@Beta
 	public synchronized void setInputSource(@Nullable InputSource inputSource, @Nullable PlaceholderDrawListener placeholderDrawListener) {
 		mRenderThread.dispose(this, placeholderDrawListener);
+		try {
+			mRenderThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		mInputSource = inputSource;
 		mRenderThread = new RenderThread(this);
 		if (inputSource != null) {

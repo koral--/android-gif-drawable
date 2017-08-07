@@ -13,14 +13,8 @@ class AnimationControlFragment : BaseFragment(), AnimationListener {
 
 	private lateinit var gifDrawable: GifDrawable
 
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		val view = inflater.inflate(R.layout.animation_control, container, false)
-		buttonReset.setOnClickListener { resetAnimation() }
-		buttonToggle.setOnClickListener { toggleAnimation() }
-		gifDrawable = gifImageView.drawable as GifDrawable
-
-		resetAnimation()
-		return view
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+		return inflater.inflate(R.layout.animation_control, container, false)
 	}
 
 	private fun resetAnimation() {
@@ -39,6 +33,11 @@ class AnimationControlFragment : BaseFragment(), AnimationListener {
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
+		buttonReset.setOnClickListener { resetAnimation() }
+		buttonToggle.setOnClickListener { toggleAnimation() }
+		gifDrawable = gifImageView.drawable as GifDrawable
+
+		resetAnimation()
 		gifDrawable.addAnimationListener(this)
 	}
 
