@@ -10,6 +10,7 @@ version = VERSION_NAME
 group = GROUP
 
 android {
+	publishNonDefault true
 	compileSdkVersion versions.compileSdk
 	buildToolsVersion versions.buildTools
 
@@ -29,7 +30,7 @@ android {
 				arguments "-DANDROID_PLATFORM=android-$versions.minSdk"
 				cFlags '-std=c11', '-Weverything', '-Wall'
 				if (isDebugBuild()) {
-					cFlags '-DDEBUG', '-g'
+					cFlags '-DDEBUG', '-g', '-Wl,--build-id'
 				} else {
 					cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
 				}

@@ -23,8 +23,8 @@ internal class GifSourcesAdapter(context: Context) : RecyclerView.Adapter<GifSou
 		val descriptions = holder.itemView.resources.getStringArray(R.array.sources)
 		val index = adapterPosition % descriptions.size
 
-		val existingOriginalDrawable = holder.gifImageViewOriginal.drawable as GifDrawable
-		val existingSampledDrawable = holder.gifImageViewSampled.drawable as GifDrawable
+		val existingOriginalDrawable = holder.gifImageViewOriginal.drawable as GifDrawable?
+		val existingSampledDrawable = holder.gifImageViewSampled.drawable as GifDrawable?
 		val builder = GifDrawableBuilder().with(existingOriginalDrawable)
 		resolver.bindSource(index, builder)
 		val fullSizeDrawable = builder.build()
