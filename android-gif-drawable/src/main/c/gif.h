@@ -149,14 +149,14 @@ typedef struct {
 	jlong sourceLength;
 } GifSourceDescriptor;
 
-void DetachCurrentThread();
+void DetachCurrentThread(void);
 
-ColorMapObject *getDefColorMap();
+ColorMapObject *getDefColorMap(void);
 
 /**
 * @return the real time, in ms
 */
-long getRealTime();
+long getRealTime(void);
 
 /**
 * Frees dynamically allocated memory
@@ -219,7 +219,7 @@ void drawNextBitmap(argb *bm, GifInfo *info);
 
 uint_fast32_t getFrameDuration(GifInfo *info);
 
-JNIEnv *getEnv();
+JNIEnv *getEnv(void);
 
 uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 

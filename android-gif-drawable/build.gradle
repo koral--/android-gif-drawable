@@ -10,7 +10,9 @@ version = VERSION_NAME
 group = GROUP
 
 android {
-	publishNonDefault true
+	if (isDebugBuild()) {
+		publishNonDefault true
+	}
 	compileSdkVersion versions.compileSdk
 	buildToolsVersion versions.buildTools
 
@@ -30,7 +32,7 @@ android {
 				arguments "-DANDROID_PLATFORM=android-$versions.minSdk"
 				cFlags '-std=c11', '-Weverything', '-Wall'
 				if (isDebugBuild()) {
-					cFlags '-DDEBUG', '-g', '-Wl,--build-id'
+					cFlags '-DDEBUG', '-g'
 				} else {
 					cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
 				}
@@ -65,7 +67,7 @@ dependencies {
 	provided "com.android.support:support-annotations:$versions.androidSupport"
 	testCompile 'junit:junit:4.12'
 	testCompile 'org.mockito:mockito-core:2.8.47'
-	testCompile 'org.robolectric:robolectric:3.3.2'
+	testCompile 'org.robolectric:robolectric:3.4'
 	testCompile 'org.assertj:assertj-core:3.8.0'
 	testCompile 'net.jodah:concurrentunit:0.4.2'
 	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
