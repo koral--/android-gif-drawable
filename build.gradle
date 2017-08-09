@@ -26,7 +26,7 @@ ext {
 			targetSdk     : 26,
 			minSdk        : 9,
 			buildTools    : '26.0.1',
-			androidSupport: '26.0.0'
+			androidSupport: '26.0.1'
 	]
 }
 
