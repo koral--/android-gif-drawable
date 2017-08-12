@@ -13,7 +13,6 @@ buildscript {
 
 plugins {
 	id "com.gradle.build-scan" version "1.8"
-	id "pl.droidsonroids.ui.test" version "2.0.0"
 }
 
 buildScan {
