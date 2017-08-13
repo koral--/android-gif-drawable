@@ -80,8 +80,8 @@ dependencies {
 	androidTestCompile 'org.assertj:assertj-core:1.7.1'
 	androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.8.1'
 	androidTestCompile "com.android.support:support-annotations:$versions.androidSupport"
-	androidTestCompile 'com.android.support.test:runner:0.5'
-	androidTestCompile 'com.android.support.test:rules:0.5'
+	androidTestCompile 'com.android.support.test:runner:1.0.0'
+	androidTestCompile 'com.android.support.test:rules:1.0.0'
 }
 
 jacocoAndroidUnitTestReport {
