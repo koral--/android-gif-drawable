@@ -6,6 +6,7 @@
 - Fixed Loop count interpretation - [#430](https://github.com/koral--/android-gif-drawable/pull/430) 
 - Fixed direct byte buffer input source handling - [#434](https://github.com/koral--/android-gif-drawable/issues/434) 
 - Fixed changing input source in `GifTextureView` - [#429](https://github.com/koral--/android-gif-drawable/issues/429) 
+- Fixed InputStream reading - [#442](https://github.com/koral--/android-gif-drawable/pull/442) 
 - Android Support library updated to 26.0.1
 - Android gradle plugin updated to 2.3.3
 - Gradle wrapper regenerated with 4.1
