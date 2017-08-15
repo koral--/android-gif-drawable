@@ -1,4 +1,4 @@
-### 1.2.8-SNAPSHOT
+### 1.2.8
 - `app:loopCount` XML attribute added to `GifImageView`, `GifImageButton`, `GifTextView` and `GifTextureView` - [#176](https://github.com/koral--/android-gif-drawable/issues/176)
 - Added `mipmap` resources support in XML attributes of `GifTextView`
 - Robolectric updated to 3.4
