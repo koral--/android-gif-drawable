@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlin_version = '1.1.4-2'
+	ext.kotlin_version = '1.1.4-3'
 	repositories {
 		jcenter()
 		mavenCentral()
@@ -22,11 +22,12 @@ buildScan {
 
 ext {
 	versions = [
-			compileSdk    : 26,
-			targetSdk     : 26,
-			minSdk        : 9,
-			buildTools    : '26.0.1',
-			androidSupport: '26.0.1'
+			compileSdk        : 26,
+			targetSdk         : 26,
+			minSdk            : 9,
+			buildTools        : '26.0.1',
+			androidSupport    : '26.0.2',
+			androidSupportTest: '1.0.1'
 	]
 }
 

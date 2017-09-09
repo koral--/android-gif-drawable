@@ -1,6 +1,5 @@
 package pl.droidsonroids.gif.sample
 
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,10 +13,8 @@ class GifTextureFragment : BaseFragment() {
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			if (!gifTextureView.isHardwareAccelerated) {
-				textTextureViewStub.visibility = View.VISIBLE
-			}
+		if (!gifTextureView.isHardwareAccelerated) {
+			textTextureViewStub.visibility = View.VISIBLE
 		}
 	}
 }

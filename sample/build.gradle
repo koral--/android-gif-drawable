@@ -44,8 +44,8 @@ android {
 }
 
 dependencies {
-    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
-    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     compile "com.android.support:design:$versions.androidSupport"
     compile "com.android.support:appcompat-v7:$versions.androidSupport"
 	compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"

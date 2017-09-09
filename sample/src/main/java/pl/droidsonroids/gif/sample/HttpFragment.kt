@@ -18,16 +18,9 @@ class HttpFragment : BaseFragment(), View.OnClickListener {
 	private val executorService = Executors.newSingleThreadExecutor()
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			if (container != null) {
-				Snackbar.make(container, R.string.gif_texture_view_stub_api_level, Snackbar.LENGTH_LONG).show()
-			}
-			return null
-		} else {
-			gifTextureView = inflater.inflate(R.layout.http, container, false) as GifTextureView
-			downloadGif()
-			return gifTextureView
-		}
+		gifTextureView = inflater.inflate(R.layout.http, container, false) as GifTextureView
+		downloadGif()
+		return gifTextureView
 	}
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {

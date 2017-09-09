@@ -13,13 +13,12 @@ import java.util.concurrent.FutureTask
 
 private const val GIF_URL = "https://raw.githubusercontent.com/koral--/android-gif-drawable-sample/cb2d1f42b3045b2790a886d1574d3e74281de743/sample/src/main/assets/Animated-Flag-Hungary.gif"
 
-@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-internal class GifLoadTask(httpFragment: HttpFragment) : FutureTask<ByteBuffer>(Callable {
+val worker = Callable {
 	val urlConnection = URL(GIF_URL).openConnection()
 	urlConnection.connect()
 	val contentLength = urlConnection.contentLength
 	if (contentLength < 0) {
-		throw IOException("Content-Length not present")
+		throw IOException("Content-Length header not present")
 	}
 	urlConnection.getInputStream().use {
 		val buffer = ByteBuffer.allocateDirect(contentLength)
@@ -30,11 +29,14 @@ internal class GifLoadTask(httpFragment: HttpFragment) : FutureTask<ByteBuffer>(
 		}
 		return@Callable buffer
 	}
-}) {
-	private val mFragmentReference = WeakReference(httpFragment)
+}
+
+@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+internal class GifLoadTask(httpFragment: HttpFragment) : FutureTask<ByteBuffer>(worker) {
+	private val fragmentReference = WeakReference(httpFragment)
 
 	override fun done() {
-		val httpFragment = mFragmentReference.get() ?: return
+		val httpFragment = fragmentReference.get() ?: return
 		try {
 			httpFragment.onGifDownloaded(get())
 		} catch (e: InterruptedException) {

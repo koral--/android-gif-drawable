@@ -24,11 +24,9 @@ class AnimationControlFragment : BaseFragment(), AnimationListener {
 		buttonToggle.isChecked = false
 	}
 
-	private fun toggleAnimation() {
-		when {
-			gifDrawable.isPlaying -> gifDrawable.stop()
-			else -> gifDrawable.start()
-		}
+	private fun toggleAnimation() = when {
+		gifDrawable.isPlaying -> gifDrawable.stop()
+		else -> gifDrawable.start()
 	}
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {

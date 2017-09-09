@@ -71,17 +71,17 @@ android {
 dependencies {
 	provided "com.android.support:support-annotations:$versions.androidSupport"
 	testCompile 'junit:junit:4.12'
-	testCompile 'org.mockito:mockito-core:2.8.47'
+	testCompile 'org.mockito:mockito-core:2.10.0'
 	testCompile 'org.robolectric:robolectric:3.4.2'
 	testCompile 'org.assertj:assertj-core:3.8.0'
 	testCompile 'net.jodah:concurrentunit:0.4.2'
 	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
 	androidTestCompile 'junit:junit:4.12'
 	androidTestCompile 'org.assertj:assertj-core:1.7.1'
-	androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.8.1'
+	androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.9.0'
 	androidTestCompile "com.android.support:support-annotations:$versions.androidSupport"
-	androidTestCompile 'com.android.support.test:runner:1.0.0'
-	androidTestCompile 'com.android.support.test:rules:1.0.0'
+	androidTestCompile "com.android.support.test:runner:$versions.androidSupportTest"
+	androidTestCompile "com.android.support.test:rules:$versions.androidSupportTest"
 }
 
 jacocoAndroidUnitTestReport {
