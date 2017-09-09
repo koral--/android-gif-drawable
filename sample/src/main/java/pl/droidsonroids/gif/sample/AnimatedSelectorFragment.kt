@@ -1,5 +1,6 @@
 package pl.droidsonroids.gif.sample
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.StateListDrawable
 import android.os.Build
@@ -25,6 +26,7 @@ class AnimatedSelectorFragment : BaseFragment() {
 	}
 
 	private val xmlAnimatedBackground: Drawable
+		@SuppressLint("ResourceType")
 		get() {
 			val resourceParser = resources.getXml(R.drawable.selector)
 			return AnimatedSelectorDrawableGenerator.getDrawable(resources, resourceParser)

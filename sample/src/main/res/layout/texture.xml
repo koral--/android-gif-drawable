@@ -1,13 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/textTextureViewStub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gif_texture_view_stub_acceleration"
+            android:visibility="gone"
+            tools:ignore="InconsistentLayout"/>
+
+        <pl.droidsonroids.gif.GifTextureView
+            android:id="@+id/gifTextureView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:freezesAnimation="true"
+            app:gifSource="@drawable/anim_flag_iceland"
+            app:isOpaque="false"
+            tools:ignore="InconsistentLayout"/>
+    </FrameLayout>
 
     <pl.droidsonroids.gif.GifImageView
         android:id="@+id/gifImageView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:src="@drawable/anim_flag_iceland"/>
+        android:src="@drawable/anim_flag_iceland"
+        app:freezesAnimation="true"/>
 </LinearLayout>
