@@ -13,7 +13,9 @@ import pl.droidsonroids.gif.GifDrawable;
 public interface Transform {
 
 	/**
-	 * Called by {@link GifDrawable} when its {@link GifDrawable#onBoundsChange(Rect)} is called.
+	 * Called by {@link GifDrawable} when its bounds changes by {@link GifDrawable#onBoundsChange(Rect)}
+	 * and when transform is associated using {@link GifDrawable#setTransform(Transform)}.
+	 * In this latter case the latest {@link GifDrawable} bounds (empty {@link Rect} if they were not set yet).
 	 * @param bounds new bounds
 	 */
 	void onBoundsChange(Rect bounds);
