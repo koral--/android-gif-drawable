@@ -964,6 +964,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public void setCornerRadius(@FloatRange(from = 0) final float cornerRadius) {
 		mTransform = new CornerRadiusTransform(cornerRadius);
+		mTransform.onBoundsChange(mDstRect);
 	}
 
 	/**
@@ -984,6 +985,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public void setTransform(@Nullable Transform transform) {
 		mTransform = transform;
+		if (mTransform != null) {
+			mTransform.onBoundsChange(mDstRect);
+		}
 	}
 
 	/**
