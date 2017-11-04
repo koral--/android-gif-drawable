@@ -15,4 +15,6 @@
     <string name="animated_selector_description">Press button to change drawable state</string>
     <string name="java_selector">java selector</string>
     <string name="xml_selector">XML selector</string>
+    <string name="loading">Loading large GIF…</string>
+    <string name="large_gif">Large GIF</string>
 </resources>

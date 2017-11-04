@@ -1,18 +1,19 @@
 buildscript {
-	ext.kotlin_version = '1.1.4-3'
+	ext.kotlin_version = '1.1.51'
 	repositories {
 		jcenter()
+		google()
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.3.3'
+		classpath 'com.android.tools.build:gradle:3.0.0'
 		classpath 'com.dicedmelon.gradle:jacoco-android:0.1.2'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 	}
 }
 
 plugins {
-	id "com.gradle.build-scan" version "1.8"
+	id "com.gradle.build-scan" version "1.10.1"
 }
 
 buildScan {
@@ -22,11 +23,11 @@ buildScan {
 
 ext {
 	versions = [
-			compileSdk        : 26,
+			compileSdk        : 27,
 			targetSdk         : 26,
 			minSdk            : 9,
-			buildTools        : '26.0.1',
-			androidSupport    : '26.0.2',
+			buildTools        : '27.0.0',
+			androidSupport    : '27.0.0',
 			androidSupportTest: '1.0.1'
 	]
 }

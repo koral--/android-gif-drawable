@@ -18,7 +18,8 @@ internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStatePager
 				6 -> TexturePlaceholderFragment()
 				7 -> GifTexImage2DFragment()
 				8 -> AnimatedSelectorFragment()
-				9 -> AboutFragment()
+				9 -> GifDecoderFragment()
+				10 -> AboutFragment()
 				else -> throw IndexOutOfBoundsException("Invalid page index")
 			}
 

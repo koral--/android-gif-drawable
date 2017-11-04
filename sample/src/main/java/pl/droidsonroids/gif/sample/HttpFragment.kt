@@ -23,7 +23,7 @@ class HttpFragment : BaseFragment(), View.OnClickListener {
 		return gifTextureView
 	}
 
-	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && !gifTextureView!!.isHardwareAccelerated) {
 			Snackbar.make(gifTextureView!!, R.string.gif_texture_view_stub_acceleration, Snackbar.LENGTH_LONG).show()
