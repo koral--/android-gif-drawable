@@ -15,8 +15,8 @@ import java.io.BufferedInputStream
 class TexturePlaceholderFragment : BaseFragment(), GifTextureView.PlaceholderDrawListener {
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		val view = GifTextureView(context)
-		val assetFileDescriptor = context.assets.openFd("Animated-Flag-Delaware.gif")
+		val view = GifTextureView(inflater.context)
+		val assetFileDescriptor = inflater.context.assets.openFd("Animated-Flag-Delaware.gif")
 		view.setInputSource(InputSource.InputStreamSource(SlowLoadingInputStream(assetFileDescriptor)), this)
 		return view
 	}

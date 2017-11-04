@@ -14,7 +14,7 @@ class ImageSpanFragment : BaseFragment(), Drawable.Callback {
 
 	private lateinit var textView: TextView
 
-	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		textView = TextView(activity)
 		textView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
 		textView.setTextIsSelectable(true)

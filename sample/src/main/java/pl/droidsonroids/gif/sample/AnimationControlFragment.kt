@@ -29,7 +29,7 @@ class AnimationControlFragment : BaseFragment(), AnimationListener {
 		else -> gifDrawable.start()
 	}
 
-	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		buttonReset.setOnClickListener { resetAnimation() }
 		buttonToggle.setOnClickListener { toggleAnimation() }
