@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         versionName project.version
-        minSdkVersion 14
+        minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk
         versionCode 1
         applicationId 'pl.droidsonroids.gif.sample'
