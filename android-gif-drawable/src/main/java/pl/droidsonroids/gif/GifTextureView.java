@@ -24,8 +24,7 @@ import java.lang.ref.WeakReference;
 import pl.droidsonroids.gif.annotations.Beta;
 
 /**
- * <p>{@link TextureView} which can display animated GIFs. Available on API level 14
- * ({@link Build.VERSION_CODES#ICE_CREAM_SANDWICH}) and above. GifTextureView can only be used in a
+ * <p>{@link TextureView} which can display animated GIFs. GifTextureView can only be used in a
  * hardware accelerated window. When rendered in software, GifTextureView will draw nothing.</p>
  * <p>GIF source can be specified in XML or by calling {@link #setInputSource(InputSource)}</p>
  * <pre> {@code
@@ -44,7 +43,6 @@ import pl.droidsonroids.gif.annotations.Beta;
  * {@link #setOpaque(boolean)}.
  * You can use scale types the same way as in {@link android.widget.ImageView}.</p>
  */
-@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class GifTextureView extends TextureView {
 
 	private static final ScaleType[] sScaleTypeArray = {

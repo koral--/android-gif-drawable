@@ -1,7 +1,5 @@
 package pl.droidsonroids.gif.sample
 
-import android.os.Build
-import android.support.annotation.RequiresApi
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.net.URL
@@ -31,7 +29,6 @@ val worker = Callable {
 	}
 }
 
-@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 internal class GifLoadTask(httpFragment: HttpFragment) : FutureTask<ByteBuffer>(worker) {
 	private val fragmentReference = WeakReference(httpFragment)
 
