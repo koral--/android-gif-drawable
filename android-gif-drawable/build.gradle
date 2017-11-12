@@ -11,9 +11,6 @@ version = VERSION_NAME
 group = GROUP
 
 android {
-	if (isDebugBuild()) {
-		publishNonDefault true
-	}
 	compileSdkVersion versions.compileSdk
 	buildToolsVersion versions.buildTools
 
@@ -80,7 +77,7 @@ dependencies {
 	androidTestImplementation 'junit:junit:4.12'
 	androidTestImplementation 'org.assertj:assertj-core:1.7.1'
 	androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.9.0'
-	androidTestImplementation "com.android.support:support-annotations:$versions.androidSupport"
+	androidTestCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	androidTestImplementation "com.android.support.test:runner:$versions.androidSupportTest"
 	androidTestImplementation "com.android.support.test:rules:$versions.androidSupportTest"
 }
