@@ -1,10 +1,11 @@
 ### 1.2.9-SNAPSHOT
-- Android Support library updated to 27.0.0
+- Android Support library updated to 27.0.1
 - Android gradle plugin updated to 3.0.0
-- Gradle wrapper regenerated with 4.3
+- Gradle wrapper regenerated with 4.3.1
 - Build tools updated to 27.0.1
 - Minimum SDK version increased to 14
 - Improved bound passing to transforms - [#450](https://github.com/koral--/android-gif-drawable/pull/450)
+- Add compound drawables animation start when `GifTextView` attached to window - [#474](https://github.com/koral--/android-gif-drawable/pull/474)
 
 ### 1.2.8
 - `app:loopCount` XML attribute added to `GifImageView`, `GifImageButton`, `GifTextView` and `GifTextureView` - [#176](https://github.com/koral--/android-gif-drawable/issues/176)

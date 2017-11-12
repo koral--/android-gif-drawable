@@ -12,22 +12,13 @@ buildscript {
 	}
 }
 
-plugins {
-	id "com.gradle.build-scan" version "1.10.1"
-}
-
-buildScan {
-	licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-	licenseAgree = 'yes'
-}
-
 ext {
 	versions = [
 			compileSdk        : 27,
 			targetSdk         : 26,
 			minSdk            : 14,
-			buildTools        : '27.0.0',
-			androidSupport    : '27.0.0',
+			buildTools        : '27.0.1',
+			androidSupport    : '27.0.1',
 			androidSupportTest: '1.0.1'
 	]
 }
