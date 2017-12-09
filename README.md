@@ -5,7 +5,7 @@ android-gif-drawable
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-android--gif--drawable-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1147)
 [![Android-Libs](https://img.shields.io/badge/Android--Libs-android--gif--drawable-orange.svg?style=flat)](http://android-libs.com/lib/android-gif-drawable)
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
-[![API](https://img.shields.io/badge/API-9%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=14)
+[![API](https://img.shields.io/badge/API-14%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=14)
 [![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 
 `View`s and `Drawable` for animated GIFs in Android.
@@ -203,7 +203,7 @@ protected void onCreate(Bundle savedInstanceState) {
 #### Associating single `GifDrawable` instance with multiple `View`s
 
 Normally single `GifDrawable` instance associated with multiple `View`s will animate only on the last one.
-To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, eg.:
+To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, e.g.:
 ```java
 MultiCallback multiCallback = new MultiCallback();
 
@@ -215,6 +215,9 @@ multiCallback.addView(anotherImageView);
 
 gifDrawable.setCallback(multiCallback);
 ```
+
+Note that if you change a drawable of e.g. `ImageView`, the callback will be removed from the previous
+drawable. Thereafter, you have to reassign callback or the same `GifDrawable` instance will stop animating.
 
 #### Advanced
  
