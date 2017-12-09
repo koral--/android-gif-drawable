@@ -48,7 +48,7 @@ dependencies {
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.3'
     implementation "com.android.support:design:$versions.androidSupport"
     implementation "com.android.support:appcompat-v7:$versions.androidSupport"
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation project(':android-gif-drawable')
 	//implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
 }
