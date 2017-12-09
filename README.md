@@ -217,7 +217,8 @@ gifDrawable.setCallback(multiCallback);
 ```
 
 Note that if you change a drawable of e.g. `ImageView`, the callback will be removed from the previous
-drawable. Thereafter, you have to reassign callback or the same `GifDrawable` instance will stop animating.
+drawable. Thereafter, you have to reassign callback or the same `GifDrawable` instance will stop animating. 
+See [#480](https://github.com/koral--/android-gif-drawable/issues/480) for more information.
 
 #### Advanced
  
