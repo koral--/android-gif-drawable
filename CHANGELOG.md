@@ -1,4 +1,4 @@
-### 1.2.9-SNAPSHOT
+### 1.2.9
 - Android Support library updated to 27.0.1
 - Android gradle plugin updated to 3.0.1
 - Kotlin updated to 1.2.10
