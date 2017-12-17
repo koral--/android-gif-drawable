@@ -4,7 +4,6 @@
     <string name="about_text" tools:ignore="TypographyDashes">This is a sample of android-gif-drawable Library:
         https://github.com/koral--/android-gif-drawable\nUsed icons are public domain or licensed under CC, GFDL.</string>
     <string name="compound_text">This is a TextView with animated compound drawables</string>
-    <string name="gif_texture_view_stub_api_level">GifTextureView is available in API level 14+</string>
     <string name="gif_texture_view_stub_acceleration">GifTextureView requires hardware acceleration</string>
     <string name="gif_texture_view_loading_failed">Could not load GIF: %s. Tap to try again.</string>
     <string name="reset_animation">Reset animation</string>
@@ -16,4 +15,6 @@
     <string name="animated_selector_description">Press button to change drawable state</string>
     <string name="java_selector">java selector</string>
     <string name="xml_selector">XML selector</string>
+    <string name="loading">Loading large GIF…</string>
+    <string name="large_gif">Large GIF</string>
 </resources>

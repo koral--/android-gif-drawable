@@ -22,6 +22,7 @@
         <item>GifTextureView placeholder</item>
         <item>GifTexImage2D</item>
         <item>Animated selector</item>
+        <item>GifDecoder</item>
         <item>About</item>
     </string-array>
 </resources>

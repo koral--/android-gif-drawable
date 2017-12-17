@@ -3,10 +3,8 @@ package pl.droidsonroids.gif.sample
 import android.content.res.AssetFileDescriptor
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
-import android.support.design.widget.Snackbar
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,17 +15,10 @@ import java.io.BufferedInputStream
 class TexturePlaceholderFragment : BaseFragment(), GifTextureView.PlaceholderDrawListener {
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			if (container != null) {
-				Snackbar.make(container, R.string.gif_texture_view_stub_api_level, Snackbar.LENGTH_LONG).show()
-			}
-			return null
-		} else {
-			val view = GifTextureView(context)
-			val assetFileDescriptor = context.assets.openFd("Animated-Flag-Delaware.gif")
-			view.setInputSource(InputSource.InputStreamSource(SlowLoadingInputStream(assetFileDescriptor)), this)
-			return view
-		}
+		val view = GifTextureView(inflater.context)
+		val assetFileDescriptor = inflater.context.assets.openFd("Animated-Flag-Delaware.gif")
+		view.setInputSource(InputSource.InputStreamSource(SlowLoadingInputStream(assetFileDescriptor)), this)
+		return view
 	}
 
 	override fun onDrawPlaceholder(canvas: Canvas) {

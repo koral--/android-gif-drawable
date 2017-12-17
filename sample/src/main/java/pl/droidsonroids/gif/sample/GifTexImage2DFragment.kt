@@ -129,16 +129,13 @@ class GifTexImage2DFragment : BaseFragment() {
 			gifTexImage2D!!.glTexSubImage2D(GL_TEXTURE_2D, 0)
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
 		}
-
 	}
-
 
 	private val isOpenGLES2Supported: Boolean
 		get() {
-			val features = context.packageManager.systemAvailableFeatures
+			val features = context?.packageManager?.systemAvailableFeatures
 			features?.filter { it.name == null }
 					?.forEach { return it.reqGlEsVersion and 0xffff0000.toInt() shr 16 >= 2 }
 			return false
 		}
-
 }

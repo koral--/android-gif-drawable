@@ -5,7 +5,7 @@ android-gif-drawable
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-android--gif--drawable-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1147)
 [![Android-Libs](https://img.shields.io/badge/Android--Libs-android--gif--drawable-orange.svg?style=flat)](http://android-libs.com/lib/android-gif-drawable)
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
-[![API](https://img.shields.io/badge/API-9%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=9)
+[![API](https://img.shields.io/badge/API-14%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=14)
 [![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 
 `View`s and `Drawable` for animated GIFs in Android.
@@ -66,8 +66,8 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
 ### Requirements
-+ Android 2.3+ (API level 9+)
-+ for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
++ Android 4.0+ (API level 14+)
++ for `GifTextureView` hardware-accelerated rendering
 + for `GifTexImage2D` OpenGL ES 2.0+
 
 #### Building from source
@@ -203,7 +203,7 @@ protected void onCreate(Bundle savedInstanceState) {
 #### Associating single `GifDrawable` instance with multiple `View`s
 
 Normally single `GifDrawable` instance associated with multiple `View`s will animate only on the last one.
-To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, eg.:
+To solve that create `MultiCallback` instance, add `View`s to it and set callback for given drawable, e.g.:
 ```java
 MultiCallback multiCallback = new MultiCallback();
 
@@ -216,11 +216,19 @@ multiCallback.addView(anotherImageView);
 gifDrawable.setCallback(multiCallback);
 ```
 
+Note that if you change a drawable of e.g. `ImageView`, the callback will be removed from the previous
+drawable. Thereafter, you have to reassign callback or the same `GifDrawable` instance will stop animating. 
+See [#480](https://github.com/koral--/android-gif-drawable/issues/480) for more information.
+
 #### Advanced
  
 + `recycle()` - provided to speed up freeing memory (like in `android.graphics.Bitmap`)
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
+
+## Upgrading from 1.2.8
+#### Minimum SDK version changed
+Minimum API level is now 14 (Android 4.0).
 
 ## Upgrading from 1.2.3
 Meaningful only if consumer proguard rules (bundled with library) are **not** used (they are used by default by Gradle).

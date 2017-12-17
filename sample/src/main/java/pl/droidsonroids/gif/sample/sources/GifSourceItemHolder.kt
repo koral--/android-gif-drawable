@@ -8,8 +8,8 @@ import pl.droidsonroids.gif.MultiCallback
 import pl.droidsonroids.gif.sample.R
 
 internal class GifSourceItemHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-	val gifImageViewOriginal: GifImageView = itemView.findViewById<GifImageView>(R.id.image_original)
-	val gifImageViewSampled: GifImageView = itemView.findViewById<GifImageView>(R.id.image_subsampled)
-	val descriptionTextView: TextView = itemView.findViewById<TextView>(R.id.desc_tv)
+	val gifImageViewOriginal: GifImageView = itemView.findViewById(R.id.image_original)
+	val gifImageViewSampled: GifImageView = itemView.findViewById(R.id.image_subsampled)
+	val descriptionTextView: TextView = itemView.findViewById(R.id.desc_tv)
 	val multiCallback = MultiCallback(true)
 }

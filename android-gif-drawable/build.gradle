@@ -1,5 +1,5 @@
 plugins {
-	id "com.jfrog.bintray" version "1.7.3"
+	id "com.jfrog.bintray" version "1.8.0"
 	id "pl.droidsonroids.ui.test" version "2.0.0"
 }
 
@@ -11,9 +11,6 @@ version = VERSION_NAME
 group = GROUP
 
 android {
-	if (isDebugBuild()) {
-		publishNonDefault true
-	}
 	compileSdkVersion versions.compileSdk
 	buildToolsVersion versions.buildTools
 
@@ -69,19 +66,20 @@ android {
 }
 
 dependencies {
-	provided "com.android.support:support-annotations:$versions.androidSupport"
-	testCompile 'junit:junit:4.12'
-	testCompile 'org.mockito:mockito-core:2.8.47'
-	testCompile 'org.robolectric:robolectric:3.4.2'
-	testCompile 'org.assertj:assertj-core:3.8.0'
-	testCompile 'net.jodah:concurrentunit:0.4.2'
-	testCompile 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
-	androidTestCompile 'junit:junit:4.12'
-	androidTestCompile 'org.assertj:assertj-core:1.7.1'
-	androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.8.1'
-	androidTestCompile "com.android.support:support-annotations:$versions.androidSupport"
-	androidTestCompile 'com.android.support.test:runner:1.0.0'
-	androidTestCompile 'com.android.support.test:rules:1.0.0'
+	compileOnly "com.android.support:support-annotations:$versions.androidSupport"
+	testCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
+	testImplementation 'junit:junit:4.12'
+	testImplementation 'org.mockito:mockito-core:2.12.0'
+	testImplementation 'org.robolectric:robolectric:3.5.1'
+	testImplementation 'org.assertj:assertj-core:3.8.0'
+	testImplementation 'net.jodah:concurrentunit:0.4.3'
+	testImplementation 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
+	androidTestImplementation 'junit:junit:4.12'
+	androidTestImplementation 'org.assertj:assertj-core:1.7.1'
+	androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.9.1'
+	androidTestCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
+	androidTestImplementation "com.android.support.test:runner:$versions.androidSupportTest"
+	androidTestImplementation "com.android.support.test:rules:$versions.androidSupportTest"
 }
 
 jacocoAndroidUnitTestReport {

@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.support.annotation.FloatRange;
+import android.support.annotation.NonNull;
 
 /**
  * {@link Transform} which adds rounded corners.
@@ -23,7 +24,7 @@ public class CornerRadiusTransform implements Transform {
 	 * @param cornerRadius corner radius, may be 0.
 	 */
 	public CornerRadiusTransform(@FloatRange(from = 0) float cornerRadius) {
-		setCornerRadius(cornerRadius);
+		setCornerRadiusSafely(cornerRadius);
 	}
 
 	/**
@@ -32,12 +33,15 @@ public class CornerRadiusTransform implements Transform {
 	 * @param cornerRadius corner radius or 0 to remove rounding
 	 */
 	public void setCornerRadius(@FloatRange(from = 0) float cornerRadius) {
+		setCornerRadiusSafely(cornerRadius);
+	}
+
+	private void setCornerRadiusSafely(@FloatRange(from = 0) float cornerRadius) {
 		cornerRadius = Math.max(0, cornerRadius);
-		if (cornerRadius == mCornerRadius) {
-			return;
+		if (cornerRadius != mCornerRadius) {
+			mCornerRadius = cornerRadius;
+			mShader = null;
 		}
-		mCornerRadius = cornerRadius;
-		mShader = null;
 	}
 
 	/**
@@ -46,6 +50,16 @@ public class CornerRadiusTransform implements Transform {
 	@FloatRange(from = 0)
 	public float getCornerRadius() {
 		return mCornerRadius;
+	}
+
+	/**
+	 * Returns current transform bounds - latest received by {@link #onBoundsChange(Rect)}.
+	 *
+	 * @return current transform bounds
+	 */
+	@NonNull
+	public RectF getBounds() {
+		return mDstRectF;
 	}
 
 	@Override

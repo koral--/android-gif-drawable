@@ -76,6 +76,14 @@ public class GifTextView extends TextView {
 		init(attrs, defStyle, defStyleRes);
 	}
 
+	private static void setDrawablesVisible(final Drawable[] drawables, final boolean visible) {
+		for (final Drawable drawable : drawables) {
+			if (drawable != null) {
+				drawable.setVisible(visible, false);
+			}
+		}
+	}
+
 	private void init(AttributeSet attrs, int defStyle, int defStyleRes) {
 		if (attrs != null) {
 			Drawable left = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableLeft", 0));
@@ -137,11 +145,6 @@ public class GifTextView extends TextView {
 		}
 	}
 
-	@Override
-	public void setBackgroundResource(int resId) {
-		setBackgroundInternal(getGifOrDefaultDrawable(resId));
-	}
-
 	@SuppressWarnings("deprecation") //Resources#getDrawable(int)
 	private Drawable getGifOrDefaultDrawable(int resId) {
 		if (resId == 0) {
@@ -163,32 +166,15 @@ public class GifTextView extends TextView {
 		}
 	}
 
-	@RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	@Override
-	public void setCompoundDrawablesRelativeWithIntrinsicBounds(int start, int top, int end, int bottom) {
-		setCompoundDrawablesRelativeWithIntrinsicBounds(getGifOrDefaultDrawable(start), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(end), getGifOrDefaultDrawable(bottom));
-	}
-
 	@Override
 	public void setCompoundDrawablesWithIntrinsicBounds(int left, int top, int right, int bottom) {
 		setCompoundDrawablesWithIntrinsicBounds(getGifOrDefaultDrawable(left), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(right), getGifOrDefaultDrawable(bottom));
 	}
 
+	@RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
-	protected void onDetachedFromWindow() {
-		super.onDetachedFromWindow();
-		hideCompoundDrawables(getCompoundDrawables());
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-			hideCompoundDrawables(getCompoundDrawablesRelative());
-		}
-	}
-
-	private void hideCompoundDrawables(Drawable[] drawables) {
-		for (Drawable d : drawables) {
-			if (d != null) {
-				d.setVisible(false, false);
-			}
-		}
+	public void setCompoundDrawablesRelativeWithIntrinsicBounds(int start, int top, int end, int bottom) {
+		setCompoundDrawablesRelativeWithIntrinsicBounds(getGifOrDefaultDrawable(start), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(end), getGifOrDefaultDrawable(bottom));
 	}
 
 	@Override
@@ -228,6 +214,30 @@ public class GifTextView extends TextView {
 			ss.restoreState(compoundDrawablesRelative[2], 5);
 		}
 		ss.restoreState(getBackground(), 6);
+	}
+
+	@Override
+	protected void onAttachedToWindow() {
+		super.onAttachedToWindow();
+		setCompoundDrawablesVisible(true);
+	}
+
+	@Override
+	protected void onDetachedFromWindow() {
+		super.onDetachedFromWindow();
+		setCompoundDrawablesVisible(false);
+	}
+
+	@Override
+	public void setBackgroundResource(int resId) {
+		setBackgroundInternal(getGifOrDefaultDrawable(resId));
+	}
+
+	private void setCompoundDrawablesVisible(final boolean visible) {
+		setDrawablesVisible(getCompoundDrawables(), visible);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+			setDrawablesVisible(getCompoundDrawablesRelative(), visible);
+		}
 	}
 
 	/**

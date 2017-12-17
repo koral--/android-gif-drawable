@@ -2,12 +2,9 @@ package pl.droidsonroids.gif;
 
 import android.graphics.Canvas;
 import android.graphics.SurfaceTexture;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import android.view.TextureView;
 
-@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class PlaceholderDrawingSurfaceTextureListener implements TextureView.SurfaceTextureListener {
 	private final GifTextureView.PlaceholderDrawListener mDrawer;
 
