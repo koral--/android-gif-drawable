@@ -10,8 +10,9 @@ import org.xmlpull.v1.XmlPullParserException
 import pl.droidsonroids.gif.GifDrawable
 import java.io.IOException
 
+private const val NAMESPACE = "http://schemas.android.com/apk/res/android"
+
 class GifSelectorDrawable : StateListDrawable() {
-	private val NAMESPACE = "http://schemas.android.com/apk/res/android"
 
 	@Throws(XmlPullParserException::class, IOException::class)
 	override fun inflate(r: Resources, parser: XmlPullParser, attrs: AttributeSet, theme: Resources.Theme?) {
@@ -23,8 +24,8 @@ class GifSelectorDrawable : StateListDrawable() {
 			if (eventType == XmlPullParser.START_TAG && "item" == resourceParser.name) {
 				@DrawableRes
 				val resourceId = resourceParser.getAttributeResourceValue(NAMESPACE, "drawable", 0)
-				val state_pressed = resourceParser.getAttributeBooleanValue(NAMESPACE, "state_pressed", false)
-				val stateSet = if (state_pressed) intArrayOf(android.R.attr.state_pressed) else IntArray(0)
+				val statePressed = resourceParser.getAttributeBooleanValue(NAMESPACE, "state_pressed", false)
+				val stateSet = if (statePressed) intArrayOf(android.R.attr.state_pressed) else IntArray(0)
 				addState(stateSet, GifDrawable.createFromResource(r, resourceId))
 			}
 			eventType = resourceParser.next()
