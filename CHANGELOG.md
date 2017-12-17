@@ -1,9 +1,9 @@
 ### 1.2.9-SNAPSHOT
 - Android Support library updated to 27.0.1
 - Android gradle plugin updated to 3.0.1
-- Kotlin updated to 1.1.60
-- Gradle wrapper regenerated with 4.3.1
-- Build tools updated to 27.0.1
+- Kotlin updated to 1.2.10
+- Gradle wrapper regenerated with 4.4
+- Build tools updated to 27.0.2
 - Minimum SDK version increased to 14
 - Improved bound passing to transforms - [#450](https://github.com/koral--/android-gif-drawable/pull/450)
 - Add compound drawables animation start when `GifTextView` attached to window - [#474](https://github.com/koral--/android-gif-drawable/pull/474)
