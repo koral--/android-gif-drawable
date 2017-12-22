@@ -34,6 +34,7 @@ android {
 				} else {
 					cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
 				}
+				abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "mips", "mips64", "x86", "x86_64"
 			}
 		}
 	}
