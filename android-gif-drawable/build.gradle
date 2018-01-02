@@ -70,7 +70,7 @@ dependencies {
 	compileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testImplementation 'junit:junit:4.12'
-	testImplementation 'org.mockito:mockito-core:2.12.0'
+	testImplementation 'org.mockito:mockito-core:2.13.0'
 	testImplementation 'org.robolectric:robolectric:3.5.1'
 	testImplementation 'org.assertj:assertj-core:3.8.0'
 	testImplementation 'net.jodah:concurrentunit:0.4.3'
