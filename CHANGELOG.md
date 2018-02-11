@@ -1,9 +1,13 @@
+### 1.2.11-SNAPSHOT
+- Gradle wrapper regenerated with 4.5
+- Kotlin updated to 1.2.21
+
 ### 1.2.10
 - Gradle wrapper regenerated with 4.4.1
 - `armeabi` and `mips` family targets restored - [#494](https://github.com/koral--/android-gif-drawable/pull/494)
 
 ### 1.2.9
-- Android Support library updated to 27.0.1
+- Android Support library updated to 27.0.2
 - Android gradle plugin updated to 3.0.1
 - Kotlin updated to 1.2.10
 - Gradle wrapper regenerated with 4.4
