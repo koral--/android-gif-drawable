@@ -1,4 +1,4 @@
-### 1.2.11-SNAPSHOT
+### 1.2.11
 - Gradle wrapper regenerated with 4.5.1
 - Kotlin updated to 1.2.21
 - Added `GifTexImage2D#getCurrentFrameIndex()` - [#506](https://github.com/koral--/android-gif-drawable/pull/506)
