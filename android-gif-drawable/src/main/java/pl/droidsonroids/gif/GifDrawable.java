@@ -1,5 +1,7 @@
 package pl.droidsonroids.gif;
 
+import static pl.droidsonroids.gif.InvalidationHandler.MSG_TYPE_INVALIDATION;
+
 import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -29,7 +31,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.widget.MediaController.MediaPlayerControl;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -40,11 +41,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import pl.droidsonroids.gif.transforms.CornerRadiusTransform;
 import pl.droidsonroids.gif.transforms.Transform;
-
-import static pl.droidsonroids.gif.InvalidationHandler.MSG_TYPE_INVALIDATION;
 
 /**
  * A {@link Drawable} which can be used to hold GIF images, especially animations.
@@ -280,6 +278,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public boolean isRecycled() {
 		return mNativeInfoHandle.isRecycled();
+	}
+
+	@Override
+	public void invalidateSelf() {
+		super.invalidateSelf();
+		nextRenderTask();
 	}
 
 	@Override
@@ -766,6 +770,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			mPaint.setColorFilter(null);
 		}
 
+	}
+
+	private void nextRenderTask() {
 		if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) {
 			final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.uptimeMillis());
 			mNextFrameRenderTime = Long.MIN_VALUE;
