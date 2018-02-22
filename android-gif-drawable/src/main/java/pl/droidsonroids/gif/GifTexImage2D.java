@@ -70,6 +70,13 @@ public class GifTexImage2D {
 	}
 
 	/**
+	 * @return index of recently rendered frame or -1 if this object is recycled
+	 */
+	public int getCurrentFrameIndex() {
+		return mGifInfoHandle.getCurrentFrameIndex();
+	}
+
+	/**
 	 * Equivalent of {@link android.opengl.GLES20#glTexImage2D(int, int, int, int, int, int, int, int, Buffer)}.
 	 * Where <code>Buffer</code> contains pixels of the current frame.
 	 *
