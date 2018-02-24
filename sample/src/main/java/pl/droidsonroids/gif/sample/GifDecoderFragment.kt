@@ -2,6 +2,7 @@ package pl.droidsonroids.gif.sample
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,7 @@ import pl.droidsonroids.gif.InputSource
 class GifDecoderFragment : BaseFragment() {
     private val frames = mutableListOf<Bitmap>()
     private val durations = mutableListOf<Int>()
+    private val handler = Handler()
     private var currentFrameIndex = 0
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -28,7 +30,7 @@ class GifDecoderFragment : BaseFragment() {
                 durations += decoder.getFrameDuration(i)
             }
             decoder.recycle()
-            decoderImageView.post {
+            handler.post {
                 startAnimation()
                 decoderLoadingTextView.visibility = View.GONE
             }
@@ -44,18 +46,18 @@ class GifDecoderFragment : BaseFragment() {
 
     private fun startAnimation() {
         decoderImageView.setImageBitmap(frames[currentFrameIndex])
-        decoderImageView.postDelayed(this::advanceAnimation, durations[currentFrameIndex].toLong())
+        handler.postDelayed(this::advanceAnimation, durations[currentFrameIndex].toLong())
     }
 
     override fun onPause() {
+        handler.removeCallbacksAndMessages(null)
         super.onPause()
-        decoderImageView.removeCallbacks(null)
     }
 
     private fun advanceAnimation() {
         currentFrameIndex++
         currentFrameIndex %= frames.size
         decoderImageView.setImageBitmap(frames[currentFrameIndex])
-        decoderImageView.postDelayed(this::advanceAnimation, durations[currentFrameIndex].toLong())
+        handler.postDelayed(this::advanceAnimation, durations[currentFrameIndex].toLong())
     }
 }
