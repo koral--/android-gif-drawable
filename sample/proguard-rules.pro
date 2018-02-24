@@ -1,3 +1,5 @@
+-keep class pl.droidsonroids.gif.sample.GifSelectorDrawable { *; }
+
 -keepattributes Signature, LineNumberTable
 
 #leakcanary
