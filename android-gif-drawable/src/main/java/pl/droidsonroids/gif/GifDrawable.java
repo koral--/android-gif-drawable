@@ -29,7 +29,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.widget.MediaController.MediaPlayerControl;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -40,7 +39,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import pl.droidsonroids.gif.transforms.CornerRadiusTransform;
 import pl.droidsonroids.gif.transforms.Transform;
 
@@ -280,6 +278,12 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 */
 	public boolean isRecycled() {
 		return mNativeInfoHandle.isRecycled();
+	}
+
+	@Override
+	public void invalidateSelf() {
+		super.invalidateSelf();
+		scheduleNextRender();
 	}
 
 	@Override
@@ -766,6 +770,9 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 			mPaint.setColorFilter(null);
 		}
 
+	}
+
+	private void scheduleNextRender() {
 		if (mIsRenderingTriggeredOnDraw && mIsRunning && mNextFrameRenderTime != Long.MIN_VALUE) {
 			final long renderDelay = Math.max(0, mNextFrameRenderTime - SystemClock.uptimeMillis());
 			mNextFrameRenderTime = Long.MIN_VALUE;
