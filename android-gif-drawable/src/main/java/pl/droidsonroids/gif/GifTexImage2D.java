@@ -18,7 +18,7 @@ import pl.droidsonroids.gif.annotations.Beta;
  * Note that call {@link #seekToFrame(int)} while decoder thread is running will cause frame change
  * but it can be immediately changed again by decoder thread.
  * <br>
- * Current frame can be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexImage2D(int, int)}.
+ * Current frame can be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexSubImage2D(int, int)}.
  */
 @Beta
 public class GifTexImage2D {
