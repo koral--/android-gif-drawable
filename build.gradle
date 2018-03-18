@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlin_version = '1.2.21'
+	ext.kotlin_version = '1.2.30'
 	repositories {
 		jcenter()
 		google()
@@ -18,7 +18,7 @@ ext {
 			targetSdk         : 27,
 			minSdk            : 14,
 			buildTools        : '27.0.3',
-			androidSupport    : '27.0.2',
+			androidSupport    : '27.1.0',
 			androidSupportTest: '1.0.1'
 	]
 }
