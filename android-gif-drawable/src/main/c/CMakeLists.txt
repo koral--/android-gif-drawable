@@ -8,13 +8,9 @@ set(SOURCES)
 
 file(GLOB_RECURSE SOURCES "*.c")
 
-if(${ANDROID_ABI} STREQUAL "armeabi-v7a")
-    list(APPEND SOURCES	memset32_neon.S)
-endif(${ANDROID_ABI} STREQUAL "armeabi-v7a")
-
-if(${ANDROID_ABI} STREQUAL "armeabi")
+if((${ANDROID_ABI} STREQUAL "armeabi") OR (${ANDROID_ABI} STREQUAL "armeabi-v7a"))
     list(APPEND SOURCES	memset.arm.S)
-endif(${ANDROID_ABI} STREQUAL "armeabi")
+endif((${ANDROID_ABI} STREQUAL "armeabi") OR (${ANDROID_ABI} STREQUAL "armeabi-v7a"))
 
 add_library(pl_droidsonroids_gif SHARED ${SOURCES})
 

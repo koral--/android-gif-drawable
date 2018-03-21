@@ -1,9 +1,6 @@
 #include "gif.h"
 
-#if defined (__ARM_ARCH_7A__)
-extern void memset32_neon(uint32_t* dst, uint32_t value, int count);
-#define MEMSET_ARGB(dst, value, count) memset32_neon(dst, value, (int) count)
-#elif defined (__arm__)
+#if defined (__arm__)
 extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
 #define MEMSET_ARGB(dst, value, count) arm_memset32(dst, value, (int) count)
 #else
