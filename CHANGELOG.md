@@ -1,4 +1,4 @@
-### 1.2.12-SNAPSHOT
+### 1.2.12
 - `GifDrawable` invalidation fixed - [#510](https://github.com/koral--/android-gif-drawable/issue/510)
 - SIGILL on arm CPUs without NEON fixed - [#522](https://github.com/koral--/android-gif-drawable/issue/522)
 
