@@ -1,5 +1,6 @@
 package pl.droidsonroids.gif;
 
+import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 
@@ -18,7 +19,7 @@ import pl.droidsonroids.gif.annotations.Beta;
  * Note that call {@link #seekToFrame(int)} while decoder thread is running will cause frame change
  * but it can be immediately changed again by decoder thread.
  * <br>
- * Current frame can be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexImage2D(int, int)}.
+ * Current frame can be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexSubImage2D(int, int)}.
  */
 @Beta
 public class GifTexImage2D {
@@ -74,6 +75,16 @@ public class GifTexImage2D {
 	 */
 	public int getCurrentFrameIndex() {
 		return mGifInfoHandle.getCurrentFrameIndex();
+	}
+
+	/**
+	 * Sets new animation speed factor. See {@link GifDrawable#setSpeed(float)}.
+	 *
+	 * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
+	 * @throws IllegalArgumentException if factor&lt;=0
+	 */
+	public void setSpeed(@FloatRange(from = 0, fromInclusive = false) final float factor) {
+		mGifInfoHandle.setSpeedFactor(factor);
 	}
 
 	/**
