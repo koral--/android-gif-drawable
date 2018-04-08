@@ -1,12 +1,12 @@
 buildscript {
-	ext.kotlin_version = '1.2.30'
+	ext.kotlin_version = '1.2.31'
 	repositories {
 		jcenter()
 		google()
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:3.0.1'
+		classpath 'com.android.tools.build:gradle:3.1.0'
 		classpath 'com.dicedmelon.gradle:jacoco-android:0.1.2'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 	}
@@ -18,7 +18,7 @@ ext {
 			targetSdk         : 27,
 			minSdk            : 14,
 			buildTools        : '27.0.3',
-			androidSupport    : '27.1.0',
+			androidSupport    : '27.1.1',
 			androidSupportTest: '1.0.1'
 	]
 }
