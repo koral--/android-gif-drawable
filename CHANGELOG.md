@@ -1,7 +1,8 @@
 ### 1.2.13-SNAPSHOT
-- Kotlin updated to 1.2.31
+- Kotlin updated to 1.2.41
 - Android Support library updated to 27.1.1
-- Android Gradle plugin updated to 3.1.0
+- Android Gradle plugin updated to 3.1.2
+- Gradle wrapper regenerated with 4.7
 
 ### 1.2.12
 - `GifDrawable` invalidation fixed - [#510](https://github.com/koral--/android-gif-drawable/issue/510)
