@@ -4,8 +4,11 @@ import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.view.Surface;
 
 import java.io.FileDescriptor;
@@ -30,8 +33,8 @@ final class GifInfoHandle {
 	GifInfoHandle() {
 	}
 
-	GifInfoHandle(FileDescriptor fd) throws GifIOException {
-		gifInfoPtr = openFd(fd, 0);
+	GifInfoHandle(FileDescriptor fileDescriptor) throws GifIOException {
+		gifInfoPtr = openFd(fileDescriptor, 0);
 	}
 
 	GifInfoHandle(byte[] bytes) throws GifIOException {
@@ -65,6 +68,22 @@ final class GifInfoHandle {
 		}
 	}
 
+    private static long openFd(FileDescriptor fileDescriptor, long offset) throws GifIOException {
+        final int nativeFileDescriptor;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && Build.VERSION.PREVIEW_SDK_INT > 0) {
+            try {
+                nativeFileDescriptor = createTempNativeFileDescriptor();
+                Os.dup2(fileDescriptor, nativeFileDescriptor);
+                Os.close(fileDescriptor);
+            } catch (ErrnoException e) {
+                throw new GifIOException(GifError.OPEN_FAILED.errorCode, e.getMessage());
+            }
+        } else {
+            nativeFileDescriptor = extractNativeFileDescriptor(fileDescriptor);
+        }
+        return openNativeFileDescriptor(nativeFileDescriptor, offset);
+    }
+
 	static GifInfoHandle openUri(ContentResolver resolver, Uri uri) throws IOException {
 		if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) { //workaround for #128
 			return new GifInfoHandle(uri.getPath());
@@ -72,7 +91,11 @@ final class GifInfoHandle {
 		return new GifInfoHandle(resolver.openAssetFileDescriptor(uri, "r"));
 	}
 
-	static native long openFd(FileDescriptor fd, long offset) throws GifIOException;
+	static native long openNativeFileDescriptor(int fd, long offset) throws GifIOException;
+
+	static native int extractNativeFileDescriptor(FileDescriptor fileDescriptor) throws GifIOException;
+
+	static native int createTempNativeFileDescriptor() throws GifIOException;
 
 	static native long openByteArray(byte[] bytes) throws GifIOException;
 
