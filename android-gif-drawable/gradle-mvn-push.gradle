@@ -18,7 +18,7 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 def isReleaseBuild() {
-	return VERSION_NAME.contains("SNAPSHOT") == false
+	return !VERSION_NAME.contains("SNAPSHOT")
 }
 
 def getReleaseRepositoryUrl() {
@@ -94,8 +94,8 @@ afterEvaluate { project ->
 
 	task androidJavadocs(type: Javadoc) {
 		android.libraryVariants.all { variant ->
-			source = variant.javaCompile.source
-			classpath = files(variant.javaCompile.classpath.files, android.getBootClasspath())
+			source = variant.javaCompiler.source
+			classpath = files(variant.javaCompiler.classpath.files, android.getBootClasspath())
 			options {
 				links "http://docs.oracle.com/javase/7/docs/api/"
 				linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"

@@ -3,6 +3,9 @@
 - Android Support library updated to 27.1.1
 - Android Gradle plugin updated to 3.1.2
 - Gradle wrapper regenerated with 4.7
+- Removed private FileDescriptor field usage on Android P and above
+- Added explicit FileDescriptor closing
+- Removed unused code in LibraryLoader
 
 ### 1.2.12
 - `GifDrawable` invalidation fixed - [#510](https://github.com/koral--/android-gif-drawable/issue/510)

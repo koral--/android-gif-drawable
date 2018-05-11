@@ -42,14 +42,11 @@ public class LibraryLoader {
 		return sAppContext;
 	}
 
-	static void loadLibrary(Context context) {
+	static void loadLibrary() {
 		try {
 			System.loadLibrary(BASE_LIBRARY_NAME);
 		} catch (final UnsatisfiedLinkError e) {
-			if (context == null) {
-				context = getContext();
-			}
-			ReLinker.loadLibrary(context);
+			ReLinker.loadLibrary(getContext());
 		}
 	}
 }
