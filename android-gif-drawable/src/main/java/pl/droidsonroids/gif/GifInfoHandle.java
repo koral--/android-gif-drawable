@@ -4,8 +4,12 @@ import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.RequiresApi;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.view.Surface;
 
 import java.io.FileDescriptor;
@@ -18,7 +22,7 @@ import java.nio.ByteBuffer;
  */
 final class GifInfoHandle {
 	static {
-		LibraryLoader.loadLibrary(null);
+		LibraryLoader.loadLibrary();
 	}
 
 	/**
@@ -30,8 +34,8 @@ final class GifInfoHandle {
 	GifInfoHandle() {
 	}
 
-	GifInfoHandle(FileDescriptor fd) throws GifIOException {
-		gifInfoPtr = openFd(fd, 0);
+	GifInfoHandle(FileDescriptor fileDescriptor) throws GifIOException {
+		gifInfoPtr = openFd(fileDescriptor, 0);
 	}
 
 	GifInfoHandle(byte[] bytes) throws GifIOException {
@@ -65,14 +69,47 @@ final class GifInfoHandle {
 		}
 	}
 
+	private static long openFd(FileDescriptor fileDescriptor, long offset) throws GifIOException {
+		final int nativeFileDescriptor;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && Build.VERSION.PREVIEW_SDK_INT > 0) {
+			try {
+				nativeFileDescriptor = getNativeFileDescriptor(fileDescriptor);
+			} catch (ErrnoException e) {
+				throw new GifIOException(GifError.OPEN_FAILED.errorCode, e.getMessage());
+			}
+		} else {
+			nativeFileDescriptor = extractNativeFileDescriptor(fileDescriptor);
+		}
+		return openNativeFileDescriptor(nativeFileDescriptor, offset);
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	private static int getNativeFileDescriptor(FileDescriptor fileDescriptor) throws GifIOException, ErrnoException {
+		try {
+			final int nativeFileDescriptor = createTempNativeFileDescriptor();
+			Os.dup2(fileDescriptor, nativeFileDescriptor);
+			return nativeFileDescriptor;
+		} finally {
+			Os.close(fileDescriptor);
+		}
+	}
+
 	static GifInfoHandle openUri(ContentResolver resolver, Uri uri) throws IOException {
 		if (ContentResolver.SCHEME_FILE.equals(uri.getScheme())) { //workaround for #128
 			return new GifInfoHandle(uri.getPath());
 		}
-		return new GifInfoHandle(resolver.openAssetFileDescriptor(uri, "r"));
+		final AssetFileDescriptor assetFileDescriptor = resolver.openAssetFileDescriptor(uri, "r");
+		if (assetFileDescriptor == null) {
+			throw new IOException("Could not open AssetFileDescriptor for " + uri);
+		}
+		return new GifInfoHandle(assetFileDescriptor);
 	}
 
-	static native long openFd(FileDescriptor fd, long offset) throws GifIOException;
+	static native long openNativeFileDescriptor(int fd, long offset) throws GifIOException;
+
+	static native int extractNativeFileDescriptor(FileDescriptor fileDescriptor) throws GifIOException;
+
+	static native int createTempNativeFileDescriptor() throws GifIOException;
 
 	static native long openByteArray(byte[] bytes) throws GifIOException;
 
@@ -236,7 +273,8 @@ final class GifInfoHandle {
 		seekToTime(gifInfoPtr, position, buffer);
 	}
 
-	synchronized void seekToFrame(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex, final Bitmap buffer) {
+	synchronized void seekToFrame(@IntRange(from = 0, to = Integer.MAX_VALUE) final int frameIndex,
+			final Bitmap buffer) {
 		seekToFrame(gifInfoPtr, frameIndex, buffer);
 	}
 

@@ -297,25 +297,35 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	}
 }
 
-__unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openFd(JNIEnv *env, jclass __unused handleClass, jobject jfd, jlong offset) {
-	if (isSourceNull(jfd, env)) {
-		return NULL_GIF_INFO;
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jobject fileDescriptor) {
+	if (isSourceNull(fileDescriptor, env)) {
+		return -1;
 	}
-	jclass fdClass = (*env)->GetObjectClass(env, jfd);
+	jclass fdClass = (*env)->GetObjectClass(env, fileDescriptor);
 	static jfieldID fdClassDescriptorFieldID = NULL;
 	if (fdClassDescriptorFieldID == NULL) {
 		fdClassDescriptorFieldID = (*env)->GetFieldID(env, fdClass, "descriptor", "I");
 	}
 	if (fdClassDescriptorFieldID == NULL) {
-		return NULL_GIF_INFO;
+		return -1;
 	}
-	const jint oldFd = (*env)->GetIntField(env, jfd, fdClassDescriptorFieldID);
+	const jint oldFd = (*env)->GetIntField(env, fileDescriptor, fdClassDescriptorFieldID);
 	const int fd = dup(oldFd);
 	if (fd == -1) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
-		return NULL_GIF_INFO;
 	}
+	close(oldFd);
+	return fd;
+}
+
+__unused JNIEXPORT jint JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_createTempNativeFileDescriptor(JNIEnv __unused *env, jclass __unused handleClass) {
+	return eventfd(0, 0);
+}
+
+__unused JNIEXPORT jlong JNICALL
+Java_pl_droidsonroids_gif_GifInfoHandle_openNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jint fd, jlong offset) {
 	if (lseek64(fd, offset, SEEK_SET) != -1) {
 		FILE *file = fdopen(fd, "rb");
 		if (file == NULL) {
