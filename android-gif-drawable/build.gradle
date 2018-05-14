@@ -1,5 +1,4 @@
 plugins {
-	id "com.jfrog.bintray" version "1.8.0"
 	id "pl.droidsonroids.ui.test" version "2.0.0"
 }
 
@@ -84,17 +83,6 @@ dependencies {
 jacocoAndroidUnitTestReport {
 	html.enabled true
 	xml.enabled true
-}
-
-bintray {
-	user = POM_DEVELOPER_ID
-	key = BINTRAY_API_KEY
-	pkg {
-		repo = 'maven'
-		name = "$group:$POM_ARTIFACT_ID"
-		licenses = ['MIT']
-	}
-	configurations = ['archives']
 }
 
 def isDebugBuild() {
