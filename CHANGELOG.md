@@ -6,6 +6,8 @@
 - Removed private FileDescriptor field usage on Android P and above
 - Added explicit FileDescriptor closing
 - Removed unused code in LibraryLoader
+- Dropped MIPS and MIPS64 targets
+- Added support for NDK r17 (without armeabi target)
 
 ### 1.2.12
 - `GifDrawable` invalidation fixed - [#510](https://github.com/koral--/android-gif-drawable/issue/510)
