@@ -12,9 +12,13 @@
     <string name="toggle_label">Click button below to toggle animation</string>
     <string name="animation_loop_completed" tools:ignore="PluralsCandidate">Animation loop #%1$d completed</string>
     <string name="gles2_not_supported">GifTexImage2D requires OpenGL ES 2 or newer</string>
+    <string name="live_wallpaper_not_supported">Live Wallpapers are not supported on this system</string>
     <string name="animated_selector_description">Press button to change drawable state</string>
     <string name="java_selector">java selector</string>
     <string name="xml_selector">XML selector</string>
     <string name="loading">Loading large GIF…</string>
     <string name="large_gif">Large GIF</string>
+    <string name="wallpaper_description">Wallpaper using android-gif-drawable</string>
+    <string name="wallpaper_label">Animated GIF Wallpaper</string>
+    <string name="set_gif_live_wallpaper">GIF Live Wallpaper preview</string>
 </resources>
