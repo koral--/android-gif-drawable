@@ -12,6 +12,7 @@ import android.support.design.widget.Snackbar
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import kotlinx.android.synthetic.main.live_wallpaper.*
 import pl.droidsonroids.gif.sample.wallpaper.GifWallpaperService
 
 class LiveWallpaperFragment : BaseFragment() {
