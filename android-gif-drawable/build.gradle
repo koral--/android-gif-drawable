@@ -32,9 +32,6 @@ android {
 				} else {
 					cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
 				}
-				if (shouldBuildArmeabi()) {
-					abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
-				}
 			}
 		}
 	}
@@ -64,9 +61,15 @@ android {
 	testOptions {
 		unitTests.returnDefaultValues = true
 	}
+	sourceSets {
+		main {
+			jniLibs.srcDir project(':android-gif-drawable-native-armeabi').file('build/intermediates/cmake/release/obj')
+		}
+	}
 }
 
 dependencies {
+	implementation project(':android-gif-drawable-native-armeabi')
 	compileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testImplementation 'junit:junit:4.12'
@@ -90,14 +93,6 @@ jacocoAndroidUnitTestReport {
 
 def isDebugBuild() {
 	!gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
-}
-
-def shouldBuildArmeabi() {
-	def props = new Properties()
-	new File(android.ndkDirectory, 'source.properties').withInputStream { props.load(it) }
-	def pkgRevision = props.getProperty('Pkg.Revision')
-	def ndkMajorVersion = VersionNumber.parse(pkgRevision).major
-	return ndkMajorVersion < 17
 }
 
 task archiveSymbols(type: Tar) {
