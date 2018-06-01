@@ -1,0 +1,42 @@
+apply plugin: 'com.android.library'
+
+android {
+	compileSdkVersion versions.compileSdk
+
+	defaultConfig {
+		minSdkVersion versions.minSdk
+		targetSdkVersion versions.targetSdk
+		if (shouldBuildArmeabi()) {
+			externalNativeBuild {
+				cmake {
+					arguments "-DANDROID_PLATFORM=android-$versions.minSdk"
+					cFlags '-std=c11', '-Weverything', '-Wall', '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
+					abiFilters 'armeabi'
+				}
+			}
+		}
+	}
+	if (shouldBuildArmeabi()) {
+		externalNativeBuild {
+			cmake {
+				path project(':android-gif-drawable').file('src/main/c/CMakeLists.txt')
+			}
+		}
+	}
+}
+
+def shouldBuildArmeabi() {
+	def props = new Properties()
+	new File(android.ndkDirectory, 'source.properties').withInputStream { props.load(it) }
+	def pkgRevision = props.getProperty('Pkg.Revision')
+	def ndkMajorVersion = VersionNumber.parse(pkgRevision).major
+	return ndkMajorVersion < 17
+}
+
+//task archiveSymbols(type: Tar) {
+//	from new File(buildDir, 'intermediates/cmake/release/obj')
+//	baseName = "$POM_ARTIFACT_ID-symbols"
+//	destinationDir = new File(buildDir, 'libs')
+//	extension = 'tar.gz'
+//	compression = Compression.GZIP
+//}
