@@ -18,7 +18,8 @@ class EGL14Drawer {
         if (eglDisplay == EGL_NO_DISPLAY) {
             throw IllegalStateException("Unable to obtain EGL14 display")
         }
-        if (!eglInitialize(eglDisplay, null, 0, null, 0)) {
+        val version = IntArray(1)
+        if (!eglInitialize(eglDisplay, version, 0, version, 0)) {
             throw IllegalStateException("Unable to initialize EGL14: $eglError")
         }
 
@@ -31,12 +32,8 @@ class EGL14Drawer {
             8,
             EGL_BLUE_SIZE,
             8,
-            EGL_ALPHA_SIZE,
-            8,
             EGL_RENDERABLE_TYPE,
             EGL_OPENGL_ES2_BIT,
-            EGL_SURFACE_TYPE,
-            EGL_PBUFFER_BIT,
             EGL_NONE
         )
 
@@ -49,7 +46,9 @@ class EGL14Drawer {
         if (eglContext == EGL_NO_CONTEXT) {
             throw IllegalStateException("Unable to create EGL context: $eglError")
         }
-        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfigs[0], holder, null, 0)
+
+        val surfaceAttributes = intArrayOf(EGL_NONE)
+        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfigs[0], holder, surfaceAttributes, 0)
         if (!eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
             throw IllegalStateException("Unable to initialize EGL: $eglError")
         }
