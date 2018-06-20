@@ -11,6 +11,7 @@ class GifSurfaceTextureDrawer(private val source: InputSource) {
 
     private val renderContext = newSingleThreadContext("TextureViewFragmentGifRenderThread")
     private val mainJob = Job()
+
     fun onSurfaceTextureDestroyed(surface: SurfaceTexture) {
         launch {
             mainJob.cancelAndJoin()
@@ -35,6 +36,8 @@ class GifSurfaceTextureDrawer(private val source: InputSource) {
                 eglConnection.draw()
                 delay(gifTexImage2DProgram.currentFrameDuration)
             }
+            gifTexImage2DProgram.destroy()
+            eglConnection.destroy()
         }
     }
 }
