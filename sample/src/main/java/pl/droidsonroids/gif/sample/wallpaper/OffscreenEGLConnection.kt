@@ -8,21 +8,16 @@ import android.os.Build
 import android.view.SurfaceHolder
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-class EGL14Drawer {
+class OffscreenEGLConnection {
     private var eglDisplay = EGL_NO_DISPLAY
     private var eglSurface = EGL_NO_SURFACE
     private var eglContext = EGL_NO_CONTEXT
 
-    fun initialize(holder: SurfaceHolder) {
+    fun initialize(window: Any) {
         eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY)
         if (eglDisplay == EGL_NO_DISPLAY) {
             throw IllegalStateException("Unable to obtain EGL14 display")
         }
-        val version = IntArray(1)
-        if (!eglInitialize(eglDisplay, version, 0, version, 0)) {
-            throw IllegalStateException("Unable to initialize EGL14: $eglError")
-        }
-
         val eglConfigs = arrayOfNulls<EGLConfig>(1)
         val numConfigs = IntArray(1)
         val configAttributes = intArrayOf(
@@ -48,7 +43,7 @@ class EGL14Drawer {
         }
 
         val surfaceAttributes = intArrayOf(EGL_NONE)
-        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfigs[0], holder, surfaceAttributes, 0)
+        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfigs[0], window, surfaceAttributes, 0)
         if (!eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
             throw IllegalStateException("Unable to initialize EGL: $eglError")
         }
