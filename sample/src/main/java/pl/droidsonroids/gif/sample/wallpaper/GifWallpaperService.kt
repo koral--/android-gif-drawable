@@ -7,7 +7,7 @@ import pl.droidsonroids.gif.GifOptions
 import pl.droidsonroids.gif.GifTexImage2D
 import pl.droidsonroids.gif.InputSource
 import pl.droidsonroids.gif.sample.R
-import pl.droidsonroids.gif.sample.opengl.GifTexImage2DDrawer
+import pl.droidsonroids.gif.sample.opengl.GifTexImage2DProgram
 
 class GifWallpaperService : WallpaperService() {
     override fun onCreateEngine(): GifWallpaperEngine {
@@ -18,8 +18,8 @@ class GifWallpaperService : WallpaperService() {
     }
 
     inner class GifWallpaperEngine(private val gifTexImage2D: GifTexImage2D) : Engine() {
-        private val eglWrapper = EGL14Drawer()
-        private val gifTexImage2DDrawer = GifTexImage2DDrawer(gifTexImage2D)
+        private val eglConnection = OffscreenEGLConnection()
+        private val gifTexImage2DDrawer = GifTexImage2DProgram(gifTexImage2D)
         private val renderContext = newSingleThreadContext("GifRenderThread")
         private var mainJob = Job()
         private var renderJob = launch(context = renderContext, parent = mainJob, start = CoroutineStart.LAZY) { }
@@ -33,14 +33,14 @@ class GifWallpaperService : WallpaperService() {
             launch(renderContext) {
                 mainJob.cancelAndJoin()
                 gifTexImage2DDrawer.destroy()
-                eglWrapper.destroy()
+                eglConnection.destroy()
                 renderContext.close()
             }
         }
 
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             launch(context = renderContext, parent = mainJob) {
-                eglWrapper.initialize(holder)
+                eglConnection.initialize(holder)
                 gifTexImage2DDrawer.initialize()
             }
         }
@@ -55,7 +55,7 @@ class GifWallpaperService : WallpaperService() {
                     while (isActive) {
                         gifTexImage2D.seekToFrame(frameIndex)
                         gifTexImage2DDrawer.draw()
-                        eglWrapper.draw()
+                        eglConnection.draw()
                         delay(gifTexImage2D.getFrameDuration(frameIndex))
                         frameIndex++
                         frameIndex %= gifTexImage2D.numberOfFrames

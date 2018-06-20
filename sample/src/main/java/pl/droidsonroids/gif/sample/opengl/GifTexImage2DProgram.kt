@@ -4,9 +4,10 @@ import android.opengl.GLES20.*
 import android.opengl.Matrix
 import pl.droidsonroids.gif.GifTexImage2D
 
-class GifTexImage2DDrawer(private val gifTexImage2D: GifTexImage2D) {
+class GifTexImage2DProgram(private val gifTexImage2D: GifTexImage2D) {
     val height = gifTexImage2D.height
     val width = gifTexImage2D.width
+    val currentFrameDuration = gifTexImage2D.getFrameDuration(gifTexImage2D.currentFrameIndex)
 
     private var texMatrixLocation = -1
     private val texMatrix = FloatArray(16)

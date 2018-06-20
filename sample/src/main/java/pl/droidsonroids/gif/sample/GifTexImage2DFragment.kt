@@ -9,13 +9,13 @@ import android.view.ViewGroup
 import pl.droidsonroids.gif.GifOptions
 import pl.droidsonroids.gif.GifTexImage2D
 import pl.droidsonroids.gif.InputSource
-import pl.droidsonroids.gif.sample.opengl.GifTexImage2DDrawer
+import pl.droidsonroids.gif.sample.opengl.GifTexImage2DProgram
 import pl.droidsonroids.gif.sample.opengl.Renderer
 import pl.droidsonroids.gif.sample.opengl.isOpenGLES2Supported
 
 class GifTexImage2DFragment : BaseFragment() {
 
-    lateinit var gifTexImage2DDrawer: GifTexImage2DDrawer
+    lateinit var gifTexImage2DProgram: GifTexImage2DProgram
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +23,7 @@ class GifTexImage2DFragment : BaseFragment() {
         options.setInIsOpaque(true)
         val gifTexImage2D = GifTexImage2D(InputSource.ResourcesSource(resources, R.drawable.anim_flag_chile), options)
         gifTexImage2D.startDecoderThread()
-        gifTexImage2DDrawer = GifTexImage2DDrawer(gifTexImage2D)
+        gifTexImage2DProgram = GifTexImage2DProgram(gifTexImage2D)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -34,13 +34,13 @@ class GifTexImage2DFragment : BaseFragment() {
 
         val view = inflater.inflate(R.layout.opengl, container, false) as GLSurfaceView
         view.setEGLContextClientVersion(2)
-        view.setRenderer(Renderer(gifTexImage2DDrawer))
-        view.holder.setFixedSize(gifTexImage2DDrawer.width, gifTexImage2DDrawer.height)
+        view.setRenderer(Renderer(gifTexImage2DProgram))
+        view.holder.setFixedSize(gifTexImage2DProgram.width, gifTexImage2DProgram.height)
         return view
     }
 
     override fun onDetach() {
         super.onDetach()
-        gifTexImage2DDrawer.destroy()
+        gifTexImage2DProgram.destroy()
     }
 }

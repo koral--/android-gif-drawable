@@ -18,6 +18,7 @@ internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStatePager
         GifTexImage2DFragment(),
         AnimatedSelectorFragment(),
         GifDecoderFragment(),
+        TextureViewFragment(),
         LiveWallpaperFragment(),
         AboutFragment()
     )
