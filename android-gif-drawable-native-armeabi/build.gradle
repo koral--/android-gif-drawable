@@ -26,6 +26,9 @@ android {
 }
 
 def shouldBuildArmeabi() {
+	if (android.ndkDirectory == null) {
+		return false
+	}
 	def props = new Properties()
 	new File(android.ndkDirectory, 'source.properties').withInputStream { props.load(it) }
 	def pkgRevision = props.getProperty('Pkg.Revision')
