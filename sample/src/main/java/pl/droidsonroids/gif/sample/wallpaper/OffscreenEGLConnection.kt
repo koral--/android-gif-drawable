@@ -5,7 +5,6 @@ import android.opengl.EGL14.*
 import android.opengl.EGLConfig
 import android.opengl.GLUtils
 import android.os.Build
-import android.view.SurfaceHolder
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class OffscreenEGLConnection {
@@ -18,6 +17,11 @@ class OffscreenEGLConnection {
         if (eglDisplay == EGL_NO_DISPLAY) {
             throw IllegalStateException("Unable to obtain EGL14 display")
         }
+        val eglVersion = IntArray(1)
+        if (!eglInitialize(eglDisplay, eglVersion, 0, eglVersion, 0)) {
+            throw IllegalStateException("Unable to initialize EGL14: $eglError")
+        }
+
         val eglConfigs = arrayOfNulls<EGLConfig>(1)
         val numConfigs = IntArray(1)
         val configAttributes = intArrayOf(
@@ -26,6 +30,8 @@ class OffscreenEGLConnection {
             EGL_GREEN_SIZE,
             8,
             EGL_BLUE_SIZE,
+            8,
+            EGL_ALPHA_SIZE,
             8,
             EGL_RENDERABLE_TYPE,
             EGL_OPENGL_ES2_BIT,
@@ -59,7 +65,9 @@ class OffscreenEGLConnection {
         eglSurface = EGL_NO_SURFACE
         eglDestroyContext(eglDisplay, eglContext)
         eglContext = EGL_NO_CONTEXT
+        eglTerminate(eglDisplay)
         eglDisplay = EGL_NO_DISPLAY
+        eglReleaseThread()
     }
 
     private val eglError: String
