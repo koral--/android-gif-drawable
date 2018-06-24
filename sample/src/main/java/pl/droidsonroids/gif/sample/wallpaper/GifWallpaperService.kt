@@ -24,6 +24,8 @@ class GifWallpaperService : WallpaperService() {
         private var mainJob = Job()
         private var renderJob = launch(context = renderContext, parent = mainJob, start = CoroutineStart.LAZY) { }
         private var frameIndex = 0
+        private var width = 0
+        private var height = 0
 
         override fun getDesiredMinimumWidth() = gifTexImage2DDrawer.width
 
@@ -44,9 +46,6 @@ class GifWallpaperService : WallpaperService() {
                 gifTexImage2DDrawer.initialize()
             }
         }
-
-        private var width = 0
-        private var height = 0
 
         override fun onVisibilityChanged(visible: Boolean) {
             if (visible) {

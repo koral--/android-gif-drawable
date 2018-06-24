@@ -11,6 +11,10 @@ class GifTexImage2DProgram(private val gifTexImage2D: GifTexImage2D) {
 
     private var texMatrixLocation = -1
     private val texMatrix = FloatArray(16)
+    private var program = 0
+    private var positionLocation = -1
+    private var textureLocation = -1
+    private var coordinateLocation = -1
 
     private val vertexShaderCode = """
         attribute vec4 position;
@@ -32,6 +36,9 @@ class GifTexImage2DProgram(private val gifTexImage2D: GifTexImage2D) {
         }
         """
 
+    private val textureBuffer = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 1f, 1f).toFloatBuffer()
+    private val verticesBuffer = floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f).toFloatBuffer()
+
     fun initialize() {
         val texNames = intArrayOf(0)
         glGenTextures(1, texNames, 0)
@@ -42,29 +49,29 @@ class GifTexImage2DProgram(private val gifTexImage2D: GifTexImage2D) {
 
         val vertexShader = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
         val pixelShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
-        val program = glCreateProgram()
+        program = glCreateProgram()
         glAttachShader(program, vertexShader)
         glAttachShader(program, pixelShader)
         glLinkProgram(program)
         glDeleteShader(pixelShader)
         glDeleteShader(vertexShader)
-        val positionLocation = glGetAttribLocation(program, "position")
-        val textureLocation = glGetUniformLocation(program, "texture")
+        positionLocation = glGetAttribLocation(program, "position")
+        textureLocation = glGetUniformLocation(program, "texture")
         texMatrixLocation = glGetUniformLocation(program, "texMatrix")
-        val coordinateLocation = glGetAttribLocation(program, "coordinate")
-        glUseProgram(program)
+        coordinateLocation = glGetAttribLocation(program, "coordinate")
 
-        val textureBuffer = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 1f, 1f).toFloatBuffer()
-        val verticesBuffer = floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f).toFloatBuffer()
-        glVertexAttribPointer(coordinateLocation, 2, GL_FLOAT, false, 0, textureBuffer)
-        glEnableVertexAttribArray(coordinateLocation)
-        glUniform1i(textureLocation, 0)
-        glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, verticesBuffer)
-        glEnableVertexAttribArray(positionLocation)
+        glActiveTexture(GL_TEXTURE0)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gifTexImage2D.width, gifTexImage2D.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
+        glUseProgram(program)
     }
 
     fun setDimensions(width: Int, height: Int) {
+        glEnableVertexAttribArray(coordinateLocation)
+        glVertexAttribPointer(coordinateLocation, 2, GL_FLOAT, false, 0, textureBuffer)
+        glUniform1i(textureLocation, 0)
+        glEnableVertexAttribArray(positionLocation)
+        glVertexAttribPointer(positionLocation, 2, GL_FLOAT, false, 0, verticesBuffer)
+
         val scaleX = width.toFloat() / gifTexImage2D.width
         val scaleY = height.toFloat() / gifTexImage2D.height
         Matrix.setIdentityM(texMatrix, 0)
