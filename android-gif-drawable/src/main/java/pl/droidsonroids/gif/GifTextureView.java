@@ -150,7 +150,9 @@ public class GifTextureView extends TextureView {
 			if (GifViewUtils.SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
 				return new InputSource.ResourcesSource(textureViewAttributes.getResources(), value.resourceId);
 			} else if (!"string".equals(resourceTypeName)) {
-				throw new IllegalArgumentException("Expected string, drawable, mipmap or raw resource type. '" + resourceTypeName + "' is not supported");
+				throw new IllegalArgumentException(
+						"Expected string, drawable, mipmap or raw resource type. '" + resourceTypeName
+								+ "' is not supported");
 			}
 		}
 		return new InputSource.AssetSource(textureViewAttributes.getResources().getAssets(), value.string.toString());
@@ -212,7 +214,11 @@ public class GifTextureView extends TextureView {
 					Thread.currentThread().interrupt();
 					break;
 				}
-				final SurfaceTexture surfaceTexture = gifTextureView.getSurfaceTexture();
+				final GifTextureView currentGifTextureView = mGifTextureViewReference.get();
+				if (currentGifTextureView == null) {
+					break;
+				}
+				final SurfaceTexture surfaceTexture = currentGifTextureView.getSurfaceTexture();
 				if (surfaceTexture == null) {
 					continue;
 				}
@@ -230,8 +236,9 @@ public class GifTextureView extends TextureView {
 		@Override
 		public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
 			final GifTextureView gifTextureView = mGifTextureViewReference.get();
-			if (gifTextureView != null)
+			if (gifTextureView != null) {
 				gifTextureView.updateTextureViewSize(mGifInfoHandle);
+			}
 			isSurfaceValid.open();
 		}
 
@@ -255,7 +262,8 @@ public class GifTextureView extends TextureView {
 
 		void dispose(@NonNull final GifTextureView gifTextureView, @Nullable final PlaceholderDrawListener drawer) {
 			isSurfaceValid.close();
-			final SurfaceTextureListener listener = drawer != null ? new PlaceholderDrawingSurfaceTextureListener(drawer) : null;
+			final SurfaceTextureListener listener =
+					drawer != null ? new PlaceholderDrawingSurfaceTextureListener(drawer) : null;
 			gifTextureView.setSuperSurfaceTextureListener(listener);
 			mGifInfoHandle.postUnbindSurface();
 			interrupt();
@@ -311,7 +319,8 @@ public class GifTextureView extends TextureView {
 	 * @param placeholderDrawListener placeholder draw listener, may be null
 	 */
 	@Beta
-	public synchronized void setInputSource(@Nullable InputSource inputSource, @Nullable PlaceholderDrawListener placeholderDrawListener) {
+	public synchronized void setInputSource(@Nullable InputSource inputSource,
+			@Nullable PlaceholderDrawListener placeholderDrawListener) {
 		mRenderThread.dispose(this, placeholderDrawListener);
 		try {
 			mRenderThread.join();
@@ -462,7 +471,8 @@ public class GifTextureView extends TextureView {
 	@Override
 	public Parcelable onSaveInstanceState() {
 		mRenderThread.mSavedState = mRenderThread.mGifInfoHandle.getSavedState();
-		return new GifViewSavedState(super.onSaveInstanceState(), viewAttributes.freezesAnimation ? mRenderThread.mSavedState : null);
+		return new GifViewSavedState(super.onSaveInstanceState(),
+				viewAttributes.freezesAnimation ? mRenderThread.mSavedState : null);
 	}
 
 	@Override
