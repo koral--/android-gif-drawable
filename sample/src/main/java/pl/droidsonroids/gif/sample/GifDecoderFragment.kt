@@ -79,8 +79,10 @@ class GifDownloadHandler(gifDecoderFragment: GifDecoderFragment) : Handler() {
             val decodedGif = msg.obj as DecodedGif
             frames = decodedGif.frames
             durations = decodedGif.durations
-            startAnimation()
-            decoderLoadingTextView.visibility = View.GONE
+            if (isAdded) {
+                startAnimation()
+                decoderLoadingTextView.visibility = View.GONE
+            }
         }
     }
 }
