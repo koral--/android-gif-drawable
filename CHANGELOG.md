@@ -1,8 +1,9 @@
 ### 1.2.13-SNAPSHOT
 - Kotlin updated to 1.2.50
+- Compile and target SDK version updated to 28
 - Android Support library updated to 27.1.1
 - Android Gradle plugin updated to 3.1.3
-- Gradle wrapper regenerated with 4.8
+- Gradle wrapper regenerated with 4.8.1
 - Removed private FileDescriptor field usage on Android P and above
 - Added explicit FileDescriptor closing
 - Removed unused code in LibraryLoader
