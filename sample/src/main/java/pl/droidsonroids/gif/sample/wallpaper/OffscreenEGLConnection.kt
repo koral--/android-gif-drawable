@@ -60,14 +60,16 @@ class OffscreenEGLConnection {
     }
 
     fun destroy() {
-        eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)
-        eglDestroySurface(eglDisplay, eglSurface)
-        eglSurface = EGL_NO_SURFACE
-        eglDestroyContext(eglDisplay, eglContext)
-        eglContext = EGL_NO_CONTEXT
-        eglTerminate(eglDisplay)
-        eglDisplay = EGL_NO_DISPLAY
-        eglReleaseThread()
+        if (eglDisplay!= EGL_NO_DISPLAY) {
+            eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)
+            eglDestroySurface(eglDisplay, eglSurface)
+            eglSurface = EGL_NO_SURFACE
+            eglDestroyContext(eglDisplay, eglContext)
+            eglContext = EGL_NO_CONTEXT
+            eglTerminate(eglDisplay)
+            eglDisplay = EGL_NO_DISPLAY
+            eglReleaseThread()
+        }
     }
 
     private val eglError: String
