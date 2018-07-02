@@ -24,8 +24,6 @@ class GifWallpaperService : WallpaperService() {
         private var mainJob = Job()
         private var renderJob = launch(context = renderContext, parent = mainJob, start = CoroutineStart.LAZY) { }
         private var frameIndex = 0
-        private var width = 0
-        private var height = 0
 
         override fun getDesiredMinimumWidth() = gifTexImage2DDrawer.width
 
@@ -40,17 +38,11 @@ class GifWallpaperService : WallpaperService() {
             }
         }
 
-        override fun onSurfaceCreated(holder: SurfaceHolder) {
-            launch(context = renderContext, parent = mainJob) {
-                eglConnection.initialize(holder)
-                gifTexImage2DDrawer.initialize()
-            }
-        }
+        override fun onSurfaceCreated(holder: SurfaceHolder) = Unit
 
         override fun onVisibilityChanged(visible: Boolean) {
             if (visible) {
                 renderJob = launch(context = renderContext, parent = mainJob) {
-                    gifTexImage2DDrawer.setDimensions(width, height)
                     while (isActive) {
                         gifTexImage2D.seekToFrame(frameIndex)
                         gifTexImage2DDrawer.draw()
@@ -66,8 +58,12 @@ class GifWallpaperService : WallpaperService() {
         }
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-            this.width = width
-            this.height = height
+            launch(context = renderContext, parent = mainJob) {
+                eglConnection.destroy()
+                eglConnection.initialize(holder)
+                gifTexImage2DDrawer.initialize()
+                gifTexImage2DDrawer.setDimensions(width, height)
+            }
         }
     }
 }
