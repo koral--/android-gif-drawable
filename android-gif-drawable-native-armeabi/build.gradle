@@ -36,10 +36,10 @@ def shouldBuildArmeabi() {
 	return ndkMajorVersion < 17
 }
 
-//task archiveSymbols(type: Tar) {
-//	from new File(buildDir, 'intermediates/cmake/release/obj')
-//	baseName = "$POM_ARTIFACT_ID-symbols"
-//	destinationDir = new File(buildDir, 'libs')
-//	extension = 'tar.gz'
-//	compression = Compression.GZIP
-//}
+task archiveSymbols(type: Tar) {
+	from new File(buildDir, 'intermediates/cmake/release/obj')
+	baseName = "android-gif-drawable-symbols"
+	destinationDir = new File(buildDir, 'libs')
+	extension = 'tar.gz'
+	compression = Compression.GZIP
+}
