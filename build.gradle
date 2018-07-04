@@ -8,7 +8,7 @@ buildscript {
 				androidSupportTest: '1.0.2',
 				coroutines        : '0.22.5',
 				leakCanary        : '1.5.4',
-				kotlin            : '1.2.50'
+				kotlin            : '1.2.51'
 		]
 	}
 	repositories {

@@ -1,5 +1,5 @@
 ### 1.2.13-SNAPSHOT
-- Kotlin updated to 1.2.50
+- Kotlin updated to 1.2.51
 - Compile and target SDK version updated to 28
 - Android Support library updated to 27.1.1
 - Android Gradle plugin updated to 3.1.3
