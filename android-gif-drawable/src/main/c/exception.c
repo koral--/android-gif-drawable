@@ -5,9 +5,6 @@
 #define NULL_POINTER_EXCEPTION_CLASS_NAME "java/lang/NullPointerException"
 
 inline void throwException(JNIEnv *env, enum Exception exception, char *message) {
-	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
-		return;
-	}
 	if (errno == ENOMEM) {
 		exception = OUT_OF_MEMORY_ERROR;
 	}
@@ -34,6 +31,10 @@ inline void throwException(JNIEnv *env, enum Exception exception, char *message)
 		case RUNTIME_EXCEPTION_BARE:
 		default:
 			exceptionClassName = RUNTIME_EXCEPTION_CLASS_NAME;
+	}
+
+	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
+		return;
 	}
 
 	jclass exClass = (*env)->FindClass(env, exceptionClassName);
