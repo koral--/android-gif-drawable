@@ -43,13 +43,13 @@ android {
 }
 
 dependencies {
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
+    debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakCanary"
+    releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$versions.leakCanary"
     implementation "com.android.support:design:$versions.androidSupport"
     implementation "com.android.support:appcompat-v7:$versions.androidSupport"
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.5"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.coroutines"
     implementation project(':android-gif-drawable')
 	//implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
 }
