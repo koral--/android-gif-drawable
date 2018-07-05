@@ -15,7 +15,7 @@ import pl.droidsonroids.gif.sample.opengl.isOpenGLES2Supported
 
 class GifTexImage2DFragment : BaseFragment() {
 
-    lateinit var gifTexImage2DProgram: GifTexImage2DProgram
+    private lateinit var gifTexImage2DProgram: GifTexImage2DProgram
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
