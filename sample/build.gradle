@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
+	compileOnly "org.jetbrains:annotations:$versions.intellijAnnotations"
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakCanary"
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$versions.leakCanary"
     implementation "com.android.support:design:$versions.androidSupport"
