@@ -99,7 +99,7 @@ final class GifViewUtils {
 
 	static class GifViewAttributes {
 		boolean freezesAnimation;
-		int mLoopCount;
+		final int mLoopCount;
 
 		GifViewAttributes(final View view, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
 			final TypedArray gifViewAttributes = view.getContext().obtainStyledAttributes(attrs, R.styleable.GifView, defStyleAttr, defStyleRes);

@@ -20,8 +20,8 @@ internal object AnimatedSelectorDrawableGenerator {
 			if (eventType == XmlPullParser.START_TAG && "item" == resourceParser.name) {
 				@DrawableRes
 				val resourceId = resourceParser.getAttributeResourceValue(NAMESPACE, "drawable", 0)
-				val state_pressed = resourceParser.getAttributeBooleanValue(NAMESPACE, "state_pressed", false)
-				val stateSet = if (state_pressed) intArrayOf(android.R.attr.state_pressed) else IntArray(0)
+				val statePressed = resourceParser.getAttributeBooleanValue(NAMESPACE, "state_pressed", false)
+				val stateSet = if (statePressed) intArrayOf(android.R.attr.state_pressed) else IntArray(0)
 				stateListDrawable.addState(stateSet, GifDrawable.createFromResource(resources, resourceId))
 			}
 			eventType = resourceParser.next()

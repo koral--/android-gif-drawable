@@ -32,6 +32,7 @@ public class LibraryLoader {
 	private static Context getContext() {
 		if (sAppContext == null) {
 			try {
+				@SuppressLint("PrivateApi")
 				final Class<?> activityThread = Class.forName("android.app.ActivityThread");
 				final Method currentApplicationMethod = activityThread.getDeclaredMethod("currentApplication");
 				sAppContext = (Context) currentApplicationMethod.invoke(null);
