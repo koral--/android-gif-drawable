@@ -96,7 +96,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 		else if (pollResult > 0) {
 			const int readResult = TEMP_FAILURE_RETRY(eventfd_read(descriptor->eventPollFd.fd, &eventValue));
 			if (readResult != 0) {
-				throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");
+				char msg[100] ="";
+				sprintf(msg, "Could not read from eventfd %d", descriptor->eventPollFd.fd);
+				throwException(getEnv(), RUNTIME_EXCEPTION_ERRNO, msg);
 				return;
 			}
 		} else {
