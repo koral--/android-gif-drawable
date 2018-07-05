@@ -60,7 +60,9 @@ static void *slurp(void *pVoidInfo) {
 			eventfd_t eventValue;
 			const int readResult = TEMP_FAILURE_RETRY(eventfd_read(texImageDescriptor->eventPollFd.fd, &eventValue));
 			if (readResult != 0) {
-				throwException(getEnv(), RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");
+				char msg[100] ="";
+				sprintf(msg, "Could not read from opengl eventfd %d", texImageDescriptor->eventPollFd.fd);
+				throwException(getEnv(), RUNTIME_EXCEPTION_ERRNO, msg);
 			}
 			break;
 		}
