@@ -10,7 +10,7 @@ import pl.droidsonroids.gif.GifOptions
 import pl.droidsonroids.gif.GifTexImage2D
 import pl.droidsonroids.gif.InputSource
 import pl.droidsonroids.gif.sample.opengl.GifTexImage2DProgram
-import pl.droidsonroids.gif.sample.opengl.Renderer
+import pl.droidsonroids.gif.sample.opengl.GifTexImage2DRenderer
 import pl.droidsonroids.gif.sample.opengl.isOpenGLES2Supported
 
 class GifTexImage2DFragment : BaseFragment() {
@@ -34,7 +34,7 @@ class GifTexImage2DFragment : BaseFragment() {
 
         val view = inflater.inflate(R.layout.opengl, container, false) as GLSurfaceView
         view.setEGLContextClientVersion(2)
-        view.setRenderer(Renderer(gifTexImage2DProgram))
+        view.setRenderer(GifTexImage2DRenderer(gifTexImage2DProgram))
         view.holder.setFixedSize(gifTexImage2DProgram.width, gifTexImage2DProgram.height)
         return view
     }

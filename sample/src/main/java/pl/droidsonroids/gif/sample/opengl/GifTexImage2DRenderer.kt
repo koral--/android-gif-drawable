@@ -4,7 +4,7 @@ import android.opengl.GLSurfaceView
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class Renderer(private val gifTexImage2DProgram: GifTexImage2DProgram) : GLSurfaceView.Renderer {
+class GifTexImage2DRenderer(private val gifTexImage2DProgram: GifTexImage2DProgram) : GLSurfaceView.Renderer {
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
         gifTexImage2DProgram.initialize()

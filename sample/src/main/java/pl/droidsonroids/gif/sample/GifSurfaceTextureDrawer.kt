@@ -16,6 +16,7 @@ class GifSurfaceTextureDrawer(private val source: InputSource) {
         launch {
             mainJob.cancelAndJoin()
             surface.release()
+            renderContext.close()
         }
     }
 
