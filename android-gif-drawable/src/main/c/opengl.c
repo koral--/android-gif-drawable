@@ -53,7 +53,7 @@ static void *slurp(void *pVoidInfo) {
 		pthread_mutex_unlock(&texImageDescriptor->renderMutex);
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
-		const int pollResult = poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
+		const int pollResult = TEMP_FAILURE_RETRY(poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis));
 		if (pollResult < 0) {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not poll on eventfd ");
 			break;
