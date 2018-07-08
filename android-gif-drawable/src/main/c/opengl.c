@@ -53,16 +53,11 @@ static void *slurp(void *pVoidInfo) {
 		pthread_mutex_unlock(&texImageDescriptor->renderMutex);
 
 		const long long invalidationDelayMillis = calculateInvalidationDelay(info, renderStartTime, frameDuration);
-		int pollResult = poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
+		const int pollResult = poll(&texImageDescriptor->eventPollFd, 1, (int) invalidationDelayMillis);
 		if (pollResult < 0) {
 			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not poll on eventfd ");
 			break;
 		} else if (pollResult > 0) {
-			eventfd_t eventValue;
-			const int readResult = TEMP_FAILURE_RETRY(eventfd_read(texImageDescriptor->eventPollFd.fd, &eventValue));
-			if (readResult != 0) {
-				throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not read from eventfd ");
-			}
 			break;
 		}
 	}
@@ -70,20 +65,17 @@ static void *slurp(void *pVoidInfo) {
 	return NULL;
 }
 
-static void stopDecoderThread(JNIEnv *env, TexImageDescriptor *descriptor) {
-	if (descriptor->eventPollFd.fd != -1) {
-		const int writeResult = TEMP_FAILURE_RETRY(eventfd_write(descriptor->eventPollFd.fd, 1));
-		if (writeResult != 0) {
-			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Could not write to eventfd ");
-		}
-		errno = pthread_join(descriptor->slurpThread, NULL);
-		THROW_ON_NONZERO_RESULT(errno, "Slurp thread join failed ");
-
-		if (close(descriptor->eventPollFd.fd) != 0 && errno != EINTR) {
-			throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd close failed ");
-		}
-		descriptor->eventPollFd.fd = -1;
+static void stopDecoderThread(JNIEnv *env, TexImageDescriptor *texImageDescriptor) {
+	if (texImageDescriptor->eventPollFd.fd == -1) {
+		return;
 	}
+	if (close(texImageDescriptor->eventPollFd.fd) != 0 && errno != EINTR) {
+		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd close failed ");
+	}
+	errno = pthread_join(texImageDescriptor->slurpThread, NULL);
+	THROW_ON_NONZERO_RESULT(errno, "Slurp thread join failed ");
+
+	texImageDescriptor->eventPollFd.fd = -1;
 }
 
 static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
@@ -128,22 +120,22 @@ Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass _
 	if (info == NULL) {
 		return;
 	}
-	TexImageDescriptor *descriptor = info->frameBufferDescriptor;
-	if (descriptor->eventPollFd.fd != -1) {
+	TexImageDescriptor *texImageDescriptor = info->frameBufferDescriptor;
+	if (texImageDescriptor->eventPollFd.fd != -1) {
 		return;
 	}
 
-	descriptor->eventPollFd.events = POLL_IN;
-	descriptor->eventPollFd.fd = eventfd(0, 0);
-	if (descriptor->eventPollFd.fd == -1) {
-		free(descriptor);
+	texImageDescriptor->eventPollFd.events = POLL_IN;
+	texImageDescriptor->eventPollFd.fd = eventfd(0, 0);
+	if (texImageDescriptor->eventPollFd.fd == -1) {
+		free(texImageDescriptor);
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd creation failed ");
 		return;
 	}
-	info->frameBufferDescriptor = descriptor;
+	info->frameBufferDescriptor = texImageDescriptor;
 	info->destructor = releaseTexImageDescriptor;
 
-	errno = pthread_create(&descriptor->slurpThread, NULL, slurp, info);
+	errno = pthread_create(&texImageDescriptor->slurpThread, NULL, slurp, info);
 	THROW_ON_NONZERO_RESULT(errno, "Slurp thread creation failed ");
 }
 
