@@ -1,4 +1,4 @@
-### 1.2.13-SNAPSHOT
+### 1.2.13
 - Kotlin updated to 1.2.51
 - Compile and target SDK version updated to 28
 - Android Support library updated to 27.1.1
@@ -9,6 +9,7 @@
 - Removed unused code in LibraryLoader
 - Dropped MIPS and MIPS64 targets
 - Added support for NDK r17 and newer (with optional armeabi target built using NDK < r17)
+- Fixed possible race conditions in GifTexImage2D 
 
 ### 1.2.12
 - `GifDrawable` invalidation fixed - [#510](https://github.com/koral--/android-gif-drawable/issue/510)
