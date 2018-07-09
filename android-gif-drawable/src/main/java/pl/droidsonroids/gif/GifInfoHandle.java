@@ -71,7 +71,7 @@ final class GifInfoHandle {
 
 	private static long openFd(FileDescriptor fileDescriptor, long offset) throws GifIOException {
 		final int nativeFileDescriptor;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && Build.VERSION.PREVIEW_SDK_INT > 0) {
+		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
 			try {
 				nativeFileDescriptor = getNativeFileDescriptor(fileDescriptor);
 			} catch (ErrnoException e) {
@@ -83,7 +83,7 @@ final class GifInfoHandle {
 		return openNativeFileDescriptor(nativeFileDescriptor, offset);
 	}
 
-	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	private static int getNativeFileDescriptor(FileDescriptor fileDescriptor) throws GifIOException, ErrnoException {
 		try {
 			final int nativeFileDescriptor = createTempNativeFileDescriptor();
