@@ -69,7 +69,7 @@ android {
 }
 
 dependencies {
-	implementation project(':android-gif-drawable-native-armeabi')
+	compileOnly project(':android-gif-drawable-native-armeabi')
 	compileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testImplementation 'junit:junit:4.12'
