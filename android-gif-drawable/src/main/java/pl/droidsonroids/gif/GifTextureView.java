@@ -21,8 +21,6 @@ import android.widget.ImageView.ScaleType;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
-import pl.droidsonroids.gif.annotations.Beta;
-
 /**
  * <p>{@link TextureView} which can display animated GIFs. GifTextureView can only be used in a
  * hardware accelerated window. When rendered in software, GifTextureView will draw nothing.</p>
@@ -318,7 +316,6 @@ public class GifTextureView extends TextureView {
 	 * @param inputSource             new animation source, may be null
 	 * @param placeholderDrawListener placeholder draw listener, may be null
 	 */
-	@Beta
 	public synchronized void setInputSource(@Nullable InputSource inputSource,
 			@Nullable PlaceholderDrawListener placeholderDrawListener) {
 		mRenderThread.dispose(this, placeholderDrawListener);
@@ -500,7 +497,6 @@ public class GifTextureView extends TextureView {
 	 * This listener can be used to be notified when the {@link GifTextureView} content placeholder can be drawn.
 	 * Placeholder is displayed before proper input source is loaded and remains visible when input source loading fails.
 	 */
-	@Beta
 	public interface PlaceholderDrawListener {
 		/**
 		 * Called when surface is ready and placeholder has to be drawn.

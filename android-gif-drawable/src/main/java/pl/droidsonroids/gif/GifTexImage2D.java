@@ -7,8 +7,6 @@ import android.support.annotation.Nullable;
 import java.io.IOException;
 import java.nio.Buffer;
 
-import pl.droidsonroids.gif.annotations.Beta;
-
 /**
  * Provides support for animated GIFs in OpenGL.
  * There are 2 possible usages:
@@ -21,7 +19,6 @@ import pl.droidsonroids.gif.annotations.Beta;
  * <br>
  * Current frame can be copied to 2D texture when needed. See {@link #glTexImage2D(int, int)} and {@link #glTexSubImage2D(int, int)}.
  */
-@Beta
 public class GifTexImage2D {
 	private final GifInfoHandle mGifInfoHandle;
 
