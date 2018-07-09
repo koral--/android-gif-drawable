@@ -1,3 +1,6 @@
+### 1.2.14
+- Fix release packaging
+
 ### 1.2.13
 - Kotlin updated to 1.2.51
 - Compile and target SDK version updated to 28
