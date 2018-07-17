@@ -74,7 +74,7 @@ final class GifInfoHandle {
 		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
 			try {
 				nativeFileDescriptor = getNativeFileDescriptor(fileDescriptor);
-			} catch (Exception e) {
+			} catch (Exception e) { //cannot catch ErrnoException due to VerifyError on API <= 19
 				throw new GifIOException(GifError.OPEN_FAILED.errorCode, e.getMessage());
 			}
 		} else {
