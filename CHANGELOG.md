@@ -1,3 +1,7 @@
+### 1.2.15
+- Fix VerifyError on API level older than Lollipop - [#570](https://github.com/koral--/android-gif-drawable/issue/570)
+- Gradle wrapper regenerated with 4.9
+
 ### 1.2.14
 - Fix release packaging
 
