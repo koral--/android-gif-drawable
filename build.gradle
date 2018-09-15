@@ -6,9 +6,9 @@ buildscript {
 				minSdk             : 14,
 				androidSupport     : '27.1.1',
 				androidSupportTest : '1.0.2',
-				coroutines         : '0.24.0',
+				coroutines         : '0.26.0',
 				leakCanary         : '1.6.1',
-				kotlin             : '1.2.60',
+				kotlin             : '1.2.70',
 				intellijAnnotations: '13.0'
 		]
 	}
