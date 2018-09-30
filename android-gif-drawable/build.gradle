@@ -61,21 +61,15 @@ android {
 	testOptions {
 		unitTests.returnDefaultValues = true
 	}
-	sourceSets {
-		main {
-			jniLibs.srcDir project(':android-gif-drawable-native-armeabi').file('build/intermediates/cmake/release/obj')
-		}
-	}
 }
 
 dependencies {
-	compileOnly project(':android-gif-drawable-native-armeabi')
 	compileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
 	testImplementation 'junit:junit:4.12'
-	testImplementation 'org.mockito:mockito-core:2.21.0'
+	testImplementation 'org.mockito:mockito-core:2.22.0'
 	testImplementation 'org.robolectric:robolectric:3.8'
-	testImplementation 'org.assertj:assertj-core:3.8.0'
+	testImplementation 'org.assertj:assertj-core:3.11.1'
 	testImplementation 'net.jodah:concurrentunit:0.4.3'
 	testImplementation 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
 	androidTestImplementation 'junit:junit:4.12'

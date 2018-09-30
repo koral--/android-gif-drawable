@@ -5,8 +5,6 @@
     android:layout_height="wrap_content"
     android:drawableBottom="@drawable/anim_flag_iceland"
     android:drawableEnd="@drawable/anim_flag_england"
-    android:drawableLeft="@drawable/anim_flag_greenland"
-    android:drawableRight="@drawable/anim_flag_england"
     android:drawableStart="@drawable/anim_flag_greenland"
     android:drawableTop="@drawable/anim_flag_chile"
     android:gravity="center"

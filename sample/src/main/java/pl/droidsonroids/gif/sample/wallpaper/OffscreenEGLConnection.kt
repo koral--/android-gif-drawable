@@ -1,12 +1,9 @@
 package pl.droidsonroids.gif.sample.wallpaper
 
-import android.annotation.TargetApi
 import android.opengl.EGL14.*
 import android.opengl.EGLConfig
 import android.opengl.GLUtils
-import android.os.Build
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class OffscreenEGLConnection {
     private var eglDisplay = EGL_NO_DISPLAY
     private var eglSurface = EGL_NO_SURFACE

@@ -4,7 +4,7 @@
 extern void arm_memset32(uint32_t* dst, uint32_t value, int count);
 #define MEMSET_ARGB(dst, value, count) arm_memset32(dst, value, (int) count)
 #else
-#define MEMSET_ARGB(dst, value, count) memset(dst, value, count * sizeof(argb))
+#define MEMSET_ARGB(dst, value, count) memset(dst, value, (count) * sizeof(argb))
 #endif
 
 static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorMapObject *cmap) {
