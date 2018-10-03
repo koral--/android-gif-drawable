@@ -40,8 +40,8 @@
         _rc = (exp);                       \
     } while (_rc == -1 && errno == EINTR); \
     _rc; })
-#define THROW_ON_NONZERO_RESULT(fun, message) if (fun !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
-#define GET_ADDR(bm, width, left, top) bm + top * width + left
+#define THROW_ON_NONZERO_RESULT(fun, message) if ((fun) !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
+#define GET_ADDR(bm, width, left, top) ((bm) + (top) * (width) + (left))
 
 #define OOME_MESSAGE "Failed to allocate native memory"
 #define DEFAULT_FRAME_DURATION_MS 100
@@ -225,4 +225,4 @@ uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels);
 
 void setGCBDefaults(GraphicsControlBlock *gcb);
 
-static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, const long long sourceLength);
+static GifInfo *createGifInfoFromFile(JNIEnv *env, FILE *file, long long sourceLength);

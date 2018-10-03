@@ -4,7 +4,6 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.RawRes;
@@ -52,10 +51,8 @@ final class GifViewUtils {
 				GifDrawable d = new GifDrawable(res, resId);
 				if (isSrc) {
 					view.setImageDrawable(d);
-				} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-					view.setBackground(d);
 				} else {
-					view.setBackgroundDrawable(d);
+					view.setBackground(d);
 				}
 				return true;
 			} catch (IOException | Resources.NotFoundException ignored) {
