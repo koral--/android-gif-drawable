@@ -1,4 +1,5 @@
 ### 1.2.16 - SNAPSHOT
+- Fixed missing null check for NewGlobalRef - [#594](https://github.com/koral--/android-gif-drawable/issue/594)
 - Android Gradle plugin updated to 3.2.1
 - Gradle wrapper regenerated with 4.10.2
 
