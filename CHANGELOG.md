@@ -1,6 +1,6 @@
 ### 1.2.16 - SNAPSHOT
-- Android Gradle plugin updated to 3.1.4
-- Gradle wrapper regenerated with 4.10
+- Android Gradle plugin updated to 3.2.1
+- Gradle wrapper regenerated with 4.10.2
 
 ### 1.2.15
 - Fix VerifyError on API level older than Lollipop - [#570](https://github.com/koral--/android-gif-drawable/issue/570)
