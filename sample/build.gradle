@@ -5,11 +5,6 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion versions.compileSdk
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
-
     defaultConfig {
         versionName project.version
         minSdkVersion versions.minSdk
