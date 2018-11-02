@@ -37,7 +37,7 @@ static jint bufferUpTo(JNIEnv *env, StreamContainer *sc, size_t size) {
 		if (length > 0) {
 			totalLength += length;
 		} else {
-			if ((*env)->ExceptionCheck(env)) {
+			if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 #ifdef DEBUG
 				(*env)->ExceptionDescribe(env);
 #endif
@@ -108,7 +108,7 @@ int streamRewind(GifInfo *info) {
 		return -1;
 	}
 	(*env)->CallVoidMethod(env, sc->stream, sc->resetMethodID);
-	if ((*env)->ExceptionCheck(env)) {
+	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 #ifdef DEBUG
 		(*env)->ExceptionDescribe(env);
 #endif
@@ -287,20 +287,20 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 	(*env)->CallVoidMethod(env, stream, markMethodID, INT32_MAX);
 
-	if (!(*env)->ExceptionCheck(env)) {
-		GifInfo *info = createGifInfo(&descriptor, env);
-		container->markCalled = true;
-		container->bufferPosition = 0;
-		return (jlong) (intptr_t) info;
-	} else {
+    if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 #ifdef DEBUG
-		(*env)->ExceptionDescribe(env);
+        (*env)->ExceptionDescribe(env);
 #endif
-		(*env)->DeleteGlobalRef(env, container->stream);
-		(*env)->DeleteGlobalRef(env, container->buffer);
-		free(container);
-		return NULL_GIF_INFO;
-	}
+        (*env)->DeleteGlobalRef(env, container->stream);
+        (*env)->DeleteGlobalRef(env, container->buffer);
+        free(container);
+        return NULL_GIF_INFO;
+    } else {
+        GifInfo *info = createGifInfo(&descriptor, env);
+        container->markCalled = true;
+        container->bufferPosition = 0;
+        return (jlong) (intptr_t) info;
+    }
 }
 
 __unused JNIEXPORT jint JNICALL
