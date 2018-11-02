@@ -45,7 +45,7 @@ public class GifViewDescriptorTest {
 		final GifTextView view = (GifTextView) rootView.findViewById(R.id.textView);
 
 		assertThat(view.getBackground()).hasLoopCountEqualTo(TEXT_VIEW_LOOP_COUNT);
-		for (final Drawable drawable : view.getCompoundDrawables()) {
+		for (final Drawable drawable : view.getCompoundDrawablesRelative()) {
 			assertThat(drawable).hasLoopCountEqualTo(TEXT_VIEW_LOOP_COUNT);
 		}
 	}
