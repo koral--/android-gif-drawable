@@ -48,6 +48,10 @@ final class GifViewUtils {
 		Resources res = view.getResources();
 		if (res != null) {
 			try {
+				final String resourceTypeName = res.getResourceTypeName(resId);
+				if (!SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
+					return false;
+				}
 				GifDrawable d = new GifDrawable(res, resId);
 				if (isSrc) {
 					view.setImageDrawable(d);
