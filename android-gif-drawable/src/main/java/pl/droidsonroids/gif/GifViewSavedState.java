@@ -3,7 +3,7 @@ package pl.droidsonroids.gif;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.View;
 
 class GifViewSavedState extends View.BaseSavedState {

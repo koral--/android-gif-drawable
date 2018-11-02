@@ -1,7 +1,7 @@
 package pl.droidsonroids.gif;
 
-import android.support.annotation.IntRange;
-import android.support.annotation.Nullable;
+import androidx.annotation.IntRange;
+import androidx.annotation.Nullable;
 
 /**
  * Options controlling various GIF parameters similar to

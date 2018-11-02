@@ -1,12 +1,12 @@
 package pl.droidsonroids.gif;
 
 import android.content.res.Resources;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import pl.droidsonroids.gif.test.R;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,7 +16,7 @@ public class AllocationByteCountTest {
 
 	@Test
 	public void allocationByteCountIsConsistent() throws Exception {
-		final Resources resources = InstrumentationRegistry.getContext().getResources();
+		final Resources resources = InstrumentationRegistry.getInstrumentation().getContext().getResources();
 		final GifDrawable drawable = new GifDrawable(resources, R.raw.test);
 		final GifAnimationMetaData metaData = new GifAnimationMetaData(resources, R.raw.test);
 

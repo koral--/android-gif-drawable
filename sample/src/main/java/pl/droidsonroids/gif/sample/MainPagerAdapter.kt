@@ -1,7 +1,7 @@
 package pl.droidsonroids.gif.sample
 
-import android.support.v4.app.FragmentActivity
-import android.support.v4.app.FragmentStatePagerAdapter
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentStatePagerAdapter
 import pl.droidsonroids.gif.sample.sources.GifSourcesFragment
 
 internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStatePagerAdapter(activity.supportFragmentManager) {

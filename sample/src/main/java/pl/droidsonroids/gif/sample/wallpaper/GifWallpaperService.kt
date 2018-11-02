@@ -2,13 +2,14 @@ package pl.droidsonroids.gif.sample.wallpaper
 
 import android.service.wallpaper.WallpaperService
 import android.view.SurfaceHolder
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import pl.droidsonroids.gif.GifOptions
 import pl.droidsonroids.gif.GifTexImage2D
 import pl.droidsonroids.gif.InputSource
 import pl.droidsonroids.gif.sample.R
 import pl.droidsonroids.gif.sample.opengl.GifTexImage2DProgram
-import kotlin.coroutines.experimental.CoroutineContext
+import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 
 class GifWallpaperService : WallpaperService() {
     override fun onCreateEngine(): GifWallpaperEngine {
@@ -18,12 +19,13 @@ class GifWallpaperService : WallpaperService() {
         return GifWallpaperEngine(gifTexImage2D)
     }
 
-    inner class GifWallpaperEngine(private val gifTexImage2D: GifTexImage2D) : Engine(), CoroutineScope {
-
-        private val mainJob = Job()
-        private val renderContext = newSingleThreadContext("GifRenderThread")
+    inner class GifWallpaperEngine(private val gifTexImage2D: GifTexImage2D) : Engine(),
+        CoroutineScope {
         override val coroutineContext: CoroutineContext
             get() = renderContext + mainJob
+
+        private val mainJob = Job()
+        private val renderContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
         private val eglConnection = OffscreenEGLConnection()
         private val gifTexImage2DDrawer = GifTexImage2DProgram(gifTexImage2D)
