@@ -65,6 +65,7 @@ android {
 
 dependencies {
 	compileOnly "androidx.annotation:annotation:$versions.androidX"
+	testCompileOnly "androidx.annotation:annotation:$versions.androidX"
 	testImplementation 'junit:junit:4.12'
 	testImplementation 'org.mockito:mockito-core:2.23.0'
 	testImplementation 'org.robolectric:robolectric:3.8'
