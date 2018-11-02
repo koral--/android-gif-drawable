@@ -304,7 +304,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jobject fileDescriptor) {
+Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jobject fileDescriptor, jboolean closeOriginalDescriptor) {
 	if (isSourceNull(fileDescriptor, env)) {
 		return -1;
 	}
@@ -321,7 +321,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env,
 	if (fd == -1) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 	}
-	close(oldFd);
+	if (closeOriginalDescriptor == JNI_TRUE) {
+        close(oldFd);
+    }
 	return fd;
 }
 
