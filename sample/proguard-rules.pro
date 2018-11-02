@@ -9,3 +9,10 @@
 -dontwarn com.squareup.haha.trove.** 
 -dontwarn com.squareup.leakcanary.** 
 -keep class com.squareup.haha.** { *; }
+
+#coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembernames class kotlinx.** {
+    volatile <fields>;
+}

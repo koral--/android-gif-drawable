@@ -2,12 +2,13 @@ package pl.droidsonroids.gif;
 
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Drawable.Callback;
-import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import androidx.annotation.NonNull;
 
 /**
  * {@link Callback} which allows single {@link Drawable} to be associated with multiple callbacks,

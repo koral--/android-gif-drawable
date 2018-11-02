@@ -1,8 +1,6 @@
 package pl.droidsonroids.gif;
 
 import android.content.res.AssetFileDescriptor;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +9,8 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import pl.droidsonroids.gif.test.R;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +20,8 @@ public class InputStreamTest {
 
 	@Test
 	public void gifDrawableCreatedFromInputStream() throws Exception {
-		final AssetFileDescriptor assetFileDescriptor = InstrumentationRegistry.getContext().getResources().openRawResourceFd(R.raw.test);
+		final AssetFileDescriptor assetFileDescriptor = InstrumentationRegistry.getInstrumentation()
+				.getContext().getResources().openRawResourceFd(R.raw.test);
 		final byte[] buffer = new byte[(int) assetFileDescriptor.getDeclaredLength()];
 		final FileInputStream inputStream = assetFileDescriptor.createInputStream();
 		final int bufferedByteCount = inputStream.read(buffer);

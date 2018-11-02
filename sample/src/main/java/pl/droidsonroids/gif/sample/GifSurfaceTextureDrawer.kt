@@ -1,16 +1,17 @@
 package pl.droidsonroids.gif.sample
 
 import android.graphics.SurfaceTexture
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import pl.droidsonroids.gif.GifTexImage2D
 import pl.droidsonroids.gif.InputSource
 import pl.droidsonroids.gif.sample.opengl.GifTexImage2DProgram
 import pl.droidsonroids.gif.sample.wallpaper.OffscreenEGLConnection
-import kotlin.coroutines.experimental.CoroutineContext
+import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 
 class GifSurfaceTextureDrawer(private val source: InputSource) : CoroutineScope {
 
-    private val renderContext = newSingleThreadContext("TextureViewFragmentGifRenderThread")
+    private val renderContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val mainJob = Job()
     override val coroutineContext: CoroutineContext
         get() = renderContext + mainJob

@@ -22,7 +22,7 @@ android {
 		minSdkVersion versions.minSdk
 		targetSdkVersion versions.targetSdk
 		consumerProguardFiles 'consumer-proguard-rules.pro'
-		testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+		testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 		externalNativeBuild {
 			cmake {
 				arguments "-DANDROID_PLATFORM=android-$versions.minSdk"
@@ -64,10 +64,9 @@ android {
 }
 
 dependencies {
-	compileOnly "com.android.support:support-annotations:$versions.androidSupport"
-	testCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
+	compileOnly "androidx.annotation:annotation:$versions.androidX"
 	testImplementation 'junit:junit:4.12'
-	testImplementation 'org.mockito:mockito-core:2.22.0'
+	testImplementation 'org.mockito:mockito-core:2.23.0'
 	testImplementation 'org.robolectric:robolectric:3.8'
 	testImplementation 'org.assertj:assertj-core:3.11.1'
 	testImplementation 'net.jodah:concurrentunit:0.4.3'
@@ -75,9 +74,10 @@ dependencies {
 	androidTestImplementation 'junit:junit:4.12'
 	androidTestImplementation 'org.assertj:assertj-core:1.7.1'
 	androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.11.0'
-	androidTestCompileOnly "com.android.support:support-annotations:$versions.androidSupport"
-	androidTestImplementation "com.android.support.test:runner:$versions.androidSupportTest"
-	androidTestImplementation "com.android.support.test:rules:$versions.androidSupportTest"
+	androidTestCompileOnly "androidx.annotation:annotation:$versions.androidX"
+	androidTestImplementation "androidx.test:rules:$versions.androidXtest"
+	androidTestImplementation "androidx.test:rules:$versions.androidXtest"
+	androidTestImplementation "androidx.test.ext:junit:$versions.androidXextJunit"
 }
 
 jacocoAndroidUnitTestReport {

@@ -6,19 +6,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.decoder.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.Main
+import kotlinx.coroutines.*
 import pl.droidsonroids.gif.GifDecoder
 import pl.droidsonroids.gif.InputSource
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class GifDecoderFragment : BaseFragment(), CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    var frames = emptyList<Bitmap>()
-    var durations = emptyList<Int>()
+    private var frames = emptyList<Bitmap>()
+    private var durations = emptyList<Int>()
 
     private var currentFrameIndex = 0
 

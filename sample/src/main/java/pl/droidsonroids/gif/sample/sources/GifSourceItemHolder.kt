@@ -1,8 +1,8 @@
 package pl.droidsonroids.gif.sample.sources
 
-import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import pl.droidsonroids.gif.GifImageView
 import pl.droidsonroids.gif.MultiCallback
 import pl.droidsonroids.gif.sample.R

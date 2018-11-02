@@ -1,9 +1,6 @@
 package pl.droidsonroids.gif.sample
 
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.*
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.net.URL
@@ -18,7 +15,7 @@ class GifDownloader(httpFragment: HttpFragment) {
     private var loadJob: Job? = null
 
     fun load() {
-        loadJob = launch {
+        loadJob = GlobalScope.launch {
             try {
                 val buffer = downloadGif()
                 runOnUiThread {
@@ -33,7 +30,7 @@ class GifDownloader(httpFragment: HttpFragment) {
     }
 
     private suspend fun runOnUiThread(action: HttpFragment.() -> Unit) {
-        withContext(UI) {
+        withContext(Dispatchers.Main) {
             fragmentReference.get()?.apply {
                 action()
             }

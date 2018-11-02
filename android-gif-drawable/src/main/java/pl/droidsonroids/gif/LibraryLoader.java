@@ -2,9 +2,10 @@ package pl.droidsonroids.gif;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import java.lang.reflect.Method;
+
+import androidx.annotation.NonNull;
 
 /**
  * Helper used to work around native libraries loading on some systems.
