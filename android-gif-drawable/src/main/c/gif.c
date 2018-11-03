@@ -150,8 +150,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 	}
 	(*env)->ReleaseStringUTFChars(env, jfname, filename);
 
-	struct stat st;
-	const long sourceLength = stat(filename, &st) == 0 ? st.st_size : -1;
+	struct stat64 st;
+	const long long sourceLength = stat64(filename, &st) == 0 ? st.st_size : -1;
 
 	GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
 	if (info == NULL) {
@@ -347,8 +347,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openNativeFileDescriptor(JNIEnv *env, jc
 			close(fd);
 			return NULL_GIF_INFO;
 		}
-		struct stat st;
-		const long long sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
+		struct stat64 st;
+		const long long sourceLength = fstat64(fd, &st) == 0 ? st.st_size : -1;
 
 		GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
 		if (info == NULL) {
