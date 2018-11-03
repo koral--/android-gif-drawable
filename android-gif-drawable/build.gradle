@@ -51,6 +51,7 @@ android {
 	}
 	buildTypes {
 		release {
+			testProguardFile 'test-proguard-rules.pro'
 			signingConfig signingConfigs.release
 			if (isDebugBuild()) {
 				debuggable true
