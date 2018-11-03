@@ -1,1 +1,2 @@
 -keep class androidx.core.app.CoreComponentFactory
+-keep class androidx.core.app.AppComponentFactory
