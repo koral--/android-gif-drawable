@@ -142,7 +142,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 		throwException(env, RUNTIME_EXCEPTION_BARE, "GetStringUTFChars failed");
 		return NULL_GIF_INFO;
 	}
-	FILE *file = fopen(filename, "rb");
+	FILE *file = fopen(filename, "rbe");
 	if (file == NULL) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		(*env)->ReleaseStringUTFChars(env, jfname, filename);
@@ -323,7 +323,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env,
 		return -1;
 	}
 	const jint oldFd = (*env)->GetIntField(env, fileDescriptor, fdClassDescriptorFieldID);
-	const int fd = dup(oldFd);
+	const int fd = fcntl(oldFd, F_DUPFD_CLOEXEC, 0);
 	if (fd == -1) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 	}
