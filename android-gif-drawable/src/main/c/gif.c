@@ -236,13 +236,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream) {
+	jbyteArray bufferArray = (*env)->NewByteArray(env, STREAM_BUFFER_SIZE);
+	if (bufferArray == NULL) {
+		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+		return NULL_GIF_INFO;
+	}
+
 	StreamContainer *container = malloc(sizeof(StreamContainer));
 	if (container == NULL) {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL_GIF_INFO;
 	}
 
-	container->buffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, STREAM_BUFFER_SIZE));
+	container->buffer = (*env)->NewGlobalRef(env, bufferArray);
 	if (container->buffer == NULL) {
 		free(container);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
@@ -251,8 +257,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 	jclass streamClass = (*env)->GetObjectClass(env, stream);
 	if (streamClass == NULL) {
-		free(container);
 		(*env)->DeleteGlobalRef(env, container->buffer);
+		free(container);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
@@ -263,15 +269,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	container->closeMethodID = (*env)->GetMethodID(env, streamClass, "close", "()V");
 
 	if (markMethodID == NULL || container->readMethodID == NULL || container->resetMethodID == NULL || container->closeMethodID == NULL) {
-		free(container);
 		(*env)->DeleteGlobalRef(env, container->buffer);
+		free(container);
 		return NULL_GIF_INFO;
 	}
 
 	container->stream = (*env)->NewGlobalRef(env, stream);
 	if (container->stream == NULL) {
-		free(container);
 		(*env)->DeleteGlobalRef(env, container->buffer);
+		free(container);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
