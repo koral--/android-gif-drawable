@@ -5,6 +5,7 @@
 - Fixed missing free of info buffer - [#595](https://github.com/koral--/android-gif-drawable/issue/595)
 - Android Gradle plugin updated to 3.2.1
 - Gradle wrapper regenerated with 4.10.2
+- NDK updated to r18, minimum API level increased to 17
 
 ### 1.2.15
 - Fix VerifyError on API level older than Lollipop - [#570](https://github.com/koral--/android-gif-drawable/issue/570)
