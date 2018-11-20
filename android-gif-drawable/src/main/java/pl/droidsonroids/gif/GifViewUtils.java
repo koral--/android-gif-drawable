@@ -4,10 +4,9 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.RawRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.RawRes;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -49,13 +48,15 @@ final class GifViewUtils {
 		Resources res = view.getResources();
 		if (res != null) {
 			try {
+				final String resourceTypeName = res.getResourceTypeName(resId);
+				if (!SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
+					return false;
+				}
 				GifDrawable d = new GifDrawable(res, resId);
 				if (isSrc) {
 					view.setImageDrawable(d);
-				} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-					view.setBackground(d);
 				} else {
-					view.setBackgroundDrawable(d);
+					view.setBackground(d);
 				}
 				return true;
 			} catch (IOException | Resources.NotFoundException ignored) {

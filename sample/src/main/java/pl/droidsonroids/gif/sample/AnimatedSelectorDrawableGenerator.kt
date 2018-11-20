@@ -4,7 +4,7 @@ import android.content.res.Resources
 import android.content.res.XmlResourceParser
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.StateListDrawable
-import android.support.annotation.DrawableRes
+import androidx.annotation.DrawableRes
 import org.xmlpull.v1.XmlPullParser
 import pl.droidsonroids.gif.GifDrawable
 

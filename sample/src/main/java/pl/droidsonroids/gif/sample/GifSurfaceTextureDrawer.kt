@@ -1,16 +1,20 @@
 package pl.droidsonroids.gif.sample
 
 import android.graphics.SurfaceTexture
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import pl.droidsonroids.gif.GifTexImage2D
 import pl.droidsonroids.gif.InputSource
 import pl.droidsonroids.gif.sample.opengl.GifTexImage2DProgram
 import pl.droidsonroids.gif.sample.wallpaper.OffscreenEGLConnection
+import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 
-class GifSurfaceTextureDrawer(private val source: InputSource) {
+class GifSurfaceTextureDrawer(private val source: InputSource) : CoroutineScope {
 
-    private val renderContext = newSingleThreadContext("TextureViewFragmentGifRenderThread")
+    private val renderContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val mainJob = Job()
+    override val coroutineContext: CoroutineContext
+        get() = renderContext + mainJob
 
     fun onSurfaceTextureDestroyed(surface: SurfaceTexture) {
         launch {
@@ -21,7 +25,7 @@ class GifSurfaceTextureDrawer(private val source: InputSource) {
     }
 
     fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        launch(context = renderContext, parent = mainJob) {
+        launch {
             val gifTexImage2D = GifTexImage2D(source, null)
             gifTexImage2D.startDecoderThread()
 
@@ -35,7 +39,7 @@ class GifSurfaceTextureDrawer(private val source: InputSource) {
             while (isActive) {
                 gifTexImage2DProgram.draw()
                 eglConnection.draw()
-                delay(gifTexImage2DProgram.currentFrameDuration)
+                delay(gifTexImage2DProgram.currentFrameDuration.toLong())
             }
             gifTexImage2DProgram.destroy()
             eglConnection.destroy()

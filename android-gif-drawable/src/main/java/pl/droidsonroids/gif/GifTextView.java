@@ -6,7 +6,7 @@ import android.content.res.Resources.NotFoundException;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Parcelable;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
@@ -93,28 +93,23 @@ public class GifTextView extends TextView {
 			Drawable start = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableStart", 0));
 			Drawable end = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableEnd", 0));
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-				if (getLayoutDirection() == LAYOUT_DIRECTION_LTR) {
-					if (start == null) {
-						start = left;
-					}
-					if (end == null) {
-						end = right;
-					}
-				} else {
-					if (start == null) {
-						start = right;
-					}
-					if (end == null) {
-						end = left;
-					}
+			if (getLayoutDirection() == LAYOUT_DIRECTION_LTR) {
+				if (start == null) {
+					start = left;
 				}
-				setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom);
-				setCompoundDrawablesWithIntrinsicBounds(left, top, right, bottom);
+				if (end == null) {
+					end = right;
+				}
 			} else {
-				setCompoundDrawablesWithIntrinsicBounds(left, top, right, bottom);
+				if (start == null) {
+					start = right;
+				}
+				if (end == null) {
+					end = left;
+				}
 			}
-			setBackgroundInternal(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "background", 0)));
+			setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom);
+			setBackground(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "background", 0)));
 			viewAttributes = new GifViewUtils.GifViewAttributes(this, attrs, defStyle, defStyleRes);
 			applyGifViewAttributes();
 		}
@@ -128,21 +123,10 @@ public class GifTextView extends TextView {
 		for (final Drawable drawable : getCompoundDrawables()) {
 			GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, drawable);
 		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-			for (final Drawable drawable : getCompoundDrawablesRelative()) {
-				GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, drawable);
-			}
+		for (final Drawable drawable : getCompoundDrawablesRelative()) {
+			GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, drawable);
 		}
 		GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, getBackground());
-	}
-
-	@SuppressWarnings("deprecation") // setBackgroundDrawable
-	private void setBackgroundInternal(Drawable bg) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-			setBackground(bg);
-		} else {
-			setBackgroundDrawable(bg);
-		}
 	}
 
 	@SuppressWarnings("deprecation") //Resources#getDrawable(int)
@@ -171,7 +155,6 @@ public class GifTextView extends TextView {
 		setCompoundDrawablesWithIntrinsicBounds(getGifOrDefaultDrawable(left), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(right), getGifOrDefaultDrawable(bottom));
 	}
 
-	@RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
 	public void setCompoundDrawablesRelativeWithIntrinsicBounds(int start, int top, int end, int bottom) {
 		setCompoundDrawablesRelativeWithIntrinsicBounds(getGifOrDefaultDrawable(start), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(end), getGifOrDefaultDrawable(bottom));
@@ -184,12 +167,10 @@ public class GifTextView extends TextView {
 			Drawable[] compoundDrawables = getCompoundDrawables();
 			System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-				Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-				savedDrawables[4] = compoundDrawablesRelative[0]; //start
-				savedDrawables[5] = compoundDrawablesRelative[2]; //end
-			}
-			savedDrawables[6] = getBackground();
+            Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
+            savedDrawables[4] = compoundDrawablesRelative[0]; //start
+            savedDrawables[5] = compoundDrawablesRelative[2]; //end
+            savedDrawables[6] = getBackground();
 		}
 		return new GifViewSavedState(super.onSaveInstanceState(), savedDrawables);
 	}
@@ -208,12 +189,10 @@ public class GifTextView extends TextView {
 		ss.restoreState(compoundDrawables[1], 1);
 		ss.restoreState(compoundDrawables[2], 2);
 		ss.restoreState(compoundDrawables[3], 3);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-			Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-			ss.restoreState(compoundDrawablesRelative[0], 4);
-			ss.restoreState(compoundDrawablesRelative[2], 5);
-		}
-		ss.restoreState(getBackground(), 6);
+        Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
+        ss.restoreState(compoundDrawablesRelative[0], 4);
+        ss.restoreState(compoundDrawablesRelative[2], 5);
+        ss.restoreState(getBackground(), 6);
 	}
 
 	@Override
@@ -230,15 +209,13 @@ public class GifTextView extends TextView {
 
 	@Override
 	public void setBackgroundResource(int resId) {
-		setBackgroundInternal(getGifOrDefaultDrawable(resId));
+		setBackground(getGifOrDefaultDrawable(resId));
 	}
 
 	private void setCompoundDrawablesVisible(final boolean visible) {
 		setDrawablesVisible(getCompoundDrawables(), visible);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-			setDrawablesVisible(getCompoundDrawablesRelative(), visible);
-		}
-	}
+        setDrawablesVisible(getCompoundDrawablesRelative(), visible);
+    }
 
 	/**
 	 * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored

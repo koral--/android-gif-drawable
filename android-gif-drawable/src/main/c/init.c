@@ -20,6 +20,7 @@ GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	info->controlBlock = malloc(sizeof(GraphicsControlBlock));
 	if (info->controlBlock == NULL) {
 		DGifCloseFile(descriptor->GifFileIn);
+		free(info);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL;
 	}
@@ -49,7 +50,7 @@ GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	info->originalWidth = info->gifFilePtr->SWidth;
 
 	if (descriptor->GifFileIn->SWidth < 1 || descriptor->GifFileIn->SHeight < 1) {
-		DGifCloseFile(descriptor->GifFileIn);
+		cleanUp(info);
 		throwGifIOException(D_GIF_ERR_INVALID_SCR_DIMS, env, false);
 		return NULL;
 	}

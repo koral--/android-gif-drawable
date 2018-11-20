@@ -1,11 +1,11 @@
 android-gif-drawable
 ====================
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable)
-[![Build Status](https://www.bitrise.io/app/78fd40a5596e97e7/status.svg?token=SMUtlPklcIRBODd513ZdiQ&branch=master)](https://www.bitrise.io/app/78fd40a5596e97e7)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable/badge.svg)](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable)
+[![Build Status](https://app.bitrise.io/app/78fd40a5596e97e7/status.svg?token=SMUtlPklcIRBODd513ZdiQ)](https://app.bitrise.io/app/78fd40a5596e97e7)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-android--gif--drawable-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1147)
 [![Android-Libs](https://img.shields.io/badge/Android--Libs-android--gif--drawable-orange.svg?style=flat)](http://android-libs.com/lib/android-gif-drawable)
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
-[![API](https://img.shields.io/badge/API-14%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=14)
+[![API](https://img.shields.io/badge/API-14%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=17)
 [![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 
 `View`s and `Drawable` for animated GIFs in Android.
@@ -21,7 +21,7 @@ Bundled GIFLib via JNI is used to render frames. This way should be more efficie
 Insert the following dependency to `build.gradle` file of your project.
 ```groovy
 dependencies {
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.15'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.16'
 }
 ```
 Note that Maven central repository should be defined eg. in top-level `build.gradle` like this:
@@ -45,7 +45,7 @@ repositories {
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }
 dependencies {
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.+'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.+'
 }
 ```
 #### Maven dependency
@@ -66,7 +66,7 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
 ### Requirements
-+ Android 4.0+ (API level 14+)
++ Android 4.2+ (API level 17+)
 + for `GifTextureView` hardware-accelerated rendering
 + for `GifTexImage2D` OpenGL ES 2.0+
 
@@ -225,6 +225,11 @@ See [#480](https://github.com/koral--/android-gif-drawable/issues/480) for more 
 + `recycle()` - provided to speed up freeing memory (like in `android.graphics.Bitmap`)
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
+
+## Upgrading from 1.2.15
+#### Minimum SDK version changed
+Minimum API level is now 17 (Android 4.2).
+`armeabi` (arm v5 and v6) is no longer supported. 
 
 ## Upgrading from 1.2.8
 #### Minimum SDK version changed

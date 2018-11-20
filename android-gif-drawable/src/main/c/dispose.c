@@ -14,7 +14,10 @@ Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handle
 
 		(*env)->CallVoidMethod(env, streamContainer->stream, streamContainer->closeMethodID);
 
-		if ((*env)->ExceptionCheck(env)) {
+		if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
+#ifdef DEBUG
+			(*env)->ExceptionDescribe(env);
+#endif
 			(*env)->ExceptionClear(env);
 		}
 

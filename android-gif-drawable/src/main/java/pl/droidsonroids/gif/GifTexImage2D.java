@@ -1,8 +1,8 @@
 package pl.droidsonroids.gif;
 
-import android.support.annotation.FloatRange;
-import android.support.annotation.IntRange;
-import android.support.annotation.Nullable;
+import androidx.annotation.FloatRange;
+import androidx.annotation.IntRange;
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.nio.Buffer;

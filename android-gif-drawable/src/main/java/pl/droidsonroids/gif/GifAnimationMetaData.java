@@ -8,11 +8,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RawRes;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -22,6 +17,11 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import androidx.annotation.DrawableRes;
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RawRes;
 import pl.droidsonroids.gif.annotations.Beta;
 
 /**
@@ -271,6 +271,7 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 	}
 
 	@Override
+	@NonNull
 	public String toString() {
 		final String loopCount = mLoopCount == 0 ? "Infinity" : Integer.toString(mLoopCount);
 		final String suffix = String.format(Locale.ENGLISH, "GIF: size: %dx%d, frames: %d, loops: %s, duration: %d", mWidth, mHeight, mImageCount, loopCount, mDuration);

@@ -8,10 +8,6 @@ import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Parcelable;
-import android.support.annotation.FloatRange;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Surface;
@@ -20,6 +16,11 @@ import android.widget.ImageView.ScaleType;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+
+import androidx.annotation.FloatRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 /**
  * <p>{@link TextureView} which can display animated GIFs. GifTextureView can only be used in a

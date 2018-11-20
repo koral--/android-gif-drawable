@@ -5,9 +5,11 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.FloatRange;
-import android.support.annotation.IntRange;
-import android.support.annotation.RequiresApi;
+
+import androidx.annotation.FloatRange;
+import androidx.annotation.IntRange;
+import androidx.annotation.RequiresApi;
+
 import android.system.ErrnoException;
 import android.system.Os;
 import android.view.Surface;
@@ -35,7 +37,7 @@ final class GifInfoHandle {
 	}
 
 	GifInfoHandle(FileDescriptor fileDescriptor) throws GifIOException {
-		gifInfoPtr = openFd(fileDescriptor, 0);
+		gifInfoPtr = openFileDescriptor(fileDescriptor, 0, true);
 	}
 
 	GifInfoHandle(byte[] bytes) throws GifIOException {
@@ -59,7 +61,7 @@ final class GifInfoHandle {
 
 	GifInfoHandle(AssetFileDescriptor afd) throws IOException {
 		try {
-			gifInfoPtr = openFd(afd.getFileDescriptor(), afd.getStartOffset());
+			gifInfoPtr = openFileDescriptor(afd.getFileDescriptor(), afd.getStartOffset(), false);
 		} finally {
 			try {
 				afd.close();
@@ -69,28 +71,30 @@ final class GifInfoHandle {
 		}
 	}
 
-	private static long openFd(FileDescriptor fileDescriptor, long offset) throws GifIOException {
+	private static long openFileDescriptor(FileDescriptor fileDescriptor, long offset, boolean closeOriginalDescriptor) throws GifIOException {
 		final int nativeFileDescriptor;
 		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
 			try {
-				nativeFileDescriptor = getNativeFileDescriptor(fileDescriptor);
+				nativeFileDescriptor = getNativeFileDescriptor(fileDescriptor, closeOriginalDescriptor);
 			} catch (Exception e) { //cannot catch ErrnoException due to VerifyError on API <= 19
 				throw new GifIOException(GifError.OPEN_FAILED.errorCode, e.getMessage());
 			}
 		} else {
-			nativeFileDescriptor = extractNativeFileDescriptor(fileDescriptor);
+			nativeFileDescriptor = extractNativeFileDescriptor(fileDescriptor, closeOriginalDescriptor);
 		}
 		return openNativeFileDescriptor(nativeFileDescriptor, offset);
 	}
 
 	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-	private static int getNativeFileDescriptor(FileDescriptor fileDescriptor) throws GifIOException, ErrnoException {
+	private static int getNativeFileDescriptor(FileDescriptor fileDescriptor, boolean closeOriginalDescriptor) throws GifIOException, ErrnoException {
 		try {
 			final int nativeFileDescriptor = createTempNativeFileDescriptor();
 			Os.dup2(fileDescriptor, nativeFileDescriptor);
 			return nativeFileDescriptor;
 		} finally {
-			Os.close(fileDescriptor);
+			if (closeOriginalDescriptor) {
+				Os.close(fileDescriptor);
+			}
 		}
 	}
 
@@ -107,7 +111,7 @@ final class GifInfoHandle {
 
 	static native long openNativeFileDescriptor(int fd, long offset) throws GifIOException;
 
-	static native int extractNativeFileDescriptor(FileDescriptor fileDescriptor) throws GifIOException;
+	static native int extractNativeFileDescriptor(FileDescriptor fileDescriptor, boolean closeOriginalDescriptor) throws GifIOException;
 
 	static native int createTempNativeFileDescriptor() throws GifIOException;
 

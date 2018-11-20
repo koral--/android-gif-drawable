@@ -3,7 +3,7 @@ package pl.droidsonroids.gif.sample
 import android.content.res.Resources
 import android.content.res.XmlResourceParser
 import android.graphics.drawable.StateListDrawable
-import android.support.annotation.DrawableRes
+import androidx.annotation.DrawableRes
 import android.util.AttributeSet
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException

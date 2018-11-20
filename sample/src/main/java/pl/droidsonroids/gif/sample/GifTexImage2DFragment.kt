@@ -2,10 +2,10 @@ package pl.droidsonroids.gif.sample
 
 import android.opengl.GLSurfaceView
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.material.snackbar.Snackbar
 import pl.droidsonroids.gif.GifOptions
 import pl.droidsonroids.gif.GifTexImage2D
 import pl.droidsonroids.gif.InputSource

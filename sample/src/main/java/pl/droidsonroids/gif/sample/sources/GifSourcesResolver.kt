@@ -58,13 +58,13 @@ private fun Context.getFileFromAssets(filename: String): File {
 	val file = File(cacheDir, filename)
 	val assetFileDescriptor = resources.assets.openFd(filename)
 	val buf = ByteArray(assetFileDescriptor.declaredLength.toInt())
-	assetFileDescriptor.createInputStream().use {
-		val bytesRead = it.read(buf)
+	assetFileDescriptor.createInputStream().use { inputStream ->
+		val bytesRead = inputStream.read(buf)
 		if (bytesRead != buf.size) {
 			throw IOException("Asset read failed")
 		}
-		FileOutputStream(file).use {
-			it.write(buf, 0, bytesRead)
+		FileOutputStream(file).use { outputStream ->
+			outputStream.write(buf, 0, bytesRead)
 		}
 	}
 	return file

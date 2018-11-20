@@ -37,7 +37,7 @@ static jint bufferUpTo(JNIEnv *env, StreamContainer *sc, size_t size) {
 		if (length > 0) {
 			totalLength += length;
 		} else {
-			if ((*env)->ExceptionCheck(env)) {
+			if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 #ifdef DEBUG
 				(*env)->ExceptionDescribe(env);
 #endif
@@ -108,7 +108,7 @@ int streamRewind(GifInfo *info) {
 		return -1;
 	}
 	(*env)->CallVoidMethod(env, sc->stream, sc->resetMethodID);
-	if ((*env)->ExceptionCheck(env)) {
+	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 #ifdef DEBUG
 		(*env)->ExceptionDescribe(env);
 #endif
@@ -142,7 +142,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 		throwException(env, RUNTIME_EXCEPTION_BARE, "GetStringUTFChars failed");
 		return NULL_GIF_INFO;
 	}
-	FILE *file = fopen(filename, "rb");
+	FILE *file = fopen(filename, "rbe");
 	if (file == NULL) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		(*env)->ReleaseStringUTFChars(env, jfname, filename);
@@ -150,8 +150,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 	}
 	(*env)->ReleaseStringUTFChars(env, jfname, filename);
 
-	struct stat st;
-	const long sourceLength = stat(filename, &st) == 0 ? st.st_size : -1;
+	struct stat64 st;
+	const long long sourceLength = stat64(filename, &st) == 0 ? st.st_size : -1;
 
 	GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
 	if (info == NULL) {
@@ -210,6 +210,11 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 		return NULL_GIF_INFO;
 	}
 	container->bufferRef = (*env)->NewGlobalRef(env, buffer);
+	if (container->bufferRef == NULL) {
+		free(container);
+		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+		return NULL_GIF_INFO;
+	}
 	container->bytes = bytes;
 	container->capacity = capacity;
 	container->position = 0;
@@ -223,6 +228,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 
 	GifInfo *info = createGifInfo(&descriptor, env);
 	if (info == NULL) {
+		(*env)->DeleteGlobalRef(env, container->bufferRef);
 		free(container);
 	}
 	return (jlong) (intptr_t) info;
@@ -230,13 +236,19 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 
 __unused JNIEXPORT jlong JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream) {
+	jbyteArray bufferArray = (*env)->NewByteArray(env, STREAM_BUFFER_SIZE);
+	if (bufferArray == NULL) {
+		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
+		return NULL_GIF_INFO;
+	}
+
 	StreamContainer *container = malloc(sizeof(StreamContainer));
 	if (container == NULL) {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
 		return NULL_GIF_INFO;
 	}
 
-	container->buffer = (*env)->NewGlobalRef(env, (*env)->NewByteArray(env, STREAM_BUFFER_SIZE));
+	container->buffer = (*env)->NewGlobalRef(env, bufferArray);
 	if (container->buffer == NULL) {
 		free(container);
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
@@ -245,8 +257,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 	jclass streamClass = (*env)->GetObjectClass(env, stream);
 	if (streamClass == NULL) {
-		free(container);
 		(*env)->DeleteGlobalRef(env, container->buffer);
+		free(container);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
@@ -257,15 +269,15 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 	container->closeMethodID = (*env)->GetMethodID(env, streamClass, "close", "()V");
 
 	if (markMethodID == NULL || container->readMethodID == NULL || container->resetMethodID == NULL || container->closeMethodID == NULL) {
-		free(container);
 		(*env)->DeleteGlobalRef(env, container->buffer);
+		free(container);
 		return NULL_GIF_INFO;
 	}
 
 	container->stream = (*env)->NewGlobalRef(env, stream);
 	if (container->stream == NULL) {
-		free(container);
 		(*env)->DeleteGlobalRef(env, container->buffer);
+		free(container);
 		throwException(env, RUNTIME_EXCEPTION_BARE, "NewGlobalRef failed");
 		return NULL_GIF_INFO;
 	}
@@ -281,24 +293,24 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 
 	(*env)->CallVoidMethod(env, stream, markMethodID, INT32_MAX);
 
-	if (!(*env)->ExceptionCheck(env)) {
-		GifInfo *info = createGifInfo(&descriptor, env);
-		container->markCalled = true;
-		container->bufferPosition = 0;
-		return (jlong) (intptr_t) info;
-	} else {
+    if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 #ifdef DEBUG
-		(*env)->ExceptionDescribe(env);
+        (*env)->ExceptionDescribe(env);
 #endif
-		(*env)->DeleteGlobalRef(env, container->stream);
-		(*env)->DeleteGlobalRef(env, container->buffer);
-		free(container);
-		return NULL_GIF_INFO;
-	}
+        (*env)->DeleteGlobalRef(env, container->stream);
+        (*env)->DeleteGlobalRef(env, container->buffer);
+        free(container);
+        return NULL_GIF_INFO;
+    } else {
+        GifInfo *info = createGifInfo(&descriptor, env);
+        container->markCalled = true;
+        container->bufferPosition = 0;
+        return (jlong) (intptr_t) info;
+    }
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jobject fileDescriptor) {
+Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jobject fileDescriptor, jboolean closeOriginalDescriptor) {
 	if (isSourceNull(fileDescriptor, env)) {
 		return -1;
 	}
@@ -311,11 +323,13 @@ Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env,
 		return -1;
 	}
 	const jint oldFd = (*env)->GetIntField(env, fileDescriptor, fdClassDescriptorFieldID);
-	const int fd = dup(oldFd);
+	const int fd = fcntl(oldFd, F_DUPFD_CLOEXEC, 0);
 	if (fd == -1) {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 	}
-	close(oldFd);
+	if (closeOriginalDescriptor == JNI_TRUE) {
+        close(oldFd);
+    }
 	return fd;
 }
 
@@ -333,8 +347,8 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openNativeFileDescriptor(JNIEnv *env, jc
 			close(fd);
 			return NULL_GIF_INFO;
 		}
-		struct stat st;
-		const long long sourceLength = fstat(fd, &st) == 0 ? st.st_size : -1;
+		struct stat64 st;
+		const long long sourceLength = fstat64(fd, &st) == 0 ? st.st_size : -1;
 
 		GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
 		if (info == NULL) {

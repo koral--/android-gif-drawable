@@ -1,18 +1,21 @@
 package pl.droidsonroids.gif;
 
 import android.content.res.Resources;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import pl.droidsonroids.gif.test.R;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
+@RunWith(AndroidJUnit4.class)
 public class GifDrawableExceptionTest {
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
