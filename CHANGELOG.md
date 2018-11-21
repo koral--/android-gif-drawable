@@ -1,4 +1,4 @@
-### 1.2.16 - SNAPSHOT
+### 1.2.16
 - Fixed setting color drawable from Java code - [#606](https://github.com/koral--/android-gif-drawable/issue/606)
 - Fixed extraneous file descriptor closing - [#600](https://github.com/koral--/android-gif-drawable/issue/600)
 - Fixed missing null check for NewGlobalRef - [#594](https://github.com/koral--/android-gif-drawable/issue/594)
