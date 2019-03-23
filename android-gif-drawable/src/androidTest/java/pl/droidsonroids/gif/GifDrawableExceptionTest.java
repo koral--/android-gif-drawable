@@ -1,7 +1,7 @@
 package pl.droidsonroids.gif;
 
 import android.content.res.Resources;
-import androidx.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -23,7 +23,7 @@ public class GifDrawableExceptionTest {
 
 	@Before
 	public void setUp() throws Exception {
-		final Resources resources = InstrumentationRegistry.getContext().getResources();
+		final Resources resources = InstrumentationRegistry.getInstrumentation().getContext().getResources();
 		gifDrawable = new GifDrawable(resources, R.raw.test);
 	}
 
