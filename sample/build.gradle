@@ -38,14 +38,14 @@ android {
 }
 
 dependencies {
-	compileOnly "org.jetbrains:annotations:$versions.intellijAnnotations"
+    compileOnly "org.jetbrains:annotations:$versions.intellijAnnotations"
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakCanary"
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$versions.leakCanary"
     implementation "com.google.android.material:material:$versions.material"
     implementation "androidx.appcompat:appcompat:$versions.androidxAppcompat"
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.coroutines"
     implementation project(':android-gif-drawable')
-	//implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
+    //implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
 }
