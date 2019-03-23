@@ -2,11 +2,11 @@ package pl.droidsonroids.gif;
 
 import android.graphics.Bitmap;
 
-import java.io.IOException;
-
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.io.IOException;
 
 /**
  * GifDecoder allows lightweight access to GIF frames, without wrappers like Drawable or View.
@@ -20,6 +20,7 @@ public class GifDecoder {
 	/**
 	 * Constructs new GifDecoder.
 	 * Equivalent of {@link #GifDecoder(InputSource, GifOptions)} with null {@code options}
+	 *
 	 * @param inputSource source
 	 * @throws IOException when creation fails
 	 */
@@ -162,6 +163,9 @@ public class GifDecoder {
 		}
 		if (buffer.getWidth() < mGifInfoHandle.getWidth() || buffer.getHeight() < mGifInfoHandle.getHeight()) {
 			throw new IllegalArgumentException("Bitmap ia too small, size must be greater than or equal to GIF size");
+		}
+		if (buffer.getConfig() != Bitmap.Config.ARGB_8888) {
+			throw new IllegalArgumentException("Only Config.ARGB_8888 is supported. Current bitmap config: " + buffer.getConfig());
 		}
 	}
 }
