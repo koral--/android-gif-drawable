@@ -3,7 +3,6 @@ plugins {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'jacoco-android'
 apply from: 'gradle-mvn-push.gradle'
 
 version = VERSION_NAME
@@ -64,26 +63,21 @@ android {
 }
 
 dependencies {
-	compileOnly "androidx.annotation:annotation:$versions.androidX"
-	testCompileOnly "androidx.annotation:annotation:$versions.androidX"
+	compileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
+	testCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
 	testImplementation 'junit:junit:4.12'
-	testImplementation 'org.mockito:mockito-core:2.23.0'
-	testImplementation 'org.robolectric:robolectric:3.8'
-	testImplementation 'org.assertj:assertj-core:3.11.1'
-	testImplementation 'net.jodah:concurrentunit:0.4.3'
+	testImplementation 'org.mockito:mockito-core:2.25.1'
+	testImplementation 'org.robolectric:robolectric:4.2.1'
+	testImplementation 'org.assertj:assertj-core:3.12.1'
+	testImplementation 'net.jodah:concurrentunit:0.4.4'
 	testImplementation 'org.khronos:opengl-api:gl1.1-android-2.1_r1'
 	androidTestImplementation 'junit:junit:4.12'
 	androidTestImplementation 'org.assertj:assertj-core:1.7.1'
-	androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.11.0'
-	androidTestCompileOnly "androidx.annotation:annotation:$versions.androidX"
-	androidTestImplementation "androidx.test:rules:$versions.androidXtest"
-	androidTestImplementation "androidx.test:runner:$versions.androidXtest"
 	androidTestImplementation "androidx.test.ext:junit:$versions.androidXextJunit"
-}
-
-jacocoAndroidUnitTestReport {
-	html.enabled true
-	xml.enabled true
+	androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.12.2'
+	androidTestImplementation "androidx.test:rules:$versions.androidxTest"
+	androidTestImplementation "androidx.test:runner:$versions.androixTtest"
+	androidTestCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
 }
 
 def isDebugBuild() {

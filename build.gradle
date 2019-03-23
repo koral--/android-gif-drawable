@@ -1,38 +1,38 @@
 buildscript {
-	ext {
-		versions = [
-				compileSdk         : 28,
-				targetSdk          : 28,
-				minSdk             : 17,
-				androidX           : '1.0.0',
-				androidXtest       : '1.1.0',
-				coroutines         : '1.0.0',
-				leakCanary         : '1.6.1',
-				kotlin             : '1.3.0',
-				intellijAnnotations: '13.0',
-				material           : '1.0.0-rc01',
-				androidXextJunit   : '1.0.0'
-		]
-	}
-	repositories {
-		google()
-		mavenCentral()
-		jcenter()
-	}
-	dependencies {
-		classpath 'com.android.tools.build:gradle:3.2.1'
-		classpath 'com.dicedmelon.gradle:jacoco-android:0.1.3'
-		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-	}
+    ext {
+        versions = [
+                compileSdk         : 28,
+                targetSdk          : 28,
+                minSdk             : 17,
+                androidxAppcompat  : '1.0.2',
+                androidxAnnotations: '1.0.0',
+                androidxTest       : '1.1.0',
+                coroutines         : '1.1.1',
+                leakCanary         : '1.6.3',
+                kotlin             : '1.3.21',
+                intellijAnnotations: '13.0',
+                material           : '1.0.0',
+                androidXextJunit   : '1.0.0'
+        ]
+    }
+    repositories {
+        google()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+    }
 }
 
 subprojects {
-	tasks.withType(JavaCompile) {
-		options.compilerArgs << '-Xlint'
-	}
-	repositories {
-		google()
-		mavenCentral()
-		jcenter()
-	}
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Xlint'
+    }
+    repositories {
+        google()
+        mavenCentral()
+        jcenter()
+    }
 }
