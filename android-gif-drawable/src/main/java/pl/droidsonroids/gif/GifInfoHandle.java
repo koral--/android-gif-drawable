@@ -295,7 +295,6 @@ final class GifInfoHandle {
 	}
 
 	@Override
-	@SuppressWarnings("ThrowFromFinallyBlock")
 	protected void finalize() throws Throwable {
 		try {
 			recycle();
