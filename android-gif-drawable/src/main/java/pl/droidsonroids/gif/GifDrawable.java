@@ -537,6 +537,23 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	/**
+	 * Like {@link #seekTo(int)} but performs operation synchronously on current thread
+	 *
+	 * @param position position to seek to in milliseconds
+	 * @throws IllegalArgumentException if <code>position</code>&lt;0
+	 */
+	public void seekToBlocking(@IntRange(from = 0, to = Integer.MAX_VALUE) final int position) {
+		if (position < 0) {
+			throw new IllegalArgumentException("Position is not positive");
+		}
+
+		synchronized (mNativeInfoHandle) {
+			mNativeInfoHandle.seekToTime(position, mBuffer);
+		}
+		mInvalidationHandler.sendEmptyMessageAtTime(MSG_TYPE_INVALIDATION, 0);
+	}
+
+	/**
 	 * Like {@link #seekTo(int)} but uses index of the frame instead of time.
 	 * If <code>frameIndex</code> exceeds number of frames, seek stops at the end, no exception is thrown.
 	 *
