@@ -3,16 +3,17 @@ package pl.droidsonroids.gif;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import java.lang.reflect.Method;
-
 import androidx.annotation.NonNull;
+
+import com.getkeepsafe.relinker.ReLinker;
+
+import java.lang.reflect.Method;
 
 /**
  * Helper used to work around native libraries loading on some systems.
  * See <a href="https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db">ReLinker</a> for more details.
  */
 public class LibraryLoader {
-	static final String SURFACE_LIBRARY_NAME = "pl_droidsonroids_gif_surface";
 	static final String BASE_LIBRARY_NAME = "pl_droidsonroids_gif";
 	@SuppressLint("StaticFieldLeak") //workaround for Android bug
 	private static Context sAppContext;
@@ -48,7 +49,7 @@ public class LibraryLoader {
 		try {
 			System.loadLibrary(BASE_LIBRARY_NAME);
 		} catch (final UnsatisfiedLinkError e) {
-			ReLinker.loadLibrary(getContext());
+			ReLinker.loadLibrary(getContext(), BASE_LIBRARY_NAME);
 		}
 	}
 }

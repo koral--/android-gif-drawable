@@ -64,6 +64,7 @@ android {
 }
 
 dependencies {
+    implementation "com.getkeepsafe.relinker:relinker:$versions.relinker"
     compileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
     testCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
     testImplementation "junit:junit:$versions.junit"
