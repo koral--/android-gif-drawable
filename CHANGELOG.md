@@ -1,3 +1,8 @@
+### 1.2.17
+- Built-in ReLinker part replaced with complete ReLinker 1.3.1 - [#636](https://github.com/koral--/android-gif-drawable/issue/636)
+- Android Gradle plugin updated to 3.4.1
+- Gradle wrapper regenerated with 5.4.1
+
 ### 1.2.16
 - Fixed setting color drawable from Java code - [#606](https://github.com/koral--/android-gif-drawable/issue/606)
 - Fixed extraneous file descriptor closing - [#600](https://github.com/koral--/android-gif-drawable/issue/600)
