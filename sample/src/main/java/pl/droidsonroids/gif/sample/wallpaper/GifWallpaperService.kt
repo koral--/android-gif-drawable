@@ -29,7 +29,7 @@ class GifWallpaperService : WallpaperService() {
 
         private val eglConnection = OffscreenEGLConnection()
         private val gifTexImage2DDrawer = GifTexImage2DProgram(gifTexImage2D)
-        private var renderJob = Job()
+        private var renderJob: Job = Job()
         private var frameIndex = 0
 
         override fun getDesiredMinimumWidth() = gifTexImage2DDrawer.width
