@@ -70,7 +70,7 @@ public abstract class GifDrawableInit<T extends GifDrawableInit<T>> {
      * @param drawable drawable to be reused
      * @return this builder instance, to chain calls
      */
-    public T with(GifDrawable drawable) {
+    public T setOldDrawable(GifDrawable drawable) {
         mOldDrawable = drawable;
         return self();
     }
