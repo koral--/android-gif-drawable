@@ -61,7 +61,7 @@ public abstract class GifDrawableInit<T extends GifDrawableInit<T>> {
         if (mInputSource == null) {
             throw new NullPointerException("Source is not set");
         }
-        return mInputSource.build(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw, mOptions);
+        return mInputSource.createGifDrawable(mOldDrawable, mExecutor, mIsRenderingTriggeredOnDraw, mOptions);
     }
 
     /**
