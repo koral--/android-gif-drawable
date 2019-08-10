@@ -31,6 +31,8 @@
 #include <android/log.h>
 #define  LOG_TAG    "libgif"
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#else
+#define  LOGE(...)
 #endif
 
 #define THROW_ON_NONZERO_RESULT(fun, message) if ((fun) !=0) throwException(env, RUNTIME_EXCEPTION_ERRNO, message)
