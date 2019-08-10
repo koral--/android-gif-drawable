@@ -56,9 +56,15 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 				}
 
 				if (decode) {
-					int_fast32_t widthOverflow = gifFilePtr->Image.Width - info->originalWidth;
-					int_fast32_t heightOverflow = gifFilePtr->Image.Height - info->originalHeight;
 					const uint_fast32_t newRasterSize = gifFilePtr->Image.Width * gifFilePtr->Image.Height;
+					if (newRasterSize == 0) {
+						free(info->rasterBits);
+						info->rasterBits = NULL;
+						info->rasterSize = newRasterSize;
+						return;
+					}
+					const int_fast32_t widthOverflow = gifFilePtr->Image.Width - info->originalWidth;
+					const int_fast32_t heightOverflow = gifFilePtr->Image.Height - info->originalHeight;
 					if (newRasterSize > info->rasterSize || widthOverflow > 0 || heightOverflow > 0) {
 						void *tmpRasterBits = reallocarray(info->rasterBits, newRasterSize, sizeof(GifPixelType));
 						if (tmpRasterBits == NULL) {
