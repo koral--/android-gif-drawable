@@ -8,11 +8,12 @@ import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import pl.droidsonroids.gif.GifTextureView
 import pl.droidsonroids.gif.InputSource
 import java.io.BufferedInputStream
 
-class TexturePlaceholderFragment : BaseFragment(), GifTextureView.PlaceholderDrawListener {
+class TexturePlaceholderFragment : Fragment(), GifTextureView.PlaceholderDrawListener {
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		val view = GifTextureView(inflater.context)

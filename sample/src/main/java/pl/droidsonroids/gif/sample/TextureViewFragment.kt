@@ -9,9 +9,10 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.BounceInterpolator
 import android.view.animation.ScaleAnimation
+import androidx.fragment.app.Fragment
 import pl.droidsonroids.gif.InputSource
 
-class TextureViewFragment : BaseFragment() {
+class TextureViewFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val textureView = TextureView(inflater.context)

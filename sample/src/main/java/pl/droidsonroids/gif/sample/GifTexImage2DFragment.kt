@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import pl.droidsonroids.gif.GifOptions
 import pl.droidsonroids.gif.GifTexImage2D
@@ -13,7 +14,7 @@ import pl.droidsonroids.gif.sample.opengl.GifTexImage2DProgram
 import pl.droidsonroids.gif.sample.opengl.GifTexImage2DRenderer
 import pl.droidsonroids.gif.sample.opengl.isOpenGLES2Supported
 
-class GifTexImage2DFragment : BaseFragment() {
+class GifTexImage2DFragment : Fragment() {
 
     private lateinit var gifTexImage2DProgram: GifTexImage2DProgram
 
