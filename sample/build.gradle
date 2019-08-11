@@ -40,7 +40,6 @@ android {
 dependencies {
     compileOnly "org.jetbrains:annotations:$versions.intellijAnnotations"
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakCanary"
-    releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$versions.leakCanary"
     implementation "com.google.android.material:material:$versions.material"
     implementation "androidx.appcompat:appcompat:$versions.androidxAppcompat"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"

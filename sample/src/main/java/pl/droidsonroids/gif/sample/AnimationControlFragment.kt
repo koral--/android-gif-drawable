@@ -4,12 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.animation_control.*
 import pl.droidsonroids.gif.AnimationListener
 import pl.droidsonroids.gif.GifDrawable
 
-class AnimationControlFragment : BaseFragment(), AnimationListener {
+class AnimationControlFragment : Fragment(), AnimationListener {
 
 	private lateinit var gifDrawable: GifDrawable
 

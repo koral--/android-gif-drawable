@@ -8,9 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import pl.droidsonroids.gif.GifDrawable
 
-class ImageSpanFragment : BaseFragment(), Drawable.Callback {
+class ImageSpanFragment : Fragment(), Drawable.Callback {
 
 	private lateinit var textView: TextView
 
