@@ -23,6 +23,14 @@ import android.os.Build;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.widget.MediaController.MediaPlayerControl;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.FloatRange;
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RawRes;
+
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -34,12 +42,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.DrawableRes;
-import androidx.annotation.FloatRange;
-import androidx.annotation.IntRange;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RawRes;
 import pl.droidsonroids.gif.transforms.CornerRadiusTransform;
 import pl.droidsonroids.gif.transforms.Transform;
 
@@ -880,7 +882,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	@Override
-	public void setTintMode(@NonNull PorterDuff.Mode tintMode) {
+	public void setTintMode(@Nullable PorterDuff.Mode tintMode) {
 		mTintMode = tintMode;
 		mTintFilter = updateTintFilter(mTint, tintMode);
 		invalidateSelf();

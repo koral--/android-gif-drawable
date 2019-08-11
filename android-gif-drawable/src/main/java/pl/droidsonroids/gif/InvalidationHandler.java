@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import androidx.annotation.NonNull;
+
 import java.lang.ref.WeakReference;
 
 class InvalidationHandler extends Handler {
@@ -12,13 +14,13 @@ class InvalidationHandler extends Handler {
 
 	private final WeakReference<GifDrawable> mDrawableRef;
 
-	public InvalidationHandler(final GifDrawable gifDrawable) {
+	InvalidationHandler(final GifDrawable gifDrawable) {
 		super(Looper.getMainLooper());
 		mDrawableRef = new WeakReference<>(gifDrawable);
 	}
 
 	@Override
-	public void handleMessage(final Message msg) {
+	public void handleMessage(@NonNull final Message msg) {
 		final GifDrawable gifDrawable = mDrawableRef.get();
 		if (gifDrawable == null) {
 			return;
