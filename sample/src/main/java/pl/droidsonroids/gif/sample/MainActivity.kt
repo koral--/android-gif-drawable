@@ -2,7 +2,7 @@ package pl.droidsonroids.gif.sample
 
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
-import androidx.viewpager.widget.ViewPager
+import kotlinx.android.synthetic.main.activity_main.*
 
 /**
  * Main activity, hosts the pager
@@ -14,6 +14,6 @@ class MainActivity : FragmentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(R.layout.activity_main)
-		findViewById<ViewPager>(R.id.main_pager).adapter = MainPagerAdapter(this)
+        mainViewPager.adapter = MainPagerAdapter(this)
 	}
 }
