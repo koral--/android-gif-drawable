@@ -4,12 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import pl.droidsonroids.gif.GifTextureView
 import pl.droidsonroids.gif.InputSource
 import java.nio.ByteBuffer
 
-class HttpFragment : BaseFragment(), View.OnClickListener {
+class HttpFragment : Fragment(), View.OnClickListener {
 
     private var gifTextureView: GifTextureView? = null
     private val gifDownloader = GifDownloader(this)

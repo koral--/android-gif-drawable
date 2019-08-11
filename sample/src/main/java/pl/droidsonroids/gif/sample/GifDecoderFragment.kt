@@ -5,13 +5,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.decoder.*
 import kotlinx.coroutines.*
 import pl.droidsonroids.gif.GifDecoder
 import pl.droidsonroids.gif.InputSource
 import kotlin.coroutines.CoroutineContext
 
-class GifDecoderFragment : BaseFragment(), CoroutineScope {
+class GifDecoderFragment : Fragment(), CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
