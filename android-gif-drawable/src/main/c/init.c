@@ -43,6 +43,8 @@ GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
 	info->isOpaque = false;
 	info->sampleSize = 1;
 
+	info->rasterBits = NULL;
+	info->rasterSize = 0;
 	DDGifSlurp(info, false, false);
 	info->rasterBits = NULL;
 	info->rasterSize = 0;
