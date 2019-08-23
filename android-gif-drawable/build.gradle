@@ -1,7 +1,3 @@
-plugins {
-    id "pl.droidsonroids.ui.test" version "2.0.0"
-}
-
 apply plugin: 'com.android.library'
 apply plugin: 'jacoco-android'
 apply from: 'gradle-mvn-push.gradle'

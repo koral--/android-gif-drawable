@@ -15,3 +15,5 @@ build
 signing.properties
 
 .externalNativeBuild/
+# Project exclude paths
+/android-gif-drawable/.cxx/
