@@ -14,7 +14,7 @@ buildscript {
                 material           : '1.0.0',
                 androidXextJunit   : '1.1.0',
                 jacocoAndroid      : '0.1.4',
-                androidGradlePlugin: '3.4.2',
+                androidGradlePlugin: '3.5.0',
                 junit              : '4.12',
                 mockito            : '3.0.0',
                 robolectric        : '4.3',
@@ -22,7 +22,7 @@ buildscript {
                 assertj1           : '1.7.1',
                 concurrentunit     : '0.4.4',
                 openglApi          : 'gl1.1-android-2.1_r1',
-                mockwebserver      : '3.14.2',
+                mockwebserver      : '4.1.0',
                 relinker           : '1.3.1'
         ]
     }
