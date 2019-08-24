@@ -3,7 +3,7 @@ package pl.droidsonroids.gif;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GifOptionsTest {
 
@@ -21,19 +21,19 @@ public class GifOptionsTest {
 	}
 
 	@Test
-	public void setInSampleSize() throws Exception {
+	public void setInSampleSize() {
 		gifOptions.setInSampleSize(2);
 		assertThat(gifOptions.inSampleSize).isEqualTo((char) 2);
 	}
 
 	@Test
-	public void setInIsOpaque() throws Exception {
+	public void setInIsOpaque() {
 		gifOptions.setInIsOpaque(true);
 		assertThat(gifOptions.inIsOpaque).isTrue();
 	}
 
 	@Test
-	public void copyFromNonNull() throws Exception {
+	public void copyFromNonNull() {
 		GifOptions source = new GifOptions();
 		source.setInIsOpaque(false);
 		source.setInSampleSize(8);
@@ -42,7 +42,7 @@ public class GifOptionsTest {
 	}
 
 	@Test
-	public void copyFromNull() throws Exception {
+	public void copyFromNull() {
 		GifOptions defaultOptions = new GifOptions();
 		gifOptions.setInIsOpaque(false);
 		gifOptions.setInSampleSize(8);
