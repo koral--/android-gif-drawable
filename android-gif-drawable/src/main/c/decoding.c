@@ -22,7 +22,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 	gifFilePtr = info->gifFilePtr;
 	uint_fast32_t lastAllocatedGCBIndex = 0;
 	do {
-		if (DGifGetRecordType(gifFilePtr, &RecordType) == GIF_ERROR) {
+		if (DGifGetRecordType(gifFilePtr, &RecordType) == GIF_ERROR && gifFilePtr->Error != D_GIF_ERR_WRONG_RECORD) {
 			break;
 		}
 		bool isInitialPass = !decode && !exitAfterFrame;
@@ -152,7 +152,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 			case TERMINATE_RECORD_TYPE:
 				break;
 
-			default: /* Should be trapped by DGifGetRecordType */
+			default:
 				break;
 		}
 	} while (RecordType != TERMINATE_RECORD_TYPE);
