@@ -4,7 +4,7 @@
 - Fix double free on 0-sized images - [#673](https://github.com/koral--/android-gif-drawable/pull/673)
 - Fix heap corruption caused by malformed images - [#678](https://github.com/koral--/android-gif-drawable/pull/678)
 - Do not give up when image contains unknown record type - [#667](https://github.com/koral--/android-gif-drawable/issues/667)
-- Gradle wrapper regenerated with 5.6.1
+- Gradle wrapper regenerated with 5.6.2
 - Android Gradle plugin updated to 3.5.0
 
 ### 1.2.17
