@@ -1,4 +1,4 @@
-### 1.2.18-SNAPSHOT
+### 1.2.18
 - Add AndroidX annotations warnings supperssion - [#671](https://github.com/koral--/android-gif-drawable/issue/671)
 - Use relocated ReLinker - [#665](https://github.com/koral--/android-gif-drawable/issues/665)
 - Fix double free on 0-sized images - [#673](https://github.com/koral--/android-gif-drawable/pull/673)
