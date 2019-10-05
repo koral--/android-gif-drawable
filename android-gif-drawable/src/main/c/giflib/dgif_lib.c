@@ -266,6 +266,12 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 		}
 	}
 
+	/* Reset decompress algorithm parameters. */
+	if (DGifSetupDecompress(GifFile) == GIF_ERROR) {
+		// skip frame
+		return GIF_ERROR;
+	}
+
 	if (changeImageCount) {
 		SavedImage *new_saved_images = (SavedImage *) reallocarray(GifFile->SavedImages, GifFile->ImageCount + 1, sizeof(SavedImage));
 		if (new_saved_images == NULL) {
@@ -292,8 +298,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 	}
 	Private->PixelCount = GifFile->Image.Width * GifFile->Image.Height;
 
-	/* Reset decompress algorithm parameters. */
-	return DGifSetupDecompress(GifFile);
+	return GIF_OK;
 }
 
 /******************************************************************************
