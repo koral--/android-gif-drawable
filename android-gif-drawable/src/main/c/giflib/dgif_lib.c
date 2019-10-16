@@ -235,6 +235,11 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 		GifFile->Image.ColorMap = NULL;
 		return GIF_ERROR;
 	}
+	// Error out if any part of the image is outside the logical screen
+	if (GifFile->Image.Left + GifFile->Image.Width > GifFile->SWidth ||
+		GifFile->Image.Top + GifFile->Image.Height > GifFile->SHeight) {
+		return GIF_ERROR;
+	}
 	uint_fast8_t BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
 	GifFile->Image.Interlace = (Buf[0] & 0x40) ? true : false;
 
