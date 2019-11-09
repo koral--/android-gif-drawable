@@ -30,11 +30,6 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 			case IMAGE_DESC_RECORD_TYPE:
 
 				if (DGifGetImageDesc(gifFilePtr, isInitialPass) == GIF_ERROR) {
-					if (info->rasterBits != NULL) {
-						free(info->rasterBits);
-						info->rasterBits = NULL;
-					}
-					info->rasterSize = 0;
 					break;
 				}
 

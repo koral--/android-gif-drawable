@@ -18,6 +18,9 @@ static inline void blitNormal(argb *bm, GifInfo *info, SavedImage *frame, ColorM
 	const int_fast16_t transpIndex = info->controlBlock[info->currentIndex].TransparentColor;
 	const GifWord frameWidth = frame->ImageDesc.Width;
 	const GifWord padding = info->stride - frameWidth;
+	if (info->rasterSize < frame->ImageDesc.Height * frame->ImageDesc.Width) {
+		return;
+	}
 	if (info->isOpaque) {
 		if (transpIndex == NO_TRANSPARENT_COLOR) {
 			for (; y > 0; y--) {
