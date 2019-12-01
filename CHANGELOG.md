@@ -1,3 +1,6 @@
+### 1.2.19
+- Fix out of bounds read/write in gif decoding - [#697](https://github.com/koral--/android-gif-drawable/issue/697)
+
 ### 1.2.18
 - Add AndroidX annotations warnings supperssion - [#671](https://github.com/koral--/android-gif-drawable/issue/671)
 - Use relocated ReLinker - [#665](https://github.com/koral--/android-gif-drawable/issues/665)

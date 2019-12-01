@@ -235,6 +235,11 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 		GifFile->Image.ColorMap = NULL;
 		return GIF_ERROR;
 	}
+	// Error out if any part of the image is outside the logical screen
+	if (GifFile->Image.Left + GifFile->Image.Width > GifFile->SWidth ||
+		GifFile->Image.Top + GifFile->Image.Height > GifFile->SHeight) {
+		return GIF_ERROR;
+	}
 	uint_fast8_t BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);
 	GifFile->Image.Interlace = (Buf[0] & 0x40) ? true : false;
 
@@ -266,6 +271,12 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 		}
 	}
 
+	/* Reset decompress algorithm parameters. */
+	if (DGifSetupDecompress(GifFile) == GIF_ERROR) {
+		// skip frame
+		return GIF_ERROR;
+	}
+
 	if (changeImageCount) {
 		SavedImage *new_saved_images = (SavedImage *) reallocarray(GifFile->SavedImages, GifFile->ImageCount + 1, sizeof(SavedImage));
 		if (new_saved_images == NULL) {
@@ -292,8 +303,7 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
 	}
 	Private->PixelCount = GifFile->Image.Width * GifFile->Image.Height;
 
-	/* Reset decompress algorithm parameters. */
-	return DGifSetupDecompress(GifFile);
+	return GIF_OK;
 }
 
 /******************************************************************************
