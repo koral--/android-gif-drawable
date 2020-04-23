@@ -29,7 +29,7 @@ public abstract class GifDrawableInit<T extends GifDrawableInit<T>> {
     private GifDrawable mOldDrawable;
     private ScheduledThreadPoolExecutor mExecutor;
     private boolean mIsRenderingTriggeredOnDraw = true;
-    private GifOptions mOptions = new GifOptions();
+    private final GifOptions mOptions = new GifOptions();
 
     /**
      * Used in accordance with `getThis()` pattern.

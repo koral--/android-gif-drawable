@@ -41,7 +41,7 @@
 #define OOME_MESSAGE "Failed to allocate native memory"
 #define DEFAULT_FRAME_DURATION_MS 100
 #define STREAM_BUFFER_SIZE  8192
-#define NULL_GIF_INFO (jlong) (intptr_t) NULL;
+#define NULL_GIF_INFO (jlong) (intptr_t) NULL
 
 /**
  * Some gif files are not strictly follow 89a.

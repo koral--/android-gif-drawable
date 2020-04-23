@@ -4,25 +4,24 @@ buildscript {
                 compileSdk         : 29,
                 targetSdk          : 29,
                 minSdk             : 17,
-                androidxAppcompat  : '1.0.2',
+                androidxAppcompat  : '1.1.0',
                 androidxAnnotations: '1.0.0',
                 androidxTest       : '1.2.0',
-                coroutines         : '1.3.1',
-                leakCanary         : '2.0-beta-2',
-                kotlin             : '1.3.50',
+                coroutines         : '1.3.5',
+                leakCanary         : '2.2',
+                kotlin             : '1.3.72',
                 intellijAnnotations: '13.0',
-                material           : '1.0.0',
-                androidXextJunit   : '1.1.0',
-                jacocoAndroid      : '0.1.4',
-                androidGradlePlugin: '3.5.0',
-                junit              : '4.12',
-                mockito            : '3.0.0',
-                robolectric        : '4.3',
+                material           : '1.1.0',
+                androidXextJunit   : '1.1.1',
+                androidGradlePlugin: '3.6.3',
+                junit              : '4.13',
+                mockito            : '3.3.3',
+                robolectric        : '4.3.1',
                 assertj3           : '3.13.2',
                 assertj1           : '1.7.1',
                 concurrentunit     : '0.4.4',
                 openglApi          : 'gl1.1-android-2.1_r1',
-                mockwebserver      : '4.1.1',
+                mockwebserver      : '4.5.0',
                 relinker           : '1.3.1'
         ]
     }
@@ -33,7 +32,6 @@ buildscript {
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$versions.androidGradlePlugin"
-        classpath "com.dicedmelon.gradle:jacoco-android:$versions.jacocoAndroid"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
     }
 }
