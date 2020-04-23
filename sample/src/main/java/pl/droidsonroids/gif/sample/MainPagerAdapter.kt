@@ -4,7 +4,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentStatePagerAdapter
 import pl.droidsonroids.gif.sample.sources.GifSourcesFragment
 
-internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStatePagerAdapter(activity.supportFragmentManager) {
+internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStatePagerAdapter(activity.supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
     private val pageTitles = activity.resources.getStringArray(R.array.pages)
 
     private val fragments = arrayOf(

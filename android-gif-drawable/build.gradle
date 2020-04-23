@@ -1,12 +1,11 @@
 apply plugin: 'com.android.library'
-apply plugin: 'jacoco-android'
 apply from: 'gradle-mvn-push.gradle'
 
 version = VERSION_NAME
 group = GROUP
 
 android {
-    ndkVersion '21.0.6113669'
+    ndkVersion '21.1.6352462'
     compileSdkVersion versions.compileSdk
 
     compileOptions {
@@ -56,10 +55,6 @@ android {
     }
     testOptions {
         unitTests.returnDefaultValues = true
-    }
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
     }
 }
 

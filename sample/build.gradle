@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    ndkVersion '21.1.6352462'
     compileSdkVersion versions.compileSdk
 
     defaultConfig {
