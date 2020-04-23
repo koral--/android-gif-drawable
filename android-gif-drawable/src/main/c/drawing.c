@@ -101,7 +101,6 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 		}
 	}
 
-	argb *backup = info->backupPtr;
 	if (nextTrans || !checkIfCover(next, cur)) {
 		if (curDisposal == DISPOSE_BACKGROUND || (info->currentIndex == 1 && curDisposal == DISPOSE_PREVIOUS)) {// restore to background (under this image) color
 			uint32_t *dst = (uint32_t *) GET_ADDR(bm, info->stride, cur->ImageDesc.Left, cur->ImageDesc.Top);
@@ -110,16 +109,14 @@ static inline void disposeFrameIfNeeded(argb *bm, GifInfo *info) {
 				MEMSET_ARGB(dst, 0, cur->ImageDesc.Width);
 				dst += info->stride;
 			}
-		} else if (curDisposal == DISPOSE_PREVIOUS && nextDisposal == DISPOSE_PREVIOUS) {// restore to previous
-			argb *tmp = bm;
-			bm = backup;
-			backup = tmp;
+		} else if (curDisposal == DISPOSE_PREVIOUS) {// restore to previous
+			memcpy(bm, info->backupPtr, info->stride * fGif->SHeight * sizeof(argb));
 		}
 	}
 
 	// Save current image if next frame's disposal method == DISPOSE_PREVIOUS
 	if (nextDisposal == DISPOSE_PREVIOUS) {
-		memcpy(backup, bm, info->stride * fGif->SHeight * sizeof(argb));
+		memcpy(info->backupPtr, bm, info->stride * fGif->SHeight * sizeof(argb));
 	}
 }
 
