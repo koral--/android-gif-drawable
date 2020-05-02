@@ -1,11 +1,13 @@
 apply plugin: 'com.android.library'
-apply from: 'gradle-mvn-push.gradle'
+apply plugin: 'org.shipkit.bintray'
+apply plugin: 'org.shipkit.android-publish'
 
-version = VERSION_NAME
-group = GROUP
+androidPublish.artifactId = 'android-gif-drawable'
+group = 'pl.droidsonroids.gif'
+description = 'Views and Drawable for displaying animated GIFs for Android'
 
 android {
-    ndkVersion '21.1.6352462'
+    ndkVersion versions.ndk
     compileSdkVersion versions.compileSdk
 
     compileOptions {
@@ -36,17 +38,8 @@ android {
         }
     }
     testBuildType 'release'
-    signingConfigs {
-        release {
-            storeFile new File("$System.env.HOME/.android/debug.keystore")
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-    }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
             if (isDebugBuild()) {
                 debuggable true
                 jniDebuggable true
@@ -78,13 +71,13 @@ dependencies {
 }
 
 def isDebugBuild() {
-    !gradle.startParameter.taskNames.contains("uploadArchives") && VERSION_NAME.contains("SNAPSHOT")
+    return project.findProperty('android.injected.invoked.from.ide') == 'true'
 }
 
 task archiveSymbols(type: Tar) {
     from new File(buildDir, 'intermediates/cmake/release/obj')
-    baseName = "$POM_ARTIFACT_ID-symbols"
-    destinationDir = new File(buildDir, 'libs')
-    extension = 'tar.gz'
+    archiveBaseName = "${project.archivesBaseName}-symbols"
+    destinationDirectory = new File(buildDir, 'libs')
+    archiveExtension = 'tar.gz'
     compression = Compression.GZIP
 }

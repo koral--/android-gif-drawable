@@ -1,0 +1,41 @@
+shipkit {
+    gitHub.repository = "koral--/android-gif-drawable"
+
+    gitHub.readOnlyAuthToken = System.getenv('GITHUB_READ_TOKEN') ?: ''
+    gitHub.writeAuthToken = System.getenv('GITHUB_WRITE_TOKEN')
+
+    git.releasableBranchRegex = 'develop|master|release/.+'
+    git.user = 'faultlessdroid'
+    git.email = '<opensource@droidsonroids.pl>'
+    releaseNotes.file = 'CHANGELOG.md'
+    team.developers = ['koral--:Karol Wrótniak']
+    team.ignoredContributors = ['shipkit-org']
+
+    ciManagement.system = 'Bitrise'
+    ciManagement.url = 'https://app.bitrise.io/' //TODO make Bitrise app public and add URL
+}
+
+allprojects {
+    plugins.withId('org.shipkit.bintray') {
+
+        bintray {
+            key = System.getenv('BINTRAY_API_KEY')
+
+            pkg {
+                repo = 'maven'
+                user = 'faultlessdroid'
+                userOrg = 'droidsonroids'
+                name = 'android-gif-drawable'
+                licenses = ['MIT']
+                labels = ['gif', 'drawable', 'android']
+
+                version {
+                    mavenCentralSync {
+                        user = System.getenv('NEXUS_TOKEN_USER')
+                        password = System.getenv('NEXUS_TOKEN_PASSWORD')
+                    }
+                }
+            }
+        }
+    }
+}

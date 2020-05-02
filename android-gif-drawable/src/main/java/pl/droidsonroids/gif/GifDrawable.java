@@ -315,6 +315,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @return either {@link PixelFormat#TRANSPARENT} or {@link PixelFormat#OPAQUE}
 	 * depending on current {@link Paint} and {@link GifOptions#setInIsOpaque(boolean)} used to construct this Drawable
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	public int getOpacity() {
 		if (!mNativeInfoHandle.isOpaque() || mPaint.getAlpha() < 255) {
@@ -821,6 +822,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 		invalidateSelf();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void setDither(boolean dither) {
 		mPaint.setDither(dither);
