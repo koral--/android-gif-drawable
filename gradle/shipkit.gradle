@@ -4,7 +4,7 @@ shipkit {
     gitHub.readOnlyAuthToken = System.getenv('GITHUB_READ_TOKEN') ?: ''
     gitHub.writeAuthToken = System.getenv('GITHUB_WRITE_TOKEN')
 
-    git.releasableBranchRegex = 'develop|master|release/.+'
+    git.releasableBranchRegex = 'dev|develop|master|release/.+'
     git.user = 'faultlessdroid'
     git.email = '<opensource@droidsonroids.pl>'
     releaseNotes.file = 'CHANGELOG.md'
