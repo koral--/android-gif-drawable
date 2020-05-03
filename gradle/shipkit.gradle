@@ -23,9 +23,8 @@ allprojects {
 
             pkg {
                 repo = 'maven'
-                user = 'faultlessdroid'
-                userOrg = 'droidsonroids'
-                name = 'android-gif-drawable'
+                user = 'koral'
+                name = 'pl.droidsonroids.gif:android-gif-drawable'
                 licenses = ['MIT']
                 labels = ['gif', 'drawable', 'android']
 
