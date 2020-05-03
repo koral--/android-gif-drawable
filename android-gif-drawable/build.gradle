@@ -24,7 +24,7 @@ android {
             cmake {
                 arguments "-DANDROID_PLATFORM=android-$versions.minSdk", "-DANDROID_STL=none"
                 cFlags '-std=c11', '-Weverything', '-Wall'
-                if (isDebugBuild()) {
+                if (isDevelopmentBuild()) {
                     cFlags '-DDEBUG', '-g'
                 } else {
                     cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
@@ -61,7 +61,7 @@ dependencies {
     androidTestCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
 }
 
-def isDebugBuild() {
+def isDevelopmentBuild() {
     return project.findProperty('android.injected.invoked.from.ide') == 'true'
 }
 
