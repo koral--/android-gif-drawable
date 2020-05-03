@@ -37,15 +37,6 @@ android {
             path 'src/main/c/CMakeLists.txt'
         }
     }
-    testBuildType 'release'
-    buildTypes {
-        release {
-            if (isDebugBuild()) {
-                debuggable true
-                jniDebuggable true
-            }
-        }
-    }
     testOptions {
         unitTests.returnDefaultValues = true
     }
