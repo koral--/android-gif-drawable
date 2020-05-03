@@ -12,7 +12,7 @@ shipkit {
     team.ignoredContributors = ['shipkit-org']
 
     ciManagement.system = 'Bitrise'
-    ciManagement.url = 'https://app.bitrise.io/' //TODO make Bitrise app public and add URL
+    ciManagement.url = 'https://app.bitrise.io/app/f12c77eeaf952ab0#/builds'
 }
 
 allprojects {
