@@ -72,3 +72,7 @@ task archiveSymbols(type: Tar) {
     archiveExtension = 'tar.gz'
     compression = Compression.GZIP
 }
+
+configurations.all {
+    resolutionStrategy.force "androidx.annotation:annotation:$versions.androidxAnnotations"
+}
