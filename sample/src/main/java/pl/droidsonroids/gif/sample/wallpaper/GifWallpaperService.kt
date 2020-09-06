@@ -19,7 +19,7 @@ class GifWallpaperService : WallpaperService() {
         return GifWallpaperEngine(gifTexImage2D)
     }
 
-    inner class GifWallpaperEngine(private val gifTexImage2D: GifTexImage2D) : Engine(),
+    class GifWallpaperEngine(private val gifTexImage2D: GifTexImage2D) : Engine(),
         CoroutineScope {
         override val coroutineContext: CoroutineContext
             get() = renderContext + mainJob

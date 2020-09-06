@@ -25,7 +25,7 @@ class GifSurfaceTextureDrawer(private val source: InputSource) : CoroutineScope 
     }
 
     fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        launch {
+        launch(Dispatchers.IO) {
             val gifTexImage2D = GifTexImage2D(source, null)
             gifTexImage2D.startDecoderThread()
 
