@@ -17,7 +17,7 @@ buildscript {
                 androidGradlePlugin: '4.0.1',
                 junit              : '4.13',
                 mockito            : '3.3.3',
-                robolectric        : '4.3.1',
+                robolectric        : '4.4',
                 assertj3           : '3.14.0',
                 assertj1           : '1.7.1',
                 concurrentunit     : '0.4.4',
