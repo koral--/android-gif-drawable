@@ -663,17 +663,17 @@ DGifDecompressLine(GifFileType *GifFile, GifPixelType *Line, uint_fast32_t LineL
 				while (StackPtr != 0 && i < LineLen)
 					Line[i++] = Stack[--StackPtr];
 			}
-			if (LastCode != NO_SUCH_CODE && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE) {
+			if (LastCode != NO_SUCH_CODE && Private->RunningCode - 2 < (LZ_MAX_CODE + 1) && Prefix[Private->RunningCode - 2] == NO_SUCH_CODE)
 				Prefix[Private->RunningCode - 2] = LastCode;
 
-				if (CrntCode == Private->RunningCode - 2) {
-					/* Only allowed if CrntCode is exactly the running code:
-					 * In that case CrntCode = XXXCode, CrntCode or the
-					 * prefix code is last code and the suffix char is
-					 * exactly the prefix of last code! */
-					Suffix[Private->RunningCode - 2] =
-							DGifGetPrefixChar(Prefix, LastCode, ClearCode);
-				} else {
+			if (CrntCode == Private->RunningCode - 2) {
+				/* Only allowed if CrntCode is exactly the running code:
+                 * In that case CrntCode = XXXCode, CrntCode or the
+                 * prefix code is last code and the suffix char is
+                 * exactly the prefix of last code! */
+				Suffix[Private->RunningCode - 2] =
+						DGifGetPrefixChar(Prefix, LastCode, ClearCode);
+			} else {
 					Suffix[Private->RunningCode - 2] =
 							DGifGetPrefixChar(Prefix, CrntCode, ClearCode);
 				}
