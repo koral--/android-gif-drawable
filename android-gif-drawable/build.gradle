@@ -43,7 +43,7 @@ android {
 }
 
 dependencies {
-    implementation "pl.droidsonroids:relinker:$versions.relinker"
+    implementation "pl.droidsonroids.relinker:relinker:$versions.relinker"
     compileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
     testCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
     testImplementation "junit:junit:$versions.junit"
@@ -71,4 +71,8 @@ task archiveSymbols(type: Tar) {
     destinationDirectory = new File(buildDir, 'libs')
     archiveExtension = 'tar.gz'
     compression = Compression.GZIP
+}
+
+configurations.all {
+    resolutionStrategy.force "androidx.annotation:annotation:$versions.androidxAnnotations"
 }

@@ -29,7 +29,7 @@ class TexturePlaceholderFragment : Fragment(), GifTextureView.PlaceholderDrawLis
 	}
 
 	private class SlowLoadingInputStream
-	internal constructor(private val mAssetFileDescriptor: AssetFileDescriptor) : BufferedInputStream(mAssetFileDescriptor.createInputStream(), mAssetFileDescriptor.length.toInt()) {
+	constructor(private val mAssetFileDescriptor: AssetFileDescriptor) : BufferedInputStream(mAssetFileDescriptor.createInputStream(), mAssetFileDescriptor.length.toInt()) {
 		private var mSleepTimeMillis = 5
 
 		override fun read(buffer: ByteArray): Int {
