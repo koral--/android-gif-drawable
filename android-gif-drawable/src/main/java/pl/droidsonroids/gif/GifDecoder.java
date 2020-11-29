@@ -151,6 +151,13 @@ public class GifDecoder {
 	}
 
 	/**
+	 * @return true if GIF is opaque, false otherwise
+	 */
+	public boolean isOpaque() {
+		return mGifInfoHandle.isOpaque();
+	}
+
+	/**
 	 * See {@link GifDrawable#recycle()}
 	 */
 	public void recycle() {
