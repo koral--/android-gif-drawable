@@ -63,7 +63,7 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 
 #### Download
 
-**[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
+**[Latest release downloads](https://github.com/iamking908--/android-gif-drawable/releases/latest)**
 
 ### Requirements
 + Android 4.2+ (API level 17+)
@@ -218,7 +218,7 @@ gifDrawable.setCallback(multiCallback);
 
 Note that if you change a drawable of e.g. `ImageView`, the callback will be removed from the previous
 drawable. Thereafter, you have to reassign callback or the same `GifDrawable` instance will stop animating. 
-See [#480](https://github.com/koral--/android-gif-drawable/issues/480) for more information.
+See [#480](https://github.com/iamking908--/android-gif-drawable/issues/480) for more information.
 
 #### Advanced
  
