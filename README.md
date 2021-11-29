@@ -73,6 +73,31 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 #### Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
 
+## Build
+
+If your Android Studio is a relatively new version, then you may need to make appropriate changes to the gradle and kotlin versions when you want to build this code repository. Otherwise, some compilation errors may occur.
+E.g ：
+```diff
+diff --git a/build.gradle b/build.gradle
+index e468c21..9b77526 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -10,11 +10,11 @@ buildscript {
+                 androidxTest       : '1.3.0',
+                 coroutines         : '1.3.9',
+                 leakCanary         : '2.5',
+-                kotlin             : '1.4.10',
++                kotlin             : '1.5.20',
+                 intellijAnnotations: '13.0',
+                 material           : '1.2.1',
+                 androidXextJunit   : '1.1.2',
+-                androidGradlePlugin: '4.0.1',
++                androidGradlePlugin: '7.0.3',
+                 junit              : '4.13',
+                 mockito            : '3.5.13',
+                 robolectric        : '4.4',
+```
+
 ## Usage
 
 ### Sample project
