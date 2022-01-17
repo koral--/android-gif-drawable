@@ -1,21 +1,21 @@
 buildscript {
     ext {
         versions = [
-                compileSdk         : 30,
-                targetSdk          : 30,
+                compileSdk         : 31,
+                targetSdk          : 31,
                 minSdk             : 17,
-                ndk                : '21.3.6528147',
+                ndk                : '23.1.7779620',
                 androidxAppcompat  : '1.2.0',
-                androidxAnnotations: '1.1.0',
-                androidxTest       : '1.3.0',
+                androidxAnnotations: '1.3.0',
+                androidxTest       : '1.4.0',
                 coroutines         : '1.3.9',
-                leakCanary         : '2.5',
-                kotlin             : '1.5.20',
+                leakCanary         : '2.7',
+                kotlin             : '1.6.10',
                 intellijAnnotations: '13.0',
-                material           : '1.2.1',
-                androidXextJunit   : '1.1.2',
+                material           : '1.5.0',
+                androidXextJunit   : '1.1.3',
                 androidGradlePlugin: '7.0.3',
-                junit              : '4.13',
+                junit              : '4.13.2',
                 mockito            : '3.5.13',
                 robolectric        : '4.4',
                 assertj3           : '3.14.0',
@@ -24,23 +24,21 @@ buildscript {
                 openglApi          : 'gl1.1-android-2.1_r1',
                 mockwebserver      : '4.9.0',
                 relinker           : '1.4.1',
-                shipkit            : '2.3.5',
+                mavenPublishPlugin : '0.18.0',
         ]
     }
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
-        jcenter()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$versions.androidGradlePlugin"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath "org.shipkit:shipkit:$versions.shipkit"
+        classpath "com.vanniktech:gradle-maven-publish-plugin:$versions.mavenPublishPlugin"
     }
 }
 
-apply plugin: 'org.shipkit.java'
 
 subprojects {
     tasks.withType(JavaCompile) {
@@ -49,6 +47,5 @@ subprojects {
     repositories {
         google()
         mavenCentral()
-        jcenter()
     }
 }

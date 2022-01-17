@@ -1,4 +1,5 @@
 #include "gif.h"
+#define COMMENT_LENGTH_MAX 2048
 
 static bool updateGCB(GifInfo *info, uint_fast32_t *lastAllocatedGCBIndex) {
 	if (*lastAllocatedGCBIndex < info->gifFilePtr->ImageCount) {
@@ -177,12 +178,16 @@ static int readExtensions(int ExtFunction, GifByteType *ExtData, GifInfo *info) 
 }
 
 static int getComment(GifByteType *Bytes, GifInfo *info) {
-	unsigned int len = (unsigned int) Bytes[0];
+	unsigned int length = (unsigned int) Bytes[0];
 	size_t offset = info->comment != NULL ? strlen(info->comment) : 0;
-	char *ret = reallocarray(info->comment, len + offset + 1, sizeof(char));
+    unsigned int newLength = length + offset + 1;
+    if (newLength > COMMENT_LENGTH_MAX) {
+		return GIF_OK;
+	}
+    char *ret = reallocarray(info->comment, newLength, sizeof(char));
 	if (ret != NULL) {
-		memcpy(ret + offset, &Bytes[1], len);
-		ret[len + offset] = 0;
+		memcpy(ret + offset, &Bytes[1], length);
+		ret[length + offset] = 0;
 		info->comment = ret;
 		return GIF_OK;
 	}
