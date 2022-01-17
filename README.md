@@ -7,6 +7,7 @@
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
 [![API](https://img.shields.io/badge/API-17%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=17)
 [![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
+[![Maintainability](https://cloud.quality-gate.com/dashboard/api/badge?projectName=koral--_android-gif-drawable&branchName=dev)](https://cloud.quality-gate.com/dashboard/branches/68377#overview)
 
 `View`s and `Drawable` for animated GIFs in Android.
 
