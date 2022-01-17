@@ -24,6 +24,7 @@ buildscript {
                 openglApi          : 'gl1.1-android-2.1_r1',
                 mockwebserver      : '4.9.0',
                 relinker           : '1.4.1',
+                mavenPublishPlugin : '0.18.0',
         ]
     }
     repositories {
@@ -34,6 +35,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:$versions.androidGradlePlugin"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+        classpath "com.vanniktech:gradle-maven-publish-plugin:$versions.mavenPublishPlugin"
     }
 }
 

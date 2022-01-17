@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.vanniktech.maven.publish'
 
 group = 'pl.droidsonroids.gif'
 description = 'Views and Drawable for displaying animated GIFs for Android'
