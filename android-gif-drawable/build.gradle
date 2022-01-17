@@ -1,8 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'org.shipkit.bintray'
-apply plugin: 'org.shipkit.android-publish'
 
-androidPublish.artifactId = 'android-gif-drawable'
 group = 'pl.droidsonroids.gif'
 description = 'Views and Drawable for displaying animated GIFs for Android'
 
