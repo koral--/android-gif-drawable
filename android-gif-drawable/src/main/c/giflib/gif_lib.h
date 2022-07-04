@@ -138,7 +138,8 @@ int DGifGetScreenDesc(GifFileType *GifFile);
 
 int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
 
-int DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount);
+int DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount,
+					 GifWord originalWidth, GifWord originalHeight);
 
 int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, uint_fast32_t GifLineLen);
 

@@ -45,11 +45,11 @@ GifInfo *createGifInfo(GifSourceDescriptor *descriptor, JNIEnv *env) {
 
 	info->rasterBits = NULL;
 	info->rasterSize = 0;
+	info->originalHeight = info->gifFilePtr->SHeight;
+	info->originalWidth = info->gifFilePtr->SWidth;
 	DDGifSlurp(info, false, false);
 	info->rasterBits = NULL;
 	info->rasterSize = 0;
-	info->originalHeight = info->gifFilePtr->SHeight;
-	info->originalWidth = info->gifFilePtr->SWidth;
 
 	if (descriptor->GifFileIn->SWidth < 1 || descriptor->GifFileIn->SHeight < 1) {
 		cleanUp(info);
