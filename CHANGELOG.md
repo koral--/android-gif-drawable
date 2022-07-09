@@ -1,3 +1,7 @@
+#### 1.2.25-SNAPSHOT
+- TBD - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.24...v1.2.25)
+- Fix sample size not taken into account [(#797)](https://github.com/koral--/android-gif-drawable/pull/797) [(#798)](https://github.com/koral--/android-gif-drawable/pull/798)
+
 #### 1.2.24
 - 2022-01-17 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.23...v1.2.24)
 - Limit comment maximum length [(#766)](https://github.com/koral--/android-gif-drawable/pull/766)
