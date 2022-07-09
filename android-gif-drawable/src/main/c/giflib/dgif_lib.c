@@ -18,6 +18,7 @@ two modules will be linked.  Preserve this property!
 
 #include "gif_lib.h"
 #include "gif_lib_private.h"
+#include "../gif.h"
 
 /* compose unsigned little endian value */
 #define UNSIGNED_LITTLE_ENDIAN(lo, hi)    ((lo) | ((hi) << 8))
@@ -214,7 +215,8 @@ This routine should be called before any attempt to read an image.
 Note it is assumed the Image desc. header has been read.
 ******************************************************************************/
 int
-DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
+DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount,
+                 GifWord originalWidth, GifWord originalHeight) {
     GifByteType Buf[3];
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
@@ -236,8 +238,9 @@ DGifGetImageDesc(GifFileType *GifFile, bool changeImageCount) {
         return GIF_ERROR;
     }
     // Error out if any part of the image is outside the logical screen
-    if (GifFile->Image.Left + GifFile->Image.Width > GifFile->SWidth ||
-        GifFile->Image.Top + GifFile->Image.Height > GifFile->SHeight) {
+    if (GifFile->Image.Left + GifFile->Image.Width > originalWidth ||
+        GifFile->Image.Top + GifFile->Image.Height > originalHeight) {
+        GifFile->Error = D_GIF_ERR_IMG_NOT_CONFINED;
         return GIF_ERROR;
     }
     uint_fast8_t BitsPerPixel = (uint_fast8_t) ((Buf[0] & 0x07) + 1);

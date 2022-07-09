@@ -30,7 +30,7 @@ void DDGifSlurp(GifInfo *info, bool decode, bool exitAfterFrame) {
 		switch (RecordType) {
 			case IMAGE_DESC_RECORD_TYPE:
 
-				if (DGifGetImageDesc(gifFilePtr, isInitialPass) == GIF_ERROR) {
+				if (DGifGetImageDesc(gifFilePtr, isInitialPass, info->originalWidth, info->originalHeight) == GIF_ERROR) {
 					break;
 				}
 
