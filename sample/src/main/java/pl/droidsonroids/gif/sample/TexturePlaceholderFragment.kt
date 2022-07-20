@@ -27,35 +27,35 @@ class TexturePlaceholderFragment : Fragment(), GifTextureView.PlaceholderDrawLis
 		canvas.drawBitmap(bitmap, 0f, 0f, null)
 		bitmap.recycle()
 	}
+}
 
-	private class SlowLoadingInputStream
-	constructor(private val mAssetFileDescriptor: AssetFileDescriptor) : BufferedInputStream(mAssetFileDescriptor.createInputStream(), mAssetFileDescriptor.length.toInt()) {
-		private var mSleepTimeMillis = 5
+private class SlowLoadingInputStream
+constructor(private val assetFileDescriptor: AssetFileDescriptor) : BufferedInputStream(assetFileDescriptor.createInputStream(), assetFileDescriptor.length.toInt()) {
+	private var mSleepTimeMillis = 5
 
-		override fun read(buffer: ByteArray): Int {
-			SystemClock.sleep(mSleepTimeMillis.toLong())
-			return super.read(buffer)
-		}
+	override fun read(buffer: ByteArray): Int {
+		SystemClock.sleep(mSleepTimeMillis.toLong())
+		return super.read(buffer)
+	}
 
-		override fun read(buffer: ByteArray, off: Int, len: Int): Int {
-			SystemClock.sleep(mSleepTimeMillis.toLong())
-			return super.read(buffer, off, len)
-		}
+	override fun read(buffer: ByteArray, off: Int, len: Int): Int {
+		SystemClock.sleep(mSleepTimeMillis.toLong())
+		return super.read(buffer, off, len)
+	}
 
-		override fun read(): Int {
-			SystemClock.sleep(mSleepTimeMillis.toLong())
-			return super.read()
-		}
+	override fun read(): Int {
+		SystemClock.sleep(mSleepTimeMillis.toLong())
+		return super.read()
+	}
 
-		@Synchronized
-		override fun reset() {
-			super.reset()
-			mSleepTimeMillis = 0
-		}
+	@Synchronized
+	override fun reset() {
+		super.reset()
+		mSleepTimeMillis = 0
+	}
 
-		override fun close() {
-			super.close()
-			mAssetFileDescriptor.close()
-		}
+	override fun close() {
+		super.close()
+		assetFileDescriptor.close()
 	}
 }
