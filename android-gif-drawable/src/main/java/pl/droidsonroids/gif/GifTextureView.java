@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.opengl.EGL14;
+import android.opengl.GLES20;
 import android.os.Build;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -21,6 +23,12 @@ import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * <p>{@link TextureView} which can display animated GIFs. GifTextureView can only be used in a
@@ -329,6 +337,20 @@ public class GifTextureView extends TextureView {
 		mRenderThread = new RenderThread(this);
 		if (inputSource != null) {
 			mRenderThread.start();
+		} else {
+			clearSurface();
+		}
+	}
+
+	private void clearSurface() {
+		final SurfaceTexture surfaceTexture = getSurfaceTexture();
+		if (surfaceTexture != null) {
+			final Surface surface = new Surface(surfaceTexture);
+			try {
+				surface.unlockCanvasAndPost(surface.lockCanvas(null));
+			} finally {
+				surface.release();
+			}
 		}
 	}
 
