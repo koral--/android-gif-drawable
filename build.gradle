@@ -4,7 +4,7 @@ buildscript {
                 compileSdk         : 32,
                 targetSdk          : 32,
                 minSdk             : 17,
-                ndk                : '24.0.8215888',
+                ndk                : '25.0.8775105',
                 androidxAppcompat  : '1.4.2',
                 androidxAnnotations: '1.4.0',
                 androidxTest       : '1.4.0',
