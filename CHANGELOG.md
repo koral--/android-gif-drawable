@@ -1,3 +1,10 @@
+#### 1.2.25
+- 2022-08-18 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.24...v1.2.25)
+- Fix sample size not taken into account [(#797)](https://github.com/koral--/android-gif-drawable/pull/797) [(#798)](https://github.com/koral--/android-gif-drawable/pull/798)
+- Stop further decoding on error [(#801)](https://github.com/koral--/android-gif-drawable/pull/801)
+- Clear GifTextureView when removing source [(#745)](https://github.com/koral--/android-gif-drawable/pull/745)
+- Fix negative current position [(#657)](https://github.com/koral--/android-gif-drawable/pull/657)
+
 #### 1.2.24
 - 2022-01-17 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.23...v1.2.24)
 - Limit comment maximum length [(#766)](https://github.com/koral--/android-gif-drawable/pull/766)

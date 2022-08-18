@@ -36,6 +36,7 @@ public class LibraryLoader {
 			try {
 				@SuppressLint("PrivateApi")
 				final Class<?> activityThread = Class.forName("android.app.ActivityThread");
+				@SuppressLint("DiscouragedPrivateApi")
 				final Method currentApplicationMethod = activityThread.getDeclaredMethod("currentApplication");
 				sAppContext = (Context) currentApplicationMethod.invoke(null);
 			} catch (Exception e) {
