@@ -5,7 +5,7 @@ buildscript {
                 targetSdk          : 32,
                 minSdk             : 17,
                 ndk                : '25.0.8775105',
-                androidxAppcompat  : '1.4.2',
+                androidxAppcompat  : '1.5.0',
                 androidxAnnotations: '1.4.0',
                 androidxTest       : '1.4.0',
                 coroutines         : '1.6.4',
@@ -24,7 +24,7 @@ buildscript {
                 openglApi          : 'gl1.1-android-2.1_r1',
                 mockwebserver      : '4.9.0',
                 relinker           : '1.4.1',
-                mavenPublishPlugin : '0.18.0',
+                mavenPublishPlugin : '0.21.0',
         ]
     }
     repositories {
