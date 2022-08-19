@@ -299,3 +299,7 @@ Want to include your project here? [Fill an issue](https://github.com/koral--/an
 
 MIT License<br>
 See [LICENSE](LICENSE) file.
+
+## Privacy Policy
+
+See [privacy_policy](privacy_policy).
