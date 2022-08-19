@@ -302,4 +302,4 @@ See [LICENSE](LICENSE) file.
 
 ## Privacy Policy
 
-See [privacy_policy](privacy_policy.md).
+See [Privacy Policy](privacy_policy.md).
