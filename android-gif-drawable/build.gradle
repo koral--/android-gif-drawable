@@ -38,6 +38,7 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+    namespace 'pl.droidsonroids.gif'
 }
 
 dependencies {

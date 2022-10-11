@@ -27,7 +27,7 @@ class LiveWallpaperFragment : Fragment() {
             if (view.context.isLiveWallpaperSupported) {
                 showWallpaperChooser()
             } else {
-                Snackbar.make(view, R.string.live_wallpaper_not_supported, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(view, R.string.live_wallpaper_not_supported, Snackbar.LENGTH_SHORT).show()
             }
         }
     }

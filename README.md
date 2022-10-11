@@ -1,4 +1,4 @@
-![horizontal.png](https://cdn.steemitimages.com/DQmacEdVnEf1f2GDZ4uga1evN3FzujdR4zbkqmiV7NscPBs/horizontal.png)
+  ![horizontal.png](https://cdn.steemitimages.com/DQmacEdVnEf1f2GDZ4uga1evN3FzujdR4zbkqmiV7NscPBs/horizontal.png)
 ====================
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable/badge.svg)](https://maven-badges.herokuapp.com/maven-central/pl.droidsonroids.gif/android-gif-drawable)
 [![Build Status](https://app.bitrise.io/app/78fd40a5596e97e7/status.svg?token=SMUtlPklcIRBODd513ZdiQ)](https://app.bitrise.io/app/78fd40a5596e97e7)
@@ -38,6 +38,9 @@ allprojects {
     }
 }
 ```
+### Upgrade Gradle Plugin
+Gradel Plugin has upgraded from 7.2.0 to 7.3.0
+
 #### Gradle, snapshot repository
 Current development builds (build from `dev` branch) are published to OSS snapshot repository. To use them, specify repository URL in `repositories` block:
 ```groovy
@@ -155,6 +158,18 @@ underlying input source.
 
 Note that all input sources need to have ability to rewind to the beginning. It is required to correctly play animated GIFs 
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
+
+### Toast LENGTH SHORT
+AT AnimationControlFragment  in the onAnimationCompleted function
+Snackbar.make(view, getString(R.string.animation_completed, loopNumber), Snackbar.LENGTH_SHORT).show()
+Message length get short
+
+### ADD INDIAN FLAG 
+Added the Indian flag into the sample (Drawable folder).
+
+### List all the remaining country flag in the AnimatedSelectedFragment
+list all the remaining flag and the Indian flag in the kotlinAnimatedBackground function in the respective fragment
+
 
 #### Animation control
 `GifDrawable` implements an `Animatable` and `MediaPlayerControl` so you can use its methods and more:

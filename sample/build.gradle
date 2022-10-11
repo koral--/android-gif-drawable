@@ -33,9 +33,10 @@ android {
             jniDebuggable true
         }
     }
-    lintOptions {
+    lint {
         disable 'AppCompatCustomView'
     }
+    namespace 'pl.droidsonroids.gif.sample'
 }
 
 dependencies {

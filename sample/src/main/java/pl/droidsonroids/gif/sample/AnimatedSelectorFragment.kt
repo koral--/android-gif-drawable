@@ -38,6 +38,9 @@ class AnimatedSelectorFragment : Fragment() {
 			val stateListDrawable = StateListDrawable()
 			stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), GifDrawable.createFromResource(resources, R.drawable.anim_flag_chile))
 			stateListDrawable.addState(IntArray(0), GifDrawable.createFromResource(resources, R.drawable.anim_flag_england))
+			stateListDrawable.addState(IntArray(1),GifDrawable.createFromResource(resources,R.drawable.anim_flag_india))
+			stateListDrawable.addState(IntArray(2),GifDrawable.createFromResource(resources,R.drawable.anim_flag_greenland))
+			stateListDrawable.addState(IntArray(3),GifDrawable.createFromResource(resources,R.drawable.anim_flag_iceland))
 			return stateListDrawable
 		}
 

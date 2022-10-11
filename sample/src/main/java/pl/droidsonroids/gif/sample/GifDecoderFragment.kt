@@ -68,11 +68,17 @@ class GifDecoderFragment : Fragment(), CoroutineScope {
         job.cancelChildren()
         super.onPause()
     }
+    override fun onStop() {
+
+        super.onStop()
+    }
 
     override fun onDestroy() {
         job.cancel()
         super.onDestroy()
     }
+
+
 
     private fun advanceAnimation() {
         currentFrameIndex++

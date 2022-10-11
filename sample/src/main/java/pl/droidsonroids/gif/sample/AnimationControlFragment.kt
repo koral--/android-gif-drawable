@@ -48,7 +48,7 @@ class AnimationControlFragment : Fragment(), AnimationListener {
 	override fun onAnimationCompleted(loopNumber: Int) {
 		val view = view
 		if (view != null) {
-			Snackbar.make(view, getString(R.string.animation_loop_completed, loopNumber), Snackbar.LENGTH_SHORT).show()
+			Snackbar.make(view, getString(R.string.animation_completed, loopNumber), Snackbar.LENGTH_SHORT).show()
 		}
 	}
 }

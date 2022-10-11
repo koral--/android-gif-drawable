@@ -10,7 +10,7 @@
     <string name="animation_running">Animation running</string>
     <string name="animation_stopped">Animation stopped</string>
     <string name="toggle_label">Click button below to toggle animation</string>
-    <string name="animation_loop_completed" tools:ignore="PluralsCandidate">Animation loop #%1$d completed</string>
+    <string name="animation_completed" tools:ignore="PluralsCandidate">Animation loop #%1$d completed</string>
     <string name="gles2_not_supported">GifTexImage2D requires OpenGL ES 2 or newer</string>
     <string name="live_wallpaper_not_supported">Live Wallpapers are not supported on this system</string>
     <string name="animated_selector_description">Press button to change drawable state</string>

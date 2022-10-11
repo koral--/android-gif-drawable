@@ -21,7 +21,7 @@ class TextureViewFragment : Fragment() {
         textureView.surfaceTextureListener = GifSurfaceTextureListener(gifSurfaceTextureDrawer)
 
         val animation = ScaleAnimation(1f, 0.5f, 1f, 0.5f)
-        animation.duration = 1000
+        animation.duration = 1500
         animation.repeatMode = Animation.REVERSE
         animation.repeatCount = Animation.INFINITE
         animation.interpolator = BounceInterpolator()
