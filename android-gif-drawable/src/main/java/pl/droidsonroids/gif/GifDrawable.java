@@ -396,7 +396,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
     @Override
     public boolean isRunning() {
-        return mIsRunning;
+        return getIsRunning();
     }
 
     /**
@@ -627,7 +627,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public boolean isPlaying() {
-        return mIsRunning;
+        return getIsRunning();
     }
 
     /**
@@ -658,7 +658,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public boolean canSeekBackward() {
-        return getNumberOfFrames() > 1;
+        return checkMultipleFrames();
     }
 
     /**
@@ -668,7 +668,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
      */
     @Override
     public boolean canSeekForward() {
-        return getNumberOfFrames() > 1;
+        return checkMultipleFrames();
     }
 
     /**
@@ -1024,5 +1024,13 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
     @Nullable
     public Transform getTransform() {
         return mTransform;
+    }
+
+    private boolean checkMultipleFrames() {
+        return getNumberOfFrames() > 1;
+    }
+
+    private boolean getIsRunning() {
+        return mIsRunning;
     }
 }
