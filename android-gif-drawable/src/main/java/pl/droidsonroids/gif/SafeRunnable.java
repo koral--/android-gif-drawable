@@ -5,26 +5,27 @@ package pl.droidsonroids.gif;
  * exception handler.
  */
 abstract class SafeRunnable implements Runnable {
-	final GifDrawable mGifDrawable;
 
-	SafeRunnable(GifDrawable gifDrawable) {
-		mGifDrawable = gifDrawable;
-	}
+    final GifDrawable mGifDrawable;
 
-	@Override
-	public final void run() {
-		try {
-			if (!mGifDrawable.isRecycled()) {
-				doWork();
-			}
-		} catch (Throwable throwable) {
-			final Thread.UncaughtExceptionHandler uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-			if (uncaughtExceptionHandler != null) {
-				uncaughtExceptionHandler.uncaughtException(Thread.currentThread(), throwable);
-			}
-			throw throwable;
-		}
-	}
+    SafeRunnable(GifDrawable gifDrawable) {
+        mGifDrawable = gifDrawable;
+    }
 
-	abstract void doWork();
+    @Override
+    public final void run() {
+        try {
+            if (!mGifDrawable.isRecycled()) {
+                doWork();
+            }
+        } catch (Throwable throwable) {
+            final Thread.UncaughtExceptionHandler uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+            if (uncaughtExceptionHandler != null) {
+                uncaughtExceptionHandler.uncaughtException(Thread.currentThread(), throwable);
+            }
+            throw throwable;
+        }
+    }
+
+    abstract void doWork();
 }

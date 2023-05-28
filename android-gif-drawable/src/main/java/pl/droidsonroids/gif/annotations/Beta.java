@@ -35,15 +35,9 @@ import java.lang.annotation.Target;
  * the cost of some extra work during upgrades. However it is generally
  * inadvisable for <i>libraries</i> (which get included on users' CLASSPATHs,
  * outside the library developers' control) to do so.
- *
- **/
+ */
 @Retention(RetentionPolicy.CLASS)
-@Target({
-        ElementType.ANNOTATION_TYPE,
-        ElementType.CONSTRUCTOR,
-        ElementType.FIELD,
-        ElementType.METHOD,
-        ElementType.TYPE })
+@Target({ ElementType.ANNOTATION_TYPE, ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.METHOD, ElementType.TYPE })
 @Documented
 @Beta
 public @interface Beta {

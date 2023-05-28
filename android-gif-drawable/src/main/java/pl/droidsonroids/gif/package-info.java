@@ -3,3 +3,4 @@
  * and {@link pl.droidsonroids.gif.GifTexImage2D} classes for more details.
  */
 package pl.droidsonroids.gif;
+
