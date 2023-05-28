@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package pl.droidsonroids.gif;
 
 class ConditionVariable {
-	private volatile boolean mCondition;
 
-	synchronized void set(boolean state) {
-		if (state) {
-			open();
-		} else {
-			close();
-		}
-	}
+    private volatile boolean mCondition;
 
-	synchronized void open() {
-		boolean old = mCondition;
-		mCondition = true;
-		if (!old) {
-			this.notify();
-		}
-	}
+    synchronized void set(boolean state) {
+        if (state) {
+            open();
+        } else {
+            close();
+        }
+    }
 
-	synchronized void close() {
-		mCondition = false;
-	}
+    synchronized void open() {
+        boolean old = mCondition;
+        mCondition = true;
+        if (!old) {
+            this.notify();
+        }
+    }
 
-	synchronized void block() throws InterruptedException {
-		while (!mCondition) {
-			this.wait();
-		}
-	}
+    synchronized void close() {
+        mCondition = false;
+    }
+
+    synchronized void block() throws InterruptedException {
+        while (!mCondition) {
+            this.wait();
+        }
+    }
 }

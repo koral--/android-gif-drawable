@@ -7,14 +7,12 @@ import android.content.res.Resources;
 import android.net.Uri;
 import androidx.annotation.IntRange;
 import androidx.annotation.Nullable;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 import pl.droidsonroids.gif.annotations.Beta;
 
 /**
@@ -26,9 +24,13 @@ import pl.droidsonroids.gif.annotations.Beta;
 public abstract class GifDrawableInit<T extends GifDrawableInit<T>> {
 
     private InputSource mInputSource;
+
     private GifDrawable mOldDrawable;
+
     private ScheduledThreadPoolExecutor mExecutor;
+
     private boolean mIsRenderingTriggeredOnDraw = true;
+
     private final GifOptions mOptions = new GifOptions();
 
     /**

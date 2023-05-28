@@ -8,16 +8,17 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  */
 final class GifRenderingExecutor extends ScheduledThreadPoolExecutor {
 
-	// Lazy initialization via inner-class holder
-	private static final class InstanceHolder {
-		private static final GifRenderingExecutor INSTANCE = new GifRenderingExecutor();
-	}
+    // Lazy initialization via inner-class holder
+    private static final class InstanceHolder {
 
-	static GifRenderingExecutor getInstance() {
-		return InstanceHolder.INSTANCE;
-	}
+        private static final GifRenderingExecutor INSTANCE = new GifRenderingExecutor();
+    }
 
-	private GifRenderingExecutor() {
-		super(1, new DiscardPolicy());
-	}
+    static GifRenderingExecutor getInstance() {
+        return InstanceHolder.INSTANCE;
+    }
+
+    private GifRenderingExecutor() {
+        super(1, new DiscardPolicy());
+    }
 }
