@@ -1,10 +1,10 @@
 package pl.droidsonroids.gif.sample
 
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import pl.droidsonroids.gif.sample.sources.GifSourcesFragment
 
-internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStatePagerAdapter(activity.supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
     private val pageTitles = activity.resources.getStringArray(R.array.pages)
 
     private val fragments = arrayOf(
@@ -23,9 +23,8 @@ internal class MainPagerAdapter(activity: FragmentActivity) : FragmentStatePager
         AboutFragment()
     )
 
-    override fun getItem(position: Int) = fragments[position]
+    fun getPageTitle(position: Int): CharSequence = pageTitles[position]
+    override fun getItemCount() = pageTitles.size
 
-    override fun getCount() = pageTitles.size
-
-    override fun getPageTitle(position: Int): CharSequence = pageTitles[position]
+    override fun createFragment(position: Int) = fragments[position]
 }

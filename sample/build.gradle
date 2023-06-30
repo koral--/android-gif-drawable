@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     ndkVersion versions.ndk
@@ -33,7 +32,18 @@ android {
             jniDebuggable true
         }
     }
-    lintOptions {
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+    namespace 'pl.droidsonroids.gif.sample'
+    lint {
         disable 'AppCompatCustomView'
     }
 }
@@ -43,6 +53,7 @@ dependencies {
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakCanary"
     implementation "com.google.android.material:material:$versions.material"
     implementation "androidx.appcompat:appcompat:$versions.androidxAppcompat"
+    implementation "androidx.lifecycle:lifecycle-common:$versions.lifecycle"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.coroutines"

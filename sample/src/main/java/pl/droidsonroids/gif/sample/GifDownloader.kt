@@ -1,5 +1,6 @@
 package pl.droidsonroids.gif.sample
 
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -10,12 +11,12 @@ import java.nio.channels.Channels
 private const val GIF_URL =
     "https://raw.githubusercontent.com/koral--/android-gif-drawable-sample/cb2d1f42b3045b2790a886d1574d3e74281de743/sample/src/main/assets/Animated-Flag-Hungary.gif"
 
-class GifDownloader(httpFragment: HttpFragment) {
+class GifDownloader(private val httpFragment: HttpFragment) {
     private val fragmentReference = WeakReference(httpFragment)
     private var loadJob: Job? = null
 
     fun load() {
-        loadJob = GlobalScope.launch {
+        loadJob = httpFragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val buffer = downloadGif()
                 runOnUiThread {

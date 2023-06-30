@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import kotlinx.android.synthetic.main.animated_selector.view.*
 import pl.droidsonroids.gif.GifDrawable
 
 class AnimatedSelectorFragment : Fragment() {
@@ -17,10 +16,10 @@ class AnimatedSelectorFragment : Fragment() {
 	@Suppress("DEPRECATION")
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		val rootView = inflater.inflate(R.layout.animated_selector, container, false)
-		rootView.buttonKotlin.setBackgroundDrawable(kotlinAnimatedBackground)
+		rootView.findViewById<View>(R.id.buttonKotlin).setBackgroundDrawable(kotlinAnimatedBackground)
 
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-			rootView.buttonXML.setBackgroundDrawable(xmlAnimatedBackground)
+			rootView.findViewById<View>(R.id.buttonXML).setBackgroundDrawable(xmlAnimatedBackground)
 		}
 
 		return rootView
