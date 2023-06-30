@@ -1,3 +1,12 @@
+#### 1.2.26
+- 2023-07-30 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.25...v1.2.26)
+- Update dependency versions
+- Update NDK to 25.2.9519653
+- Update Android Gradle plugin to 8.0.2
+- Use Java 17 for building
+- Switch to upstream ReLinker and update to 1.4.5
+- Update compile and target SDK to 33
+
 #### 1.2.25
 - 2022-08-18 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.24...v1.2.25)
 - Fix sample size not taken into account [(#797)](https://github.com/koral--/android-gif-drawable/pull/797) [(#798)](https://github.com/koral--/android-gif-drawable/pull/798)

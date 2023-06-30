@@ -6,9 +6,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Method;
-
-import pl.droidsonroids.relinker.ReLinker;
-
+import com.getkeepsafe.relinker.ReLinker;
 /**
  * Helper used to work around native libraries loading on some systems.
  * See <a href="https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db">ReLinker</a> for more details.

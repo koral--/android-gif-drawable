@@ -21,13 +21,6 @@ class HttpFragment : Fragment(), View.OnClickListener {
         return gifTextureView
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        if (!gifTextureView!!.isHardwareAccelerated) {
-            Snackbar.make(gifTextureView!!, R.string.gif_texture_view_stub_acceleration, Snackbar.LENGTH_LONG).show()
-        }
-    }
-
     override fun onDestroy() {
         gifDownloader.destroy()
         super.onDestroy()

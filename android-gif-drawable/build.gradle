@@ -9,8 +9,8 @@ android {
     compileSdkVersion versions.compileSdk
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -38,10 +38,12 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+    namespace 'pl.droidsonroids.gif'
+    testNamespace 'pl.droidsonroids.gif.test'
 }
 
 dependencies {
-    implementation "pl.droidsonroids.relinker:relinker:$versions.relinker"
+    implementation "com.getkeepsafe.relinker:relinker:$versions.relinker"
     compileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
     testCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
     testImplementation "junit:junit:$versions.junit"
@@ -51,11 +53,12 @@ dependencies {
     testImplementation "net.jodah:concurrentunit:$versions.concurrentunit"
     testImplementation "org.khronos:opengl-api:$versions.openglApi"
     androidTestImplementation "junit:junit:$versions.junit"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
     androidTestImplementation "org.assertj:assertj-core:$versions.assertj1"
     androidTestImplementation "androidx.test.ext:junit:$versions.androidXextJunit"
     androidTestImplementation "com.squareup.okhttp3:mockwebserver:$versions.mockwebserver"
     androidTestImplementation "androidx.test:rules:$versions.androidxTest"
-    androidTestImplementation "androidx.test:runner:$versions.androidxTest"
+    androidTestImplementation "androidx.test:runner:$versions.androidxTestRunner"
     androidTestCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
 }
 
@@ -63,7 +66,7 @@ def isDevelopmentBuild() {
     return project.findProperty('android.injected.invoked.from.ide') == 'true'
 }
 
-task archiveSymbols(type: Tar) {
+tasks.register('archiveSymbols', Tar) {
     from new File(buildDir, 'intermediates/cmake/release/obj')
     archiveBaseName = "${project.archivesBaseName}-symbols"
     destinationDirectory = new File(buildDir, 'libs')
@@ -71,6 +74,6 @@ task archiveSymbols(type: Tar) {
     compression = Compression.GZIP
 }
 
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.force "androidx.annotation:annotation:$versions.androidxAnnotations"
 }
