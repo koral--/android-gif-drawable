@@ -1,5 +1,9 @@
+#### 1.2.27
+- 2023-07-03 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.26...v1.2.27)
+- Revert java to 1.8, fixes [(#826)](https://github.com/koral--/android-gif-drawable/pull/826), thanks @droplet-js for reporting
+
 #### 1.2.26
-- 2023-07-30 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.25...v1.2.26)
+- 2023-06-30 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.25...v1.2.26)
 - Update dependency versions
 - Update NDK to 25.2.9519653
 - Update Android Gradle plugin to 8.0.2
