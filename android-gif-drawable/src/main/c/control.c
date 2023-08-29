@@ -85,7 +85,7 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused handleClass,
                                                    jlong gifInfo, jint desiredPos, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL || info->gifFilePtr->ImageCount == 1) {
+	if (info == NULL) {
 		return;
 	}
 
@@ -113,7 +113,7 @@ __unused JNIEXPORT void JNICALL
 Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused handleClass,
                                                     jlong gifInfo, jint desiredIndex, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
-	if (info == NULL || info->gifFilePtr->ImageCount == 1) {
+	if (info == NULL) {
 		return;
 	}
 
