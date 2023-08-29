@@ -1,3 +1,9 @@
+#### 1.2.28
+- 2023-08-29 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.27...v1.2.28)
+- Remove check for > 1 frame when seeking, fixes [(#830)](https://github.com/koral--/android-gif-drawable/pull/830), thanks @hgourvest for reporting
+- Update dependency versions
+- Update Android Gradle plugin to 8.1.1
+
 #### 1.2.27
 - 2023-07-03 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.26...v1.2.27)
 - Revert java to 1.8, fixes [(#826)](https://github.com/koral--/android-gif-drawable/pull/826), thanks @droplet-js for reporting

@@ -67,9 +67,10 @@ def isDevelopmentBuild() {
 }
 
 tasks.register('archiveSymbols', Tar) {
-    from new File(buildDir, 'intermediates/cmake/release/obj')
+    def buildDirectory = layout.buildDirectory.asFile.get()
+    from new File(buildDirectory, 'intermediates/cmake/release/obj')
     archiveBaseName = "${project.archivesBaseName}-symbols"
-    destinationDirectory = new File(buildDir, 'libs')
+    destinationDirectory = new File(buildDirectory, 'libs')
     archiveExtension = 'tar.gz'
     compression = Compression.GZIP
 }
