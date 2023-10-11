@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.vanniktech.maven.publish'
+apply plugin: 'kotlin-android'
 
 group = 'pl.droidsonroids.gif'
 description = 'Views and Drawable for displaying animated GIFs for Android'
@@ -9,8 +10,8 @@ android {
     compileSdkVersion versions.compileSdk
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {

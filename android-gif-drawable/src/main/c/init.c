@@ -85,7 +85,7 @@ void setGCBDefaults(GraphicsControlBlock *gcb) {
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jchar sampleSize, jboolean isOpaque) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_setOptions(__unused JNIEnv *env, jclass __unused class, jlong gifInfo, jchar sampleSize, jboolean isOpaque) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
 		return;

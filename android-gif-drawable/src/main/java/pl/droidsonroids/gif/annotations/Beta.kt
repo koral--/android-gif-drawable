@@ -15,13 +15,7 @@
  * 
  * Originally from https://code.google.com/p/guava-libraries/source/browse/guava/src/com/google/common/annotations/Beta.java
  */
-package pl.droidsonroids.gif.annotations;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package pl.droidsonroids.gif.annotations
 
 /**
  * Signifies that a public API (public class, method or field) is subject to
@@ -31,20 +25,23 @@ import java.lang.annotation.Target;
  * about the quality or performance of the API in question, only the fact that
  * it is not "API-frozen."
  *
- * <p>It is generally safe for <i>applications</i> to depend on beta APIs, at
+ *
+ * It is generally safe for *applications* to depend on beta APIs, at
  * the cost of some extra work during upgrades. However it is generally
- * inadvisable for <i>libraries</i> (which get included on users' CLASSPATHs,
+ * inadvisable for *libraries* (which get included on users' CLASSPATHs,
  * outside the library developers' control) to do so.
  *
- **/
-@Retention(RetentionPolicy.CLASS)
-@Target({
-        ElementType.ANNOTATION_TYPE,
-        ElementType.CONSTRUCTOR,
-        ElementType.FIELD,
-        ElementType.METHOD,
-        ElementType.TYPE })
-@Documented
+ */
+@Retention(AnnotationRetention.BINARY)
+@Target(
+    AnnotationTarget.ANNOTATION_CLASS,
+    AnnotationTarget.CONSTRUCTOR,
+    AnnotationTarget.FIELD,
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER,
+    AnnotationTarget.CLASS
+)
+@MustBeDocumented
 @Beta
-public @interface Beta {
-}
+annotation class Beta 

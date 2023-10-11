@@ -13,35 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package pl.droidsonroids.gif
 
-package pl.droidsonroids.gif;
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 class ConditionVariable {
-	private volatile boolean mCondition;
+    @Volatile
+    private var mCondition: Boolean = false
+    private val lock: Lock = ReentrantLock()
+    private val condition: Condition = lock.newCondition()
 
-	synchronized void set(boolean state) {
-		if (state) {
-			open();
-		} else {
-			close();
-		}
-	}
+    fun set(state: Boolean) {
+        lock.lock()
+        try {
+            if (state) {
+                open()
+            } else {
+                close()
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
 
-	synchronized void open() {
-		boolean old = mCondition;
-		mCondition = true;
-		if (!old) {
-			this.notify();
-		}
-	}
+    fun open() {
+        lock.lock()
+        try {
+            val old = mCondition
+            mCondition = true
+            if (!old) {
+                condition.signal()
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
 
-	synchronized void close() {
-		mCondition = false;
-	}
+    fun close() {
+        mCondition = false
+    }
 
-	synchronized void block() throws InterruptedException {
-		while (!mCondition) {
-			this.wait();
-		}
-	}
+    fun block() {
+        lock.lock()
+        try {
+            while (!mCondition) {
+                condition.await()
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
 }
+
+
+
+
+
+

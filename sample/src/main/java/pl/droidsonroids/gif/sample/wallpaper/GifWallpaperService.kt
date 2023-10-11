@@ -14,7 +14,7 @@ import kotlin.coroutines.CoroutineContext
 class GifWallpaperService : WallpaperService() {
     override fun onCreateEngine(): GifWallpaperEngine {
         val options = GifOptions()
-        options.setInIsOpaque(true)
+        options.inIsOpaque = true
         val gifTexImage2D = GifTexImage2D(InputSource.ResourcesSource(resources, R.drawable.led7), options)
         return GifWallpaperEngine(gifTexImage2D)
     }

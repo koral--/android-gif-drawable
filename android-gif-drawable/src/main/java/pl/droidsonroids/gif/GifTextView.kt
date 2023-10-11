@@ -1,229 +1,284 @@
-package pl.droidsonroids.gif;
+package pl.droidsonroids.gif
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.content.res.Resources.NotFoundException;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.os.Parcelable;
-import androidx.annotation.RequiresApi;
-import android.util.AttributeSet;
-import android.widget.TextView;
-
-import java.io.IOException;
+import android.content.Context
+import android.content.res.Resources.NotFoundException
+import android.graphics.drawable.Drawable
+import android.os.Build
+import android.os.Parcelable
+import android.util.AttributeSet
+import android.widget.TextView
+import androidx.annotation.RequiresApi
+import pl.droidsonroids.gif.GifViewUtils.GifViewAttributes
+import pl.droidsonroids.gif.GifViewUtils.applyLoopCount
+import java.io.IOException
 
 /**
- * A {@link TextView} which handles GIFs as compound drawables. NOTE:
- * {@code android:drawableStart} and {@code android:drawableEnd} from XML are
+ * A [TextView] which handles GIFs as compound drawables. NOTE:
+ * `android:drawableStart` and `android:drawableEnd` from XML are
  * not supported but can be set using
- * {@link #setCompoundDrawablesRelativeWithIntrinsicBounds(int, int, int, int)}
+ * [.setCompoundDrawablesRelativeWithIntrinsicBounds]
  *
  * @author koral--
  */
-public class GifTextView extends TextView {
+class GifTextView : TextView {
+    private var viewAttributes: GifViewAttributes? = null
 
-	private GifViewUtils.GifViewAttributes viewAttributes;
+    /**
+     * A corresponding superclass constructor wrapper.
+     *
+     * @param context
+     */
+    constructor(context: Context?) : super(context)
 
-	/**
-	 * A corresponding superclass constructor wrapper.
-	 *
-	 * @param context
-	 */
-	public GifTextView(Context context) {
-		super(context);
-	}
-
-	/**
-	 * Like equivalent from superclass but also try to interpret compound drawables defined in XML
-	 * attributes as GIFs.
-	 *
-	 * @param context
-	 * @param attrs
-	 * @see TextView#TextView(Context, AttributeSet)
-	 */
-	public GifTextView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		init(attrs, 0, 0);
-	}
-
-	/**
-	 * Like equivalent from superclass but also try to interpret compound drawables defined in XML
-	 * attributes as GIFs.
-	 *
-	 * @param context
-	 * @param attrs
-	 * @param defStyle
-	 * @see TextView#TextView(Context, AttributeSet, int)
-	 */
-	public GifTextView(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
-		init(attrs, defStyle, 0);
-	}
-
-	/**
-	 * Like equivalent from superclass but also try to interpret compound drawables defined in XML
-	 * attributes as GIFs.
-	 *
-	 * @param context
-	 * @param attrs
-	 * @param defStyle
-	 * @param defStyleRes
-	 * @see TextView#TextView(Context, AttributeSet, int, int)
-	 */
-	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-	public GifTextView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
-		super(context, attrs, defStyle, defStyleRes);
-		init(attrs, defStyle, defStyleRes);
-	}
-
-	private static void setDrawablesVisible(final Drawable[] drawables, final boolean visible) {
-		for (final Drawable drawable : drawables) {
-			if (drawable != null) {
-				drawable.setVisible(visible, false);
-			}
-		}
-	}
-
-	private void init(AttributeSet attrs, int defStyle, int defStyleRes) {
-		if (attrs != null) {
-			Drawable left = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableLeft", 0));
-			Drawable top = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableTop", 0));
-			Drawable right = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableRight", 0));
-			Drawable bottom = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableBottom", 0));
-			Drawable start = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableStart", 0));
-			Drawable end = getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "drawableEnd", 0));
-
-			if (getLayoutDirection() == LAYOUT_DIRECTION_LTR) {
-				if (start == null) {
-					start = left;
-				}
-				if (end == null) {
-					end = right;
-				}
-			} else {
-				if (start == null) {
-					start = right;
-				}
-				if (end == null) {
-					end = left;
-				}
-			}
-			setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom);
-			setBackground(getGifOrDefaultDrawable(attrs.getAttributeResourceValue(GifViewUtils.ANDROID_NS, "background", 0)));
-			viewAttributes = new GifViewUtils.GifViewAttributes(this, attrs, defStyle, defStyleRes);
-			applyGifViewAttributes();
-		}
-		viewAttributes = new GifViewUtils.GifViewAttributes();
-	}
-
-	private void applyGifViewAttributes() {
-		if (viewAttributes.mLoopCount < 0) {
-			return;
-		}
-		for (final Drawable drawable : getCompoundDrawables()) {
-			GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, drawable);
-		}
-		for (final Drawable drawable : getCompoundDrawablesRelative()) {
-			GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, drawable);
-		}
-		GifViewUtils.applyLoopCount(viewAttributes.mLoopCount, getBackground());
-	}
-
-	@SuppressWarnings("deprecation") //Resources#getDrawable(int)
-	private Drawable getGifOrDefaultDrawable(int resId) {
-		if (resId == 0) {
-			return null;
-		}
-		final Resources resources = getResources();
-		final String resourceTypeName = resources.getResourceTypeName(resId);
-		if (!isInEditMode() && GifViewUtils.SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
-			try {
-				return new GifDrawable(resources, resId);
-			} catch (IOException | NotFoundException ignored) {
-				// ignored
-			}
-		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			return resources.getDrawable(resId, getContext().getTheme());
-		} else {
-			return resources.getDrawable(resId);
-		}
-	}
-
-	@Override
-	public void setCompoundDrawablesWithIntrinsicBounds(int left, int top, int right, int bottom) {
-		setCompoundDrawablesWithIntrinsicBounds(getGifOrDefaultDrawable(left), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(right), getGifOrDefaultDrawable(bottom));
-	}
-
-	@Override
-	public void setCompoundDrawablesRelativeWithIntrinsicBounds(int start, int top, int end, int bottom) {
-		setCompoundDrawablesRelativeWithIntrinsicBounds(getGifOrDefaultDrawable(start), getGifOrDefaultDrawable(top), getGifOrDefaultDrawable(end), getGifOrDefaultDrawable(bottom));
-	}
-
-	@Override
-	public Parcelable onSaveInstanceState() {
-		Drawable[] savedDrawables = new Drawable[7];
-		if (viewAttributes.freezesAnimation) {
-			Drawable[] compoundDrawables = getCompoundDrawables();
-			System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.length);
-
-            Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-            savedDrawables[4] = compoundDrawablesRelative[0]; //start
-            savedDrawables[5] = compoundDrawablesRelative[2]; //end
-            savedDrawables[6] = getBackground();
-		}
-		return new GifViewSavedState(super.onSaveInstanceState(), savedDrawables);
-	}
-
-	@Override
-	public void onRestoreInstanceState(Parcelable state) {
-		if (!(state instanceof GifViewSavedState)) {
-			super.onRestoreInstanceState(state);
-			return;
-		}
-		GifViewSavedState ss = (GifViewSavedState) state;
-		super.onRestoreInstanceState(ss.getSuperState());
-
-		Drawable[] compoundDrawables = getCompoundDrawables();
-		ss.restoreState(compoundDrawables[0], 0);
-		ss.restoreState(compoundDrawables[1], 1);
-		ss.restoreState(compoundDrawables[2], 2);
-		ss.restoreState(compoundDrawables[3], 3);
-        Drawable[] compoundDrawablesRelative = getCompoundDrawablesRelative();
-        ss.restoreState(compoundDrawablesRelative[0], 4);
-        ss.restoreState(compoundDrawablesRelative[2], 5);
-        ss.restoreState(getBackground(), 6);
-	}
-
-	@Override
-	protected void onAttachedToWindow() {
-		super.onAttachedToWindow();
-		setCompoundDrawablesVisible(true);
-	}
-
-	@Override
-	protected void onDetachedFromWindow() {
-		super.onDetachedFromWindow();
-		setCompoundDrawablesVisible(false);
-	}
-
-	@Override
-	public void setBackgroundResource(int resId) {
-		setBackground(getGifOrDefaultDrawable(resId));
-	}
-
-	private void setCompoundDrawablesVisible(final boolean visible) {
-		setDrawablesVisible(getCompoundDrawables(), visible);
-        setDrawablesVisible(getCompoundDrawablesRelative(), visible);
+    /**
+     * Like equivalent from superclass but also try to interpret compound drawables defined in XML
+     * attributes as GIFs.
+     *
+     * @param context
+     * @param attrs
+     * @see TextView#TextView
+     */
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
+        init(attrs, 0, 0)
     }
 
-	/**
-	 * Sets whether animation position is saved in {@link #onSaveInstanceState()} and restored
-	 * in {@link #onRestoreInstanceState(Parcelable)}. This is applicable to all compound drawables.
-	 *
-	 * @param freezesAnimation whether animation position is saved
-	 */
-	public void setFreezesAnimation(boolean freezesAnimation) {
-		viewAttributes.freezesAnimation = freezesAnimation;
-	}
+    /**
+     * Like equivalent from superclass but also try to interpret compound drawables defined in XML
+     * attributes as GIFs.
+     *
+     * @param context
+     * @param attrs
+     * @param defStyle
+     * @see TextView#TextView
+     */
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(
+        context,
+        attrs,
+        defStyle
+    ) {
+        init(attrs, defStyle, 0)
+    }
+
+    /**
+     * Like equivalent from superclass but also try to interpret compound drawables defined in XML
+     * attributes as GIFs.
+     *
+     * @param context
+     * @param attrs
+     * @param defStyle
+     * @param defStyleRes
+     * @see TextView#TextView
+     */
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int, defStyleRes: Int) : super(
+        context,
+        attrs,
+        defStyle,
+        defStyleRes
+    ) {
+        init(attrs, defStyle, defStyleRes)
+    }
+
+    private fun init(attrs: AttributeSet?, defStyle: Int, defStyleRes: Int) {
+        if (attrs != null) {
+            val left = getGifOrDefaultDrawable(
+                attrs.getAttributeResourceValue(
+                    GifViewUtils.ANDROID_NS,
+                    "drawableLeft",
+                    0
+                )
+            )
+            val top = getGifOrDefaultDrawable(
+                attrs.getAttributeResourceValue(
+                    GifViewUtils.ANDROID_NS,
+                    "drawableTop",
+                    0
+                )
+            )
+            val right = getGifOrDefaultDrawable(
+                attrs.getAttributeResourceValue(
+                    GifViewUtils.ANDROID_NS,
+                    "drawableRight",
+                    0
+                )
+            )
+            val bottom = getGifOrDefaultDrawable(
+                attrs.getAttributeResourceValue(
+                    GifViewUtils.ANDROID_NS,
+                    "drawableBottom",
+                    0
+                )
+            )
+            var start = getGifOrDefaultDrawable(
+                attrs.getAttributeResourceValue(
+                    GifViewUtils.ANDROID_NS,
+                    "drawableStart",
+                    0
+                )
+            )
+            var end = getGifOrDefaultDrawable(
+                attrs.getAttributeResourceValue(
+                    GifViewUtils.ANDROID_NS,
+                    "drawableEnd",
+                    0
+                )
+            )
+            if (layoutDirection == LAYOUT_DIRECTION_LTR) {
+                if (start == null) {
+                    start = left
+                }
+                if (end == null) {
+                    end = right
+                }
+            } else {
+                if (start == null) {
+                    start = right
+                }
+                if (end == null) {
+                    end = left
+                }
+            }
+            setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom)
+            background = getGifOrDefaultDrawable(
+                attrs.getAttributeResourceValue(
+                    GifViewUtils.ANDROID_NS,
+                    "background",
+                    0
+                )
+            )
+            viewAttributes = GifViewAttributes(this, attrs, defStyle, defStyleRes)
+            applyGifViewAttributes()
+        }
+        viewAttributes = GifViewAttributes()
+    }
+
+    private fun applyGifViewAttributes() {
+        if (viewAttributes!!.mLoopCount < 0) {
+            return
+        }
+        for (drawable in compoundDrawables) {
+            applyLoopCount(viewAttributes!!.mLoopCount, drawable)
+        }
+        for (drawable in compoundDrawablesRelative) {
+            applyLoopCount(viewAttributes!!.mLoopCount, drawable)
+        }
+        applyLoopCount(viewAttributes!!.mLoopCount, background)
+    }
+
+    @Suppress("deprecation") //Resources#getDrawable(int)
+    private fun getGifOrDefaultDrawable(resId: Int): Drawable? {
+        if (resId == 0) {
+            return null
+        }
+        val resources = resources
+        val resourceTypeName = resources.getResourceTypeName(resId)
+        if (!isInEditMode && GifViewUtils.SUPPORTED_RESOURCE_TYPE_NAMES.contains(resourceTypeName)) {
+            try {
+                return GifDrawable(resources, resId)
+            } catch (ignored: IOException) {
+                // ignored
+            } catch (ignored: NotFoundException) {
+            }
+        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            resources.getDrawable(resId, context.theme)
+        } else {
+            resources.getDrawable(resId)
+        }
+    }
+
+    override fun setCompoundDrawablesWithIntrinsicBounds(
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int
+    ) {
+        setCompoundDrawablesWithIntrinsicBounds(
+            getGifOrDefaultDrawable(left),
+            getGifOrDefaultDrawable(top),
+            getGifOrDefaultDrawable(right),
+            getGifOrDefaultDrawable(bottom)
+        )
+    }
+
+    override fun setCompoundDrawablesRelativeWithIntrinsicBounds(
+        start: Int,
+        top: Int,
+        end: Int,
+        bottom: Int
+    ) {
+        setCompoundDrawablesRelativeWithIntrinsicBounds(
+            getGifOrDefaultDrawable(start),
+            getGifOrDefaultDrawable(top),
+            getGifOrDefaultDrawable(end),
+            getGifOrDefaultDrawable(bottom)
+        )
+    }
+
+    override fun onSaveInstanceState(): Parcelable {
+        val savedDrawables = arrayOfNulls<Drawable>(7)
+        if (viewAttributes?.freezesAnimation == true) {
+            val compoundDrawables = compoundDrawables
+            System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.size)
+            val compoundDrawablesRelative = compoundDrawablesRelative
+            savedDrawables[4] = compoundDrawablesRelative[0] //start
+            savedDrawables[5] = compoundDrawablesRelative[2] //end
+            savedDrawables[6] = background
+        }
+        return GifViewSavedState(super.onSaveInstanceState(), *savedDrawables)
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable) {
+        if (state !is GifViewSavedState) {
+            super.onRestoreInstanceState(state)
+            return
+        }
+        super.onRestoreInstanceState(state.superState)
+        val compoundDrawables = compoundDrawables
+        state.restoreState(compoundDrawables[0], 0)
+        state.restoreState(compoundDrawables[1], 1)
+        state.restoreState(compoundDrawables[2], 2)
+        state.restoreState(compoundDrawables[3], 3)
+        val compoundDrawablesRelative = compoundDrawablesRelative
+        state.restoreState(compoundDrawablesRelative[0], 4)
+        state.restoreState(compoundDrawablesRelative[2], 5)
+        state.restoreState(background, 6)
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        setCompoundDrawablesVisible(true)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        setCompoundDrawablesVisible(false)
+    }
+
+    override fun setBackgroundResource(resId: Int) {
+        background = getGifOrDefaultDrawable(resId)
+    }
+
+    private fun setCompoundDrawablesVisible(visible: Boolean) {
+        setDrawablesVisible(compoundDrawables, visible)
+        setDrawablesVisible(compoundDrawablesRelative, visible)
+    }
+
+    /**
+     * Sets whether animation position is saved in [.onSaveInstanceState] and restored
+     * in [.onRestoreInstanceState]. This is applicable to all compound drawables.
+     *
+     * @param freezesAnimation whether animation position is saved
+     */
+    fun setFreezesAnimation(freezesAnimation: Boolean) {
+        viewAttributes!!.freezesAnimation = freezesAnimation
+    }
+
+    companion object {
+        private fun setDrawablesVisible(drawables: Array<Drawable?>, visible: Boolean) {
+            for (drawable in drawables) {
+                drawable?.setVisible(visible, false)
+            }
+        }
+    }
 }
