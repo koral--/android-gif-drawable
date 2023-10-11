@@ -1,52 +1,49 @@
-package pl.droidsonroids.gif;
+package pl.droidsonroids.gif
 
-import org.junit.Before;
-import org.junit.Test;
+import org.assertj.core.api.Assertions
+import org.junit.Before
+import org.junit.Test
 
-import static org.assertj.core.api.Assertions.assertThat;
+class GifOptionsTest {
+    private var gifOptions: GifOptions? = null
+    @Before
+    fun setUp() {
+        gifOptions = GifOptions()
+    }
 
-public class GifOptionsTest {
+    @Test
+    fun testInitialValues() {
+        Assertions.assertThat(gifOptions!!.inSampleSize).isEqualTo(1.toChar())
+        Assertions.assertThat(gifOptions!!.inIsOpaque).isFalse
+    }
 
-	private GifOptions gifOptions;
+    @Test
+    fun setInSampleSize() {
+        gifOptions!!.setInSampleSize(2)
+        Assertions.assertThat(gifOptions!!.inSampleSize).isEqualTo(2.toChar())
+    }
 
-	@Before
-	public void setUp() {
-		gifOptions = new GifOptions();
-	}
+    @Test
+    fun setInIsOpaque() {
+        gifOptions!!.inIsOpaque = true
+        Assertions.assertThat(gifOptions!!.inIsOpaque).isTrue
+    }
 
-	@Test
-	public void testInitialValues() {
-		assertThat(gifOptions.inSampleSize).isEqualTo((char) 1);
-		assertThat(gifOptions.inIsOpaque).isFalse();
-	}
+    @Test
+    fun copyFromNonNull() {
+        val source = GifOptions()
+        source.inIsOpaque = false
+        source.setInSampleSize(8)
+        gifOptions!!.setFrom(source)
+        Assertions.assertThat(gifOptions).isEqualToComparingFieldByField(source)
+    }
 
-	@Test
-	public void setInSampleSize() {
-		gifOptions.setInSampleSize(2);
-		assertThat(gifOptions.inSampleSize).isEqualTo((char) 2);
-	}
-
-	@Test
-	public void setInIsOpaque() {
-		gifOptions.setInIsOpaque(true);
-		assertThat(gifOptions.inIsOpaque).isTrue();
-	}
-
-	@Test
-	public void copyFromNonNull() {
-		GifOptions source = new GifOptions();
-		source.setInIsOpaque(false);
-		source.setInSampleSize(8);
-		gifOptions.setFrom(source);
-		assertThat(gifOptions).isEqualToComparingFieldByField(source);
-	}
-
-	@Test
-	public void copyFromNull() {
-		GifOptions defaultOptions = new GifOptions();
-		gifOptions.setInIsOpaque(false);
-		gifOptions.setInSampleSize(8);
-		gifOptions.setFrom(null);
-		assertThat(gifOptions).isEqualToComparingFieldByField(defaultOptions);
-	}
+    @Test
+    fun copyFromNull() {
+        val defaultOptions = GifOptions()
+        gifOptions!!.inIsOpaque = false
+        gifOptions!!.setInSampleSize(8)
+        gifOptions!!.setFrom(null)
+        Assertions.assertThat(gifOptions).isEqualToComparingFieldByField(defaultOptions)
+    }
 }

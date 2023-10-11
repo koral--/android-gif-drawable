@@ -1,39 +1,30 @@
-package pl.droidsonroids.gif;
+package pl.droidsonroids.gif
 
-import android.content.res.AssetFileDescriptor;
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import org.assertj.core.api.Assertions
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import pl.droidsonroids.gif.test.R;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-@RunWith(AndroidJUnit4.class)
-public class InputStreamTest {
-
-	@Test
-	public void gifDrawableCreatedFromInputStream() throws Exception {
-		final AssetFileDescriptor assetFileDescriptor = InstrumentationRegistry.getInstrumentation()
-				.getContext().getResources().openRawResourceFd(R.raw.test);
-		final byte[] buffer = new byte[(int) assetFileDescriptor.getDeclaredLength()];
-		final FileInputStream inputStream = assetFileDescriptor.createInputStream();
-		final int bufferedByteCount = inputStream.read(buffer);
-		inputStream.close();
-		assetFileDescriptor.close();
-		assertThat(bufferedByteCount).isEqualTo(buffer.length);
-
-		final InputStream responseStream = new ByteArrayInputStream(buffer);
-
-		final GifDrawable gifDrawable = new GifDrawable(responseStream);
-		assertThat(gifDrawable.getError()).isEqualTo(GifError.NO_ERROR);
-		assertThat(gifDrawable.getIntrinsicWidth()).isEqualTo(278);
-		assertThat(gifDrawable.getIntrinsicHeight()).isEqualTo(183);
-	}
+@RunWith(AndroidJUnit4::class)
+class InputStreamTest {
+    @Test
+    @Throws(Exception::class)
+    fun gifDrawableCreatedFromInputStream() {
+        val assetFileDescriptor = InstrumentationRegistry.getInstrumentation()
+            .context.resources.openRawResourceFd(pl.droidsonroids.gif.test.R.raw.test)
+        val buffer = ByteArray(assetFileDescriptor.declaredLength.toInt())
+        val inputStream = assetFileDescriptor.createInputStream()
+        val bufferedByteCount = inputStream.read(buffer)
+        inputStream.close()
+        assetFileDescriptor.close()
+        Assertions.assertThat(bufferedByteCount).isEqualTo(buffer.size)
+        val responseStream: InputStream = ByteArrayInputStream(buffer)
+        val gifDrawable = GifDrawable(responseStream)
+        Assertions.assertThat(gifDrawable.error).isEqualTo(GifError.NO_ERROR)
+        Assertions.assertThat(gifDrawable.intrinsicWidth).isEqualTo(278)
+        Assertions.assertThat(gifDrawable.intrinsicHeight).isEqualTo(183)
+    }
 }

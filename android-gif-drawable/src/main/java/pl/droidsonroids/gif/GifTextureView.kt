@@ -444,12 +444,12 @@ class GifTextureView : TextureView {
      * @see .setScaleType
      */
     override fun getTransform(transform: Matrix?): Matrix {
-        var transform = transform
-        if (transform == null) {
-            transform = Matrix()
+        var matrix = transform
+        if (matrix == null) {
+            matrix = Matrix()
         }
-        transform.set(mTransform)
-        return transform
+        matrix.set(mTransform)
+        return matrix
     }
 
     public override fun onSaveInstanceState(): Parcelable {

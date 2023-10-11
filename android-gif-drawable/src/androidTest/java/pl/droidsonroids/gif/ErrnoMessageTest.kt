@@ -1,36 +1,35 @@
-package pl.droidsonroids.gif;
+package pl.droidsonroids.gif
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.ExpectedException
+import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import pl.droidsonroids.gif.GifIOException
+import java.io.File
 
-import java.io.File;
+@RunWith(AndroidJUnit4::class)
+class ErrnoMessageTest {
+    @get:Rule
+    var mExpectedException = ExpectedException.none()
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
+    @get:Rule
+    var mTemporaryFolder = TemporaryFolder()
+    @Test
+    @Throws(Exception::class)
+    fun errnoMessageAppendedToOpenFailed() {
+        mExpectedException.expect(GifIOException::class.java)
+        mExpectedException.expectMessage("GifError 101: Failed to open given input: No such file or directory")
+        val nonExistentFile = File(mTemporaryFolder.root, "non-existent")
+        GifDrawable(nonExistentFile)
+    }
 
-@RunWith(AndroidJUnit4.class)
-public class ErrnoMessageTest {
-
-	@Rule
-	public ExpectedException mExpectedException = ExpectedException.none();
-	@Rule
-	public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
-
-	@Test
-	public void errnoMessageAppendedToOpenFailed() throws Exception {
-		mExpectedException.expect(GifIOException.class);
-		mExpectedException.expectMessage("GifError 101: Failed to open given input: No such file or directory");
-		final File nonExistentFile = new File(mTemporaryFolder.getRoot(), "non-existent");
-		new GifDrawable(nonExistentFile);
-	}
-
-	@Test
-	public void errnoMessageAppendedToReadFailed() throws Exception {
-		mExpectedException.expect(GifIOException.class);
-		mExpectedException.expectMessage("GifError 102: Failed to read from given input: Is a directory");
-		new GifDrawable(mTemporaryFolder.getRoot());
-	}
-
+    @Test
+    @Throws(Exception::class)
+    fun errnoMessageAppendedToReadFailed() {
+        mExpectedException.expect(GifIOException::class.java)
+        mExpectedException.expectMessage("GifError 102: Failed to read from given input: Is a directory")
+        GifDrawable(mTemporaryFolder.root)
+    }
 }

@@ -1,18 +1,16 @@
-package pl.droidsonroids.gif;
+package pl.droidsonroids.gif
 
-import org.junit.Test;
+import org.assertj.core.api.Java6Assertions
+import org.junit.Test
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
-
-public class GifDrawableBuilderTest {
-
-	@Test
-	public void testOptionsAndSampleSizeConflict() throws Exception {
-		GifDrawableBuilder builder = new GifDrawableBuilder();
-		GifOptions options = new GifOptions();
-		builder.options(options);
-		builder.sampleSize(3);
-		assertThat(options.inSampleSize).isEqualTo((char) 1);
-	}
-
+class GifDrawableBuilderTest {
+    @Test
+    @Throws(Exception::class)
+    fun testOptionsAndSampleSizeConflict() {
+        val builder = GifDrawableBuilder()
+        val options = GifOptions()
+        builder.options(options)
+        builder.sampleSize(3)
+        Java6Assertions.assertThat(options.inSampleSize).isEqualTo(1.toChar())
+    }
 }

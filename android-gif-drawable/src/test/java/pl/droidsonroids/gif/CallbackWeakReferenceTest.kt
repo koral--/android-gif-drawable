@@ -1,54 +1,57 @@
-package pl.droidsonroids.gif;
+package pl.droidsonroids.gif
 
-import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Drawable
+import org.assertj.core.api.Java6Assertions
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnitRunner
+import pl.droidsonroids.gif.MultiCallback.CallbackWeakReference
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+@RunWith(MockitoJUnitRunner::class)
+class CallbackWeakReferenceTest {
+    @Mock
+    var callback: Drawable.Callback? = null
 
-import pl.droidsonroids.gif.MultiCallback.CallbackWeakReference;
+    @Mock
+    var anotherCallback: Drawable.Callback? = null
+    @Test
+    @Throws(Exception::class)
+    fun testEquals() {
+        val reference = CallbackWeakReference(callback)
+        val anotherReference = CallbackWeakReference(callback)
+        Java6Assertions.assertThat(reference).isEqualTo(anotherReference)
+    }
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
+    @Test
+    @Throws(Exception::class)
+    fun testNotEqualReferences() {
+        val reference = CallbackWeakReference(callback)
+        val anotherReference = CallbackWeakReference(anotherCallback)
+        Java6Assertions.assertThat(reference).isNotEqualTo(anotherReference)
+    }
 
-@RunWith(MockitoJUnitRunner.class)
-public class CallbackWeakReferenceTest {
+    @Test
+    @Throws(Exception::class)
+    fun testNotEqualDifferentObjects() {
+        val reference = CallbackWeakReference(callback)
+        Java6Assertions.assertThat(reference).isNotEqualTo(null)
+        Java6Assertions.assertThat(reference).isNotEqualTo(callback)
+    }
 
-	@Mock Drawable.Callback callback;
-	@Mock Drawable.Callback anotherCallback;
+    @Test
+    @Throws(Exception::class)
+    fun testHashCode() {
+        val reference = CallbackWeakReference(callback)
+        val anotherReference = CallbackWeakReference(callback)
+        Java6Assertions.assertThat(reference.hashCode()).isEqualTo(anotherReference.hashCode())
+    }
 
-	@Test
-	public void testEquals() throws Exception {
-		final CallbackWeakReference reference = new CallbackWeakReference(callback);
-		final CallbackWeakReference anotherReference = new CallbackWeakReference(callback);
-		assertThat(reference).isEqualTo(anotherReference);
-	}
-
-	@Test
-	public void testNotEqualReferences() throws Exception {
-		final CallbackWeakReference reference = new CallbackWeakReference(callback);
-		final CallbackWeakReference anotherReference = new CallbackWeakReference(anotherCallback);
-		assertThat(reference).isNotEqualTo(anotherReference);
-	}
-
-	@Test
-	public void testNotEqualDifferentObjects() throws Exception {
-		final CallbackWeakReference reference = new CallbackWeakReference(callback);
-		assertThat(reference).isNotEqualTo(null);
-		assertThat(reference).isNotEqualTo(callback);
-	}
-
-	@Test
-	public void testHashCode() throws Exception {
-		final CallbackWeakReference reference = new CallbackWeakReference(callback);
-		final CallbackWeakReference anotherReference = new CallbackWeakReference(callback);
-		assertThat(reference.hashCode()).isEqualTo(anotherReference.hashCode());
-	}
-
-	@Test
-	public void testHashCodeNull() throws Exception {
-		final CallbackWeakReference reference = new CallbackWeakReference(callback);
-		final CallbackWeakReference anotherReference = new CallbackWeakReference(null);
-		assertThat(reference.hashCode()).isNotEqualTo(anotherReference.hashCode());
-	}
+    @Test
+    @Throws(Exception::class)
+    fun testHashCodeNull() {
+        val reference = CallbackWeakReference(callback)
+        val anotherReference = CallbackWeakReference(null)
+        Java6Assertions.assertThat(reference.hashCode()).isNotEqualTo(anotherReference.hashCode())
+    }
 }

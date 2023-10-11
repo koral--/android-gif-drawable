@@ -1,27 +1,25 @@
-package pl.droidsonroids.gif;
+package pl.droidsonroids.gif
 
-import android.content.res.Resources;
-import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import org.assertj.core.api.Assertions
+import org.junit.Test
+import org.junit.runner.RunWith
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import pl.droidsonroids.gif.test.R;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-@RunWith(AndroidJUnit4.class)
-public class AllocationByteCountTest {
-
-	@Test
-	public void allocationByteCountIsConsistent() throws Exception {
-		final Resources resources = InstrumentationRegistry.getInstrumentation().getContext().getResources();
-		final GifDrawable drawable = new GifDrawable(resources, R.raw.test);
-		final GifAnimationMetaData metaData = new GifAnimationMetaData(resources, R.raw.test);
-
-		assertThat(drawable.getFrameByteCount() + metaData.getAllocationByteCount()).isEqualTo(drawable.getAllocationByteCount());
-		assertThat(metaData.getDrawableAllocationByteCount(null, 1)).isEqualTo(drawable.getAllocationByteCount());
-		assertThat(metaData.getDrawableAllocationByteCount(drawable, 1)).isEqualTo(drawable.getAllocationByteCount());
-	}
+@RunWith(AndroidJUnit4::class)
+class AllocationByteCountTest {
+    @Test
+    @Throws(Exception::class)
+    fun allocationByteCountIsConsistent() {
+        val resources = getInstrumentation().context.resources
+        val drawable = GifDrawable(resources, pl.droidsonroids.gif.test.R.raw.test)
+        val metaData = GifAnimationMetaData(resources, pl.droidsonroids.gif.test.R.raw.test)
+        Assertions.assertThat(drawable.frameByteCount + metaData.allocationByteCount)
+            .isEqualTo(drawable.allocationByteCount)
+        Assertions.assertThat(metaData.getDrawableAllocationByteCount(null, 1))
+            .isEqualTo(drawable.allocationByteCount)
+        Assertions.assertThat(metaData.getDrawableAllocationByteCount(drawable, 1))
+            .isEqualTo(drawable.allocationByteCount)
+    }
 }
