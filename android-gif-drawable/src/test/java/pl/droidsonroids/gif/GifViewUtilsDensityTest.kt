@@ -154,7 +154,7 @@ class GifViewUtilsDensityTest {
                     DisplayMetrics.DENSITY_HIGH
                 ), 0
             )
-        ).isEqualTo(1)
+        ).isEqualTo(1.0f)
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -162,7 +162,7 @@ class GifViewUtilsDensityTest {
                     DisplayMetrics.DENSITY_XXHIGH
                 ), 0
             )
-        ).isEqualTo(1)
+        ).isEqualTo(1.0f)
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -170,7 +170,7 @@ class GifViewUtilsDensityTest {
                     DisplayMetrics.DENSITY_XXXHIGH
                 ), 0
             )
-        ).isEqualTo(1)
+        ).isEqualTo(1.0f)
     }
 
     @Test
