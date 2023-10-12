@@ -231,9 +231,9 @@ class GifAnimationMetaData : Serializable, Parcelable {
         check(!(sampleSize < 1 || sampleSize > Character.MAX_VALUE.code)) { "Sample size " + sampleSize + " out of range <1, " + Character.MAX_VALUE + ">" }
         val sampleSizeFactor = sampleSize * sampleSize
         val bufferSize: Long
-        bufferSize = if (oldDrawable != null && !oldDrawable.mBuffer!!.isRecycled) {
+        bufferSize = if (oldDrawable != null && !oldDrawable.mBuffer.isRecycled) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                oldDrawable.mBuffer!!.allocationByteCount.toLong()
+                oldDrawable.mBuffer.allocationByteCount.toLong()
             } else {
                 oldDrawable.frameByteCount.toLong()
             }
