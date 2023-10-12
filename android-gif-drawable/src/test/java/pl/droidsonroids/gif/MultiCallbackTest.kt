@@ -13,16 +13,19 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class MultiCallbackTest {
+
     @Mock
     lateinit var view: View
 
     @Spy
-    var drawable: Drawable? = null
-    private var action: Runnable? = null
-    private var simpleMultiCallback: MultiCallback? = null
+    lateinit var drawable: Drawable
+
+    private lateinit var action: Runnable
+    private lateinit var simpleMultiCallback: MultiCallback
+
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
         simpleMultiCallback = MultiCallback()
         action = Runnable {
             //no-op
@@ -31,44 +34,44 @@ class MultiCallbackTest {
 
     @Test
     fun testInvalidateDrawable() {
-        simpleMultiCallback!!.addView(view)
-        drawable!!.callback = simpleMultiCallback
-        drawable!!.invalidateSelf()
-        Mockito.verify(view).invalidateDrawable(drawable!!)
+        simpleMultiCallback.addView(view)
+        drawable.callback = simpleMultiCallback
+        drawable.invalidateSelf()
+        Mockito.verify(view).invalidateDrawable(drawable)
     }
 
     @Test
     fun testScheduleDrawable() {
-        simpleMultiCallback!!.addView(view)
-        drawable!!.callback = simpleMultiCallback
-        drawable!!.scheduleSelf(action!!, 0)
-        Mockito.verify(view).scheduleDrawable(drawable!!, action!!, 0)
+        simpleMultiCallback.addView(view)
+        drawable.callback = simpleMultiCallback
+        drawable.scheduleSelf(action, 0)
+        Mockito.verify(view).scheduleDrawable(drawable, action, 0)
     }
 
     @Test
     fun testUnscheduleDrawable() {
-        simpleMultiCallback!!.addView(view)
-        drawable!!.callback = simpleMultiCallback
-        drawable!!.unscheduleSelf(action!!)
-        Mockito.verify(view).unscheduleDrawable(drawable!!, action!!)
+        simpleMultiCallback.addView(view)
+        drawable.callback = simpleMultiCallback
+        drawable.unscheduleSelf(action)
+        Mockito.verify(view).unscheduleDrawable(drawable, action)
     }
 
     @Test
     fun testViewRemoval() {
-        simpleMultiCallback!!.addView(view)
-        drawable!!.callback = simpleMultiCallback
-        drawable!!.invalidateSelf()
-        simpleMultiCallback!!.removeView(view!!)
-        drawable!!.invalidateSelf()
-        Mockito.verify(view).invalidateDrawable(drawable!!)
+        simpleMultiCallback.addView(view)
+        drawable.callback = simpleMultiCallback
+        drawable.invalidateSelf()
+        simpleMultiCallback.removeView(view)
+        drawable.invalidateSelf()
+        Mockito.verify(view).invalidateDrawable(drawable)
     }
 
     @Test
     fun testViewInvalidate() {
         val viewInvalidateMultiCallback = MultiCallback(true)
         viewInvalidateMultiCallback.addView(view)
-        drawable!!.callback = viewInvalidateMultiCallback
-        drawable!!.invalidateSelf()
+        drawable.callback = viewInvalidateMultiCallback
+        drawable.invalidateSelf()
         Mockito.verify(view).invalidate()
     }
 }

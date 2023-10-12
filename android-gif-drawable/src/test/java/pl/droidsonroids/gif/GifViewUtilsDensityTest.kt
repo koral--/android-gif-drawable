@@ -20,8 +20,10 @@ import pl.droidsonroids.gif.GifViewUtils.getDensityScale
     MockitoJUnitRunner::class
 )
 class GifViewUtilsDensityTest {
+
     @Mock
     lateinit var resources: Resources
+
     private fun getMockedResources(resourceDensity: Int, displayDensity: Int): Resources {
         Mockito.doAnswer { invocation ->
             val outValue = invocation.getArgument<TypedValue>(1)
@@ -39,7 +41,6 @@ class GifViewUtilsDensityTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testHighResourceDensities() {
         assertThat(
             getDensityScale(
@@ -100,7 +101,6 @@ class GifViewUtilsDensityTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testLowHighDensity() {
         assertThat(
             getDensityScale(
@@ -113,7 +113,6 @@ class GifViewUtilsDensityTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testNoneResourceDensities() {
         assertThat(
             getDensityScale(
@@ -174,7 +173,6 @@ class GifViewUtilsDensityTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testNoneDisplayDensities() {
         assertThat(
             getDensityScale(
@@ -219,7 +217,6 @@ class GifViewUtilsDensityTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testInvalidDensities() {
         assertThat(
             getDensityScale(

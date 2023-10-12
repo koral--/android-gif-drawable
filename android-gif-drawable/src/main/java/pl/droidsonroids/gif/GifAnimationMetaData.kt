@@ -17,10 +17,12 @@ import pl.droidsonroids.gif.GifInfoHandle.Companion.openUri
 import pl.droidsonroids.gif.annotations.Beta
 import java.io.File
 import java.io.FileDescriptor
+import java.io.IOException
 import java.io.InputStream
 import java.io.Serializable
 import java.nio.ByteBuffer
 import java.util.Locale
+import kotlin.jvm.Throws
 
 /**
  * Lightweight version of [pl.droidsonroids.gif.GifDrawable] used to retrieve metadata of GIF only,
@@ -84,6 +86,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws java.io.IOException                             when opening failed
      * @throws NullPointerException                            if res is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(res: Resources, @RawRes @DrawableRes id: Int) : this(res.openRawResourceFd(id))
 
     /**
@@ -94,6 +97,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws IOException          when opening failed
      * @throws NullPointerException if assets or assetName is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(assets: AssetManager, assetName: String) : this(assets.openFd(assetName))
 
     /**
@@ -106,15 +110,17 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws IOException          when opening failed
      * @throws NullPointerException if filePath is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(filePath: String) : this(GifInfoHandle(filePath))
 
     /**
-     * Equivalent to `` GifMetadata(file.getPath())}
+     * Equivalent to `GifMetadata(file.getPath())`
      *
      * @param file the GIF file
      * @throws IOException          when opening failed
      * @throws NullPointerException if file is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(file: File) : this(file.path)
 
     /**
@@ -126,6 +132,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws IllegalArgumentException if stream does not support marking
      * @throws NullPointerException     if stream is null
      */
+    @Throws(IOException::class, NullPointerException::class, IllegalArgumentException::class)
     constructor(stream: InputStream) : this(GifInfoHandle(stream))
 
     /**
@@ -136,6 +143,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws NullPointerException if afd is null
      * @throws IOException          when opening failed
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(afd: AssetFileDescriptor) : this(GifInfoHandle(afd))
 
     /**
@@ -145,6 +153,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws IOException          when opening failed
      * @throws NullPointerException if fd is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(fd: FileDescriptor) : this(GifInfoHandle(fd))
 
     /**
@@ -155,6 +164,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws IOException          if bytes does not contain valid GIF data
      * @throws NullPointerException if bytes are null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(bytes: ByteArray) : this(GifInfoHandle(bytes))
 
     /**
@@ -165,6 +175,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @throws IOException          if buffer does not contain valid GIF data or is indirect
      * @throws NullPointerException if buffer is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(buffer: ByteBuffer) : this(GifInfoHandle(buffer))
 
     /**
@@ -176,9 +187,10 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @param resolver resolver, null is allowed for file:// scheme Uris only
      * @throws IOException if resolution fails or destination is not a GIF.
      */
+    @Throws(IOException::class)
     constructor(resolver: ContentResolver?, uri: Uri) : this(
         openUri(
-            resolver!!, uri
+            resolver, uri
         )
     )
 
@@ -207,6 +219,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
      * @return possible size of the memory needed to store pixels
      * @throws IllegalArgumentException if sample size out of range
      */
+    @Throws(IllegalArgumentException::class)
     @Beta
     fun getDrawableAllocationByteCount(
         oldDrawable: GifDrawable?,
@@ -272,9 +285,10 @@ class GifAnimationMetaData : Serializable, Parcelable {
 
     companion object {
         private const val serialVersionUID = 5692363926580237325L
+
         @JvmField
         val CREATOR: Creator<GifAnimationMetaData?> = object : Creator<GifAnimationMetaData?> {
-            override fun createFromParcel(source: Parcel): GifAnimationMetaData? {
+            override fun createFromParcel(source: Parcel): GifAnimationMetaData {
                 return GifAnimationMetaData(source)
             }
 

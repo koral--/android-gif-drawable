@@ -5,6 +5,7 @@ import android.content.res.AssetFileDescriptor
 import android.content.res.AssetManager
 import android.content.res.ColorStateList
 import android.content.res.Resources
+import android.content.res.Resources.NotFoundException
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -40,6 +41,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import kotlin.jvm.Throws
 import kotlin.math.max
 
 /**
@@ -54,15 +56,14 @@ class GifDrawable internal constructor(
     executor: ScheduledThreadPoolExecutor?,
     val mIsRenderingTriggeredOnDraw: Boolean
 ) : Drawable(), Animatable, MediaPlayerControl {
+
     val mExecutor: ScheduledThreadPoolExecutor
 
     @Volatile
     var mIsRunning = true
     var mNextFrameRenderTime = Long.MIN_VALUE
     private val mDstRect = Rect()
-    /**
-     * @return the paint used to render this drawable
-     */
+
     /**
      * Paint used to draw on a Canvas
      */
@@ -71,7 +72,8 @@ class GifDrawable internal constructor(
     /**
      * Frame buffer, holds current frame.
      */
-    var mBuffer: Bitmap? = null
+    var mBuffer: Bitmap
+
     val mListeners = ConcurrentLinkedQueue<AnimationListener>()
     private var mTint: ColorStateList? = null
     private var mTintFilter: PorterDuffColorFilter? = null
@@ -93,6 +95,7 @@ class GifDrawable internal constructor(
      * @throws IOException          when opening failed
      * @throws NullPointerException if res is null
      */
+    @Throws(NotFoundException::class, IOException::class, NullPointerException::class)
     constructor(res: Resources, @RawRes @DrawableRes id: Int) : this(res.openRawResourceFd(id)) {
         val densityScale = getDensityScale(res, id)
         mScaledHeight = (mNativeInfoHandle.height * densityScale).toInt()
@@ -107,6 +110,7 @@ class GifDrawable internal constructor(
      * @throws IOException          when opening failed
      * @throws NullPointerException if assets or assetName is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(assets: AssetManager, assetName: String) : this(assets.openFd(assetName))
 
     /**
@@ -119,6 +123,7 @@ class GifDrawable internal constructor(
      * @throws IOException          when opening failed
      * @throws NullPointerException if filePath is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(filePath: String) : this(GifInfoHandle(filePath), null, null, true)
 
     /**
@@ -128,6 +133,7 @@ class GifDrawable internal constructor(
      * @throws IOException          when opening failed
      * @throws NullPointerException if file is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(file: File) : this(file.path)
 
     /**
@@ -139,6 +145,7 @@ class GifDrawable internal constructor(
      * @throws IllegalArgumentException if stream does not support marking
      * @throws NullPointerException     if stream is null
      */
+    @Throws(IOException::class, NullPointerException::class, IllegalArgumentException::class)
     constructor(stream: InputStream) : this(GifInfoHandle(stream), null, null, true)
 
     /**
@@ -149,6 +156,7 @@ class GifDrawable internal constructor(
      * @throws NullPointerException if afd is null
      * @throws IOException          when opening failed
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(afd: AssetFileDescriptor) : this(GifInfoHandle(afd), null, null, true)
 
     /**
@@ -158,6 +166,7 @@ class GifDrawable internal constructor(
      * @throws IOException          when opening failed
      * @throws NullPointerException if fd is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(fd: FileDescriptor) : this(GifInfoHandle(fd), null, null, true)
 
     /**
@@ -168,6 +177,7 @@ class GifDrawable internal constructor(
      * @throws IOException          if bytes does not contain valid GIF data
      * @throws NullPointerException if bytes are null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(bytes: ByteArray) : this(GifInfoHandle(bytes), null, null, true)
 
     /**
@@ -178,6 +188,7 @@ class GifDrawable internal constructor(
      * @throws IOException          if buffer does not contain valid GIF data or is indirect
      * @throws NullPointerException if buffer is null
      */
+    @Throws(IOException::class, NullPointerException::class)
     constructor(buffer: ByteBuffer) : this(GifInfoHandle(buffer), null, null, true)
 
     /**
@@ -189,9 +200,10 @@ class GifDrawable internal constructor(
      * @param resolver resolver used to query `uri`, can be null for file:// scheme Uris
      * @throws IOException if resolution fails or destination is not a GIF.
      */
+    @Throws(IOException::class)
     constructor(resolver: ContentResolver?, uri: Uri) : this(
         openUri(
-            resolver!!, uri
+            resolver, uri
         ), null, null, true
     )
 
@@ -205,6 +217,7 @@ class GifDrawable internal constructor(
      * @param options                    Options controlling various GIF parameters.
      * @throws IOException if input source is invalid.
      */
+    @Throws(IOException::class)
     protected constructor(
         inputSource: InputSource,
         oldDrawable: GifDrawable?,
@@ -233,16 +246,13 @@ class GifDrawable internal constructor(
                 }
             }
         }
-        mBuffer = if (oldBitmap == null) {
-            Bitmap.createBitmap(
+        mBuffer = oldBitmap
+            ?: Bitmap.createBitmap(
                 mNativeInfoHandle.width,
                 mNativeInfoHandle.height,
                 Bitmap.Config.ARGB_8888
             )
-        } else {
-            oldBitmap
-        }
-        mBuffer!!.setHasAlpha(!mNativeInfoHandle.isOpaque)
+        mBuffer.setHasAlpha(!mNativeInfoHandle.isOpaque)
         mSrcRect = Rect(0, 0, mNativeInfoHandle.width, mNativeInfoHandle.height)
         mInvalidationHandler = InvalidationHandler(this)
         mRenderTask.doWork()
@@ -259,7 +269,7 @@ class GifDrawable internal constructor(
      */
     fun recycle() {
         shutdown()
-        mBuffer!!.recycle()
+        mBuffer.recycle()
     }
 
     private fun shutdown() {
@@ -301,6 +311,7 @@ class GifDrawable internal constructor(
      * @return either [PixelFormat.TRANSPARENT] or [PixelFormat.OPAQUE]
      * depending on current [Paint] and [GifOptions#setInIsOpaque] used to construct this Drawable
      */
+    @Deprecated("Deprecated in Java")
     override fun getOpacity(): Int {
         return if (!mNativeInfoHandle.isOpaque || paint.alpha < 255) {
             PixelFormat.TRANSPARENT
@@ -440,6 +451,7 @@ class GifDrawable internal constructor(
      * @param factor new speed factor, eg. 0.5f means half speed, 1.0f - normal, 2.0f - double speed
      * @throws IllegalArgumentException if factor&lt;=0
      */
+    @Throws(IllegalArgumentException::class)
     fun setSpeed(@FloatRange(from = 0.0, fromInclusive = false) factor: Float) {
         mNativeInfoHandle.setSpeedFactor(factor)
     }
@@ -485,11 +497,12 @@ class GifDrawable internal constructor(
      * @param position position to seek to in milliseconds
      * @throws IllegalArgumentException if `position`&lt;0
      */
+    @Throws(IllegalArgumentException::class)
     override fun seekTo(@IntRange(from = 0, to = Int.MAX_VALUE.toLong()) position: Int) {
         require(position >= 0) { "Position is not positive" }
         mExecutor.execute(object : SafeRunnable(this) {
             override fun doWork() {
-                mNativeInfoHandle.seekToTime(position, mBuffer!!)
+                mNativeInfoHandle.seekToTime(position, mBuffer)
                 mGifDrawable.mInvalidationHandler.sendEmptyMessageAtTime(
                     InvalidationHandler.MSG_TYPE_INVALIDATION,
                     0
@@ -504,9 +517,10 @@ class GifDrawable internal constructor(
      * @param position position to seek to in milliseconds
      * @throws IllegalArgumentException if `position`&lt;0
      */
+    @Throws(IllegalArgumentException::class)
     fun seekToBlocking(@IntRange(from = 0, to = Int.MAX_VALUE.toLong()) position: Int) {
         require(position >= 0) { "Position is not positive" }
-        synchronized(mNativeInfoHandle) { mNativeInfoHandle.seekToTime(position, (mBuffer)!!) }
+        synchronized(mNativeInfoHandle) { mNativeInfoHandle.seekToTime(position, mBuffer) }
         mInvalidationHandler.sendEmptyMessageAtTime(InvalidationHandler.MSG_TYPE_INVALIDATION, 0)
     }
 
@@ -517,13 +531,14 @@ class GifDrawable internal constructor(
      * @param frameIndex index of the frame to seek to (zero based)
      * @throws IllegalArgumentException if `frameIndex`&lt;0
      */
+    @Throws(IllegalArgumentException::class)
     fun seekToFrame(@IntRange(from = 0, to = Int.MAX_VALUE.toLong()) frameIndex: Int) {
         if (frameIndex < 0) {
             throw IndexOutOfBoundsException("Frame index is not positive")
         }
         mExecutor.execute(object : SafeRunnable(this) {
             override fun doWork() {
-                mNativeInfoHandle.seekToFrame(frameIndex, mBuffer!!)
+                mNativeInfoHandle.seekToFrame(frameIndex, mBuffer)
                 mInvalidationHandler.sendEmptyMessageAtTime(
                     InvalidationHandler.MSG_TYPE_INVALIDATION,
                     0
@@ -539,6 +554,7 @@ class GifDrawable internal constructor(
      * @return frame at desired index
      * @throws IndexOutOfBoundsException if frameIndex&lt;0
      */
+    @Throws(IndexOutOfBoundsException::class)
     fun seekToFrameAndGet(
         @IntRange(
             from = 0,
@@ -550,7 +566,7 @@ class GifDrawable internal constructor(
         }
         val bitmap: Bitmap
         synchronized(mNativeInfoHandle) {
-            mNativeInfoHandle.seekToFrame(frameIndex, (mBuffer)!!)
+            mNativeInfoHandle.seekToFrame(frameIndex, mBuffer)
             bitmap = currentFrame
         }
         mInvalidationHandler.sendEmptyMessageAtTime(InvalidationHandler.MSG_TYPE_INVALIDATION, 0)
@@ -564,6 +580,7 @@ class GifDrawable internal constructor(
      * @return frame at desired position
      * @throws IndexOutOfBoundsException if position&lt;0
      */
+    @Throws(IndexOutOfBoundsException::class)
     fun seekToPositionAndGet(
         @IntRange(
             from = 0,
@@ -573,7 +590,7 @@ class GifDrawable internal constructor(
         require(position >= 0) { "Position is not positive" }
         val bitmap: Bitmap
         synchronized(mNativeInfoHandle) {
-            mNativeInfoHandle.seekToTime(position, (mBuffer)!!)
+            mNativeInfoHandle.seekToTime(position, mBuffer)
             bitmap = currentFrame
         }
         mInvalidationHandler.sendEmptyMessageAtTime(InvalidationHandler.MSG_TYPE_INVALIDATION, 0)
@@ -646,7 +663,7 @@ class GifDrawable internal constructor(
          *
          * @return the minimum number of bytes that can be used to store pixels of the single frame
          */
-        get() = mBuffer!!.rowBytes * mBuffer!!.height
+        get() = mBuffer.rowBytes * mBuffer.height
     val allocationByteCount: Long
         /**
          * Returns size of the memory needed to store pixels of this object. It counts possible length of all frame buffers.
@@ -658,7 +675,7 @@ class GifDrawable internal constructor(
         get() {
             var byteCount = mNativeInfoHandle.allocationByteCount
             byteCount += if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                mBuffer!!.allocationByteCount.toLong()
+                mBuffer.allocationByteCount.toLong()
             } else {
                 frameByteCount.toLong()
             }
@@ -671,8 +688,9 @@ class GifDrawable internal constructor(
      * @param pixels the array to receive the frame's colors
      * @throws ArrayIndexOutOfBoundsException if the pixels array is too small to receive required number of pixels
      */
+    @Throws(ArrayIndexOutOfBoundsException::class)
     fun getPixels(pixels: IntArray) {
-        mBuffer!!.getPixels(
+        mBuffer.getPixels(
             pixels,
             0,
             mNativeInfoHandle.width,
@@ -694,6 +712,7 @@ class GifDrawable internal constructor(
      * @throws IllegalArgumentException if x, y exceed the drawable's bounds
      * @throws IllegalStateException    if drawable is recycled
      */
+    @Throws(IllegalArgumentException::class, IllegalStateException::class)
     fun getPixel(@IntRange(from = 0) x: Int, @IntRange(from = 0) y: Int): Int {
         require(x < mNativeInfoHandle.width) {  //need to check explicitly because reused bitmap may be larger
             "x must be < width"
@@ -701,7 +720,7 @@ class GifDrawable internal constructor(
         if (y >= mNativeInfoHandle.height) {
             throw IllegalArgumentException("y must be < height")
         }
-        return mBuffer!!.getPixel(x, y)
+        return mBuffer.getPixel(x, y)
     }
 
     override fun onBoundsChange(bounds: Rect) {
@@ -725,7 +744,7 @@ class GifDrawable internal constructor(
             clearColorFilter = false
         }
         if (mTransform == null) {
-            canvas.drawBitmap(mBuffer!!, mSrcRect, mDstRect, paint)
+            canvas.drawBitmap(mBuffer, mSrcRect, mDstRect, paint)
         } else {
             mTransform!!.onDraw(canvas, paint, mBuffer)
         }
@@ -763,8 +782,9 @@ class GifDrawable internal constructor(
      * Adds a new animation listener
      *
      * @param listener animation listener to be added, not null
-     * @throws java.lang.NullPointerException if listener is null
+     * @throws NullPointerException if listener is null
      */
+    @Throws(NullPointerException::class)
     fun addAnimationListener(listener: AnimationListener) {
         mListeners.add(listener)
     }
@@ -790,8 +810,8 @@ class GifDrawable internal constructor(
          * @return current frame
          */
         get() {
-            val copy = mBuffer!!.copy(mBuffer!!.config, mBuffer!!.isMutable)
-            copy.setHasAlpha(mBuffer!!.hasAlpha())
+            val copy = mBuffer.copy(mBuffer.config, mBuffer.isMutable)
+            copy.setHasAlpha(mBuffer.hasAlpha())
             return copy
         }
 
@@ -899,6 +919,7 @@ class GifDrawable internal constructor(
      * @return duration of the given frame in milliseconds
      * @throws IndexOutOfBoundsException if index &lt; 0 or index &gt;= number of frames
      */
+    @Throws(IndexOutOfBoundsException::class)
     fun getFrameDuration(@IntRange(from = 0) index: Int): Int {
         return mNativeInfoHandle.getFrameDuration(index)
     }

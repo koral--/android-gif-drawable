@@ -179,8 +179,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @return this builder instance, to chain calls
      */
     @Beta
-    fun options(options: GifOptions?): T {
-        options!!.setFrom(options)
+    fun options(options: GifOptions): T {
+        options.setFrom(options)
         return self()
     }
 
@@ -190,8 +190,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param inputStream data source
      * @return this builder instance, to chain calls
      */
-    fun from(inputStream: InputStream?): T {
-        inputSource = InputSource.InputStreamSource(inputStream!!)
+    fun from(inputStream: InputStream): T {
+        inputSource = InputSource.InputStreamSource(inputStream)
         return self()
     }
 
@@ -201,8 +201,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param assetFileDescriptor data source
      * @return this builder instance, to chain calls
      */
-    fun from(assetFileDescriptor: AssetFileDescriptor?): T {
-        inputSource = AssetFileDescriptorSource(assetFileDescriptor!!)
+    fun from(assetFileDescriptor: AssetFileDescriptor): T {
+        inputSource = AssetFileDescriptorSource(assetFileDescriptor)
         return self()
     }
 
@@ -212,8 +212,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param fileDescriptor data source
      * @return this builder instance, to chain calls
      */
-    fun from(fileDescriptor: FileDescriptor?): T {
-        inputSource = FileDescriptorSource(fileDescriptor!!)
+    fun from(fileDescriptor: FileDescriptor): T {
+        inputSource = FileDescriptorSource(fileDescriptor)
         return self()
     }
 
@@ -224,8 +224,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param assetName    asset file name
      * @return this builder instance, to chain calls
      */
-    fun from(assetManager: AssetManager?, assetName: String?): T {
-        inputSource = AssetSource(assetManager!!, assetName!!)
+    fun from(assetManager: AssetManager, assetName: String): T {
+        inputSource = AssetSource(assetManager, assetName)
         return self()
     }
 
@@ -236,8 +236,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param contentResolver resolver used to query `uri`
      * @return this builder instance, to chain calls
      */
-    fun from(contentResolver: ContentResolver?, uri: Uri?): T {
-        inputSource = UriSource(contentResolver, uri!!)
+    fun from(contentResolver: ContentResolver, uri: Uri): T {
+        inputSource = UriSource(contentResolver, uri)
         return self()
     }
 
@@ -247,8 +247,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param file data source
      * @return this builder instance, to chain calls
      */
-    fun from(file: File?): T {
-        inputSource = InputSource.FileSource(file!!)
+    fun from(file: File): T {
+        inputSource = InputSource.FileSource(file)
         return self()
     }
 
@@ -258,8 +258,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param filePath data source
      * @return this builder instance, to chain calls
      */
-    fun from(filePath: String?): T {
-        inputSource = InputSource.FileSource(filePath!!)
+    fun from(filePath: String): T {
+        inputSource = InputSource.FileSource(filePath)
         return self()
     }
 
@@ -269,8 +269,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param bytes data source
      * @return this builder instance, to chain calls
      */
-    fun from(bytes: ByteArray?): T {
-        inputSource = ByteArraySource(bytes!!)
+    fun from(bytes: ByteArray): T {
+        inputSource = ByteArraySource(bytes)
         return self()
     }
 
@@ -280,8 +280,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param byteBuffer data source
      * @return this builder instance, to chain calls
      */
-    fun from(byteBuffer: ByteBuffer?): T {
-        inputSource = DirectByteBufferSource(byteBuffer!!)
+    fun from(byteBuffer: ByteBuffer): T {
+        inputSource = DirectByteBufferSource(byteBuffer)
         return self()
     }
 
@@ -292,8 +292,8 @@ abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
      * @param resourceId resource id (data source)
      * @return this builder instance, to chain calls
      */
-    fun from(resources: Resources?, resourceId: Int): T {
-        inputSource = ResourcesSource(resources!!, resourceId)
+    fun from(resources: Resources, resourceId: Int): T {
+        inputSource = ResourcesSource(resources, resourceId)
         return self()
     }
 }

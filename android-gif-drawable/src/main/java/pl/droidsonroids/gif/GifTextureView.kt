@@ -21,6 +21,7 @@ import pl.droidsonroids.gif.InputSource.AssetSource
 import pl.droidsonroids.gif.InputSource.ResourcesSource
 import java.io.IOException
 import java.lang.ref.WeakReference
+import kotlin.jvm.Throws
 import kotlin.math.min
 
 /**
@@ -315,6 +316,7 @@ class GifTextureView : TextureView {
      * @throws IllegalArgumentException if `factor <= 0`
      * @see GifDrawable.setSpeed
      */
+    @Throws(IllegalArgumentException::class)
     fun setSpeed(@FloatRange(from = 0.0, fromInclusive = false) factor: Float) {
         mSpeedFactor = factor
         mRenderThread?.mGifInfoHandle?.setSpeedFactor(factor)

@@ -1,7 +1,6 @@
 package pl.droidsonroids.gif
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import org.assertj.core.api.Assertions
 import org.junit.Test
@@ -9,8 +8,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class AllocationByteCountTest {
+
     @Test
-    @Throws(Exception::class)
     fun allocationByteCountIsConsistent() {
         val resources = getInstrumentation().context.resources
         val drawable = GifDrawable(resources, pl.droidsonroids.gif.test.R.raw.test)

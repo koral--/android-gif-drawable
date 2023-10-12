@@ -2,6 +2,7 @@ package pl.droidsonroids.gif
 
 import android.graphics.Bitmap
 import androidx.annotation.IntRange
+import kotlin.jvm.Throws
 
 /**
  * GifDecoder allows lightweight access to GIF frames, without wrappers like Drawable or View.
@@ -61,6 +62,7 @@ class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: Gi
      * @param buffer   the frame buffer
      * @throws IllegalArgumentException if `position < 0 `or `buffer` is recycled
      */
+    @Throws(IllegalArgumentException::class)
     fun seekToTime(@IntRange(from = 0, to = Int.MAX_VALUE.toLong()) position: Int, buffer: Bitmap) {
         checkBuffer(buffer)
         mGifInfoHandle.seekToTime(position, buffer)
@@ -73,6 +75,7 @@ class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: Gi
      * @param buffer     the frame buffer
      * @throws IllegalArgumentException if `frameIndex < 0` or `buffer` is recycled
      */
+    @Throws(IllegalArgumentException::class)
     fun seekToFrame(
         @IntRange(from = 0, to = Int.MAX_VALUE.toLong()) frameIndex: Int,
         buffer: Bitmap
@@ -96,6 +99,7 @@ class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: Gi
      * @return duration of the given frame in milliseconds
      * @throws IndexOutOfBoundsException if `index < 0 || index >= <number of frames>`
      */
+    @Throws(IndexOutOfBoundsException::class)
     fun getFrameDuration(@IntRange(from = 0) index: Int): Int {
         return mGifInfoHandle.getFrameDuration(index)
     }

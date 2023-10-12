@@ -5,7 +5,9 @@ import org.junit.Before
 import org.junit.Test
 
 class GifOptionsTest {
-    private var gifOptions: GifOptions? = null
+
+    private lateinit var gifOptions: GifOptions
+
     @Before
     fun setUp() {
         gifOptions = GifOptions()
@@ -13,20 +15,20 @@ class GifOptionsTest {
 
     @Test
     fun testInitialValues() {
-        Assertions.assertThat(gifOptions!!.inSampleSize).isEqualTo(1.toChar())
-        Assertions.assertThat(gifOptions!!.inIsOpaque).isFalse
+        Assertions.assertThat(gifOptions.inSampleSize).isEqualTo(1.toChar())
+        Assertions.assertThat(gifOptions.inIsOpaque).isFalse
     }
 
     @Test
     fun setInSampleSize() {
-        gifOptions!!.setInSampleSize(2)
-        Assertions.assertThat(gifOptions!!.inSampleSize).isEqualTo(2.toChar())
+        gifOptions.setInSampleSize(2)
+        Assertions.assertThat(gifOptions.inSampleSize).isEqualTo(2.toChar())
     }
 
     @Test
     fun setInIsOpaque() {
-        gifOptions!!.inIsOpaque = true
-        Assertions.assertThat(gifOptions!!.inIsOpaque).isTrue
+        gifOptions.inIsOpaque = true
+        Assertions.assertThat(gifOptions.inIsOpaque).isTrue
     }
 
     @Test
@@ -34,16 +36,16 @@ class GifOptionsTest {
         val source = GifOptions()
         source.inIsOpaque = false
         source.setInSampleSize(8)
-        gifOptions!!.setFrom(source)
+        gifOptions.setFrom(source)
         Assertions.assertThat(gifOptions).isEqualToComparingFieldByField(source)
     }
 
     @Test
     fun copyFromNull() {
         val defaultOptions = GifOptions()
-        gifOptions!!.inIsOpaque = false
-        gifOptions!!.setInSampleSize(8)
-        gifOptions!!.setFrom(null)
+        gifOptions.inIsOpaque = false
+        gifOptions.setInSampleSize(8)
+        gifOptions.setFrom(null)
         Assertions.assertThat(gifOptions).isEqualToComparingFieldByField(defaultOptions)
     }
 }

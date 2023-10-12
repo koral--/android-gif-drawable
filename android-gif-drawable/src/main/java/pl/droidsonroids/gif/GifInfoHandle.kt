@@ -16,20 +16,6 @@ import java.io.FileDescriptor
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
-import kotlin.Boolean
-import kotlin.ByteArray
-import kotlin.Char
-import kotlin.Exception
-import kotlin.IndexOutOfBoundsException
-import kotlin.Int
-import kotlin.Long
-import kotlin.LongArray
-import kotlin.String
-import kotlin.Throwable
-import kotlin.Throws
-import kotlin.code
-import kotlin.require
-import kotlin.synchronized
 
 /**
  * Native library wrapper
@@ -121,15 +107,16 @@ class GifInfoHandle {
     @get:Synchronized
     val inputSourceByteCount: Long
         get() = getSourceLength(gifInfoPtr)
-/**
- * Returns length of the input source obtained at the opening time or -1 if
- * length cannot be determined. Returned value does not change during runtime.
- * If GifDrawable is constructed from [InputStream] -1 is always returned.
- * In case of byte array and [ByteBuffer] length is always known.
- * In other cases length -1 can be returned if length cannot be determined.
- *
- * @return number of bytes backed by input source or -1 if it is unknown
- */
+
+    /**
+     * Returns length of the input source obtained at the opening time or -1 if
+     * length cannot be determined. Returned value does not change during runtime.
+     * If GifDrawable is constructed from [InputStream] -1 is always returned.
+     * In case of byte array and [ByteBuffer] length is always known.
+     * In other cases length -1 can be returned if length cannot be determined.
+     *
+     * @return number of bytes backed by input source or -1 if it is unknown
+     */
 
     @get:Synchronized
     val nativeErrorCode: Int
@@ -185,7 +172,6 @@ class GifInfoHandle {
     val isRecycled: Boolean
         get() = gifInfoPtr == 0L
 
-    @Throws(Throwable::class)
     protected fun finalize() {
         recycle()
     }
@@ -309,17 +295,18 @@ class GifInfoHandle {
         }
 
         @Throws(IOException::class)
-        fun openUri(resolver: ContentResolver, uri: Uri): GifInfoHandle {
+        fun openUri(resolver: ContentResolver?, uri: Uri): GifInfoHandle {
             if (ContentResolver.SCHEME_FILE == uri.scheme) { //workaround for #128
                 return GifInfoHandle(uri.path)
             }
-            val assetFileDescriptor = resolver.openAssetFileDescriptor(uri, "r")
+            val assetFileDescriptor = resolver?.openAssetFileDescriptor(uri, "r")
                 ?: throw IOException("Could not open AssetFileDescriptor for $uri")
             return GifInfoHandle(assetFileDescriptor)
         }
 
         @Throws(GifIOException::class)
         external fun openNativeFileDescriptor(fd: Int, offset: Long): Long
+
         @Throws(GifIOException::class)
         external fun extractNativeFileDescriptor(
             fileDescriptor: FileDescriptor?,
@@ -328,12 +315,16 @@ class GifInfoHandle {
 
         @Throws(GifIOException::class)
         external fun createTempNativeFileDescriptor(): Int
+
         @Throws(GifIOException::class)
         external fun openByteArray(bytes: ByteArray?): Long
+
         @Throws(GifIOException::class)
         external fun openDirectByteBuffer(buffer: ByteBuffer?): Long
+
         @Throws(GifIOException::class)
         external fun openStream(stream: InputStream?): Long
+
         @Throws(GifIOException::class)
         external fun openFile(filePath: String?): Long
         private external fun renderFrame(gifFileInPtr: Long, frameBuffer: Bitmap?): Long

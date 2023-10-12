@@ -116,7 +116,7 @@ abstract class InputSource private constructor() {
      */(private val mContentResolver: ContentResolver?, private val mUri: Uri) : InputSource() {
         @Throws(IOException::class)
         override fun open(): GifInfoHandle {
-            return openUri(mContentResolver!!, mUri)
+            return openUri(mContentResolver, mUri)
         }
     }
 

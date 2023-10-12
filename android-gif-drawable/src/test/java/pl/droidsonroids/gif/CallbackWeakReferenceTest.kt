@@ -10,13 +10,14 @@ import pl.droidsonroids.gif.MultiCallback.CallbackWeakReference
 
 @RunWith(MockitoJUnitRunner::class)
 class CallbackWeakReferenceTest {
+
     @Mock
     var callback: Drawable.Callback? = null
 
     @Mock
     var anotherCallback: Drawable.Callback? = null
+
     @Test
-    @Throws(Exception::class)
     fun testEquals() {
         val reference = CallbackWeakReference(callback)
         val anotherReference = CallbackWeakReference(callback)
@@ -24,7 +25,6 @@ class CallbackWeakReferenceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testNotEqualReferences() {
         val reference = CallbackWeakReference(callback)
         val anotherReference = CallbackWeakReference(anotherCallback)
@@ -32,7 +32,6 @@ class CallbackWeakReferenceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testNotEqualDifferentObjects() {
         val reference = CallbackWeakReference(callback)
         Java6Assertions.assertThat(reference).isNotEqualTo(null)
@@ -40,7 +39,6 @@ class CallbackWeakReferenceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testHashCode() {
         val reference = CallbackWeakReference(callback)
         val anotherReference = CallbackWeakReference(callback)
@@ -48,7 +46,6 @@ class CallbackWeakReferenceTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun testHashCodeNull() {
         val reference = CallbackWeakReference(callback)
         val anotherReference = CallbackWeakReference(null)

@@ -11,13 +11,14 @@ import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class ErrnoMessageTest {
+
     @get:Rule
     var mExpectedException = ExpectedException.none()
 
     @get:Rule
     var mTemporaryFolder = TemporaryFolder()
+
     @Test
-    @Throws(Exception::class)
     fun errnoMessageAppendedToOpenFailed() {
         mExpectedException.expect(GifIOException::class.java)
         mExpectedException.expectMessage("GifError 101: Failed to open given input: No such file or directory")
@@ -26,7 +27,6 @@ class ErrnoMessageTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun errnoMessageAppendedToReadFailed() {
         mExpectedException.expect(GifIOException::class.java)
         mExpectedException.expectMessage("GifError 102: Failed to read from given input: Is a directory")

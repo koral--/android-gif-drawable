@@ -10,8 +10,8 @@ import java.io.InputStream
 
 @RunWith(AndroidJUnit4::class)
 class InputStreamTest {
+
     @Test
-    @Throws(Exception::class)
     fun gifDrawableCreatedFromInputStream() {
         val assetFileDescriptor = InstrumentationRegistry.getInstrumentation()
             .context.resources.openRawResourceFd(pl.droidsonroids.gif.test.R.raw.test)

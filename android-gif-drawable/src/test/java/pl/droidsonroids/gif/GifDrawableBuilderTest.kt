@@ -4,8 +4,8 @@ import org.assertj.core.api.Java6Assertions
 import org.junit.Test
 
 class GifDrawableBuilderTest {
+
     @Test
-    @Throws(Exception::class)
     fun testOptionsAndSampleSizeConflict() {
         val builder = GifDrawableBuilder()
         val options = GifOptions()

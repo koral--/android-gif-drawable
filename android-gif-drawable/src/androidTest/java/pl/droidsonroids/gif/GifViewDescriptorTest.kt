@@ -11,7 +11,9 @@ import pl.droidsonroids.gif.GifDrawableAssert.Companion.assertThat
 
 @RunWith(AndroidJUnit4::class)
 class GifViewDescriptorTest {
-    private var rootView: View? = null
+
+    private lateinit var rootView: View
+
     @Before
     fun setUp() {
         val context = InstrumentationRegistry.getInstrumentation().context
@@ -20,21 +22,21 @@ class GifViewDescriptorTest {
 
     @Test
     fun loopCountSetOnGifImageButton() {
-        val view = rootView!!.findViewById<GifImageButton>(pl.droidsonroids.gif.test.R.id.imageButton)
+        val view = rootView.findViewById<GifImageButton>(pl.droidsonroids.gif.test.R.id.imageButton)
         assertThat(view.background).hasLoopCountEqualTo(IMAGE_BUTTON_LOOP_COUNT)
         assertThat(view.drawable).hasLoopCountEqualTo(IMAGE_BUTTON_LOOP_COUNT)
     }
 
     @Test
     fun loopCountSetOnGifImageView() {
-        val view = rootView!!.findViewById<GifImageView>(pl.droidsonroids.gif.test.R.id.imageView)
+        val view = rootView.findViewById<GifImageView>(pl.droidsonroids.gif.test.R.id.imageView)
         assertThat(view.background).hasLoopCountEqualTo(IMAGE_VIEW_LOOP_COUNT)
         assertThat(view.drawable).hasLoopCountEqualTo(IMAGE_VIEW_LOOP_COUNT)
     }
 
     @Test
     fun loopCountSetOnGifTextView() {
-        val view = rootView!!.findViewById<GifTextView>(pl.droidsonroids.gif.test.R.id.textView)
+        val view = rootView.findViewById<GifTextView>(pl.droidsonroids.gif.test.R.id.textView)
         assertThat(view.background).hasLoopCountEqualTo(TEXT_VIEW_LOOP_COUNT)
         for (drawable in view.compoundDrawablesRelative) {
             assertThat(drawable).hasLoopCountEqualTo(TEXT_VIEW_LOOP_COUNT)

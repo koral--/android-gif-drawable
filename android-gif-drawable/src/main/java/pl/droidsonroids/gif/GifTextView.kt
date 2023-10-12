@@ -21,7 +21,7 @@ import java.io.IOException
  * @author koral--
  */
 class GifTextView : TextView {
-    private var viewAttributes: GifViewAttributes? = null
+    private lateinit var viewAttributes: GifViewAttributes
 
     /**
      * A corresponding superclass constructor wrapper.
@@ -148,21 +148,22 @@ class GifTextView : TextView {
             )
             viewAttributes = GifViewAttributes(this, attrs, defStyle, defStyleRes)
             applyGifViewAttributes()
+        } else {
+            viewAttributes = GifViewAttributes()
         }
-        viewAttributes = GifViewAttributes()
     }
 
     private fun applyGifViewAttributes() {
-        if (viewAttributes!!.mLoopCount < 0) {
+        if (viewAttributes.mLoopCount < 0) {
             return
         }
         for (drawable in compoundDrawables) {
-            applyLoopCount(viewAttributes!!.mLoopCount, drawable)
+            applyLoopCount(viewAttributes.mLoopCount, drawable)
         }
         for (drawable in compoundDrawablesRelative) {
-            applyLoopCount(viewAttributes!!.mLoopCount, drawable)
+            applyLoopCount(viewAttributes.mLoopCount, drawable)
         }
-        applyLoopCount(viewAttributes!!.mLoopCount, background)
+        applyLoopCount(viewAttributes.mLoopCount, background)
     }
 
     @Suppress("deprecation") //Resources#getDrawable(int)
@@ -176,7 +177,6 @@ class GifTextView : TextView {
             try {
                 return GifDrawable(resources, resId)
             } catch (ignored: IOException) {
-                // ignored
             } catch (ignored: NotFoundException) {
             }
         }
@@ -217,7 +217,7 @@ class GifTextView : TextView {
 
     override fun onSaveInstanceState(): Parcelable {
         val savedDrawables = arrayOfNulls<Drawable>(7)
-        if (viewAttributes?.freezesAnimation == true) {
+        if (viewAttributes.freezesAnimation) {
             val compoundDrawables = compoundDrawables
             System.arraycopy(compoundDrawables, 0, savedDrawables, 0, compoundDrawables.size)
             val compoundDrawablesRelative = compoundDrawablesRelative
@@ -271,7 +271,7 @@ class GifTextView : TextView {
      * @param freezesAnimation whether animation position is saved
      */
     fun setFreezesAnimation(freezesAnimation: Boolean) {
-        viewAttributes!!.freezesAnimation = freezesAnimation
+        viewAttributes.freezesAnimation = freezesAnimation
     }
 
     companion object {
