@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 abstract class InputSource private constructor() {
     @Throws(IOException::class)
     abstract fun open(): GifInfoHandle
+
     @Throws(IOException::class)
     fun createGifDrawable(
         oldDrawable: GifDrawable?, executor: ScheduledThreadPoolExecutor?,

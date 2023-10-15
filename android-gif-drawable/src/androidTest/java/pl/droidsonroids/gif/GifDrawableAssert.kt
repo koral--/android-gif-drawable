@@ -3,12 +3,13 @@ package pl.droidsonroids.gif
 import android.graphics.drawable.Drawable
 import org.assertj.core.api.AbstractAssert
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import pl.droidsonroids.gif.GifDrawable
 
 internal class GifDrawableAssert private constructor(actual: GifDrawable) :
     AbstractAssert<GifDrawableAssert?, GifDrawable?>(actual, GifDrawableAssert::class.java) {
     fun hasLoopCountEqualTo(loopCount: Int): GifDrawableAssert {
-        Assertions.assertThat(actual!!.loopCount).isEqualTo(loopCount)
+        assertThat(actual!!.loopCount).isEqualTo(loopCount)
         return this
     }
 

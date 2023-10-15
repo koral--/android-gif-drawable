@@ -4,6 +4,7 @@ import android.os.SystemClock
 import java.util.concurrent.TimeUnit
 
 internal class RenderTask(gifDrawable: GifDrawable) : SafeRunnable(gifDrawable) {
+
     override fun doWork() {
         val invalidationDelay = mGifDrawable.mNativeInfoHandle.renderFrame(mGifDrawable.mBuffer)
         if (invalidationDelay >= 0) {

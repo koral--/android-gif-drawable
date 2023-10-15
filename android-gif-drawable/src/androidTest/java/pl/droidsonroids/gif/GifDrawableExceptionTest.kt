@@ -9,6 +9,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
+import pl.droidsonroids.gif.test.R
 
 @RunWith(AndroidJUnit4::class)
 class GifDrawableExceptionTest {
@@ -21,7 +22,7 @@ class GifDrawableExceptionTest {
     @Before
     fun setUp() {
         val resources = InstrumentationRegistry.getInstrumentation().context.resources
-        gifDrawable = GifDrawable(resources, pl.droidsonroids.gif.test.R.raw.test)
+        gifDrawable = GifDrawable(resources, R.raw.test)
     }
 
     @After
@@ -33,7 +34,8 @@ class GifDrawableExceptionTest {
     fun frameIndexOutOfBoundsMessageContainsRange() {
         val numberOfFrames = gifDrawable.numberOfFrames
         val invalidFrameIndex = numberOfFrames + 10
-        expectedException.expectMessage(CoreMatchers.containsString(Integer.toString(numberOfFrames)))
+
+        expectedException.expectMessage(CoreMatchers.containsString(numberOfFrames.toString()))
         expectedException.expect(IndexOutOfBoundsException::class.java)
         gifDrawable.getFrameDuration(invalidFrameIndex)
     }

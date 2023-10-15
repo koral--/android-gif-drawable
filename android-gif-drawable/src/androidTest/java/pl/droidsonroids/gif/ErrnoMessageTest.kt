@@ -21,15 +21,20 @@ class ErrnoMessageTest {
     @Test
     fun errnoMessageAppendedToOpenFailed() {
         mExpectedException.expect(GifIOException::class.java)
+
         mExpectedException.expectMessage("GifError 101: Failed to open given input: No such file or directory")
+
         val nonExistentFile = File(mTemporaryFolder.root, "non-existent")
+
         GifDrawable(nonExistentFile)
     }
 
     @Test
     fun errnoMessageAppendedToReadFailed() {
         mExpectedException.expect(GifIOException::class.java)
+
         mExpectedException.expectMessage("GifError 102: Failed to read from given input: Is a directory")
+
         GifDrawable(mTemporaryFolder.root)
     }
 }

@@ -16,7 +16,7 @@ class GifIOException internal constructor(errorCode: Int, private val mErrnoMess
     override val message: String
         get() = if (mErrnoMessage == null) {
             reason.formattedDescription
-        } else reason.formattedDescription + ": " + mErrnoMessage
+        } else "${reason.formattedDescription} : $mErrnoMessage"
 
     init {
         reason = GifError.fromCode(errorCode)

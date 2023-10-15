@@ -5,7 +5,6 @@ package pl.droidsonroids.gif
  * by reusing old ones.
  */
 class GifDrawableBuilder : GifDrawableInit<GifDrawableBuilder>() {
-    override fun self(): GifDrawableBuilder {
-        return this
-    }
+
+    override fun self(): GifDrawableBuilder = this
 }

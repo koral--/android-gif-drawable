@@ -39,17 +39,17 @@ class GifAnimationMetaData : Serializable, Parcelable {
     /**
      * See [GifDrawable.getDuration]
      *
-     * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
+     * @return duration of one loop the animation in milliseconds. Result is always multiple of 10.
      */
     val duration: Int
 
     /**
-     * @return height od the GIF canvas in pixels
+     * @return height of the GIF canvas in pixels
      */
     val height: Int
 
     /**
-     * @return width od the GIF canvas in pixels
+     * @return width of the GIF canvas in pixels
      */
     val width: Int
 
@@ -230,8 +230,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
     ): Long {
         check(!(sampleSize < 1 || sampleSize > Character.MAX_VALUE.code)) { "Sample size " + sampleSize + " out of range <1, " + Character.MAX_VALUE + ">" }
         val sampleSizeFactor = sampleSize * sampleSize
-        val bufferSize: Long
-        bufferSize = if (oldDrawable != null && !oldDrawable.mBuffer.isRecycled) {
+        val bufferSize: Long = if (oldDrawable != null && !oldDrawable.mBuffer.isRecycled) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 oldDrawable.mBuffer.allocationByteCount.toLong()
             } else {
@@ -244,9 +243,7 @@ class GifAnimationMetaData : Serializable, Parcelable {
     }
 
     override fun toString(): String {
-        val loopCount = if (loopCount == 0) "Infinity" else Integer.toString(
-            loopCount
-        )
+        val loopCount = if (loopCount == 0) "Infinity" else loopCount.toString()
         val suffix = String.format(
             Locale.ENGLISH,
             "GIF: size: %dx%d, frames: %d, loops: %s, duration: %d",
@@ -273,14 +270,14 @@ class GifAnimationMetaData : Serializable, Parcelable {
         dest.writeLong(allocationByteCount)
     }
 
-    private constructor(`in`: Parcel) {
-        loopCount = `in`.readInt()
-        duration = `in`.readInt()
-        height = `in`.readInt()
-        width = `in`.readInt()
-        numberOfFrames = `in`.readInt()
-        metadataAllocationByteCount = `in`.readLong()
-        allocationByteCount = `in`.readLong()
+    private constructor(parcel: Parcel) {
+        loopCount = parcel.readInt()
+        duration = parcel.readInt()
+        height = parcel.readInt()
+        width = parcel.readInt()
+        numberOfFrames = parcel.readInt()
+        metadataAllocationByteCount = parcel.readLong()
+        allocationByteCount = parcel.readLong()
     }
 
     companion object {

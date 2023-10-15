@@ -8,24 +8,19 @@ import kotlin.jvm.Throws
  * GifDecoder allows lightweight access to GIF frames, without wrappers like Drawable or View.
  * [Bitmap] with size equal to or greater than size of the GIF is needed.
  * For access only metadata (size, number of frames etc.) without pixels see [GifAnimationMetaData].
+ *
+ *
+ * @constructor new GifDecoder
+ * @param inputSource source
+ * @param options     null-ok; options controlling subsampling and opacity
+ * @throws IOException when creation fails
+ *
  */
+
 class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: GifOptions? = null) {
     //TODO extract common container
     private val mGifInfoHandle: GifInfoHandle
-    /**
-     * Constructs new GifDecoder
-     *
-     * @param inputSource source
-     * @param options     null-ok; options controlling subsampling and opacity
-     * @throws IOException when creation fails
-     */
-    /**
-     * Constructs new GifDecoder.
-     * Equivalent of [.GifDecoder] with null `options`
-     *
-     * @param inputSource source
-     * @throws IOException when creation fails
-     */
+
     init {
         mGifInfoHandle = inputSource.open()
         if (options != null) {

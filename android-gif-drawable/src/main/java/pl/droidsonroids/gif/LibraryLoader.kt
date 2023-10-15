@@ -12,7 +12,6 @@ object LibraryLoader {
     private const val BASE_LIBRARY_NAME = "pl_droidsonroids_gif"
 
     @SuppressLint("StaticFieldLeak") //workaround for Android bug
-
     private var sAppContext: Context? = null
 
     /**

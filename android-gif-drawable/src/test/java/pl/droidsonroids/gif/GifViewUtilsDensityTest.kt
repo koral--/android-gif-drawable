@@ -12,20 +12,20 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
 import org.mockito.junit.MockitoJUnitRunner
 import pl.droidsonroids.gif.GifViewUtils.getDensityScale
 
 @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-@RunWith(
-    MockitoJUnitRunner::class
-)
+@RunWith(MockitoJUnitRunner::class)
 class GifViewUtilsDensityTest {
 
     @Mock
     lateinit var resources: Resources
 
     private fun getMockedResources(resourceDensity: Int, displayDensity: Int): Resources {
-        Mockito.doAnswer { invocation ->
+        doAnswer { invocation ->
             val outValue = invocation.getArgument<TypedValue>(1)
             outValue.density = resourceDensity
             outValue
@@ -34,9 +34,12 @@ class GifViewUtilsDensityTest {
                 TypedValue::class.java
             ), ArgumentMatchers.anyBoolean()
         )
+
         val displayMetrics = DisplayMetrics()
         displayMetrics.densityDpi = displayDensity
-        Mockito.`when`(resources.displayMetrics).thenReturn(displayMetrics)
+
+        `when`(resources.displayMetrics).thenReturn(displayMetrics)
+
         return resources
     }
 
@@ -50,6 +53,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -58,6 +62,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(0.5f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -66,6 +71,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(2f / 3)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -74,6 +80,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(4f / 3)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -82,6 +89,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(2.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -90,6 +98,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(8f / 3)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -122,6 +131,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -130,6 +140,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -138,6 +149,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -146,6 +158,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -154,6 +167,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -162,6 +176,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -182,6 +197,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -190,6 +206,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -198,6 +215,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -206,6 +224,7 @@ class GifViewUtilsDensityTest {
                 ), 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(
@@ -224,13 +243,16 @@ class GifViewUtilsDensityTest {
                 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(-1, DisplayMetrics.DENSITY_HIGH),
                 0
             )
         ).isEqualTo(1.0f)
+
         assertThat(getDensityScale(getMockedResources(-1, -1), 0)).isEqualTo(1.0f)
+
         assertThat(
             getDensityScale(
                 getMockedResources(DisplayMetrics.DENSITY_HIGH, 0),

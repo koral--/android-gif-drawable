@@ -23,8 +23,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 
 /**
  * The base class for using the builder pattern with subclasses.
- *
- * @param <T> The type of the builder that is a subclass of this class.
  * @see [link](https://community.oracle.com/blogs/emcmanus/2010/10/24/using-builder-pattern-subclasses)
 </T> */
 abstract class GifDrawableInit<T : GifDrawableInit<T>?> {
