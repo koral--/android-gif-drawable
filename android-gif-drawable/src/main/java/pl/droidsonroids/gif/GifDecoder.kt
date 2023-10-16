@@ -16,7 +16,6 @@ import kotlin.jvm.Throws
  * @throws IOException when creation fails
  *
  */
-
 class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: GifOptions? = null) {
     //TODO extract common container
     private val mGifInfoHandle: GifInfoHandle
@@ -28,26 +27,28 @@ class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: Gi
         }
     }
 
+    /**
+     * See [GifDrawable.getComment]
+     *
+     * @return GIF comment
+     */
     val comment: String
-        /**
-         * See [GifDrawable.getComment]
-         *
-         * @return GIF comment
-         */
         get() = mGifInfoHandle.comment
+
+    /**
+     * See [GifDrawable.getLoopCount]
+     *
+     * @return loop count, 0 means that animation is infinite
+     */
     val loopCount: Int
-        /**
-         * See [GifDrawable.getLoopCount]
-         *
-         * @return loop count, 0 means that animation is infinite
-         */
         get() = mGifInfoHandle.loopCount
+
+    /**
+     * See [GifDrawable.getInputSourceByteCount]
+     *
+     * @return number of bytes backed by input source or -1 if it is unknown
+     */
     val sourceLength: Long
-        /**
-         * See [GifDrawable.getInputSourceByteCount]
-         *
-         * @return number of bytes backed by input source or -1 if it is unknown
-         */
         get() = mGifInfoHandle.inputSourceByteCount
 
     /**
@@ -79,12 +80,12 @@ class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: Gi
         mGifInfoHandle.seekToFrame(frameIndex, buffer)
     }
 
+    /**
+     * See [GifDrawable.getAllocationByteCount]
+     *
+     * @return possible size of the memory needed to store pixels of this object
+     */
     val allocationByteCount: Long
-        /**
-         * See [GifDrawable.getAllocationByteCount]
-         *
-         * @return possible size of the memory needed to store pixels of this object
-         */
         get() = mGifInfoHandle.allocationByteCount
 
     /**
@@ -99,32 +100,36 @@ class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: Gi
         return mGifInfoHandle.getFrameDuration(index)
     }
 
+    /**
+     * See [GifDrawable.getDuration]
+     *
+     * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
+     */
     val duration: Int
-        /**
-         * See [GifDrawable.getDuration]
-         *
-         * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
-         */
         get() = mGifInfoHandle.duration
+
+    /**
+     * @return width od the GIF canvas in pixels
+     */
     val width: Int
-        /**
-         * @return width od the GIF canvas in pixels
-         */
         get() = mGifInfoHandle.width
+
+    /**
+     * @return height od the GIF canvas in pixels
+     */
     val height: Int
-        /**
-         * @return height od the GIF canvas in pixels
-         */
         get() = mGifInfoHandle.height
+
+    /**
+     * @return number of frames in GIF, at least one
+     */
     val numberOfFrames: Int
-        /**
-         * @return number of frames in GIF, at least one
-         */
         get() = mGifInfoHandle.numberOfFrames
+
+    /**
+     * @return true if GIF is animated (has at least 2 frames and positive duration), false otherwise
+     */
     val isAnimated: Boolean
-        /**
-         * @return true if GIF is animated (has at least 2 frames and positive duration), false otherwise
-         */
         get() = mGifInfoHandle.numberOfFrames > 1 && duration > 0
 
     /**
@@ -137,6 +142,6 @@ class GifDecoder @JvmOverloads constructor(inputSource: InputSource, options: Gi
     private fun checkBuffer(buffer: Bitmap) {
         require(!buffer.isRecycled) { "Bitmap is recycled" }
         require(!(buffer.width < mGifInfoHandle.width || buffer.height < mGifInfoHandle.height)) { "Bitmap ia too small, size must be greater than or equal to GIF size" }
-        require(buffer.config == Bitmap.Config.ARGB_8888) { "Only Config.ARGB_8888 is supported. Current bitmap config: " + buffer.config }
+        require(buffer.config == Bitmap.Config.ARGB_8888) { "Only Config.ARGB_8888 is supported. Current bitmap config: ${buffer.config}" }
     }
 }

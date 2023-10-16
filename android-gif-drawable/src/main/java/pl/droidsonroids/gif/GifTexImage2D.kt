@@ -60,15 +60,16 @@ class GifTexImage2D(inputSource: InputSource, options: GifOptions?) {
         mGifInfoHandle.seekToFrameGL(index)
     }
 
+    /**
+     * @return number of frames in GIF, at least one
+     */
     val numberOfFrames: Int
-        /**
-         * @return number of frames in GIF, at least one
-         */
         get() = mGifInfoHandle.numberOfFrames
+
+    /**
+     * @return index of recently rendered frame or -1 if this object is recycled
+     */
     val currentFrameIndex: Int
-        /**
-         * @return index of recently rendered frame or -1 if this object is recycled
-         */
         get() = mGifInfoHandle.currentFrameIndex
 
     /**
@@ -125,22 +126,24 @@ class GifTexImage2D(inputSource: InputSource, options: GifOptions?) {
         mGifInfoHandle.recycle()
     }
 
+    /**
+     * @return width of the GIF canvas, 0 if recycled
+     */
     val width: Int
-        /**
-         * @return width of the GIF canvas, 0 if recycled
-         */
         get() = mGifInfoHandle.width
+
+    /**
+     * @return height of the GIF canvas, 0 if recycled
+     */
     val height: Int
-        /**
-         * @return height of the GIF canvas, 0 if recycled
-         */
         get() = mGifInfoHandle.height
+
+    /**
+     * See [GifDrawable.getDuration]
+     *
+     * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
+     */
     val duration: Int
-        /**
-         * See [GifDrawable.getDuration]
-         *
-         * @return duration of of one loop the animation in milliseconds. Result is always multiple of 10.
-         */
         get() = mGifInfoHandle.duration
 
     protected fun finalize() {

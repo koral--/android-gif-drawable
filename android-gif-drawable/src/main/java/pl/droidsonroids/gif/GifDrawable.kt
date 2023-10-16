@@ -391,26 +391,25 @@ class GifDrawable internal constructor(
         return mIsRunning
     }
 
+    /**
+     * Returns GIF comment
+     *
+     * @return comment or null if there is no one defined in file
+     */
     val comment: String
-        /**
-         * Returns GIF comment
-         *
-         * @return comment or null if there is no one defined in file
-         */
         get() = mNativeInfoHandle.comment
+
+    /**
+     * Returns loop count previously read from GIF's application extension block.
+     * Defaults to 1 if there is no such extension.
+     *
+     * Sets loop count of the animation. Loop count must be in range `<0 ,65535>`
+     * @param loopCount loop count, 0 means infinity
+     *
+     * @return loop count, 0 means that animation is infinite
+     */
     var loopCount: Int
-        /**
-         * Returns loop count previously read from GIF's application extension block.
-         * Defaults to 1 if there is no such extension.
-         *
-         * @return loop count, 0 means that animation is infinite
-         */
         get() = mNativeInfoHandle.loopCount
-        /**
-         * Sets loop count of the animation. Loop count must be in range `<0 ,65535>`
-         *
-         * @param loopCount loop count, 0 means infinity
-         */
         set(loopCount) {
             mNativeInfoHandle.loopCount = loopCount
         }
@@ -429,17 +428,18 @@ class GifDrawable internal constructor(
         )
     }
 
+    /**
+     * @return number of frames in GIF, at least one
+     */
     val numberOfFrames: Int
-        /**
-         * @return number of frames in GIF, at least one
-         */
         get() = mNativeInfoHandle.numberOfFrames
+
+    /**
+     * Retrieves last error which is also the indicator of current GIF status.
+     *
+     * @return current error or [GifError.NO_ERROR] if there was no error or drawable is recycled
+     */
     val error: GifError
-        /**
-         * Retrieves last error which is also the indicator of current GIF status.
-         *
-         * @return current error or [GifError.NO_ERROR] if there was no error or drawable is recycled
-         */
         get() = fromCode(mNativeInfoHandle.nativeErrorCode)
 
     /**
@@ -653,25 +653,26 @@ class GifDrawable internal constructor(
         return 0
     }
 
+    /**
+     * Returns the minimum number of bytes that can be used to store pixels of the single frame.
+     * Returned value is the same for all the frames since it is based on the size of GIF screen.
+     *
+     * This method should not be used to calculate the memory usage of the bitmap.
+     * Instead see [.getAllocationByteCount].
+     *
+     * @return the minimum number of bytes that can be used to store pixels of the single frame
+     */
     val frameByteCount: Int
-        /**
-         * Returns the minimum number of bytes that can be used to store pixels of the single frame.
-         * Returned value is the same for all the frames since it is based on the size of GIF screen.
-         *
-         * This method should not be used to calculate the memory usage of the bitmap.
-         * Instead see [.getAllocationByteCount].
-         *
-         * @return the minimum number of bytes that can be used to store pixels of the single frame
-         */
         get() = mBuffer.rowBytes * mBuffer.height
+
+    /**
+     * Returns size of the memory needed to store pixels of this object. It counts possible length of all frame buffers.
+     * Returned value may be lower than amount of actually allocated memory if GIF uses dispose to previous method but frame requiring it
+     * has never been needed yet. Returned value does not change during runtime.
+     *
+     * @return possible size of the memory needed to store pixels of this object
+     */
     val allocationByteCount: Long
-        /**
-         * Returns size of the memory needed to store pixels of this object. It counts possible length of all frame buffers.
-         * Returned value may be lower than amount of actually allocated memory if GIF uses dispose to previous method but frame requiring it
-         * has never been needed yet. Returned value does not change during runtime.
-         *
-         * @return possible size of the memory needed to store pixels of this object
-         */
         get() {
             var byteCount = mNativeInfoHandle.allocationByteCount
             byteCount += if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -803,12 +804,12 @@ class GifDrawable internal constructor(
         return paint.colorFilter
     }
 
+    /**
+     * Retrieves a copy of currently buffered frame.
+     *
+     * @return current frame
+     */
     private val currentFrame: Bitmap
-        /**
-         * Retrieves a copy of currently buffered frame.
-         *
-         * @return current frame
-         */
         get() {
             val copy = mBuffer.copy(mBuffer.config, mBuffer.isMutable)
             copy.setHasAlpha(mBuffer.hasAlpha())
@@ -881,20 +882,21 @@ class GifDrawable internal constructor(
         return changed
     }
 
+    /**
+     * Returns zero-based index of recently rendered frame in given loop or -1 when drawable is recycled.
+     *
+     * @return index of recently rendered frame or -1 when drawable is recycled
+     */
     val currentFrameIndex: Int
-        /**
-         * Returns zero-based index of recently rendered frame in given loop or -1 when drawable is recycled.
-         *
-         * @return index of recently rendered frame or -1 when drawable is recycled
-         */
         get() = mNativeInfoHandle.currentFrameIndex
+
+    /**
+     * Returns zero-based index of currently played animation loop. If animation is infinite or
+     * drawable is recycled 0 is returned.
+     *
+     * @return index of currently played animation loop
+     */
     val currentLoop: Int
-        /**
-         * Returns zero-based index of currently played animation loop. If animation is infinite or
-         * drawable is recycled 0 is returned.
-         *
-         * @return index of currently played animation loop
-         */
         get() {
             val currentLoop = mNativeInfoHandle.currentLoop
             return if (currentLoop == 0 || currentLoop < mNativeInfoHandle.loopCount) {
@@ -903,12 +905,13 @@ class GifDrawable internal constructor(
                 currentLoop - 1
             }
         }
+
+    /**
+     * Returns whether all animation loops has ended. If drawable is recycled false is returned.
+     *
+     * @return true if all animation loops has ended
+     */
     val isAnimationCompleted: Boolean
-        /**
-         * Returns whether all animation loops has ended. If drawable is recycled false is returned.
-         *
-         * @return true if all animation loops has ended
-         */
         get() = mNativeInfoHandle.isAnimationCompleted
 
     /**
@@ -924,38 +927,37 @@ class GifDrawable internal constructor(
         return mNativeInfoHandle.getFrameDuration(index)
     }
 
+    /**
+     * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
+
+     * Sets the corner radius to be applied when drawing the bitmap.
+     * Note that changing corner radius will cause replacing current [Paint] shader by [BitmapShader].
+     * Transform set by [.setTransform] will also be replaced.
+     *
+     * @param cornerRadius corner radius or 0 to remove rounding
+     */
     @get:FloatRange(from = 0.0)
     var cornerRadius: Float
-        /**
-         * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
-         */
         get() {
             return if (mTransform is CornerRadiusTransform) {
                 (mTransform as CornerRadiusTransform).cornerRadius
             } else 0.0F
         }
-        /**
-         * Sets the corner radius to be applied when drawing the bitmap.
-         * Note that changing corner radius will cause replacing current [Paint] shader by [BitmapShader].
-         * Transform set by [.setTransform] will also be replaced.
-         *
-         * @param cornerRadius corner radius or 0 to remove rounding
-         */
         set(cornerRadius) {
             mTransform = CornerRadiusTransform(cornerRadius)
             (mTransform as CornerRadiusTransform).onBoundsChange(mDstRect)
         }
+
+    /**
+     * @return The current [Transform] implementation that customizes
+     * how the GIF's current Bitmap is drawn or null if nothing has been set.
+     *
+     * Specify a [Transform] implementation to customize how the GIF's current Bitmap is drawn.
+     *
+     * @param transform new [Transform] or null to remove current one
+     */
     var transform: Transform?
-        /**
-         * @return The current [Transform] implementation that customizes
-         * how the GIF's current Bitmap is drawn or null if nothing has been set.
-         */
         get() = mTransform
-        /**
-         * Specify a [Transform] implementation to customize how the GIF's current Bitmap is drawn.
-         *
-         * @param transform new [Transform] or null to remove current one
-         */
         set(transform) {
             mTransform = transform
             if (mTransform != null) {

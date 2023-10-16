@@ -13,6 +13,8 @@ import kotlin.math.max
 
 /**
  * [Transform] which adds rounded corners.
+ *
+ * @param cornerRadius corner radius, may be 0.
  */
 class CornerRadiusTransform(@FloatRange(from = 0.0) cornerRadius: Float) : Transform {
     private var mCornerRadius = 0f
@@ -25,9 +27,6 @@ class CornerRadiusTransform(@FloatRange(from = 0.0) cornerRadius: Float) : Trans
      */
     private val mDstRectF = RectF()
 
-    /**
-     * @param cornerRadius corner radius, may be 0.
-     */
     init {
         setCornerRadiusSafely(cornerRadius)
     }
@@ -40,35 +39,31 @@ class CornerRadiusTransform(@FloatRange(from = 0.0) cornerRadius: Float) : Trans
         }
     }
 
+    /**
+     * Sets the corner radius to be applied when drawing the bitmap.
+     *
+     * @param cornerRadius corner radius or 0 to remove rounding
+     * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
+     */
     @get:FloatRange(from = 0.0)
     var cornerRadius: Float
-        /**
-         * @return The corner radius applied when drawing this drawable. 0 when drawable is not rounded.
-         */
         get() = mCornerRadius
-        /**
-         * Sets the corner radius to be applied when drawing the bitmap.
-         *
-         * @param cornerRadius corner radius or 0 to remove rounding
-         */
         set(cornerRadius) {
             setCornerRadiusSafely(cornerRadius)
         }
 
-    override fun onBoundsChange(bounds: Rect?) {
-        bounds?.let { mDstRectF.set(it) }
+    override fun onBoundsChange(bounds: Rect) {
+        mDstRectF.set(bounds)
         mShader = null
     }
 
-    override fun onDraw(canvas: Canvas?, paint: Paint?, buffer: Bitmap?) {
+    override fun onDraw(canvas: Canvas, paint: Paint, buffer: Bitmap) {
         if (mCornerRadius == 0f) {
-            if (buffer != null) {
-                canvas?.drawBitmap(buffer, null, mDstRectF, paint)
-            }
+            canvas.drawBitmap(buffer, null, mDstRectF, paint)
             return
         }
         if (mShader == null) {
-            buffer?.let {
+            buffer.let {
                 mShader = BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
                 val shaderMatrix = Matrix()
                 shaderMatrix.setTranslate(mDstRectF.left, mDstRectF.top)
@@ -76,9 +71,7 @@ class CornerRadiusTransform(@FloatRange(from = 0.0) cornerRadius: Float) : Trans
                 (mShader as BitmapShader).setLocalMatrix(shaderMatrix)
             }
         }
-        paint?.shader = mShader
-        if (paint != null) {
-            canvas?.drawRoundRect(mDstRectF, mCornerRadius, mCornerRadius, paint)
-        }
+        paint.shader = mShader
+        canvas.drawRoundRect(mDstRectF, mCornerRadius, mCornerRadius, paint)
     }
 }

@@ -15,7 +15,7 @@ interface Transform {
      * In this latter case the latest [GifDrawable] bounds (empty [Rect] if they were not set yet).
      * @param bounds new bounds
      */
-    fun onBoundsChange(bounds: Rect?)
+    fun onBoundsChange(bounds: Rect)
 
     /**
      * Called by [GifDrawable] when its [GifDrawable.draw] is called.
@@ -24,5 +24,5 @@ interface Transform {
      * @param paint  The paint to use for custom drawing.
      * @param buffer The current Bitmap for the GIF.
      */
-    fun onDraw(canvas: Canvas?, paint: Paint?, buffer: Bitmap?)
+    fun onDraw(canvas: Canvas, paint: Paint, buffer: Bitmap)
 }

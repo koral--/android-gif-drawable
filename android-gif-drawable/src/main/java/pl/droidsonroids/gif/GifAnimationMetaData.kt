@@ -205,10 +205,10 @@ class GifAnimationMetaData : Serializable, Parcelable {
         gifInfoHandle.recycle()
     }
 
+    /**
+     * @return true if GIF is animated (has at least 2 frames and positive duration), false otherwise
+     */
     val isAnimated: Boolean
-        /**
-         * @return true if GIF is animated (has at least 2 frames and positive duration), false otherwise
-         */
         get() = numberOfFrames > 1 && duration > 0
 
     /**
