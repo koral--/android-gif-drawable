@@ -60,3 +60,7 @@ dependencies {
     implementation project(':android-gif-drawable')
     //implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
 }
+
+apiValidation {
+    validationDisabled = true
+}
