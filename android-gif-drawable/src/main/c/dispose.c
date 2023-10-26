@@ -1,7 +1,7 @@
 #include "gif.h"
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_free(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_free(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
 		return;

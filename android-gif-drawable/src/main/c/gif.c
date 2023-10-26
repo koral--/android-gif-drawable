@@ -132,7 +132,7 @@ int directByteBufferRewind(GifInfo *info) {
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused class, jstring jfname) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_openFile(JNIEnv *env, jclass __unused class, jstring jfname) {
 	if (isSourceNull(jfname, env)) {
 		return NULL_GIF_INFO;
 	}
@@ -161,7 +161,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openFile(JNIEnv *env, jclass __unused cl
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unused class, jbyteArray bytes) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_openByteArray(JNIEnv *env, jclass __unused class, jbyteArray bytes) {
 	if (isSourceNull(bytes, env)) {
 		return NULL_GIF_INFO;
 	}
@@ -195,7 +195,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openByteArray(JNIEnv *env, jclass __unus
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass __unused class, jobject buffer) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_openDirectByteBuffer(JNIEnv *env, jclass __unused class, jobject buffer) {
 	jbyte *bytes = (*env)->GetDirectBufferAddress(env, buffer);
 	jlong capacity = (*env)->GetDirectBufferCapacity(env, buffer);
 	if (bytes == NULL || capacity <= 0) {
@@ -235,7 +235,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openDirectByteBuffer(JNIEnv *env, jclass
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused class, jobject stream) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_openStream(JNIEnv *env, jclass __unused class, jobject stream) {
 	jbyteArray bufferArray = (*env)->NewByteArray(env, STREAM_BUFFER_SIZE);
 	if (bufferArray == NULL) {
 		throwException(env, OUT_OF_MEMORY_ERROR, OOME_MESSAGE);
@@ -310,7 +310,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openStream(JNIEnv *env, jclass __unused 
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jobject fileDescriptor, jboolean closeOriginalDescriptor) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_extractNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jobject fileDescriptor, jboolean closeOriginalDescriptor) {
 	if (isSourceNull(fileDescriptor, env)) {
 		return -1;
 	}
@@ -334,12 +334,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env,
 }
 
 __unused JNIEXPORT jint JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_createTempNativeFileDescriptor(JNIEnv __unused *env, jclass __unused handleClass) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_createTempNativeFileDescriptor(JNIEnv __unused *env, jclass __unused handleClass) {
 	return eventfd(0, 0);
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_openNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jint fd, jlong offset) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_openNativeFileDescriptor(JNIEnv *env, jclass __unused handleClass, jint fd, jlong offset) {
 	if (lseek64(fd, offset, SEEK_SET) != -1) {
 		FILE *file = fdopen(fd, "rb");
 		if (file == NULL) {

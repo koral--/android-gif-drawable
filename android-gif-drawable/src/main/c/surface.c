@@ -56,7 +56,7 @@ static void releaseSurfaceDescriptor(GifInfo *info, JNIEnv *env) {
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_bindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo,
                                                     jobject jsurface, jlongArray savedState) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	SurfaceDescriptor *descriptor = info->frameBufferDescriptor;
@@ -239,7 +239,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_bindSurface(JNIEnv *env, jclass __unused
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_postUnbindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_postUnbindSurface(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;

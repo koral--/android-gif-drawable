@@ -21,7 +21,7 @@ class GifTexImage2DFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val options = GifOptions()
-        options.setInIsOpaque(true)
+        options.inIsOpaque = true
         val gifTexImage2D = GifTexImage2D(InputSource.ResourcesSource(resources, R.drawable.anim_flag_chile), options)
         gifTexImage2D.startDecoderThread()
         gifTexImage2DProgram = GifTexImage2DProgram(gifTexImage2D)

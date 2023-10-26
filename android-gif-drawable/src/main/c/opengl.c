@@ -9,7 +9,7 @@ typedef struct {
 } TexImageDescriptor;
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jclass __unused handleClass, jlong gifInfo, jint target, jint level) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_glTexImage2D(JNIEnv *__unused unused, jclass __unused handleClass, jlong gifInfo, jint target, jint level) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
@@ -24,7 +24,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_glTexImage2D(JNIEnv *__unused unused, jc
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_glTexSubImage2D(JNIEnv *__unused env, jclass __unused handleClass, jlong gifInfo, jint target, jint level) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_glTexSubImage2D(JNIEnv *__unused env, jclass __unused handleClass, jlong gifInfo, jint target, jint level) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
@@ -89,7 +89,7 @@ static void releaseTexImageDescriptor(GifInfo *info, JNIEnv *env) {
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_initTexImageDescriptor(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
 		return;
@@ -115,7 +115,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_initTexImageDescriptor(JNIEnv *env, jcla
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_startDecoderThread(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
 		return;
@@ -140,7 +140,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass _
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_stopDecoderThread(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_stopDecoderThread(JNIEnv *env, jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL || info->frameBufferDescriptor == NULL) {
 		return;
@@ -149,7 +149,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_stopDecoderThread(JNIEnv *env, jclass __
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrameGL(__unused JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint desiredIndex) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_seekToFrameGL(__unused JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jint desiredIndex) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
 		return;

@@ -55,7 +55,7 @@ void unlockPixels(JNIEnv *env, jobject jbitmap) {
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_renderFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jobject jbitmap) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_renderFrame(JNIEnv *env, jclass __unused handleClass, jlong gifInfo, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL)
 		return -1;

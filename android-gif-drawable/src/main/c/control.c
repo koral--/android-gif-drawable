@@ -12,7 +12,7 @@ bool reset(GifInfo *info) {
 }
 
 __unused JNIEXPORT jboolean JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_reset(JNIEnv *__unused  env, jclass  __unused class, jlong gifInfo) {
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_reset(JNIEnv *__unused  env, jclass  __unused class, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info != NULL && reset(info)) {
 		return JNI_TRUE;
@@ -21,7 +21,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_reset(JNIEnv *__unused  env, jclass  __u
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_setSpeedFactor(JNIEnv __unused *env, jclass __unused handleClass,
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_setSpeedFactor(JNIEnv __unused *env, jclass __unused handleClass,
                                                        jlong gifInfo, jfloat factor) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
@@ -82,7 +82,7 @@ uint_fast32_t seek(GifInfo *info, uint_fast32_t desiredIndex, void *pixels) {
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused handleClass,
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_seekToTime(JNIEnv *env, jclass __unused handleClass,
                                                    jlong gifInfo, jint desiredPos, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
@@ -110,7 +110,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToTime(JNIEnv *env, jclass __unused 
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused handleClass,
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_seekToFrame(JNIEnv *env, jclass __unused handleClass,
                                                     jlong gifInfo, jint desiredIndex, jobject jbitmap) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL) {
@@ -125,7 +125,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_seekToFrame(JNIEnv *env, jclass __unused
 }
 
 __unused JNIEXPORT void JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jclass __unused handleClass,
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_saveRemainder(JNIEnv *__unused  env, jclass __unused handleClass,
                                                       jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL || info->lastFrameRemainder != -1 || info->currentIndex == info->gifFilePtr->ImageCount ||
@@ -137,7 +137,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_saveRemainder(JNIEnv *__unused  env, jcl
 }
 
 __unused JNIEXPORT jlong JNICALL
-Java_pl_droidsonroids_gif_GifInfoHandle_restoreRemainder(JNIEnv *__unused env,
+Java_pl_droidsonroids_gif_GifInfoHandle_00024Companion_restoreRemainder(JNIEnv *__unused env,
                                                          jclass __unused handleClass, jlong gifInfo) {
 	GifInfo *info = (GifInfo *) (intptr_t) gifInfo;
 	if (info == NULL || info->lastFrameRemainder == -1 || info->gifFilePtr->ImageCount == 1 ||
