@@ -79,3 +79,4 @@ tasks.register('archiveSymbols', Tar) {
 configurations.configureEach {
     resolutionStrategy.force "androidx.annotation:annotation:$versions.androidxAnnotations"
 }
+
