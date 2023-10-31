@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity2">
+
+    <ImageView
+        android:id="@+id/imageView9"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:srcCompat="@drawable/login" />
+
+    <ImageView
+        android:id="@+id/imageView10"
+        android:layout_width="match_parent"
+        android:layout_height="251dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="0dp"
+        android:layout_marginRight="0dp"
+        app:srcCompat="@drawable/logo2" />
+
+    <EditText
+        android:id="@+id/eml"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Email"
+        android:layout_marginTop="280dp"
+        android:textSize="22dp"
+        android:drawableLeft="@drawable/ic_action_email"
+        android:layout_centerHorizontal="true"
+        android:inputType="textEmailAddress" />
+
+    <EditText
+        android:id="@+id/pswrd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:ems="10"
+        android:hint="Password"
+        android:textSize="22dp"
+        android:drawableLeft="@drawable/ic_action_pass"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="350dp"
+        android:inputType="textPassword" />
+
+    <Button
+        android:id="@+id/regbtn"
+        android:layout_width="350dp"
+        android:layout_height="55dp"
+        android:layout_marginTop="490dp"
+        android:layout_centerHorizontal="true"
+        android:backgroundTint="@color/black"
+        android:text="create account"
+        android:textSize="20dp"
+        android:elevation="10dp"
+        android:textStyle="bold"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scrollbarSize="10dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="550dp"
+        android:visibility="visible" />
+
+
+</RelativeLayout>
