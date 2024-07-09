@@ -14,7 +14,7 @@ import pl.droidsonroids.gif.InputSource
 
 class TextureViewFragment : Fragment() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val textureView = TextureView(inflater.context)
         textureView.isOpaque = false
         val gifSurfaceTextureDrawer = GifSurfaceTextureDrawer(InputSource.ResourcesSource(resources, R.drawable.anim_flag_chile))

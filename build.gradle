@@ -2,23 +2,23 @@ buildscript {
     ext {
         versions = [
                 compileSdk         : 34,
-                targetSdk          : 33,
-                minSdk             : 17,
-                ndk                : '26.1.10909125',
-                androidxAppcompat  : '1.6.1',
-                lifecycle          : '2.6.2',
+                targetSdk          : 34,
+                minSdk             : 21,
+                ndk                : '26.3.11579264',
+                androidxAppcompat  : '1.7.0',
+                lifecycle          : '2.8.3',
                 androidxAnnotations: '1.6.0',
-                androidxTest       : '1.5.0',
-                androidxTestRunner : '1.5.2',
-                coroutines         : '1.7.3',
-                leakCanary         : '2.12',
-                kotlin             : '1.9.10',
+                androidxTest       : '1.6.1',
+                androidxTestRunner : '1.6.1',
+                coroutines         : '1.8.1',
+                leakCanary         : '2.14',
+                kotlin             : '2.0.0',
                 intellijAnnotations: '13.0',
-                material           : '1.10.0',
-                androidXextJunit   : '1.1.5',
-                androidGradlePlugin: '8.1.2',
+                material           : '1.12.0',
+                androidXextJunit   : '1.2.1',
+                androidGradlePlugin: '8.5.0',
                 junit              : '4.13.2',
-                mockito            : '5.6.0',
+                mockito            : '5.12.0',
                 robolectric        : '4.10.3',
                 assertj3           : '3.24.2',
                 assertj1           : '1.7.1',
@@ -26,7 +26,7 @@ buildscript {
                 openglApi          : 'gl1.1-android-2.1_r1',
                 mockwebserver      : '4.9.2',
                 relinker           : '1.4.5',
-                mavenPublishPlugin : '0.21.0',
+                mavenPublishPlugin : '0.29.0',
         ]
     }
     repositories {
@@ -42,7 +42,7 @@ buildscript {
 }
 
 plugins {
-    id 'org.jetbrains.kotlinx.binary-compatibility-validator' version '0.13.2'
+    id 'org.jetbrains.kotlinx.binary-compatibility-validator' version '0.15.1'
 }
 
 subprojects {

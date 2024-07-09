@@ -5,7 +5,6 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -250,13 +249,9 @@ public class GifAnimationMetaData implements Serializable, Parcelable {
 		final int sampleSizeFactor = sampleSize * sampleSize;
 		final long bufferSize;
 		if (oldDrawable != null && !oldDrawable.mBuffer.isRecycled()) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-				bufferSize = oldDrawable.mBuffer.getAllocationByteCount();
-			} else {
-				bufferSize = oldDrawable.getFrameByteCount();
-			}
-		} else {
-			bufferSize = (mWidth * mHeight * 4) / sampleSizeFactor;
+      bufferSize = oldDrawable.mBuffer.getAllocationByteCount();
+    } else {
+			bufferSize = (mWidth * mHeight * 4L) / sampleSizeFactor;
 		}
 		return (mPixelsBytesCount / sampleSizeFactor) + bufferSize;
 	}

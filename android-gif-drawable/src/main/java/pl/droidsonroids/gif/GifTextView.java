@@ -4,9 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Parcelable;
-import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
@@ -70,7 +68,6 @@ public class GifTextView extends TextView {
 	 * @param defStyleRes
 	 * @see TextView#TextView(Context, AttributeSet, int, int)
 	 */
-	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	public GifTextView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
 		super(context, attrs, defStyle, defStyleRes);
 		init(attrs, defStyle, defStyleRes);
@@ -143,12 +140,8 @@ public class GifTextView extends TextView {
 				// ignored
 			}
 		}
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			return resources.getDrawable(resId, getContext().getTheme());
-		} else {
-			return resources.getDrawable(resId);
-		}
-	}
+    return resources.getDrawable(resId, getContext().getTheme());
+  }
 
 	@Override
 	public void setCompoundDrawablesWithIntrinsicBounds(int left, int top, int right, int bottom) {

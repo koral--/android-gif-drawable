@@ -6,9 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
-import android.opengl.EGL14;
-import android.opengl.GLES20;
-import android.os.Build;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -22,13 +19,6 @@ import java.lang.ref.WeakReference;
 import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * <p>{@link TextureView} which can display animated GIFs. GifTextureView can only be used in a
@@ -84,7 +74,6 @@ public class GifTextureView extends TextureView {
 		init(attrs, defStyleAttr, 0);
 	}
 
-	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	public GifTextureView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
 		super(context, attrs, defStyleAttr, defStyleRes);
 		init(attrs, defStyleAttr, defStyleRes);
@@ -142,7 +131,7 @@ public class GifTextureView extends TextureView {
 	 * @param surfaceTexture ignored
 	 */
 	@Override
-	public void setSurfaceTexture(SurfaceTexture surfaceTexture) {
+	public void setSurfaceTexture(@NonNull SurfaceTexture surfaceTexture) {
 		throw new UnsupportedOperationException("Changing SurfaceTexture is not supported");
 	}
 
@@ -241,7 +230,7 @@ public class GifTextureView extends TextureView {
 		}
 
 		@Override
-		public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+		public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
 			final GifTextureView gifTextureView = mGifTextureViewReference.get();
 			if (gifTextureView != null) {
 				gifTextureView.updateTextureViewSize(mGifInfoHandle);
@@ -250,12 +239,12 @@ public class GifTextureView extends TextureView {
 		}
 
 		@Override
-		public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+		public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
 			//no-op
 		}
 
 		@Override
-		public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+		public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
 			isSurfaceValid.close();
 			mGifInfoHandle.postUnbindSurface();
 			interrupt();
@@ -263,7 +252,7 @@ public class GifTextureView extends TextureView {
 		}
 
 		@Override
-		public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+		public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
 			//no-op
 		}
 
@@ -479,6 +468,7 @@ public class GifTextureView extends TextureView {
 	 * @see #setTransform(android.graphics.Matrix)
 	 * @see #setScaleType(ScaleType)
 	 */
+	@NonNull
 	@Override
 	public Matrix getTransform(Matrix transform) {
 		if (transform == null) {

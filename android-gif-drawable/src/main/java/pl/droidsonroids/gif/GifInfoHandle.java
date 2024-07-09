@@ -5,11 +5,6 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
-
-import androidx.annotation.FloatRange;
-import androidx.annotation.IntRange;
-import androidx.annotation.RequiresApi;
-
 import android.system.ErrnoException;
 import android.system.Os;
 import android.view.Surface;
@@ -18,6 +13,9 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+
+import androidx.annotation.FloatRange;
+import androidx.annotation.IntRange;
 
 /**
  * Native library wrapper
@@ -85,7 +83,6 @@ final class GifInfoHandle {
 		return openNativeFileDescriptor(nativeFileDescriptor, offset);
 	}
 
-	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	private static int getNativeFileDescriptor(FileDescriptor fileDescriptor, boolean closeOriginalDescriptor) throws GifIOException, ErrnoException {
 		try {
 			final int nativeFileDescriptor = createTempNativeFileDescriptor();

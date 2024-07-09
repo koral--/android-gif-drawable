@@ -24,3 +24,4 @@ list(APPEND LIBS
 )
 
 target_link_libraries(pl_droidsonroids_gif ${LIBS})
+target_link_options(pl_droidsonroids_gif PRIVATE "-Wl,-z,max-page-size=16384")

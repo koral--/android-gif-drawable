@@ -3,9 +3,7 @@ package pl.droidsonroids.gif;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Parcelable;
-import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
@@ -65,7 +63,6 @@ public class GifImageView extends ImageView {
 	 * @param defStyleRes
 	 * @see ImageView#ImageView(Context, AttributeSet, int, int)
 	 */
-	@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 	public GifImageView(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
 		super(context, attrs, defStyle, defStyleRes);
 		postInit(GifViewUtils.initImageView(this, attrs, defStyle, defStyleRes));

@@ -15,7 +15,7 @@ import java.io.BufferedInputStream
 
 class TexturePlaceholderFragment : Fragment(), GifTextureView.PlaceholderDrawListener {
 
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 		val view = GifTextureView(inflater.context)
 		val assetFileDescriptor = inflater.context.assets.openFd("Animated-Flag-Delaware.gif")
 		view.setInputSource(InputSource.InputStreamSource(SlowLoadingInputStream(assetFileDescriptor)), this)
@@ -29,8 +29,9 @@ class TexturePlaceholderFragment : Fragment(), GifTextureView.PlaceholderDrawLis
 	}
 }
 
-private class SlowLoadingInputStream
-constructor(private val assetFileDescriptor: AssetFileDescriptor) : BufferedInputStream(assetFileDescriptor.createInputStream(), assetFileDescriptor.length.toInt()) {
+private class SlowLoadingInputStream(
+	private val assetFileDescriptor: AssetFileDescriptor,
+) : BufferedInputStream(assetFileDescriptor.createInputStream(), assetFileDescriptor.length.toInt()) {
 	private var mSleepTimeMillis = 5
 
 	override fun read(buffer: ByteArray): Int {
