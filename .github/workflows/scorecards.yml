@@ -1,5 +1,6 @@
 name: Scorecards supply-chain security
 on:
+  workflow_dispatch:
   # Only the default branch is supported.
   branch_protection_rule:
   schedule:
