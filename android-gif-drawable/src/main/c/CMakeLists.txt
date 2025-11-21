@@ -1,3 +1,4 @@
+project(androidGifDrawable)
 cmake_minimum_required(VERSION 3.4.1)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
@@ -23,3 +24,4 @@ list(APPEND LIBS
 )
 
 target_link_libraries(pl_droidsonroids_gif ${LIBS})
+target_link_options(pl_droidsonroids_gif PRIVATE "-Wl,-z,max-page-size=16384")

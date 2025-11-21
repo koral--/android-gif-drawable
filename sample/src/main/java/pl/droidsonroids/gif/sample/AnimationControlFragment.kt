@@ -4,11 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ToggleButton
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.animation_control.*
 import pl.droidsonroids.gif.AnimationListener
 import pl.droidsonroids.gif.GifDrawable
+import pl.droidsonroids.gif.GifImageView
 
 class AnimationControlFragment : Fragment(), AnimationListener {
 
@@ -18,7 +19,7 @@ class AnimationControlFragment : Fragment(), AnimationListener {
 		return inflater.inflate(R.layout.animation_control, container, false)
 	}
 
-	private fun resetAnimation() {
+	private fun resetAnimation(buttonToggle: ToggleButton) {
 		gifDrawable.stop()
 		gifDrawable.loopCount = 4
 		gifDrawable.seekToFrameAndGet(5)
@@ -32,11 +33,12 @@ class AnimationControlFragment : Fragment(), AnimationListener {
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
-		buttonReset.setOnClickListener { resetAnimation() }
+		val buttonToggle = view.findViewById<ToggleButton>(R.id.buttonToggle)
+		view.findViewById<View>(R.id.buttonReset).setOnClickListener { resetAnimation(buttonToggle) }
 		buttonToggle.setOnClickListener { toggleAnimation() }
-		gifDrawable = gifImageView.drawable as GifDrawable
+		gifDrawable = view.findViewById<GifImageView>(R.id.gifImageView).drawable as GifDrawable
 
-		resetAnimation()
+		resetAnimation(view.findViewById(R.id.buttonToggle))
 		gifDrawable.addAnimationListener(this)
 	}
 

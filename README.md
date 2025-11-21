@@ -7,6 +7,7 @@
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
 [![API](https://img.shields.io/badge/API-17%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=17)
 [![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/koral--/android-gif-drawable/badge)](https://api.securityscorecards.dev/projects/github.com/koral--/android-gif-drawable)
 
 `View`s and `Drawable` for animated GIFs in Android.
 
@@ -21,7 +22,7 @@ Bundled GIFLib via JNI is used to render frames. This way should be more efficie
 Insert the following dependency to `build.gradle` file of your project.
 ```groovy
 dependencies {
-    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.19'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.29'
 }
 ```
 Note that Maven central repository should be defined eg. in top-level `build.gradle` like this:

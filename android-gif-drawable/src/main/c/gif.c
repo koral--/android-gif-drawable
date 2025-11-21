@@ -352,6 +352,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openNativeFileDescriptor(JNIEnv *env, jc
 
 		GifInfo *const info = createGifInfoFromFile(env, file, sourceLength);
 		if (info == NULL) {
+			fclose(file);
 			close(fd);
 		}
 		return (jlong) info;

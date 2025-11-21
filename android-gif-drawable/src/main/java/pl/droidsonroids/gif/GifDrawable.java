@@ -315,6 +315,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @return either {@link PixelFormat#TRANSPARENT} or {@link PixelFormat#OPAQUE}
 	 * depending on current {@link Paint} and {@link GifOptions#setInIsOpaque(boolean)} used to construct this Drawable
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	public int getOpacity() {
 		if (!mNativeInfoHandle.isOpaque() || mPaint.getAlpha() < 255) {
@@ -697,13 +698,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	 * @return possible size of the memory needed to store pixels of this object
 	 */
 	public long getAllocationByteCount() {
-		long byteCount = mNativeInfoHandle.getAllocationByteCount();
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			byteCount += mBuffer.getAllocationByteCount();
-		} else {
-			byteCount += getFrameByteCount();
-		}
-		return byteCount;
+    return mNativeInfoHandle.getAllocationByteCount() + mBuffer.getAllocationByteCount();
 	}
 
 	/**
@@ -761,7 +756,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	@Override
-	protected void onBoundsChange(Rect bounds) {
+	protected void onBoundsChange(@NonNull Rect bounds) {
 		mDstRect.set(bounds);
 		if (mTransform != null) {
 			mTransform.onBoundsChange(bounds);
@@ -823,7 +818,6 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	@SuppressWarnings("deprecation")
 	@Override
-	@Deprecated
 	public void setDither(boolean dither) {
 		mPaint.setDither(dither);
 		invalidateSelf();
@@ -889,7 +883,7 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	}
 
 	@Override
-	protected boolean onStateChange(int[] stateSet) {
+	protected boolean onStateChange(@NonNull int[] stateSet) {
 		if (mTint != null && mTintMode != null) {
 			mTintFilter = updateTintFilter(mTint, mTintMode);
 			return true;

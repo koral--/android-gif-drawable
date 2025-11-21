@@ -12,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.live_wallpaper.*
 import pl.droidsonroids.gif.sample.wallpaper.GifWallpaperService
 
 class LiveWallpaperFragment : Fragment() {
@@ -23,7 +22,7 @@ class LiveWallpaperFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        live_wallpaper_button.setOnClickListener {
+        view.findViewById<View>(R.id.live_wallpaper_button).setOnClickListener {
             if (view.context.isLiveWallpaperSupported) {
                 showWallpaperChooser()
             } else {

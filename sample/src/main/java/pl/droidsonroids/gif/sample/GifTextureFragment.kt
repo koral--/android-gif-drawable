@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import kotlinx.android.synthetic.main.texture.*
+import pl.droidsonroids.gif.GifTextureView
 
 class GifTextureFragment : Fragment() {
 
@@ -14,8 +14,8 @@ class GifTextureFragment : Fragment() {
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
-		if (!gifTextureView.isHardwareAccelerated) {
-			textTextureViewStub.visibility = View.VISIBLE
+		if (!view.findViewById<GifTextureView>(R.id.gifTextureView).isHardwareAccelerated) {
+			view.findViewById<View>(R.id.textTextureViewStub).visibility = View.VISIBLE
 		}
 	}
 }

@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
+    ndkVersion versions.ndk
     compileSdkVersion versions.compileSdk
 
     defaultConfig {
@@ -32,9 +32,20 @@ android {
             jniDebuggable true
         }
     }
-    lintOptions {
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+    namespace 'pl.droidsonroids.gif.sample'
+    lint {
         disable 'AppCompatCustomView'
     }
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -42,9 +53,14 @@ dependencies {
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakCanary"
     implementation "com.google.android.material:material:$versions.material"
     implementation "androidx.appcompat:appcompat:$versions.androidxAppcompat"
+    implementation "androidx.lifecycle:lifecycle-common:$versions.lifecycle"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.coroutines"
     implementation project(':android-gif-drawable')
     //implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
+}
+
+apiValidation {
+    validationDisabled = true
 }

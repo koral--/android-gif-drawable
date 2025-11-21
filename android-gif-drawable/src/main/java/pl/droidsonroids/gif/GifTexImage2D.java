@@ -153,7 +153,6 @@ public class GifTexImage2D {
 	}
 
 	@Override
-	@SuppressWarnings("ThrowFromFinallyBlock")
 	protected final void finalize() throws Throwable {
 		try {
 			recycle();

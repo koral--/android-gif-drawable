@@ -6,9 +6,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Method;
-
-import pl.droidsonroids.relinker.ReLinker;
-
+import com.getkeepsafe.relinker.ReLinker;
 /**
  * Helper used to work around native libraries loading on some systems.
  * See <a href="https://medium.com/keepsafe-engineering/the-perils-of-loading-native-libraries-on-android-befa49dce2db">ReLinker</a> for more details.
@@ -36,6 +34,7 @@ public class LibraryLoader {
 			try {
 				@SuppressLint("PrivateApi")
 				final Class<?> activityThread = Class.forName("android.app.ActivityThread");
+				@SuppressLint("DiscouragedPrivateApi")
 				final Method currentApplicationMethod = activityThread.getDeclaredMethod("currentApplication");
 				sAppContext = (Context) currentApplicationMethod.invoke(null);
 			} catch (Exception e) {

@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
  */
 class GifSourcesFragment : Fragment() {
 
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 		val recyclerView = RecyclerView(inflater.context)
 		recyclerView.layoutManager = LinearLayoutManager(inflater.context)
 		recyclerView.adapter = GifSourcesAdapter(inflater.context)
