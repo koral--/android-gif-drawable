@@ -1,10 +1,10 @@
 buildscript {
     ext {
         versions = [
-                compileSdk         : 34,
-                targetSdk          : 34,
+                compileSdk         : 35,
+                targetSdk          : 35,
                 minSdk             : 21,
-                ndk                : '26.3.11579264',
+                ndk                : '28.0.12674087',
                 androidxAppcompat  : '1.7.0',
                 lifecycle          : '2.8.3',
                 androidxAnnotations: '1.6.0',
@@ -16,7 +16,7 @@ buildscript {
                 intellijAnnotations: '13.0',
                 material           : '1.12.0',
                 androidXextJunit   : '1.2.1',
-                androidGradlePlugin: '8.5.0',
+                androidGradlePlugin: '8.9.1',
                 junit              : '4.13.2',
                 mockito            : '5.12.0',
                 robolectric        : '4.10.3',
