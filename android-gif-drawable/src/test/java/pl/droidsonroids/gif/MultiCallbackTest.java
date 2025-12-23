@@ -3,6 +3,7 @@ package pl.droidsonroids.gif;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,11 +21,12 @@ public class MultiCallbackTest {
 	@Spy Drawable drawable;
 	private Runnable action;
 	private MultiCallback simpleMultiCallback;
+    private AutoCloseable mocks;
 
-	@Before
+    @Before
 	public void setUp() {
-		MockitoAnnotations.initMocks(this);
-		simpleMultiCallback = new MultiCallback();
+        mocks = MockitoAnnotations.openMocks(this);
+        simpleMultiCallback = new MultiCallback();
 		action = new Runnable() {
 			@Override
 			public void run() {
@@ -32,6 +34,11 @@ public class MultiCallbackTest {
 			}
 		};
 	}
+
+    @After
+    public void tearDown() throws Exception {
+        mocks.close();
+    }
 
 	@Test
 	public void testInvalidateDrawable() {

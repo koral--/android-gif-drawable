@@ -38,7 +38,7 @@ public class GifOptionsTest {
 		source.setInIsOpaque(false);
 		source.setInSampleSize(8);
 		gifOptions.setFrom(source);
-		assertThat(gifOptions).isEqualToComparingFieldByField(source);
+		assertThat(gifOptions).usingRecursiveComparison().isEqualTo(source);
 	}
 
 	@Test
@@ -47,6 +47,6 @@ public class GifOptionsTest {
 		gifOptions.setInIsOpaque(false);
 		gifOptions.setInSampleSize(8);
 		gifOptions.setFrom(null);
-		assertThat(gifOptions).isEqualToComparingFieldByField(defaultOptions);
+		assertThat(gifOptions).usingRecursiveComparison().isEqualTo(defaultOptions);
 	}
 }
