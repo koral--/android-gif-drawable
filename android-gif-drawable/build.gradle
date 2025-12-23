@@ -56,7 +56,7 @@ dependencies {
     testImplementation "org.khronos:opengl-api:$versions.openglApi"
     androidTestImplementation "junit:junit:$versions.junit"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
-    androidTestImplementation "org.assertj:assertj-core:$versions.assertj1"
+    androidTestImplementation "org.assertj:assertj-core:$versions.assertj3"
     androidTestImplementation "androidx.test.ext:junit:$versions.androidXextJunit"
     androidTestImplementation "com.squareup.okhttp3:mockwebserver:$versions.mockwebserver"
     androidTestImplementation "androidx.test:rules:$versions.androidxTest"
