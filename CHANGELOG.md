@@ -1,3 +1,9 @@
+#### 1.2.30
+- 2025-12-23 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.29...v1.2.30)
+- Fix double close by removing redundant close(fd) call when createGifInfoFromFile fails, fixes [(#845)](https://github.com/koral--/android-gif-drawable/issues/845), thanks @bijai for reporting 
+- Update NDK to 29.0.14206865
+- Update dependency versions
+
 #### 1.2.29
 - 2024-07-10 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.28...v1.2.29)
 - Update NDK to 26.3.11579264

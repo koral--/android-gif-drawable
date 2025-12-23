@@ -26,7 +26,7 @@ buildscript {
                 openglApi          : 'gl1.1-android-2.1_r1',
                 mockwebserver      : '5.3.2',
                 relinker           : '1.4.5',
-                mavenPublishPlugin : '0.29.0',
+                mavenPublishPlugin : '0.35.0',
         ]
     }
     repositories {
