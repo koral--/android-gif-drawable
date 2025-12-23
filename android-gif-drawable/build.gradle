@@ -21,6 +21,7 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
             cmake {
+                version versions.cmake
                 arguments "-DANDROID_PLATFORM=android-$versions.minSdk", "-DANDROID_STL=none"
                 cFlags '-std=c11', '-Weverything', '-Wall'
                 if (isDevelopmentBuild()) {
