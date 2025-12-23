@@ -71,7 +71,7 @@ def isDevelopmentBuild() {
 tasks.register('archiveSymbols', Tar) {
     def buildDirectory = layout.buildDirectory.asFile.get()
     from new File(buildDirectory, 'intermediates/cmake/release/obj')
-    archiveBaseName = "${project.archivesBaseName}-symbols"
+    archiveBaseName = "symbols"
     destinationDirectory = new File(buildDirectory, 'libs')
     archiveExtension = 'tar.gz'
     compression = Compression.GZIP
@@ -81,3 +81,7 @@ configurations.configureEach {
     resolutionStrategy.force "androidx.annotation:annotation:$versions.androidxAnnotations"
 }
 
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+}
