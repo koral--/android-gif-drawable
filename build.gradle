@@ -1,30 +1,31 @@
 buildscript {
     ext {
         versions = [
-                compileSdk         : 34,
-                targetSdk          : 34,
+                compileSdk         : 36,
+                targetSdk          : 36,
                 minSdk             : 21,
-                ndk                : '26.3.11579264',
-                androidxAppcompat  : '1.7.0',
+                ndk                : '29.0.14206865',
+                cmake              : '4.1.2',
+                androidxAppcompat  : '1.7.1',
                 lifecycle          : '2.8.3',
                 androidxAnnotations: '1.6.0',
-                androidxTest       : '1.6.1',
-                androidxTestRunner : '1.6.1',
-                coroutines         : '1.8.1',
+                androidxTest       : '1.7.0',
+                androidxTestRunner : '1.7.0',
+                coroutines         : '1.10.2',
                 leakCanary         : '2.14',
-                kotlin             : '2.0.0',
+                kotlin             : '2.3.0',
                 intellijAnnotations: '13.0',
-                material           : '1.12.0',
-                androidXextJunit   : '1.2.1',
-                androidGradlePlugin: '8.5.0',
+                material           : '1.13.0',
+                androidXextJunit   : '1.3.0',
+                androidGradlePlugin: '8.13.2',
                 junit              : '4.13.2',
-                mockito            : '5.12.0',
-                robolectric        : '4.10.3',
-                assertj3           : '3.24.2',
+                mockito            : '5.21.0',
+                robolectric        : '4.16',
+                assertj3           : '3.27.6',
                 assertj1           : '1.7.1',
                 concurrentunit     : '0.4.6',
                 openglApi          : 'gl1.1-android-2.1_r1',
-                mockwebserver      : '4.9.2',
+                mockwebserver      : '5.3.2',
                 relinker           : '1.4.5',
                 mavenPublishPlugin : '0.29.0',
         ]
@@ -42,7 +43,7 @@ buildscript {
 }
 
 plugins {
-    id 'org.jetbrains.kotlinx.binary-compatibility-validator' version '0.15.1'
+    id 'org.jetbrains.kotlinx.binary-compatibility-validator' version '0.18.1'
 }
 
 subprojects {

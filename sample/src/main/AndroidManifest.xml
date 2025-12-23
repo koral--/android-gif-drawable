@@ -14,11 +14,12 @@
 
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:hardwareAccelerated="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat"
-        tools:ignore="GoogleAppIndexingWarning,UnusedAttribute">
+        tools:ignore="DataExtractionRules,GoogleAppIndexingWarning,UnusedAttribute">
         <activity
             android:name="pl.droidsonroids.gif.sample.MainActivity"
             android:exported="true">
