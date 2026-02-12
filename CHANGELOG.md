@@ -1,3 +1,7 @@
+#### 1.2.31
+- 2026-02-12 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.30...v1.2.31)
+- Remove Kotlin dependency from library module, fixes [(#866)](https://github.com/koral--/android-gif-drawable/issues/866), thanks @beigirad for reporting
+
 #### 1.2.30
 - 2025-12-23 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.29...v1.2.30)
 - Fix double close by removing redundant close(fd) call when createGifInfoFromFile fails, fixes [(#845)](https://github.com/koral--/android-gif-drawable/issues/845), thanks @bijai for reporting 
