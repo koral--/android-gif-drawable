@@ -1,3 +1,9 @@
+#### 1.2.32
+- 2026-06-18 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.31...v1.2.32)
+- Fix use-after-free reading file size after ReleaseStringUTFChars in openFile, fixes [(#870)](https://github.com/koral--/android-gif-drawable/issues/870), thanks @Fuyugithub for reporting
+- Add missing intptr_t cast in openNativeFileDescriptor return, fixes [(#871)](https://github.com/koral--/android-gif-drawable/issues/871), thanks @Fuyugithub for reporting
+- Fix dangling pointer and leaks on eventfd failure in startDecoderThread, fixes [(#872)](https://github.com/koral--/android-gif-drawable/issues/872), thanks @Fuyugithub for reporting
+
 #### 1.2.31
 - 2026-02-12 - [commits](https://github.com/koral--/android-gif-drawable/compare/v1.2.30...v1.2.31)
 - Remove Kotlin dependency from library module, fixes [(#866)](https://github.com/koral--/android-gif-drawable/issues/866), thanks @beigirad for reporting
