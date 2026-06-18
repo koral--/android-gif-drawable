@@ -128,6 +128,9 @@ Java_pl_droidsonroids_gif_GifInfoHandle_startDecoderThread(JNIEnv *env, jclass _
 	texImageDescriptor->eventPollFd.events = POLL_IN;
 	texImageDescriptor->eventPollFd.fd = eventfd(0, 0);
 	if (texImageDescriptor->eventPollFd.fd == -1) {
+		info->frameBufferDescriptor = NULL;
+		free(texImageDescriptor->frameBuffer);
+		pthread_mutex_destroy(&texImageDescriptor->renderMutex);
 		free(texImageDescriptor);
 		throwException(env, RUNTIME_EXCEPTION_ERRNO, "Eventfd creation failed ");
 		return;
