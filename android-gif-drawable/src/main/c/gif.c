@@ -354,7 +354,7 @@ Java_pl_droidsonroids_gif_GifInfoHandle_openNativeFileDescriptor(JNIEnv *env, jc
 		if (info == NULL) {
 			fclose(file);
 		}
-		return (jlong) info;
+		return (jlong) (intptr_t) info;
 	} else {
 		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
 		close(fd);
