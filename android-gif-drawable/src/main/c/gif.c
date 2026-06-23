@@ -324,12 +324,12 @@ Java_pl_droidsonroids_gif_GifInfoHandle_extractNativeFileDescriptor(JNIEnv *env,
 	}
 	const jint oldFd = (*env)->GetIntField(env, fileDescriptor, fdClassDescriptorFieldID);
     const int fd = dup(oldFd);
-	if (fd == -1) {
-		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
-	}
 	if (closeOriginalDescriptor == JNI_TRUE) {
         close(oldFd);
     }
+	if (fd == -1) {
+		throwGifIOException(D_GIF_ERR_OPEN_FAILED, env, true);
+	}
 	return fd;
 }
 

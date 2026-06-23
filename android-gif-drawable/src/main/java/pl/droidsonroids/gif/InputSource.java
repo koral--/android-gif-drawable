@@ -169,6 +169,8 @@ public abstract class InputSource {
 
 		/**
 		 * Constructs new source.
+		 * The library takes ownership of the descriptor and closes it. Do not close or reuse
+		 * {@code fileDescriptor} after passing it here.
 		 *
 		 * @param fileDescriptor source file descriptor
 		 */
@@ -190,6 +192,8 @@ public abstract class InputSource {
 
 		/**
 		 * Constructs new source.
+		 * The library takes ownership of the stream and closes it. Do not close it yourself after
+		 * passing it here.
 		 *
 		 * @param inputStream source input stream, it must support marking
 		 */
@@ -235,6 +239,8 @@ public abstract class InputSource {
 
 		/**
 		 * Constructs new source.
+		 * The library takes ownership of {@code assetFileDescriptor} and closes it. Do not close or
+		 * reuse it after passing it here.
 		 *
 		 * @param assetFileDescriptor source asset file descriptor.
 		 */

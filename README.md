@@ -149,9 +149,10 @@ GifDrawable gifFromStream = new GifDrawable( bis );
 ByteBuffer rawGifBytes = ...
 GifDrawable gifFromBytes = new GifDrawable( rawGifBytes );	
 ````
-InputStreams are closed automatically in finalizer if GifDrawable is no longer needed 
-so you don't need to explicitly close them. Calling `recycle()` will also close 
-underlying input source. 
+When you pass an `InputStream`, `FileDescriptor` or `AssetFileDescriptor`, the library takes ownership
+of it and closes it, so you don't need to (and must not) close it yourself. `InputStream`s are closed
+automatically in the finalizer if the `GifDrawable` is no longer needed; calling `recycle()` will also
+close the underlying input source. 
 
 Note that all input sources need to have ability to rewind to the beginning. It is required to correctly play animated GIFs 
 (where animation is repeatable) since subsequent frames are decoded on demand from source.

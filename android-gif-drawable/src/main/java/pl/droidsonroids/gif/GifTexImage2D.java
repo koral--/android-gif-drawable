@@ -25,6 +25,8 @@ public class GifTexImage2D {
 	/**
 	 * Constructs new GifTexImage2D.
 	 * Decoder thread is initially stopped, use {@link #startDecoderThread()} to start it.
+	 * File descriptors, asset file descriptors and input streams wrapped by {@code inputSource} are
+	 * taken over and closed by the library.
 	 *
 	 * @param inputSource source
 	 * @param options     null-ok; options controlling parameters like subsampling and opacity

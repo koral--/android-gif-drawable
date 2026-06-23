@@ -139,6 +139,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Creates drawable from InputStream.
 	 * InputStream must support marking, IllegalArgumentException will be thrown otherwise.
+	 * The library takes ownership of the stream and closes it. Do not close it yourself after
+	 * passing it here.
 	 *
 	 * @param stream stream to read from
 	 * @throws IOException              when opening failed
@@ -152,6 +154,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 	/**
 	 * Creates drawable from AssetFileDescriptor.
 	 * Convenience wrapper for {@link GifDrawable#GifDrawable(FileDescriptor)}
+	 * The library takes ownership of {@code afd} and closes it. Do not close or reuse it after
+	 * passing it here.
 	 *
 	 * @param afd source
 	 * @throws NullPointerException if afd is null
@@ -163,6 +167,8 @@ public class GifDrawable extends Drawable implements Animatable, MediaPlayerCont
 
 	/**
 	 * Creates drawable from FileDescriptor
+	 * The library takes ownership of {@code fd} and closes it. Do not close or reuse it after
+	 * passing it here.
 	 *
 	 * @param fd source
 	 * @throws IOException          when opening failed

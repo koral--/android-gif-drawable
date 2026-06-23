@@ -19,6 +19,9 @@ import pl.droidsonroids.gif.annotations.Beta;
 
 /**
  * The base class for using the builder pattern with subclasses.
+ * <p>
+ * {@code from(FileDescriptor)}, {@code from(AssetFileDescriptor)} and {@code from(InputStream)} take
+ * ownership of the passed resource and close it; do not close or reuse it afterwards.
  *
  * @param <T> The type of the builder that is a subclass of this class.
  * @see <a href="https://community.oracle.com/blogs/emcmanus/2010/10/24/using-builder-pattern-subclasses">link</a>
