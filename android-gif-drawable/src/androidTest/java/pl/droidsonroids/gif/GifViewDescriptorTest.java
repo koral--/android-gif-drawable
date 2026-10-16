@@ -13,7 +13,8 @@ import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import pl.droidsonroids.gif.test.R;
 
-import static pl.droidsonroids.gif.GifDrawableAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class GifViewDescriptorTest {
@@ -32,25 +33,29 @@ public class GifViewDescriptorTest {
 	@Test
 	public void loopCountSetOnGifImageButton() {
 		final GifImageButton view = rootView.findViewById(R.id.imageButton);
-		assertThat(view.getBackground()).hasLoopCountEqualTo(IMAGE_BUTTON_LOOP_COUNT);
-		assertThat(view.getDrawable()).hasLoopCountEqualTo(IMAGE_BUTTON_LOOP_COUNT);
+		assertLoopCount(IMAGE_BUTTON_LOOP_COUNT, view.getBackground());
+		assertLoopCount(IMAGE_BUTTON_LOOP_COUNT, view.getDrawable());
 	}
 
 	@Test
 	public void loopCountSetOnGifImageView() {
 		final GifImageView view = rootView.findViewById(R.id.imageView);
-		assertThat(view.getBackground()).hasLoopCountEqualTo(IMAGE_VIEW_LOOP_COUNT);
-		assertThat(view.getDrawable()).hasLoopCountEqualTo(IMAGE_VIEW_LOOP_COUNT);
+		assertLoopCount(IMAGE_VIEW_LOOP_COUNT, view.getBackground());
+		assertLoopCount(IMAGE_VIEW_LOOP_COUNT, view.getDrawable());
 	}
 
 	@Test
 	public void loopCountSetOnGifTextView() {
 		final GifTextView view = rootView.findViewById(R.id.textView);
 
-		assertThat(view.getBackground()).hasLoopCountEqualTo(TEXT_VIEW_LOOP_COUNT);
+		assertLoopCount(TEXT_VIEW_LOOP_COUNT, view.getBackground());
 		for (final Drawable drawable : view.getCompoundDrawablesRelative()) {
-			assertThat(drawable).hasLoopCountEqualTo(TEXT_VIEW_LOOP_COUNT);
+			assertLoopCount(TEXT_VIEW_LOOP_COUNT, drawable);
 		}
 	}
 
+	private static void assertLoopCount(final int expectedLoopCount, final Drawable drawable) {
+		assertTrue(drawable instanceof GifDrawable);
+		assertEquals(expectedLoopCount, ((GifDrawable) drawable).getLoopCount());
+	}
 }

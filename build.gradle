@@ -24,7 +24,6 @@ buildscript {
                 assertj3           : '3.27.6',
                 concurrentunit     : '0.4.6',
                 openglApi          : 'gl1.1-android-2.1_r1',
-                mockwebserver      : '5.3.2',
                 relinker           : '1.4.5',
                 mavenPublishPlugin : '0.35.0',
         ]
