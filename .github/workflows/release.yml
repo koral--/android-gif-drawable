@@ -1,0 +1,128 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version already merged on the default branch, without the v prefix (e.g. 1.2.33)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Test release script
+        run: node --test .github/scripts/release.test.js
+
+      - name: Check the merged version and release notes
+        env:
+          VERSION: ${{ inputs.version }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: node .github/scripts/release.js check-release
+
+  build:
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Publish GitHub release
+    if: github.repository == 'koral--/android-gif-drawable'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Tag and create GitHub release
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node .github/scripts/release.js notes > "$RUNNER_TEMP/release-notes.md"
+          git tag "v$VERSION" "$GITHUB_SHA"
+          git push origin "v$VERSION"
+          gh release create "v$VERSION" \
+            --verify-tag --title "v$VERSION" --notes-file "$RUNNER_TEMP/release-notes.md"
+
+  publish:
+    name: Publish to Maven Central
+    if: github.repository == 'koral--/android-gif-drawable'
+    needs: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      # Attaching the artifacts to the GitHub release
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+      SIGNING_IN_MEMORY_KEY_ID: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
+      SIGNING_IN_MEMORY_KEY_PASSWORD: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: v${{ inputs.version }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - uses: ./.github/actions/setup-android
+
+      # Empty Gradle properties are not the same as absent ones, so the optional ones are set only when present
+      - name: Configure optional signing properties
+        run: |
+          if [ -n "$SIGNING_IN_MEMORY_KEY_ID" ]; then
+            echo "ORG_GRADLE_PROJECT_signingInMemoryKeyId=$SIGNING_IN_MEMORY_KEY_ID" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$SIGNING_IN_MEMORY_KEY_PASSWORD" ]; then
+            echo "ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=$SIGNING_IN_MEMORY_KEY_PASSWORD" >> "$GITHUB_ENV"
+          fi
+
+      - name: Attach artifacts to the GitHub release
+        run: |
+          ./gradlew :android-gif-drawable:publishToMavenLocal --stacktrace
+          dir="$HOME/.m2/repository/pl/droidsonroids/gif/android-gif-drawable/$VERSION"
+          gh release upload "v$VERSION" --clobber \
+            "$dir/android-gif-drawable-$VERSION.aar" \
+            "$dir/android-gif-drawable-$VERSION-sources.jar" \
+            "$dir/android-gif-drawable-$VERSION-javadoc.jar"
+
+      - name: Publish and release to Maven Central
+        run: |
+          if node .github/scripts/release.js is-published-central; then
+            echo "Version $VERSION is already published to Maven Central, skipping."
+          else
+            ./gradlew publishAndReleaseToMavenCentral --stacktrace
+          fi

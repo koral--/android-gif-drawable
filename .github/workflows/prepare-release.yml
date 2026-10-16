@@ -1,0 +1,76 @@
+name: Prepare release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, without the v prefix (e.g. 1.2.33)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      VERSION: ${{ inputs.version }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Test release script
+        run: node --test .github/scripts/release.test.js
+
+      - name: Validate the release version
+        run: node .github/scripts/release.js check-prepare
+
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --match "v*" --abbrev=0)
+          echo "PREVIOUS_TAG=$PREVIOUS_TAG" >> "$GITHUB_ENV"
+          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" -X POST \
+            -f tag_name="v$VERSION" \
+            -f target_commitish="$GITHUB_SHA" \
+            -f previous_tag_name="$PREVIOUS_TAG" \
+            --jq .body > "$RUNNER_TEMP/release-notes.md"
+
+      - name: Update versions and changelog
+        run: node .github/scripts/release.js prepare "$RUNNER_TEMP/release-notes.md"
+
+      - name: Push the release branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add gradle.properties README.md CHANGELOG.md
+          git commit -m "Release $VERSION"
+          # Force because the branch is generated: re-running for the same version
+          # after an aborted attempt would otherwise fail non-fast-forward.
+          git push --force origin "HEAD:refs/heads/release/v$VERSION"
+
+      - name: Link the release pull request
+        run: |
+          {
+            echo "## Release $VERSION prepared"
+            echo
+            echo "1. [Open the pull request](https://github.com/$GITHUB_REPOSITORY/compare/$DEFAULT_BRANCH...release/v$VERSION?expand=1) and label it \`ignore-for-release\`."
+            echo "2. Edit the \`$VERSION\` entry in CHANGELOG.md on the release branch. Bullets come only from merged pull requests,"
+            echo "   so add direct commits and credits (e.g. \`thanks @user for reporting\`). A \`TODO\` placeholder blocks the release."
+            echo "3. Merge once CI passes."
+            echo "4. Run the Release workflow on $DEFAULT_BRANCH with version $VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
