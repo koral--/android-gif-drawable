@@ -13,7 +13,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import pl.droidsonroids.gif.test.R;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
 public class InputStreamTest {
@@ -27,13 +27,13 @@ public class InputStreamTest {
 		final int bufferedByteCount = inputStream.read(buffer);
 		inputStream.close();
 		assetFileDescriptor.close();
-		assertThat(bufferedByteCount).isEqualTo(buffer.length);
+		assertEquals(buffer.length, bufferedByteCount);
 
 		final InputStream responseStream = new ByteArrayInputStream(buffer);
 
 		final GifDrawable gifDrawable = new GifDrawable(responseStream);
-		assertThat(gifDrawable.getError()).isEqualTo(GifError.NO_ERROR);
-		assertThat(gifDrawable.getIntrinsicWidth()).isEqualTo(278);
-		assertThat(gifDrawable.getIntrinsicHeight()).isEqualTo(183);
+		assertEquals(GifError.NO_ERROR, gifDrawable.getError());
+		assertEquals(278, gifDrawable.getIntrinsicWidth());
+		assertEquals(183, gifDrawable.getIntrinsicHeight());
 	}
 }
