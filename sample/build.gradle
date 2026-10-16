@@ -1,35 +1,37 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+}
 
 android {
-    ndkVersion versions.ndk
-    compileSdkVersion versions.compileSdk
+    namespace = 'pl.droidsonroids.gif.sample'
+    ndkVersion = libs.versions.ndk.get()
+    compileSdk = libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
-        versionName project.version
-        minSdkVersion versions.minSdk
-        targetSdkVersion versions.targetSdk
-        versionCode 1
-        applicationId 'pl.droidsonroids.gif.sample'
+        applicationId = 'pl.droidsonroids.gif.sample'
+        versionName = project.version
+        versionCode = 1
+        minSdk = libs.versions.minSdk.get().toInteger()
+        targetSdk = libs.versions.targetSdk.get().toInteger()
     }
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.debug
         }
         debug {
-            jniDebuggable true
+            jniDebuggable = true
         }
     }
 
-    packagingOptions {
+    packaging {
         jniLibs {
-            useLegacyPackaging true
+            useLegacyPackaging = true
         }
     }
-    namespace 'pl.droidsonroids.gif.sample'
     lint {
         disable 'AppCompatCustomView'
     }
@@ -40,14 +42,13 @@ kotlin {
 }
 
 dependencies {
-    compileOnly "org.jetbrains:annotations:$versions.intellijAnnotations"
-    debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakCanary"
-    implementation "com.google.android.material:material:$versions.material"
-    implementation "androidx.appcompat:appcompat:$versions.androidxAppcompat"
-    implementation "androidx.lifecycle:lifecycle-common:$versions.lifecycle"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.coroutines"
+    compileOnly libs.jetbrains.annotations
+    debugImplementation libs.leakcanary
+    implementation libs.material
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.lifecycle.common
+    implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.coroutines.android
     implementation project(':android-gif-drawable')
     //implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
 }

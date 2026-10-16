@@ -1,0 +1,63 @@
+[versions]
+compileSdk = "36"
+targetSdk = "36"
+minSdk = "21"
+# Also installed on CI by .github/actions/setup-android
+ndk = "29.0.14206865"
+cmake = "4.1.2"
+
+androidGradlePlugin = "8.13.2"
+kotlin = "2.3.0"
+mavenPublishPlugin = "0.35.0"
+binaryCompatibilityValidator = "0.18.1"
+
+# Consumer-facing, published in the POM, kept at the oldest version that works
+relinker = "1.4.5"
+
+androidxAnnotation = "1.6.0"
+
+androidxAppcompat = "1.7.1"
+lifecycle = "2.8.3"
+material = "1.13.0"
+coroutines = "1.10.2"
+leakCanary = "2.14"
+jetbrainsAnnotations = "13.0"
+
+junit = "4.13.2"
+mockito = "5.21.0"
+robolectric = "4.16"
+assertj = "3.27.6"
+concurrentunit = "0.4.6"
+openglApi = "gl1.1-android-2.1_r1"
+androidxTestExtJunit = "1.3.0"
+androidxTestRules = "1.7.0"
+androidxTestRunner = "1.7.0"
+
+[libraries]
+relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
+
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
+androidx-lifecycle-common = { module = "androidx.lifecycle:lifecycle-common", version.ref = "lifecycle" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakCanary" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotations" }
+
+junit = { module = "junit:junit", version.ref = "junit" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+concurrentunit = { module = "net.jodah:concurrentunit", version.ref = "concurrentunit" }
+opengl-api = { module = "org.khronos:opengl-api", version.ref = "openglApi" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExtJunit" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTestRules" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublishPlugin" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
