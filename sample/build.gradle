@@ -13,20 +13,11 @@ android {
         applicationId 'pl.droidsonroids.gif.sample'
     }
 
-    signingConfigs {
-        release {
-            storeFile new File("$System.env.HOME/.android/debug.keystore")
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.debug
         }
         debug {
             jniDebuggable true
