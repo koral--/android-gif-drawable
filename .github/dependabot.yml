@@ -24,7 +24,9 @@ updates:
       - dependency-name: com.getkeepsafe.relinker:relinker
     groups:
       build:
+        # AGP requires a minimum Gradle version and drops support for newer ones, so they are updated together
         patterns:
+          - gradle-wrapper
           - com.android.*
           - org.jetbrains.kotlin.android*
           - com.vanniktech*
