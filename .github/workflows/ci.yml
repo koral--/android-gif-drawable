@@ -47,8 +47,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The lowest level the androidTest dependencies run on (AssertJ 3 needs java.util.Spliterators) and the target SDK
-        api-level: [24, 36]
+        # The lowest level the androidTest dependencies run on (AssertJ 3 needs java.time) and the target SDK
+        api-level: [26, 36]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
