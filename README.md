@@ -1,11 +1,11 @@
 ![horizontal.png](https://cdn.steemitimages.com/DQmacEdVnEf1f2GDZ4uga1evN3FzujdR4zbkqmiV7NscPBs/horizontal.png)
 ====================
 [![Maven Central](https://img.shields.io/maven-central/v/pl.droidsonroids.gif/android-gif-drawable.svg)](https://central.sonatype.com/artifact/pl.droidsonroids.gif/android-gif-drawable)
-[![Build Status](https://app.bitrise.io/app/78fd40a5596e97e7/status.svg?token=SMUtlPklcIRBODd513ZdiQ)](https://app.bitrise.io/app/78fd40a5596e97e7)
+[![CI](https://github.com/koral--/android-gif-drawable/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/koral--/android-gif-drawable/actions/workflows/ci.yml?query=branch%3Adev)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-android--gif--drawable-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1147)
 [![Android-Libs](https://img.shields.io/badge/Android--Libs-android--gif--drawable-orange.svg?style=flat)](http://android-libs.com/lib/android-gif-drawable)
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
-[![API](https://img.shields.io/badge/API-17%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=17)
+[![API](https://img.shields.io/badge/API-21%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/koral--/android-gif-drawable/badge)](https://api.securityscorecards.dev/projects/github.com/koral--/android-gif-drawable)
 
