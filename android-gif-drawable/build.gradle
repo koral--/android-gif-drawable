@@ -1,27 +1,31 @@
-apply plugin: 'com.android.library'
-apply plugin: 'com.vanniktech.maven.publish'
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.maven.publish)
+}
 
 group = 'pl.droidsonroids.gif'
 description = 'Views and Drawable for displaying animated GIFs for Android'
 
 android {
-    ndkVersion versions.ndk
-    compileSdkVersion versions.compileSdk
+    namespace = 'pl.droidsonroids.gif'
+    testNamespace = 'pl.droidsonroids.gif.test'
+    ndkVersion = libs.versions.ndk.get()
+    compileSdk = libs.versions.compileSdk.get().toInteger()
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     defaultConfig {
-        minSdkVersion versions.minSdk
-        targetSdkVersion versions.targetSdk
+        minSdk = libs.versions.minSdk.get().toInteger()
+        targetSdk = libs.versions.targetSdk.get().toInteger()
         consumerProguardFiles 'consumer-proguard-rules.pro'
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
             cmake {
-                version versions.cmake
-                arguments "-DANDROID_PLATFORM=android-$versions.minSdk", "-DANDROID_STL=none"
+                version = libs.versions.cmake.get()
+                arguments "-DANDROID_PLATFORM=android-${libs.versions.minSdk.get()}", "-DANDROID_STL=none"
                 cFlags '-std=c11', '-Weverything', '-Wall'
                 if (isDevelopmentBuild()) {
                     cFlags '-DDEBUG', '-g'
@@ -33,31 +37,29 @@ android {
     }
     externalNativeBuild {
         cmake {
-            path 'src/main/c/CMakeLists.txt'
+            path = 'src/main/c/CMakeLists.txt'
         }
     }
     testOptions {
         unitTests.returnDefaultValues = true
     }
-    namespace 'pl.droidsonroids.gif'
-    testNamespace 'pl.droidsonroids.gif.test'
 }
 
 dependencies {
-    implementation "com.getkeepsafe.relinker:relinker:$versions.relinker"
-    compileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
-    testCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
-    testImplementation "junit:junit:$versions.junit"
-    testImplementation "org.mockito:mockito-core:$versions.mockito"
-    testImplementation "org.robolectric:robolectric:$versions.robolectric"
-    testImplementation "org.assertj:assertj-core:$versions.assertj3"
-    testImplementation "net.jodah:concurrentunit:$versions.concurrentunit"
-    testImplementation "org.khronos:opengl-api:$versions.openglApi"
-    androidTestImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "androidx.test.ext:junit:$versions.androidXextJunit"
-    androidTestImplementation "androidx.test:rules:$versions.androidxTest"
-    androidTestImplementation "androidx.test:runner:$versions.androidxTestRunner"
-    androidTestCompileOnly "androidx.annotation:annotation:$versions.androidxAnnotations"
+    implementation libs.relinker
+    compileOnly libs.androidx.annotation
+    testCompileOnly libs.androidx.annotation
+    testImplementation libs.junit
+    testImplementation libs.mockito.core
+    testImplementation libs.robolectric
+    testImplementation libs.assertj.core
+    testImplementation libs.concurrentunit
+    testImplementation libs.opengl.api
+    androidTestImplementation libs.junit
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.runner
+    androidTestCompileOnly libs.androidx.annotation
 }
 
 def isDevelopmentBuild() {
@@ -74,7 +76,7 @@ tasks.register('archiveSymbols', Tar) {
 }
 
 configurations.configureEach {
-    resolutionStrategy.force "androidx.annotation:annotation:$versions.androidxAnnotations"
+    resolutionStrategy.force libs.androidx.annotation.get().toString()
 }
 
 mavenPublishing {

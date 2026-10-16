@@ -1,5 +1,5 @@
 name: Set up Android build
-description: Installs the JDK and the NDK and CMake versions declared in build.gradle
+description: Installs the JDK and the NDK and CMake versions declared in the version catalog
 
 runs:
   using: composite
@@ -16,10 +16,10 @@ runs:
     - name: Install NDK and CMake
       shell: bash
       run: |
-        ndk=$(sed -nE "s/^[[:space:]]*ndk[[:space:]]*:[[:space:]]*'([^']+)'.*/\1/p" build.gradle)
-        cmake=$(sed -nE "s/^[[:space:]]*cmake[[:space:]]*:[[:space:]]*'([^']+)'.*/\1/p" build.gradle)
+        ndk=$(sed -nE 's/^ndk[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' gradle/libs.versions.toml)
+        cmake=$(sed -nE 's/^cmake[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' gradle/libs.versions.toml)
         if [ -z "$ndk" ] || [ -z "$cmake" ]; then
-          echo "::error::Could not read the NDK and CMake versions from build.gradle"
+          echo "::error::Could not read the NDK and CMake versions from gradle/libs.versions.toml"
           exit 1
         fi
         echo "Installing NDK $ndk and CMake $cmake"

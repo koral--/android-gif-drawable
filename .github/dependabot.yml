@@ -1,0 +1,42 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      # Published in the POM, consumers should be able to use the oldest version that works
+      - dependency-name: com.getkeepsafe.relinker:relinker
+    groups:
+      build:
+        patterns:
+          - com.android.*
+          - org.jetbrains.kotlin.android*
+          - com.vanniktech*
+          - org.jetbrains.kotlinx.binary-compatibility-validator*
+      test:
+        patterns:
+          - junit:*
+          - org.mockito:*
+          - org.robolectric:*
+          - org.assertj:*
+          - net.jodah:*
+          - androidx.test*
+      other:
+        patterns:
+          - '*'
