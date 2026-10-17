@@ -112,12 +112,15 @@ jobs:
 
       - name: Attach artifacts to the GitHub release
         run: |
-          ./gradlew :android-gif-drawable:publishToMavenLocal --stacktrace
+          ./gradlew :android-gif-drawable:publishToMavenLocal :android-gif-drawable:archiveSymbols --stacktrace
           dir="$HOME/.m2/repository/pl/droidsonroids/gif/android-gif-drawable/$VERSION"
+          symbols="android-gif-drawable/build/outputs/native-debug-symbols/android-gif-drawable-symbols-$VERSION.tar.gz"
+          .github/scripts/check-native-libraries.sh "$dir/android-gif-drawable-$VERSION.aar" "$symbols"
           gh release upload "v$VERSION" --clobber \
             "$dir/android-gif-drawable-$VERSION.aar" \
             "$dir/android-gif-drawable-$VERSION-sources.jar" \
-            "$dir/android-gif-drawable-$VERSION-javadoc.jar"
+            "$dir/android-gif-drawable-$VERSION-javadoc.jar" \
+            "$symbols"
 
       - name: Publish and release to Maven Central
         run: |

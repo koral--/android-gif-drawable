@@ -66,6 +66,11 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
+Releases include `android-gif-drawable-symbols-<version>.tar.gz` with unstripped native libraries,
+for symbolicating native crashes, e.g. with [ndk-stack](https://developer.android.com/ndk/guides/ndk-stack)
+or by adding them to the native debug symbols uploaded to Google Play or Crashlytics.
+They match the libraries from Maven Central by build ID.
+
 ### Requirements
 + Android 4.2+ (API level 17+)
 + for `GifTextureView` hardware-accelerated rendering

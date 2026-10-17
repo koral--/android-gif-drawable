@@ -1,3 +1,5 @@
+import com.android.build.api.artifact.SingleArtifact
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.maven.publish)
@@ -72,13 +74,20 @@ def isDevelopmentBuild() {
     return project.findProperty('android.injected.invoked.from.ide') == 'true'
 }
 
-tasks.register('archiveSymbols', Tar) {
-    def buildDirectory = layout.buildDirectory.asFile.get()
-    from new File(buildDirectory, 'intermediates/cmake/release/obj')
-    archiveBaseName = "symbols"
-    destinationDirectory = new File(buildDirectory, 'libs')
-    archiveExtension = 'tar.gz'
-    compression = Compression.GZIP
+androidComponents {
+    onVariants(selector().withBuildType('release')) { variant ->
+        // Unstripped native libraries for symbolicating native crashes, attached to GitHub releases
+        tasks.register('archiveSymbols', Tar) {
+            from variant.artifacts.get(SingleArtifact.MERGED_NATIVE_LIBS.INSTANCE).map { it.dir('lib') }
+            archiveBaseName = 'android-gif-drawable-symbols'
+            archiveVersion = providers.gradleProperty('VERSION_NAME')
+            destinationDirectory = layout.buildDirectory.dir('outputs/native-debug-symbols')
+            archiveExtension = 'tar.gz'
+            compression = Compression.GZIP
+            preserveFileTimestamps = false
+            reproducibleFileOrder = true
+        }
+    }
 }
 
 configurations.configureEach {
