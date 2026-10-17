@@ -38,7 +38,10 @@ android {
                 if (isDevelopmentBuild()) {
                     cFlags '-DDEBUG', '-g'
                 } else {
-                    cFlags '-DNDEBUG', '-Os', '-g0', '-fvisibility=hidden'
+                    // Optimization and debug info come from the CMake build type, flags set here are overridden by it.
+                    // Release builds are RelWithDebInfo (-O2 -g), the debug info goes to the symbols archive
+                    // and is stripped from the AAR.
+                    cFlags '-DNDEBUG', '-fvisibility=hidden'
                 }
             }
         }
