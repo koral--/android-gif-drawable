@@ -21,7 +21,6 @@ lifecycle = "2.8.3"
 material = "1.13.0"
 coroutines = "1.10.2"
 leakCanary = "2.14"
-jetbrainsAnnotations = "13.0"
 
 junit = "4.13.2"
 mockito = "5.24.0"
@@ -43,7 +42,6 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakCanary" }
-jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotations" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }

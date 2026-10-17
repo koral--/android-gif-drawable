@@ -41,7 +41,6 @@ kotlin {
 }
 
 dependencies {
-    compileOnly libs.jetbrains.annotations
     debugImplementation libs.leakcanary
     implementation libs.material
     implementation libs.androidx.appcompat
