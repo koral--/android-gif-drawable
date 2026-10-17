@@ -11,6 +11,8 @@ android {
     testNamespace = 'pl.droidsonroids.gif.test'
     ndkVersion = libs.versions.ndk.get()
     compileSdk = libs.versions.compileSdk.get().toInteger()
+    // No Kotlin sources, so no Kotlin stdlib dependency in the POM
+    enableKotlin = false
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -21,6 +23,10 @@ android {
         minSdk = libs.versions.minSdk.get().toInteger()
         targetSdk = libs.versions.targetSdk.get().toInteger()
         consumerProguardFiles 'consumer-proguard-rules.pro'
+        // AGP 9 defaults it to our compileSdk, but consumers can compile against any SDK down to minSdk
+        aarMetadata {
+            minCompileSdk = libs.versions.minSdk.get().toInteger()
+        }
         testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
             cmake {
