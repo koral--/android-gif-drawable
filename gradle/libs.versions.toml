@@ -2,6 +2,8 @@
 compileSdk = "37"
 targetSdk = "36"
 minSdk = "21"
+# AndroidX and Material dropped API 21 and 22
+sampleMinSdk = "23"
 # Also installed on CI by .github/actions/setup-android
 ndk = "30.0.16248370"
 cmake = "4.1.2"

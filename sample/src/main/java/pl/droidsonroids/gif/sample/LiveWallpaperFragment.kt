@@ -45,10 +45,7 @@ class LiveWallpaperFragment : Fragment() {
                 else -> true
             }
 
-            val isWallpaperSupportedForUser = when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> wallpaperManager.isWallpaperSupported
-                else -> true
-            }
+            val isWallpaperSupportedForUser = wallpaperManager.isWallpaperSupported
             val isLiveWallpaperSupportedBySystem = packageManager.hasSystemFeature(PackageManager.FEATURE_LIVE_WALLPAPER)
 
             return isLiveWallpaperSupportedBySystem && isWallpaperSupportedForUser && isSetWallpaperAllowed
