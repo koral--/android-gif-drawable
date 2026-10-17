@@ -3,7 +3,7 @@ compileSdk = "36"
 targetSdk = "36"
 minSdk = "21"
 # Also installed on CI by .github/actions/setup-android
-ndk = "29.0.14206865"
+ndk = "30.0.16248370"
 cmake = "4.1.2"
 
 androidGradlePlugin = "9.4.1"
