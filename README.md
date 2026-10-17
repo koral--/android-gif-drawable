@@ -72,7 +72,7 @@ or by adding them to the native debug symbols uploaded to Google Play or Crashly
 They match the libraries from Maven Central by build ID.
 
 ### Requirements
-+ Android 4.2+ (API level 17+)
++ Android 5.0+ (API level 21+)
 + for `GifTextureView` hardware-accelerated rendering
 + for `GifTexImage2D` OpenGL ES 2.0+
 
