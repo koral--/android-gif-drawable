@@ -32,7 +32,6 @@ android {
         testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
             cmake {
-                version = libs.versions.cmake.get()
                 arguments "-DANDROID_PLATFORM=android-${libs.versions.minSdk.get()}", "-DANDROID_STL=none"
                 cFlags '-std=c11', '-Weverything', '-Wall'
                 if (isDevelopmentBuild()) {
@@ -49,6 +48,7 @@ android {
     externalNativeBuild {
         cmake {
             path = 'src/main/c/CMakeLists.txt'
+            version = libs.versions.cmake.get()
         }
     }
     testOptions {
