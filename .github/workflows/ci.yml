@@ -24,8 +24,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Test release script
-        run: node --test .github/scripts/release.test.js
+      - name: Test scripts
+        run: node --test .github/scripts/release.test.js .github/scripts/sdk-updates.test.js
 
       - uses: ./.github/actions/setup-android
 
