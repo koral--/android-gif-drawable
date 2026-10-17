@@ -1,4 +1,6 @@
 import com.android.build.api.artifact.SingleArtifact
+import kotlinx.validation.KotlinApiBuildTask
+import kotlinx.validation.KotlinApiCompareTask
 
 plugins {
     alias(libs.plugins.android.library)
@@ -91,6 +93,27 @@ androidComponents {
             reproducibleFileOrder = true
         }
     }
+}
+
+// The binary compatibility validator configures itself only for Kotlin modules, so its tasks are registered here
+def apiFile = layout.projectDirectory.file('api/android-gif-drawable.api')
+def apiBuild = tasks.register('apiBuild', KotlinApiBuildTask) {
+    inputClassesDirs.from(tasks.named('compileReleaseJavaWithJavac').flatMap { it.destinationDirectory })
+    outputApiFile = layout.buildDirectory.file('api/android-gif-drawable.api')
+}
+def apiCheck = tasks.register('apiCheck', KotlinApiCompareTask) {
+    group = 'verification'
+    description = 'Checks the public API against api/android-gif-drawable.api'
+    projectApiFile = apiFile
+    generatedApiFile = apiBuild.flatMap { it.outputApiFile }
+}
+tasks.register('apiDump', Copy) {
+    description = 'Updates api/android-gif-drawable.api with the current public API'
+    from apiBuild.flatMap { it.outputApiFile }
+    into apiFile.asFile.parentFile
+}
+tasks.named('check') {
+    dependsOn apiCheck
 }
 
 configurations.configureEach {
