@@ -30,10 +30,13 @@ jobs:
       - uses: ./.github/actions/setup-android
 
       - name: Build, lint, unit tests and API check
-        run: ./gradlew build --continue --stacktrace
+        run: ./gradlew build :android-gif-drawable:archiveSymbols --continue --stacktrace
 
       - name: Check native libraries
-        run: .github/scripts/check-native-libraries.sh android-gif-drawable/build/outputs/aar/android-gif-drawable-release.aar
+        run: |
+          .github/scripts/check-native-libraries.sh \
+            android-gif-drawable/build/outputs/aar/android-gif-drawable-release.aar \
+            android-gif-drawable/build/outputs/native-debug-symbols/android-gif-drawable-symbols-*.tar.gz
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
