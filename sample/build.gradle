@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -51,8 +50,4 @@ dependencies {
     implementation libs.kotlinx.coroutines.android
     implementation project(':android-gif-drawable')
     //implementation 'pl.droidsonroids.gif:android-gif-drawable:+'
-}
-
-apiValidation {
-    validationDisabled = true
 }

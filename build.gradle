@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.binary.compatibility.validator)
 }
 
+apiValidation {
+    ignoredProjects += 'sample'
+}
+
 subprojects {
     tasks.withType(JavaCompile).configureEach {
         options.compilerArgs << '-Xlint'
