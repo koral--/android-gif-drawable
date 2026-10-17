@@ -1,5 +1,5 @@
 [versions]
-compileSdk = "36"
+compileSdk = "37"
 targetSdk = "36"
 minSdk = "21"
 # Also installed on CI by .github/actions/setup-android
