@@ -1,5 +1,5 @@
+cmake_minimum_required(VERSION 3.22...4.1)
 project(androidGifDrawable)
-cmake_minimum_required(VERSION 3.4.1)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(can_use_assembler TRUE)
