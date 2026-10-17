@@ -16,12 +16,12 @@ binaryCompatibilityValidator = "0.18.2"
 # Consumer-facing, published in the POM, kept at the oldest version that works
 relinker = "1.4.5"
 
-androidxAnnotation = "1.6.0"
+androidxAnnotation = "1.11.0"
 
-androidxAppcompat = "1.7.1"
+androidxAppcompat = "1.8.0"
 lifecycle = "2.8.3"
-material = "1.13.0"
-coroutines = "1.10.2"
+material = "1.14.0"
+coroutines = "1.11.0"
 leakCanary = "2.14"
 
 junit = "4.13.2"
