@@ -6,10 +6,10 @@ minSdk = "21"
 ndk = "29.0.14206865"
 cmake = "4.1.2"
 
-androidGradlePlugin = "8.13.2"
-kotlin = "2.3.0"
-mavenPublishPlugin = "0.35.0"
-binaryCompatibilityValidator = "0.18.1"
+androidGradlePlugin = "9.4.1"
+kotlin = "2.4.21"
+mavenPublishPlugin = "0.37.0"
+binaryCompatibilityValidator = "0.18.2"
 
 # Consumer-facing, published in the POM, kept at the oldest version that works
 relinker = "1.4.5"
