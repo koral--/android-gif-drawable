@@ -8,7 +8,7 @@ sampleMinSdk = "23"
 ndk = "30.0.16248370"
 cmake = "4.1.2"
 
-androidGradlePlugin = "9.4.1"
+androidGradlePlugin = "9.5.0"
 kotlin = "2.4.21"
 mavenPublishPlugin = "0.37.0"
 binaryCompatibilityValidator = "0.18.2"
