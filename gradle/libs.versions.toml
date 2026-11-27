@@ -26,7 +26,7 @@ leakCanary = "2.14"
 
 junit = "4.13.2"
 mockito = "5.24.0"
-robolectric = "4.17"
+robolectric = "4.18.1"
 assertj = "3.27.7"
 concurrentunit = "0.4.6"
 openglApi = "gl1.1-android-2.1_r1"
